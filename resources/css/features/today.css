@@ -1,0 +1,80 @@
+/* "اليوم" — the home screen. NOT a dashboard: no stat-card row, no charts.
+   It answers four questions and nothing else (CLAUDE.md § 6, F22.1).
+   Sections fill up in phases 3-5; the shell is here so the answers have a home. */
+
+.today {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+    gap: var(--space-4);
+    align-items: start;
+}
+
+.today__section {
+    display: flex;
+    flex-direction: column;
+}
+
+/* The section heading carries the question, not a metric. */
+.today__q {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+}
+
+.today__q-text {
+    font-size: var(--text-base);
+    font-weight: var(--weight-bold);
+}
+
+.today__q-hint {
+    font-size: var(--text-sm);
+    color: var(--text-subtle);
+}
+
+/* Positioned so the absolute priority stripe anchors to the row rather than
+   the card behind it. */
+.today__row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding-block: var(--space-3);
+    padding-inline-start: calc(var(--stripe-width) + var(--space-4));
+    padding-inline-end: var(--space-4);
+    border-block-end: 1px solid var(--border);
+}
+
+.today__row:last-child {
+    border-block-end: 0;
+}
+
+.today__row-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.today__row-title {
+    font-size: var(--text-md);
+    font-weight: var(--weight-medium);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.today__row-meta {
+    margin-block-start: 2px;
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+}
+
+.today__greeting {
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-bold);
+}
+
+.today__date {
+    margin-block-start: var(--space-1);
+    font-size: var(--text-md);
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+}

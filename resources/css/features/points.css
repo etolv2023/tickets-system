@@ -1,0 +1,99 @@
+/* The points matrix (F18) and ratings (F17). */
+
+.matrix-cell {
+    display: flex;
+    justify-content: center;
+}
+
+.matrix-cell__input {
+    width: 4rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.matrix-cell__switch {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+/* ---- Ratings ---- */
+
+.rating {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 4rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-2);
+    padding-block: var(--space-2);
+    border-block-end: 1px solid var(--border);
+}
+
+.rating:last-of-type {
+    border-block-end: 0;
+}
+
+.rating__who {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    font-size: var(--text-md);
+}
+
+.rating__who small {
+    display: block;
+    font-size: var(--text-xs);
+}
+
+.rating__score {
+    width: 4rem;
+    text-align: center;
+}
+
+/* ---- My points / leaderboard ---- */
+
+.points-total {
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-bold);
+    font-variant-numeric: tabular-nums;
+}
+
+.points-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding-block: var(--space-3);
+    padding-inline: var(--space-4);
+    border-block-end: 1px solid var(--border);
+}
+
+.points-row:last-child {
+    border-block-end: 0;
+}
+
+/* Rank is data, not decoration — the top three are not gold/silver/bronze. */
+.points-row__rank {
+    width: 1.75rem;
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-md);
+    color: var(--text-subtle);
+    text-align: center;
+}
+
+.points-row__name {
+    flex: 1;
+    min-width: 0;
+}
+
+.points-row__points {
+    font-family: var(--font-mono);
+    font-weight: var(--weight-bold);
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 44rem) {
+    .rating {
+        grid-template-columns: 1fr;
+    }
+}

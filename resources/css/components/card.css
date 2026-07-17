@@ -1,0 +1,61 @@
+/* Card — hairline border, no shadow, 4px radius (CLAUDE.md § 6). */
+
+.card {
+    position: relative;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.card--interactive {
+    transition: border-color var(--transition), background-color var(--transition);
+}
+
+.card--interactive:hover {
+    border-color: var(--border-strong);
+}
+
+.card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding-block: var(--space-3);
+    padding-inline: var(--space-4);
+    border-block-end: 1px solid var(--border);
+}
+
+.card__title {
+    font-size: var(--text-base);
+    font-weight: var(--weight-bold);
+}
+
+.card__body {
+    padding: var(--space-4);
+}
+
+/* Rows sit flush; the divider is the hairline, not padding. */
+.card__body--flush {
+    padding: 0;
+}
+
+.card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    padding-block: var(--space-3);
+    padding-inline: var(--space-4);
+    border-block-start: 1px solid var(--border);
+    background-color: var(--surface-2);
+}
+
+/* Empty state — every list needs one, and it should say what to do next. */
+.card__empty {
+    padding-block: var(--space-6);
+    padding-inline: var(--space-4);
+    text-align: center;
+    color: var(--text-muted);
+    font-size: var(--text-md);
+}

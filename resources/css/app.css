@@ -1,0 +1,41 @@
+/* Entry point — imports only. Not one style rule lives here. CLAUDE.md § 3. */
+
+@import 'tailwindcss/base';
+
+@import './base/tokens.css';
+@import './base/reset.css';
+@import './base/typography.css';
+@import './base/rtl.css';
+
+@import 'tailwindcss/components';
+
+@import './components/layout.css';
+@import './components/nav.css';
+@import './components/button.css';
+@import './components/badge.css';
+@import './components/card.css';
+@import './components/table.css';
+@import './components/form.css';
+@import './components/avatar.css';
+@import './components/priority-stripe.css';
+@import './components/filters.css';
+@import './components/pagination.css';
+@import './components/editor.css';
+@import './components/prose.css';
+@import './components/uploader.css';
+@import './components/notification.css';
+
+@import './features/auth.css';
+@import './features/install.css';
+@import './features/today.css';
+@import './features/settings.css';
+@import './features/users.css';
+@import './features/ticket-list.css';
+@import './features/ticket-detail.css';
+@import './features/board.css';
+@import './features/subtasks.css';
+@import './features/timesheet.css';
+@import './features/calendar.css';
+@import './features/points.css';
+
+@import 'tailwindcss/utilities';

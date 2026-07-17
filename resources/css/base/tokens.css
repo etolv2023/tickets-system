@@ -1,0 +1,187 @@
+/* Design tokens — the single source of truth for every colour, space and size.
+   CLAUDE.md § 3: component files must never hardcode a hex or px value.
+   CLAUDE.md § 6: colour is semantic only. Chrome is blue-tinted grey. */
+
+:root {
+    /* ---- Semantic colours — the ONLY colours allowed to carry meaning ---- */
+    /* Priority */
+    --c-urgent: #dc2626;
+    --c-high: #ea580c;
+    --c-medium: #d97706;
+    --c-low: #64748b;
+    /* State */
+    --c-resolved: #059669;
+    --c-blocked: #7c2d12;
+    /* Type */
+    --c-bug: #e11d48;
+    --c-inquiry: #2563eb;
+    --c-feature: #7c3aed;
+    --c-module: #0d9488;
+
+    /* ---- Neutral chrome — derived from --c-low, deliberately blue-tinted ---- */
+    --n-50: #f8fafc;
+    --n-100: #f1f5f9;
+    --n-200: #e2e8f0;
+    --n-300: #cbd5e1;
+    --n-400: #94a3b8;
+    --n-500: #64748b;
+    --n-600: #475569;
+    --n-700: #334155;
+    --n-800: #1e293b;
+    --n-900: #0f172a;
+    --n-950: #020617;
+
+    /* ---- Surfaces ---- */
+    --bg: var(--n-50);
+    --surface: #ffffff;
+    --surface-2: var(--n-100);
+    --surface-3: var(--n-200);
+
+    /* ---- Text ---- */
+    --text: var(--n-900);
+    --text-muted: var(--n-500);
+    --text-subtle: var(--n-400);
+    --text-inverse: #ffffff;
+
+    /* ---- Borders — hairlines, never shadows (CLAUDE.md § 6) ---- */
+    --border: var(--n-200);
+    --border-strong: var(--n-300);
+
+    /* ---- Interactive: chrome-coloured, not decorative ---- */
+    --action: var(--n-900);
+    --action-hover: var(--n-800);
+    --action-text: #ffffff;
+    /* Focus ring is functional (a11y), not decoration — it may be blue. */
+    --focus: #2563eb;
+
+    /* ---- Badge derivation: every badge builds from one semantic colour ---- */
+    --badge-tint: 10%;
+    --badge-border-tint: 28%;
+
+    /* ---- Spacing ---- */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.5rem;
+    --space-6: 2rem;
+    --space-7: 3rem;
+
+    /* ---- Radius — 4px, not 16px (CLAUDE.md § 6) ---- */
+    --radius-sm: 2px;
+    --radius: 4px;
+    --radius-full: 9999px;
+
+    /* ---- Typography ---- */
+    --font-ar: 'Segoe UI Arabic', 'SF Arabic', 'Tahoma', system-ui, sans-serif;
+    --font-mono: ui-monospace, 'Cascadia Mono', 'Consolas', 'Courier New', monospace;
+
+    --text-xs: 0.6875rem;
+    --text-sm: 0.75rem;
+    --text-md: 0.8125rem;
+    --text-base: 0.875rem;
+    --text-lg: 1rem;
+    --text-xl: 1.125rem;
+    --text-2xl: 1.375rem;
+
+    --leading-tight: 1.3;
+    --leading-normal: 1.55;
+    --leading-relaxed: 1.75;
+
+    --weight-normal: 400;
+    --weight-medium: 500;
+    --weight-bold: 600;
+
+    /* ---- Elevation — restrained; used for overlays only ---- */
+    --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.05);
+    --shadow-md: 0 4px 12px rgb(15 23 42 / 0.09);
+
+    /* ---- Motion — short, purposeful (CLAUDE.md § 6) ---- */
+    --transition: 120ms ease;
+
+    /* ---- Layout ---- */
+    --nav-width: 13.5rem;
+    --stripe-width: 3px;
+
+    /* ---- Z scale ---- */
+    --z-nav: 20;
+    --z-dropdown: 40;
+    --z-modal: 60;
+    --z-toast: 80;
+}
+
+/* Dark mode — token redefinition only. No component knows dark mode exists.
+   Semantic hues are lightened so they stay legible on dark surfaces. */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+        --c-urgent: #f87171;
+        --c-high: #fb923c;
+        --c-medium: #fbbf24;
+        --c-low: #94a3b8;
+        --c-resolved: #34d399;
+        --c-blocked: #d97757;
+        --c-bug: #fb7185;
+        --c-inquiry: #60a5fa;
+        --c-feature: #a78bfa;
+        --c-module: #2dd4bf;
+
+        --bg: var(--n-950);
+        --surface: var(--n-900);
+        --surface-2: var(--n-800);
+        --surface-3: var(--n-700);
+
+        --text: var(--n-100);
+        --text-muted: var(--n-400);
+        --text-subtle: var(--n-500);
+
+        --border: var(--n-800);
+        --border-strong: var(--n-700);
+
+        --action: var(--n-100);
+        --action-hover: #ffffff;
+        --action-text: var(--n-900);
+        --focus: #60a5fa;
+
+        --badge-tint: 18%;
+        --badge-border-tint: 36%;
+
+        --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+        --shadow-md: 0 4px 12px rgb(0 0 0 / 0.45);
+    }
+}
+
+:root[data-theme='dark'] {
+    --c-urgent: #f87171;
+    --c-high: #fb923c;
+    --c-medium: #fbbf24;
+    --c-low: #94a3b8;
+    --c-resolved: #34d399;
+    --c-blocked: #d97757;
+    --c-bug: #fb7185;
+    --c-inquiry: #60a5fa;
+    --c-feature: #a78bfa;
+    --c-module: #2dd4bf;
+
+    --bg: var(--n-950);
+    --surface: var(--n-900);
+    --surface-2: var(--n-800);
+    --surface-3: var(--n-700);
+
+    --text: var(--n-100);
+    --text-muted: var(--n-400);
+    --text-subtle: var(--n-500);
+
+    --border: var(--n-800);
+    --border-strong: var(--n-700);
+
+    --action: var(--n-100);
+    --action-hover: #ffffff;
+    --action-text: var(--n-900);
+    --focus: #60a5fa;
+
+    --badge-tint: 18%;
+    --badge-border-tint: 36%;
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 12px rgb(0 0 0 / 0.45);
+}

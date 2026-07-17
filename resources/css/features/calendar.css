@@ -1,0 +1,267 @@
+/* The calendar, hand-built with CSS Grid. A calendar library is ~200KB for
+   something this is (PLAN.md § 8). F13 / F14 */
+
+.cal {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 1px;
+    background-color: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.cal__head {
+    padding-block: var(--space-2);
+    text-align: center;
+    background-color: var(--surface-2);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--text-muted);
+}
+
+.cal__day {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    min-height: 7rem;
+    padding: var(--space-2);
+    background-color: var(--surface);
+}
+
+/* Days outside the month are context, not content. */
+.cal__day--outside {
+    background-color: var(--bg);
+}
+
+.cal__day--outside .cal__num {
+    color: var(--text-subtle);
+}
+
+/* A non-working day or a holiday: the calendar must not pretend work happens
+   here. F14 */
+.cal__day--off {
+    background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 6px,
+        var(--surface-2) 6px,
+        var(--surface-2) 12px
+    );
+}
+
+.cal__day--today {
+    box-shadow: inset 0 0 0 2px var(--focus);
+}
+
+.cal__day--drop {
+    background-color: color-mix(in srgb, var(--focus) 12%, var(--surface));
+}
+
+.cal__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-1);
+}
+
+.cal__num {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    font-variant-numeric: tabular-nums;
+}
+
+.cal__holiday {
+    font-size: var(--text-xs);
+    color: var(--text-subtle);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ---- Items in a day ---- */
+
+.cal__item {
+    --item-color: var(--c-low);
+    display: block;
+    padding: 2px var(--space-1);
+    border-radius: var(--radius-sm);
+    border-inline-start: 2px solid var(--item-color);
+    background-color: color-mix(in srgb, var(--item-color) 10%, var(--surface));
+    color: var(--text);
+    font-size: var(--text-xs);
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: grab;
+}
+
+.cal__item:hover {
+    background-color: color-mix(in srgb, var(--item-color) 18%, var(--surface));
+}
+
+.cal__item--urgent { --item-color: var(--c-urgent); }
+.cal__item--high { --item-color: var(--c-high); }
+.cal__item--medium { --item-color: var(--c-medium); }
+.cal__item--low { --item-color: var(--c-low); }
+
+/* Late and not done. F13 */
+.cal__item--overdue {
+    --item-color: var(--c-urgent);
+    font-weight: var(--weight-medium);
+}
+
+.cal__item--done {
+    opacity: 0.55;
+    text-decoration: line-through;
+}
+
+/* An SLA deadline is a promise, not a task — F13 asks for a circle, not a
+   block, so it never reads as work to be dragged. */
+.cal__sla {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--text-xs);
+    color: var(--c-urgent);
+    font-weight: var(--weight-medium);
+}
+
+.cal__sla-dot {
+    width: 7px;
+    height: 7px;
+    flex-shrink: 0;
+    border-radius: var(--radius-full);
+    border: 2px solid var(--c-urgent);
+}
+
+/* Leave: the person isn't here, so nothing on this day is real work. F14 */
+.cal__leave {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: 1px var(--space-1);
+    border-radius: var(--radius-sm);
+    background-color: var(--surface-3);
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+}
+
+/* ---- Capacity meter (F14) ---- */
+
+.cap {
+    --cap-color: var(--c-low);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: var(--text-xs);
+    font-variant-numeric: tabular-nums;
+    color: var(--cap-color);
+}
+
+.cap__bar {
+    width: 1.75rem;
+    height: 3px;
+    border-radius: var(--radius-full);
+    background-color: var(--surface-3);
+    overflow: hidden;
+}
+
+.cap__fill {
+    height: 100%;
+    width: var(--value, 0%);
+    background-color: var(--cap-color);
+}
+
+.cap--at { --cap-color: var(--c-low); }
+.cap--near { --cap-color: var(--c-medium); }
+.cap--over { --cap-color: var(--c-urgent); }
+.cap--off { --cap-color: var(--text-subtle); }
+
+/* ---- Timeline (rows per person) ---- */
+
+.timeline-grid {
+    display: grid;
+    gap: 1px;
+    background-color: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow-x: auto;
+}
+
+.timeline-grid__row {
+    display: grid;
+    grid-template-columns: 9rem 1fr;
+    gap: 1px;
+    background-color: var(--border);
+}
+
+.timeline-grid__who {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2);
+    background-color: var(--surface-2);
+    font-size: var(--text-sm);
+    position: sticky;
+    inset-inline-start: 0;
+}
+
+/* --value is the number of days in the window — the one dynamic value the
+   template injects, per CLAUDE.md § 3. */
+.timeline-grid__days {
+    display: grid;
+    grid-template-columns: repeat(var(--value, 30), minmax(2.5rem, 1fr));
+    gap: 1px;
+    background-color: var(--border);
+}
+
+.timeline-grid__cell {
+    min-height: 2.5rem;
+    padding: 2px;
+    background-color: var(--surface);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.timeline-grid__cell--off {
+    background-color: var(--surface-2);
+}
+
+/* ---- Toolbar ---- */
+
+.cal__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+}
+
+.cal__views {
+    display: flex;
+    gap: var(--space-1);
+}
+
+.cal__legend {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+}
+
+.cal__legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+@media (max-width: 60rem) {
+    .cal__day {
+        min-height: 5rem;
+    }
+}

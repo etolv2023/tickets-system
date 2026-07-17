@@ -1,0 +1,61 @@
+/* Avatar — initials fallback when there's no uploaded image.
+   The tint is derived from a per-user hue index, not chosen decoratively:
+   it makes the same person recognisable across screens. */
+
+.avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--radius-full);
+    background-color: var(--surface-3);
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    line-height: 1;
+    overflow: hidden;
+    user-select: none;
+}
+
+.avatar__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar--sm {
+    width: 1.375rem;
+    height: 1.375rem;
+    font-size: var(--text-xs);
+}
+
+.avatar--lg {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: var(--text-base);
+}
+
+.avatar--xl {
+    width: 4rem;
+    height: 4rem;
+    font-size: var(--text-xl);
+}
+
+/* Inactive users read as absent, not as a colour choice. */
+.avatar--inactive {
+    opacity: 0.45;
+    filter: grayscale(1);
+}
+
+/* Overlapping stack for "who is on this ticket". */
+.avatar-stack {
+    display: inline-flex;
+    align-items: center;
+}
+
+.avatar-stack > .avatar + .avatar {
+    margin-inline-start: -0.4rem;
+    box-shadow: 0 0 0 2px var(--surface);
+}

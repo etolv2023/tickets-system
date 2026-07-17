@@ -1,0 +1,81 @@
+/* Reset — sits on top of Tailwind preflight, only what preflight misses. */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+/* Focus: visible for keyboard users, silent for mouse users. */
+:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+}
+
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+::selection {
+    background-color: color-mix(in srgb, var(--focus) 22%, transparent);
+}
+
+/* Scrollbars follow the chrome, not the OS default. */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--border-strong);
+    border: 3px solid transparent;
+    background-clip: padding-box;
+    border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--text-subtle);
+}
+
+img,
+svg {
+    display: block;
+    max-width: 100%;
+}
+
+/* Alpine: hide un-initialised markup to prevent a flash of raw template. */
+[x-cloak] {
+    display: none !important;
+}
+
+/* CLAUDE.md § 6: prefers-reduced-motion is always respected. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

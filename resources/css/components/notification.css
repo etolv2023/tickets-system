@@ -1,0 +1,99 @@
+/* The bell and its list. F20 */
+
+.notif {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding-block: var(--space-3);
+    padding-inline: var(--space-4);
+    border-block-end: 1px solid var(--border);
+    color: var(--text);
+    transition: background-color var(--transition);
+}
+
+.notif:last-child {
+    border-block-end: 0;
+}
+
+.notif:hover {
+    background-color: var(--surface-2);
+}
+
+/* Unread is the whole point of the screen, so it gets the only colour. */
+.notif__dot {
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    margin-block-start: 0.45rem;
+    border-radius: var(--radius-full);
+    background-color: transparent;
+}
+
+.notif--unread {
+    background-color: color-mix(in srgb, var(--c-inquiry) 4%, var(--surface));
+}
+
+.notif--unread .notif__dot {
+    background-color: var(--c-inquiry);
+}
+
+.notif--unread .notif__text {
+    font-weight: var(--weight-medium);
+}
+
+.notif__body {
+    flex: 1;
+    min-width: 0;
+}
+
+.notif__text {
+    display: block;
+    font-size: var(--text-md);
+}
+
+.notif__meta {
+    display: block;
+    margin-block-start: 2px;
+    font-size: var(--text-xs);
+    color: var(--text-subtle);
+}
+
+/* ---- The bell in the nav ---- */
+
+.bell {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: 0;
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.bell:hover {
+    background-color: var(--surface-2);
+    color: var(--text);
+}
+
+.bell__count {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    min-width: 1rem;
+    height: 1rem;
+    padding-inline: 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    background-color: var(--c-urgent);
+    color: #ffffff;
+    font-size: 0.625rem;
+    font-weight: var(--weight-bold);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}

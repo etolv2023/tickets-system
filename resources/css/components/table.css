@@ -1,0 +1,72 @@
+/* Table — dense, hairline-divided, numbers aligned. CLAUDE.md § 6. */
+
+.table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-md);
+    font-variant-numeric: tabular-nums;
+}
+
+.table thead th {
+    padding-block: var(--space-2);
+    padding-inline: var(--space-3);
+    text-align: start;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--text-muted);
+    white-space: nowrap;
+    border-block-end: 1px solid var(--border);
+    background-color: var(--surface-2);
+}
+
+.table tbody td {
+    padding-block: var(--space-3);
+    padding-inline: var(--space-3);
+    border-block-end: 1px solid var(--border);
+    vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+    border-block-end: 0;
+}
+
+.table tbody tr {
+    transition: background-color var(--transition);
+}
+
+.table--hover tbody tr:hover {
+    background-color: var(--surface-2);
+}
+
+/* A row that leads somewhere: whole row is the hit target. */
+.table__link {
+    display: block;
+    color: inherit;
+}
+
+.table__cell--num {
+    text-align: end;
+    font-family: var(--font-mono);
+}
+
+.table__cell--tight {
+    width: 1%;
+    white-space: nowrap;
+}
+
+.table__cell--actions {
+    width: 1%;
+    white-space: nowrap;
+    text-align: end;
+}
+
+.table__empty td {
+    padding-block: var(--space-6);
+    text-align: center;
+    color: var(--text-muted);
+}

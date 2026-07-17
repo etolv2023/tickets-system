@@ -1,0 +1,36 @@
+/* Filter bar — used by every list screen (companies, users, tickets, board). */
+
+.filters {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    padding: var(--space-3);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.filters__search {
+    flex: 1;
+    min-width: 12rem;
+}
+
+.filters__select {
+    width: auto;
+    min-width: 9rem;
+    flex: 0 0 auto;
+}
+
+.filters__group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+/* Shows which filters are live without making the user re-read the controls. */
+.filters__count {
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+}

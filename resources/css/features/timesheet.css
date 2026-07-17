@@ -1,0 +1,77 @@
+/* /my-timesheet — F09 */
+
+.timesheet__week {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: var(--space-2);
+}
+
+.timesheet__day {
+    --day-color: var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-3);
+    border: 1px solid var(--border);
+    border-block-start: var(--stripe-width) solid var(--day-color);
+    border-radius: var(--radius);
+    background-color: var(--surface);
+    text-align: center;
+}
+
+/* Capacity, not decoration: at the limit is grey, near it amber, over it red.
+   F14 */
+.timesheet__day--at {
+    --day-color: var(--c-low);
+}
+
+.timesheet__day--near {
+    --day-color: var(--c-medium);
+}
+
+.timesheet__day--over {
+    --day-color: var(--c-urgent);
+}
+
+.timesheet__day--empty {
+    background-color: var(--bg);
+}
+
+.timesheet__day-name {
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+}
+
+.timesheet__day-date {
+    font-size: var(--text-xs);
+    color: var(--text-subtle);
+    font-variant-numeric: tabular-nums;
+}
+
+.timesheet__day-hours {
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
+    font-variant-numeric: tabular-nums;
+}
+
+.timesheet__day--over .timesheet__day-hours {
+    color: var(--c-urgent);
+}
+
+.timesheet__nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+}
+
+.timesheet__total {
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--weight-bold);
+}
+
+@media (max-width: 60rem) {
+    .timesheet__week {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}

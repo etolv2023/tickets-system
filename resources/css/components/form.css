@@ -1,0 +1,168 @@
+/* Form — inputs, labels, validation. Arabic copy, LTR values where needed. */
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.field__label {
+    font-size: var(--text-md);
+    font-weight: var(--weight-medium);
+    color: var(--text);
+}
+
+.field__required {
+    color: var(--c-urgent);
+    margin-inline-start: 2px;
+}
+
+.field__hint {
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+}
+
+.field__error {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--text-sm);
+    color: var(--c-urgent);
+}
+
+.input,
+.select,
+.textarea {
+    width: 100%;
+    padding-block: var(--space-2);
+    padding-inline: var(--space-3);
+    background-color: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: inherit;
+    font-size: var(--text-md);
+    line-height: 1.5;
+    transition: border-color var(--transition);
+}
+
+.input::placeholder,
+.textarea::placeholder {
+    color: var(--text-subtle);
+}
+
+.input:hover:not(:disabled),
+.select:hover:not(:disabled),
+.textarea:hover:not(:disabled) {
+    border-color: var(--text-subtle);
+}
+
+.input:disabled,
+.select:disabled,
+.textarea:disabled {
+    background-color: var(--surface-2);
+    color: var(--text-muted);
+    cursor: not-allowed;
+}
+
+.input--invalid,
+.select--invalid,
+.textarea--invalid {
+    border-color: var(--c-urgent);
+}
+
+.textarea {
+    min-height: 6rem;
+    resize: vertical;
+}
+
+/* Native select arrow sits on the wrong side in RTL; draw our own. */
+.select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2364748b' stroke-width='1.5'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: left var(--space-3) center;
+    background-size: 1rem;
+    padding-inline-end: var(--space-3);
+    padding-inline-start: var(--space-6);
+}
+
+.checkbox-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+}
+
+.checkbox {
+    width: 1rem;
+    height: 1rem;
+    margin-block-start: 2px;
+    flex-shrink: 0;
+    accent-color: var(--action);
+    cursor: pointer;
+}
+
+.checkbox-row__label {
+    font-size: var(--text-md);
+    cursor: pointer;
+}
+
+.checkbox-row__label small {
+    display: block;
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+}
+
+.form-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+}
+
+.form-grid {
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+.form-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+/* Flash + validation summary. */
+.alert {
+    --alert-color: var(--c-inquiry);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border: 1px solid color-mix(in srgb, var(--alert-color) 30%, transparent);
+    border-radius: var(--radius);
+    background-color: color-mix(in srgb, var(--alert-color) 8%, var(--surface));
+    color: var(--text);
+    font-size: var(--text-md);
+}
+
+.alert--error {
+    --alert-color: var(--c-urgent);
+}
+
+.alert--success {
+    --alert-color: var(--c-resolved);
+}
+
+.alert__icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    margin-block-start: 2px;
+    color: var(--alert-color);
+}
+
+.alert__list {
+    margin-block-start: var(--space-1);
+    padding-inline-start: var(--space-4);
+    list-style: disc;
+}

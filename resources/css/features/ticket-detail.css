@@ -1,0 +1,171 @@
+/* Ticket detail: the body on one side, the facts on the other. F03/F05 */
+
+.ticket {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 19rem;
+    gap: var(--space-4);
+    align-items: start;
+}
+
+.ticket__side {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    position: sticky;
+    top: var(--space-5);
+}
+
+.ticket__head {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+}
+
+.ticket__number {
+    font-family: var(--font-mono);
+    font-size: var(--text-md);
+    color: var(--text-muted);
+    direction: ltr;
+    unicode-bidi: isolate;
+}
+
+.ticket__title {
+    font-size: var(--text-xl);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-tight);
+}
+
+.ticket__badges {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    margin-block-start: var(--space-2);
+}
+
+/* Facts panel: label / value rows, never a paragraph. */
+.facts {
+    display: flex;
+    flex-direction: column;
+}
+
+.facts__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding-block: var(--space-2);
+    border-block-end: 1px solid var(--border);
+    font-size: var(--text-md);
+}
+
+.facts__row:last-child {
+    border-block-end: 0;
+}
+
+.facts__label {
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.facts__value {
+    text-align: end;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.facts__value--num {
+    font-variant-numeric: tabular-nums;
+}
+
+/* An overdue ticket is the one thing on this page that should shout. */
+.facts__value--overdue {
+    color: var(--c-urgent);
+    font-weight: var(--weight-bold);
+}
+
+/* ---- Timeline (F05) ---- */
+
+.timeline {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.timeline__item {
+    display: flex;
+    gap: var(--space-3);
+    position: relative;
+}
+
+/* The connecting rail: a hairline, drawn behind the avatars. */
+.timeline__item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0.875rem;
+    inset-block-start: 2rem;
+    bottom: calc(var(--space-4) * -1);
+    width: 1px;
+    background-color: var(--border);
+}
+
+.timeline__mark {
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+}
+
+.timeline__body {
+    flex: 1;
+    min-width: 0;
+}
+
+.timeline__head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.timeline__who {
+    font-weight: var(--weight-medium);
+    font-size: var(--text-md);
+}
+
+.timeline__when {
+    font-size: var(--text-sm);
+    color: var(--text-subtle);
+    font-variant-numeric: tabular-nums;
+}
+
+.timeline__content {
+    margin-block-start: var(--space-2);
+    padding: var(--space-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background-color: var(--surface);
+}
+
+/* An internal note must be unmistakable at a glance — it's the one thing that
+   must never be quoted to a customer. F05 */
+.timeline__content--internal {
+    border-color: color-mix(in srgb, var(--c-medium) 40%, transparent);
+    background-color: color-mix(in srgb, var(--c-medium) 6%, var(--surface));
+}
+
+.timeline__event {
+    font-size: var(--text-md);
+    color: var(--text-muted);
+    padding-block: var(--space-1);
+}
+
+@media (max-width: 64rem) {
+    .ticket {
+        grid-template-columns: 1fr;
+    }
+
+    .ticket__side {
+        position: static;
+    }
+}

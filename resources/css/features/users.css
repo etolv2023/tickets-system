@@ -1,0 +1,101 @@
+/* Users and the import screens (F22.3, F02). */
+
+/* A one-time secret: big enough to read off the screen and select cleanly. */
+.generated-password {
+    margin-block-start: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background-color: var(--surface-2);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    font-size: var(--text-lg);
+    letter-spacing: 0.05em;
+    user-select: all;
+    direction: ltr;
+    text-align: start;
+}
+
+/* Import: the preview verdict per row. */
+.import-row__action {
+    font-weight: var(--weight-medium);
+}
+
+.import-row--create {
+    color: var(--c-resolved);
+}
+
+.import-row--update {
+    color: var(--c-inquiry);
+}
+
+.import-row--fail {
+    color: var(--c-urgent);
+}
+
+.import-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: var(--space-3);
+}
+
+/* Not a stats dashboard — these three numbers ARE the decision the user is
+   about to make, so they belong on screen (CLAUDE.md § 6 allows meaning). */
+.import-summary__item {
+    --summary-color: var(--text-muted);
+    padding: var(--space-3);
+    border: 1px solid var(--border);
+    border-inline-start: var(--stripe-width) solid var(--summary-color);
+    border-radius: var(--radius);
+    background-color: var(--surface);
+}
+
+.import-summary__item--create {
+    --summary-color: var(--c-resolved);
+}
+
+.import-summary__item--update {
+    --summary-color: var(--c-inquiry);
+}
+
+.import-summary__item--fail {
+    --summary-color: var(--c-urgent);
+}
+
+.import-summary__value {
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-bold);
+    font-variant-numeric: tabular-nums;
+    color: var(--summary-color);
+}
+
+.import-summary__label {
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+}
+
+.import-type {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-block-end: 1px solid var(--border);
+}
+
+.import-type:last-child {
+    border-block-end: 0;
+}
+
+.import-type__name {
+    font-weight: var(--weight-medium);
+}
+
+.import-type__cols {
+    display: block;
+    margin-block-start: var(--space-1);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--text-subtle);
+    direction: ltr;
+    unicode-bidi: isolate;
+    text-align: start;
+}

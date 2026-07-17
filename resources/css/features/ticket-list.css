@@ -1,0 +1,62 @@
+/* Ticket list (F03.1). Dense rows, a stripe per priority, real information. */
+
+.tickets__row {
+    position: relative;
+}
+
+/* The stripe anchors to the row, so the priority is readable while scanning
+   without a second colour competing with the status badge. CLAUDE.md § 6 */
+.tickets__cell--stripe {
+    position: relative;
+    width: 1%;
+    padding-inline: 0;
+}
+
+.tickets__number {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    direction: ltr;
+    unicode-bidi: isolate;
+    white-space: nowrap;
+}
+
+.tickets__title {
+    display: block;
+    max-width: 32rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tickets__company {
+    display: block;
+    margin-block-start: 2px;
+    font-size: var(--text-sm);
+    color: var(--text-subtle);
+}
+
+.tickets__age {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+/* Past its SLA. The only red in the row. F03.1 */
+.tickets__age--overdue {
+    color: var(--c-urgent);
+    font-weight: var(--weight-medium);
+}
+
+.tickets__people {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+/* n/m subtasks — filled in phase 4, hidden until a ticket actually has any. */
+.tickets__subtasks {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--text-subtle);
+    white-space: nowrap;
+}

@@ -1,0 +1,83 @@
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding-block: var(--space-2);
+    padding-inline: var(--space-4);
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: var(--text-md);
+    font-weight: var(--weight-medium);
+    line-height: 1.2;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color var(--transition), border-color var(--transition),
+        color var(--transition);
+}
+
+.btn:disabled,
+.btn[aria-disabled='true'] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Primary: chrome-coloured. Colour here would compete with the semantic
+   badges it sits next to (CLAUDE.md § 6). */
+.btn--primary {
+    background-color: var(--action);
+    color: var(--action-text);
+}
+
+.btn--primary:hover:not(:disabled) {
+    background-color: var(--action-hover);
+}
+
+.btn--secondary {
+    background-color: var(--surface);
+    border-color: var(--border-strong);
+    color: var(--text);
+}
+
+.btn--secondary:hover:not(:disabled) {
+    background-color: var(--surface-2);
+}
+
+.btn--ghost {
+    background-color: transparent;
+    color: var(--text-muted);
+}
+
+.btn--ghost:hover:not(:disabled) {
+    background-color: var(--surface-2);
+    color: var(--text);
+}
+
+/* Destructive actions borrow the urgent hue — the one place a "decorative"
+   colour is actually load-bearing. */
+.btn--danger {
+    background-color: var(--c-urgent);
+    color: #ffffff;
+}
+
+.btn--danger:hover:not(:disabled) {
+    background-color: color-mix(in srgb, var(--c-urgent) 85%, #000000);
+}
+
+.btn--sm {
+    padding-block: var(--space-1);
+    padding-inline: var(--space-3);
+    font-size: var(--text-sm);
+}
+
+.btn--block {
+    display: flex;
+    width: 100%;
+}
+
+.btn__icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+}

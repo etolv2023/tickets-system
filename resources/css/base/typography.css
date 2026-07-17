@@ -1,0 +1,91 @@
+/* Typography — Arabic UI face, monospace for data (CLAUDE.md § 6). */
+
+body {
+    font-family: var(--font-ar);
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
+    font-weight: var(--weight-normal);
+    -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-tight);
+    color: var(--text);
+}
+
+h1 {
+    font-size: var(--text-2xl);
+}
+
+h2 {
+    font-size: var(--text-xl);
+}
+
+h3 {
+    font-size: var(--text-lg);
+}
+
+h4 {
+    font-size: var(--text-base);
+}
+
+/* Every number in the UI aligns in its column. CLAUDE.md § 6. */
+table,
+.u-nums,
+time,
+.u-mono {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Identifiers, counts and dates read as data, not prose. */
+.u-mono {
+    font-family: var(--font-mono);
+    font-size: var(--text-md);
+    letter-spacing: -0.01em;
+}
+
+code,
+pre,
+kbd {
+    font-family: var(--font-mono);
+    font-size: var(--text-md);
+    /* Code is always LTR even inside an RTL document. F04.1 */
+    direction: ltr;
+    unicode-bidi: isolate;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.u-muted {
+    color: var(--text-muted);
+}
+
+.u-subtle {
+    color: var(--text-subtle);
+}
+
+.u-label {
+    display: block;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--text-muted);
+}
+
+/* Page heading block used by every screen shell. */
+.page-title {
+    font-size: var(--text-xl);
+    font-weight: var(--weight-bold);
+}
+
+.page-subtitle {
+    margin-block-start: var(--space-1);
+    font-size: var(--text-md);
+    color: var(--text-muted);
+}

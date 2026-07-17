@@ -1,0 +1,84 @@
+/* Badge — every variant is one semantic token. The tint and border are derived,
+   so dark mode needs no rules here: tokens.css swaps --c-* and this follows. */
+
+.badge {
+    --badge-color: var(--c-low);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding-block: 1px;
+    padding-inline: var(--space-2);
+    border: 1px solid color-mix(in srgb, var(--badge-color) var(--badge-border-tint), transparent);
+    border-radius: var(--radius-sm);
+    background-color: color-mix(in srgb, var(--badge-color) var(--badge-tint), var(--surface));
+    color: var(--badge-color);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    line-height: 1.5;
+    white-space: nowrap;
+}
+
+/* Priority */
+.badge--urgent {
+    --badge-color: var(--c-urgent);
+}
+
+.badge--high {
+    --badge-color: var(--c-high);
+}
+
+.badge--medium {
+    --badge-color: var(--c-medium);
+}
+
+.badge--low {
+    --badge-color: var(--c-low);
+}
+
+/* State */
+.badge--resolved {
+    --badge-color: var(--c-resolved);
+}
+
+.badge--blocked {
+    --badge-color: var(--c-blocked);
+}
+
+/* Type */
+.badge--bug {
+    --badge-color: var(--c-bug);
+}
+
+.badge--inquiry {
+    --badge-color: var(--c-inquiry);
+}
+
+.badge--feature {
+    --badge-color: var(--c-feature);
+}
+
+.badge--module {
+    --badge-color: var(--c-module);
+}
+
+/* Neutral: counts, labels, anything that must NOT read as meaningful.
+   CLAUDE.md § 6 — when everything is grey, the red badge screams. */
+.badge--neutral {
+    --badge-color: var(--text-muted);
+    background-color: var(--surface-2);
+    border-color: var(--border);
+}
+
+.badge__dot {
+    width: 5px;
+    height: 5px;
+    border-radius: var(--radius-full);
+    background-color: var(--badge-color);
+    flex-shrink: 0;
+}
+
+.badge--solid {
+    background-color: var(--badge-color);
+    border-color: transparent;
+    color: var(--surface);
+}

@@ -1,0 +1,35 @@
+/* RTL — only what logical properties can't solve on their own.
+   CLAUDE.md § 6: components use ms-/me-/inset-inline-*, never left/right.
+   So this file stays small by design. */
+
+/* Latin data embedded in Arabic prose: emails, codes, ticket numbers.
+   Without isolation, trailing punctuation jumps to the wrong side. */
+.u-ltr {
+    direction: ltr;
+    unicode-bidi: isolate;
+    text-align: start;
+}
+
+/* Inputs holding non-Arabic values type left-to-right but stay
+   visually aligned with their Arabic label. */
+input[type='email'],
+input[type='url'],
+input[type='tel'],
+input[type='password'],
+input[dir='ltr'] {
+    direction: ltr;
+    text-align: start;
+}
+
+/* Native controls that ship with a hard-coded direction. */
+input[type='date'],
+input[type='time'],
+input[type='number'] {
+    direction: ltr;
+    text-align: start;
+}
+
+/* Chevrons and arrows drawn pointing right must flip with the document. */
+.u-flip {
+    transform: scaleX(-1);
+}

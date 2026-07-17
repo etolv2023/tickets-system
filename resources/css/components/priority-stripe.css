@@ -1,0 +1,33 @@
+/* Priority stripe — a 3px vertical bar on the inline-start edge of a card.
+   CLAUDE.md § 6: priority is a stripe, status is a text badge. They never
+   share a colour, so the two can sit on the same card without fighting. */
+
+.stripe {
+    --stripe-color: var(--c-low);
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: var(--stripe-width);
+    background-color: var(--stripe-color);
+}
+
+.stripe--urgent {
+    --stripe-color: var(--c-urgent);
+}
+
+.stripe--high {
+    --stripe-color: var(--c-high);
+}
+
+.stripe--medium {
+    --stripe-color: var(--c-medium);
+}
+
+.stripe--low {
+    --stripe-color: var(--c-low);
+}
+
+/* A card carrying a stripe indents its content so text never touches the bar. */
+.has-stripe {
+    padding-inline-start: calc(var(--stripe-width) + var(--space-3));
+}
