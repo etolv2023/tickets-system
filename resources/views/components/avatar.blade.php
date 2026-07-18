@@ -17,7 +17,7 @@
     title="{{ $label }}"
 >
     @if ($user?->avatar_path)
-        <img class="avatar__img" src="{{ Storage::url($user->avatar_path) }}" alt="{{ $label }}">
+        <img class="avatar__img" src="{{ asset('storage/' . $user->avatar_path) }}" alt="{{ $label }}">
     @else
         {{ $user?->initials() ?? '؟' }}
     @endif

@@ -25,7 +25,7 @@
             <div class="settings__row-control">
                 <div class="stack stack--tight">
                     @if (! empty($values['app_logo']))
-                        <img src="{{ Storage::url($values['app_logo']) }}" alt="اللوجو الحالي" height="32">
+                        <img src="{{ asset('storage/' . $values['app_logo']) }}" alt="اللوجو الحالي" height="32">
 
                         <label class="checkbox-row">
                             <input type="checkbox" name="remove_logo" value="1" class="checkbox">

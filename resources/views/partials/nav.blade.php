@@ -5,7 +5,7 @@
 <nav class="nav" id="app-nav" aria-label="التنقل الرئيسي">
     <a href="{{ route('home') }}" class="nav__brand" title="{{ $appName }}">
         @if ($appLogo)
-            <img src="{{ Storage::url($appLogo) }}" alt="" height="24">
+            <img src="{{ asset('storage/' . $appLogo) }}" alt="" height="24">
         @else
             <span class="nav__brand-mark">{{ mb_substr($appName, 0, 1) }}</span>
         @endif

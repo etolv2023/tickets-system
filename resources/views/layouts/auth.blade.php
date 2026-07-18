@@ -8,7 +8,7 @@
          hint is only emitted for the SVG, because an uploaded logo may be a
          PNG and a wrong MIME hint on rel=icon is worse than none. --}}
     @if ($appLogo)
-        <link rel="icon" href="{{ Storage::url($appLogo) }}">
+        <link rel="icon" href="{{ asset('storage/' . $appLogo) }}">
     @else
         <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     @endif
@@ -36,7 +36,7 @@
         <div class="auth__box">
             <div class="auth__brand">
                 @if ($appLogo)
-                    <img src="{{ Storage::url($appLogo) }}" alt="{{ $appName }}" height="28">
+                    <img src="{{ asset('storage/' . $appLogo) }}" alt="{{ $appName }}" height="28">
                 @else
                     <span class="nav__brand-mark">{{ mb_substr($appName, 0, 1) }}</span>
                 @endif
