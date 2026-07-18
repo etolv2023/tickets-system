@@ -3,7 +3,7 @@
 @section('title', 'الباك أب')
 
 @section('content')
-    <div class="page page--narrow">
+    <div class="page page--medium">
         <div class="page__head">
             <div>
                 <h1 class="page-title">الباك أب والاسترجاع</h1>

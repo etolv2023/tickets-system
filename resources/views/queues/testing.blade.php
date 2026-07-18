@@ -3,7 +3,7 @@
 @section('title', 'طابور التيست')
 
 @section('content')
-    <div class="page page--narrow">
+    <div class="page">
         <div class="page__head">
             <div>
                 <h1 class="page-title">طابور التيست</h1>

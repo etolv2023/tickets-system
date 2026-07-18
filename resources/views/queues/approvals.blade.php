@@ -3,7 +3,7 @@
 @section('title', 'طابور الموافقات')
 
 @section('content')
-    <div class="page page--narrow">
+    <div class="page">
         <div class="page__head">
             <div>
                 <h1 class="page-title">مستني قرارك</h1>

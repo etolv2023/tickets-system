@@ -3,7 +3,7 @@
 @section('title', 'شركة جديدة')
 
 @section('content')
-    <div class="page page--narrow">
+    <div class="page page--medium">
         <div class="page__head">
             <h1 class="page-title">شركة جديدة</h1>
         </div>

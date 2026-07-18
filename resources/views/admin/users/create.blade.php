@@ -3,7 +3,7 @@
 @section('title', 'مستخدم جديد')
 
 @section('content')
-    <div class="page page--narrow">
+    <div class="page page--medium">
         <div class="page__head">
             <h1 class="page-title">مستخدم جديد</h1>
         </div>

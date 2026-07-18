@@ -3,7 +3,7 @@
 @section('title', 'تعديل ' . $contact->name)
 
 @section('content')
-    <div class="page page--narrow">
+    <div class="page page--medium">
         <div class="page__head">
             <div>
                 <h1 class="page-title">تعديل «{{ $contact->name }}»</h1>

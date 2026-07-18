@@ -3,7 +3,7 @@
 @section('title', 'تعديل ' . $user->name)
 
 @section('content')
-    <div class="page page--narrow">
+    <div class="page page--medium">
         <div class="page__head">
             <div>
                 <h1 class="page-title">تعديل «{{ $user->name }}»</h1>
