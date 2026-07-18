@@ -11,12 +11,12 @@
     @if ($appLogo)
         <link rel="icon" href="{{ Storage::url($appLogo) }}">
     @else
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     @endif
 
     {{-- The Arabic face carries every screen, so it is worth fetching in
          parallel with the stylesheet rather than after it. --}}
-    <link rel="preload" href="/fonts/cairo-arabic.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{{ asset('fonts/cairo-arabic.woff2') }}" as="font" type="font/woff2" crossorigin>
 
     {{-- Applies the saved theme and rail state before first paint. Without it the
          page flashes light, and the sidebar flashes open, before Alpine boots

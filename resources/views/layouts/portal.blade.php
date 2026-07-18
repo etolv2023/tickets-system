@@ -10,7 +10,7 @@
     @if ($appLogo)
         <link rel="icon" href="{{ Storage::url($appLogo) }}">
     @else
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     @endif
 
     <script>
@@ -22,7 +22,7 @@
         })();
     </script>
 
-    <link rel="preload" href="/fonts/cairo-arabic.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{{ asset('fonts/cairo-arabic.woff2') }}" as="font" type="font/woff2" crossorigin>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
