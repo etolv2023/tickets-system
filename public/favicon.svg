@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!--
+    Default favicon: the app's own ticket glyph on the brand square.
+
+    Deliberately NOT the first letter of the system name — that is what the
+    in-app .nav__brand-mark renders, and it breaks the moment an admin renames
+    the system. A ticket reads the same whatever the install is called.
+
+    Colours are literal rather than tokens: an SVG served as a file has no
+    stylesheet, so it cannot read a custom property. #4a5aa8 is --action.
+
+    An uploaded logo (Setting: app_logo) overrides this in every layout.
+  -->
+  <rect width="32" height="32" rx="8" fill="#4a5aa8"/>
+  <g fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 13.5a2.6 2.6 0 0 1 0 5v1.9a1.6 1.6 0 0 0 1.6 1.6h16.8a1.6 1.6 0 0 0 1.6-1.6v-1.9a2.6 2.6 0 0 1 0-5v-1.9a1.6 1.6 0 0 0-1.6-1.6H7.6A1.6 1.6 0 0 0 6 11.6z"/>
+    <path d="M19 10.6v1.4"/>
+    <path d="M19 15.3v1.4"/>
+    <path d="M19 20v1.4"/>
+  </g>
+</svg>

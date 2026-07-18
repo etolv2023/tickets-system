@@ -32,7 +32,7 @@ class TicketsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, 
     public function query()
     {
         return Ticket::query()
-            ->with(['company:id,name', 'frontend:id,name', 'backend:id,name', 'tester:id,name', 'creator:id,name'])
+            ->with(['company:id,name', 'requester:id,name', 'frontend:id,name', 'backend:id,name', 'tester:id,name', 'creator:id,name'])
             // The same visibility gate as the screen. An export is not a
             // back door around row-level access.
             ->visibleTo($this->user)
@@ -56,7 +56,7 @@ class TicketsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, 
         return $this->sanitizeRow([
             $ticket->ticket_number,
             $ticket->title,
-            $ticket->company->name,
+            $ticket->originLabel(),
             $ticket->reporter_name,
             $ticket->type->label(),
             $ticket->scope->label(),

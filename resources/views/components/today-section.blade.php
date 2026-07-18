@@ -10,6 +10,9 @@
             <span class="today__q-text">{{ $question }}</span>
             <span class="today__q-hint">{{ $hint }}</span>
         </div>
+        @isset($action)
+            {{ $action }}
+        @endisset
     </header>
 
     {{ $slot }}

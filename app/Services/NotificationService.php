@@ -2,8 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\Setting;
 use App\Models\Ticket;
+use App\Models\TicketSubtask;
 use App\Models\User;
+use App\Notifications\NotificationEvent;
 use App\Notifications\TicketNotification;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -12,51 +15,61 @@ use Illuminate\Support\Facades\Notification;
 /**
  * Who gets told what (F20).
  *
- * The one hard rule: never notify someone about their own action. A system that
- * pings you about what you just did trains people to ignore it.
+ * Every notification goes through dispatch(). Callers say what happened; this
+ * decides who hears about it. Before, each controller picked its own
+ * recipients, which is how a comment reached nobody while an assignment
+ * reached the same person twice.
+ *
+ * Two rules, enforced here so no caller can forget:
+ *   1. Never notify someone about their own action. A system that pings you
+ *      about what you just did trains people to ignore it.
+ *   2. Never notify an inactive user.
  */
 class NotificationService
 {
-    public function notifyWatchers(Ticket $ticket, string $event, string $message, ?int $actorId): void
-    {
-        $this->send($this->watcherIds($ticket), $event, $message, $ticket, $actorId);
+    /**
+     * The one entry point.
+     *
+     * @param  array<int, int>|null  $extra  ids beyond the ticket's own circle
+     */
+    public function dispatch(
+        Ticket $ticket,
+        NotificationEvent $event,
+        string $message,
+        ?int $actorId = null,
+        ?array $extra = null,
+        ?TicketSubtask $subtask = null,
+    ): void {
+        $recipients = $this->recipients(
+            array_merge($this->circle($ticket), $extra ?? []),
+            $actorId
+        );
+
+        if ($recipients->isEmpty()) {
+            return;
+        }
+
+        Notification::send(
+            $recipients,
+            new TicketNotification($ticket, $event, $message, $actorId, $subtask?->id)
+        );
+
+        $this->clearBadges($recipients->pluck('id')->all());
     }
 
-    public function notifyUser(?int $userId, Ticket $ticket, string $event, string $message, ?int $actorId): void
-    {
+    /** Tell exactly one person, regardless of the ticket's circle. */
+    public function dispatchTo(
+        ?int $userId,
+        Ticket $ticket,
+        NotificationEvent $event,
+        string $message,
+        ?int $actorId = null,
+    ): void {
         if ($userId === null) {
             return;
         }
 
-        $this->send([$userId], $event, $message, $ticket, $actorId);
-    }
-
-    /**
-     * F11: the assignees, the tester and the reporter are watchers whether they
-     * asked or not — they're the people the ticket is about.
-     *
-     * @return array<int, int>
-     */
-    public function watcherIds(Ticket $ticket): array
-    {
-        $implicit = array_filter([
-            $ticket->created_by,
-            $ticket->assigned_frontend_id,
-            $ticket->assigned_backend_id,
-            $ticket->tester_id,
-        ]);
-
-        $explicit = $ticket->watchers()->pluck('users.id')->all();
-
-        return array_values(array_unique(array_merge($implicit, $explicit)));
-    }
-
-    /**
-     * @param  array<int, int>  $userIds
-     */
-    private function send(array $userIds, string $event, string $message, Ticket $ticket, ?int $actorId): void
-    {
-        $recipients = $this->recipients($userIds, $actorId);
+        $recipients = $this->recipients([$userId], $actorId);
 
         if ($recipients->isEmpty()) {
             return;
@@ -64,10 +77,63 @@ class NotificationService
 
         Notification::send($recipients, new TicketNotification($ticket, $event, $message, $actorId));
 
-        // The nav caches each user's unread count for a minute. Without this a
-        // fresh notification wouldn't light the bell until the cache expired.
-        foreach ($recipients as $recipient) {
-            Cache::forget("notif.unread.{$recipient->id}");
+        $this->clearBadges([$userId]);
+    }
+
+    /**
+     * Everyone with a stake in this ticket.
+     *
+     * F11: the creator, the two developers and the tester are watchers whether
+     * they asked or not — the ticket is about them. Explicit watchers are added
+     * on top. Subtask assignees count too: holding a piece of the work involves
+     * you even when no ticket column names you, which is exactly the case the
+     * old recipient list missed.
+     *
+     * @return array<int, int>
+     */
+    public function circle(Ticket $ticket): array
+    {
+        $implicit = array_filter([
+            $ticket->created_by,
+            $ticket->requested_by,
+            $ticket->assigned_frontend_id,
+            $ticket->assigned_backend_id,
+            $ticket->tester_id,
+        ]);
+
+        $explicit = $ticket->watchers()->pluck('users.id')->all();
+
+        $workers = TicketSubtask::query()
+            ->where('ticket_id', $ticket->id)
+            ->whereNotNull('assignee_id')
+            ->distinct()
+            ->pluck('assignee_id')
+            ->all();
+
+        return array_values(array_unique(array_merge($implicit, $explicit, $workers)));
+    }
+
+    /** Older name for the circle; kept so existing call sites keep working. */
+    public function watcherIds(Ticket $ticket): array
+    {
+        return $this->circle($ticket);
+    }
+
+    public function notifyWatchers(Ticket $ticket, string $event, string $message, ?int $actorId): void
+    {
+        $this->dispatch($ticket, NotificationEvent::from($event), $message, $actorId);
+    }
+
+    public function notifyUser(?int $userId, Ticket $ticket, string $event, string $message, ?int $actorId): void
+    {
+        $this->dispatchTo($userId, $ticket, NotificationEvent::from($event), $message, $actorId);
+    }
+
+    /** @param array<int, int> $userIds */
+    private function clearBadges(array $userIds): void
+    {
+        foreach ($userIds as $id) {
+            Cache::forget("notif.unread.{$id}");
         }
     }
 

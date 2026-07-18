@@ -2,17 +2,23 @@
 
 .ticket {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 19rem;
-    gap: var(--space-4);
+    /* --aside-width (tokens.css): wide enough for a label/value pair on one
+       line, narrow enough that the body still reads as the main column. It was
+       a bare 290px here, which is exactly the kind of number that gets copied
+       into three other files and then disagrees with itself. */
+    grid-template-columns: minmax(0, 1fr) var(--aside-width);
+    gap: var(--space-5);
     align-items: start;
 }
 
+/* Deliberately NOT sticky. The aside stacks seven fact cards and is always
+   taller than the viewport — a sticky element taller than the viewport pins at
+   its top and its lower cards become unreachable, which forced you to collapse
+   cards one by one just to see the next one. It scrolls with the page instead. */
 .ticket__side {
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
-    position: sticky;
-    top: var(--space-5);
 }
 
 .ticket__head {
@@ -160,12 +166,126 @@
     padding-block: var(--space-1);
 }
 
+/* ---- Tabs: timeline / subtasks / time / links ---- */
+
+/* The tab strip sits on a hairline and the active tab overdraws it with a 2px
+   rule in --action. Greyscale chrome: the underline is position, not colour. */
+/* Wraps rather than scrolls: four tabs on a narrow column produced a stray
+   scrollbar sliver beside the labels. Wrapping costs a row, a scrollbar costs
+   a confusing piece of chrome. */
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    border-block-end: 1px solid var(--border);
+    margin-block-end: var(--space-5);
+}
+
+.tabs__tab {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding-block: var(--space-3);
+    padding-inline: var(--space-4);
+    margin-block-end: -1px;
+    border: 0;
+    border-block-end: 2px solid transparent;
+    background-color: transparent;
+    color: var(--text-subtle);
+    font-family: inherit;
+    font-size: var(--text-md);
+    font-weight: var(--weight-bold);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color var(--transition), border-color var(--transition);
+}
+
+.tabs__tab:hover {
+    color: var(--text-muted);
+}
+
+.tabs__tab--active {
+    color: var(--text);
+    border-block-end-color: var(--action);
+}
+
+.tabs__tab:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: -2px;
+}
+
+/* A count riding inside a tab — neutral by definition, never semantic. */
+.tabs__count {
+    padding-block: 1px;
+    padding-inline: 6px;
+    border-radius: var(--radius-full);
+    background-color: var(--chip);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-medium);
+}
+
+/* ---- Collapsible aside card ---- */
+
+/* A small square chevron in the card's corner. It is chrome, so it stays grey
+   and square — a .btn here would read as an action the card is offering. */
+.card__collapse {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.375rem;
+    height: 1.375rem;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background-color: var(--bg);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color var(--transition), border-color var(--transition);
+}
+
+.card__collapse:hover {
+    color: var(--text);
+    border-color: var(--border-strong);
+}
+
+.card__collapse:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+}
+
+.card__collapse-icon {
+    transition: transform var(--transition);
+}
+
+/* The glyph is a chevron-up — "fold me away". Collapsed, it flips to point
+   down: "there is more here". */
+.card__collapse[aria-expanded='false'] .card__collapse-icon {
+    transform: rotate(180deg);
+}
+
+/* ---- Ticket form (create / edit) ---- */
+
+/* On edit, the reporter and company are a frozen snapshot of who said what.
+   The badge says so out loud, next to the .input--locked field. */
+.field__snapshot {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-heavy);
+    color: var(--text-subtle);
+}
+
 @media (max-width: 64rem) {
     .ticket {
         grid-template-columns: 1fr;
     }
+}
 
-    .ticket__side {
-        position: static;
+@media (prefers-reduced-motion: reduce) {
+    .card__collapse-icon {
+        transition: none;
     }
 }

@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use App\Enums\Priority;
+use App\Casts\PriorityCast;
+use App\Casts\TicketStatusCast;
 use App\Enums\TicketScope;
-use App\Enums\TicketStatus;
 use App\Enums\TicketType;
 use Carbon\CarbonInterval;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,13 +14,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class Ticket extends Model
 {
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'ticket_number', 'company_id', 'contact_id', 'reporter_name', 'reporter_erp_id',
+        'ticket_number', 'company_id', 'requested_by', 'contact_id', 'reporter_name', 'reporter_erp_id',
         'title', 'description', 'type', 'scope', 'priority', 'status', 'module',
         'created_by', 'assigned_frontend_id', 'assigned_backend_id', 'tester_id',
         'approval_status', 'approved_by', 'approved_at',
@@ -34,8 +36,8 @@ class Ticket extends Model
         return [
             'type' => TicketType::class,
             'scope' => TicketScope::class,
-            'priority' => Priority::class,
-            'status' => TicketStatus::class,
+            'priority' => PriorityCast::class,
+            'status' => TicketStatusCast::class,
             'reported_at' => 'datetime',
             'first_response_at' => 'datetime',
             'sla_due_at' => 'datetime',
@@ -59,6 +61,43 @@ class Ticket extends Model
     public function contact(): BelongsTo
     {
         return $this->belongsTo(CompanyContact::class, 'contact_id');
+    }
+
+    /** The colleague who raised an internal ticket. Null on a client ticket. */
+    public function requester(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'requested_by');
+    }
+
+    /**
+     * Internal work — raised by the team, not owed to a customer.
+     *
+     * Derived from the absence of a company rather than stored as a flag: one
+     * fact in one column cannot disagree with itself.
+     */
+    public function isInternal(): bool
+    {
+        return $this->company_id === null;
+    }
+
+    /**
+     * Who this ticket is for, as one line — a company name, or the colleague
+     * who asked for it.
+     *
+     * Every screen that used to print $ticket->company->name goes through here
+     * instead, so "what does a ticket with no company show?" is answered once.
+     */
+    public function originLabel(): string
+    {
+        return $this->isInternal()
+            ? ($this->requester?->name ?? 'داخلية')
+            : ($this->company?->name ?? '—');
+    }
+
+    /** Internal tickets, or client tickets. F25 */
+    public function scopeInternal(Builder $query, bool $internal = true): Builder
+    {
+        return $internal ? $query->whereNull('company_id') : $query->whereNotNull('company_id');
     }
 
     public function creator(): BelongsTo
@@ -201,6 +240,25 @@ class Ticket extends Model
     }
 
     /**
+     * F24: (re)generates the client portal password. Only the hash is ever
+     * stored — the plaintext returned here is the only time it's readable;
+     * staff must relay it to the client immediately or regenerate later.
+     */
+    public function generatePortalPassword(): string
+    {
+        $plaintext = Str::password(10, symbols: false);
+
+        $this->forceFill(['portal_password_hash' => Hash::make($plaintext)])->saveQuietly();
+
+        return $plaintext;
+    }
+
+    public function checkPortalPassword(string $password): bool
+    {
+        return $this->portal_password_hash !== null && Hash::check($password, $this->portal_password_hash);
+    }
+
+    /**
      * Age for open tickets, resolution time for closed ones — both as
      * "3 أيام و 4 ساعات" rather than a raw number. F03.1
      */
@@ -216,6 +274,23 @@ class Ticket extends Model
         return $this->status->isOpen()
             && $this->sla_due_at !== null
             && $this->sla_due_at->isPast();
+    }
+
+    /**
+     * One plain-text line of the description, for a list card that needs to say
+     * what the ticket is about without opening it.
+     *
+     * Reads `description_excerpt` when the query selected a bounded slice
+     * instead of the whole LONGTEXT column (§ 4.3), and falls back to the full
+     * column on screens that already loaded it.
+     */
+    public function descriptionExcerpt(int $length = 180): string
+    {
+        $source = $this->description_excerpt ?? $this->attributes['description'] ?? '';
+
+        // The stored HTML is already purified; this strips it back to prose so
+        // a truncated tag can never reach the page.
+        return Str::limit(trim(preg_replace('/\s+/u', ' ', strip_tags($source))), $length);
     }
 
     private function humanInterval(CarbonInterval $interval): string
@@ -258,22 +333,40 @@ class Ticket extends Model
         });
     }
 
-    /** Default order: urgent first, then oldest first. F03.1 */
+    /**
+     * Default order: highest-priority first (by the admin-defined position on
+     * `priorities`, not a hardcoded list), then oldest first. F03.1
+     */
     public function scopeDefaultOrder(Builder $query): Builder
     {
         return $query
-            ->orderByRaw("FIELD(priority, 'urgent', 'high', 'medium', 'low')")
+            ->orderByRaw('(SELECT position FROM priorities WHERE priorities.key = tickets.priority)')
             ->orderBy('reported_at');
     }
+
+    /** The date columns a date-range filter may run against. */
+    public const DATE_BASES = [
+        'reported_at' => 'تاريخ الفتح',
+        'due_date' => 'تاريخ الاستحقاق',
+        'resolved_at' => 'تاريخ الحل',
+    ];
 
     /**
      * The list filters (F03.1). Query logic, so it lives on the model rather
      * than in the controller (CLAUDE.md § 3).
      *
+     * date_basis picks which column from/to run against; it defaults to
+     * reported_at so /tickets — which never sends it — keeps behaving exactly
+     * as it did before this was added.
+     *
      * @param  array<string, mixed>  $filters
      */
     public function scopeFilter(Builder $query, array $filters): Builder
     {
+        $dateBasis = array_key_exists($filters['date_basis'] ?? null, self::DATE_BASES)
+            ? $filters['date_basis']
+            : 'reported_at';
+
         return $query
             // "open" and "resolved" are groupings a human thinks in; the rest
             // are the raw states.
@@ -293,8 +386,8 @@ class Ticket extends Model
                 ->where('assigned_frontend_id', $v)
                 ->orWhere('assigned_backend_id', $v)
                 ->orWhere('tester_id', $v)))
-            ->when($filters['from'] ?? null, fn (Builder $q, $v) => $q->whereDate('reported_at', '>=', $v))
-            ->when($filters['to'] ?? null, fn (Builder $q, $v) => $q->whereDate('reported_at', '<=', $v))
+            ->when($filters['from'] ?? null, fn (Builder $q, $v) => $q->whereDate($dateBasis, '>=', $v))
+            ->when($filters['to'] ?? null, fn (Builder $q, $v) => $q->whereDate($dateBasis, '<=', $v))
             ->when($filters['q'] ?? null, fn (Builder $q, $term) => $q->search($term));
     }
 

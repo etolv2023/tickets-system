@@ -57,8 +57,8 @@ class SearchController extends Controller
     private function tickets(string $term, $user)
     {
         return Ticket::query()
-            ->select(['id', 'ticket_number', 'title', 'company_id', 'type', 'priority', 'status'])
-            ->with('company:id,name')
+            ->select(['id', 'ticket_number', 'title', 'company_id', 'requested_by', 'type', 'priority', 'status'])
+            ->with('company:id,name', 'requester:id,name')
             // FULLTEXT, never LIKE %...% — F21 asks for < 200ms.
             ->whereFullText(['title', 'description'], $term)
             ->visibleTo($user)
@@ -82,8 +82,8 @@ class SearchController extends Controller
     private function comments(string $term, $user)
     {
         return TicketComment::query()
-            ->select(['id', 'ticket_id', 'user_id', 'body', 'is_internal', 'created_at'])
-            ->with(['ticket:id,ticket_number,title', 'user:id,name'])
+            ->select(['id', 'ticket_id', 'user_id', 'contact_id', 'body', 'is_internal', 'created_at'])
+            ->with(['ticket:id,ticket_number,title', 'user:id,name', 'contact:id,name'])
             ->where('body', 'like', "%{$term}%")
             ->whereHas('ticket', fn ($q) => $q->visibleTo($user))
             ->unless($user->hasPermission('comments.internal'), fn ($q) => $q->where('is_internal', false))

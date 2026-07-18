@@ -44,12 +44,12 @@ class BoardController extends Controller
         // php rather than running a query per column (CLAUDE.md § 4).
         $tickets = Ticket::query()
             ->select([
-                'id', 'ticket_number', 'company_id', 'title', 'type', 'priority', 'status',
+                'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'priority', 'status',
                 'reported_at', 'sla_due_at', 'resolved_at', 'updated_at',
                 'assigned_frontend_id', 'assigned_backend_id', 'tester_id',
                 'subtasks_total', 'subtasks_done',
             ])
-            ->with(['company:id,name', 'workLogs:id,ticket_id,user_id,side,status'])
+            ->with(['company:id,name', 'requester:id,name', 'workLogs:id,ticket_id,user_id,side,status'])
             ->where(fn ($q) => $q
                 ->where('assigned_frontend_id', $user->id)
                 ->orWhere('assigned_backend_id', $user->id)
@@ -97,13 +97,13 @@ class BoardController extends Controller
 
         $tickets = Ticket::query()
             ->select([
-                'id', 'ticket_number', 'company_id', 'title', 'type', 'priority', 'status',
+                'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'priority', 'status',
                 'reported_at', 'sla_due_at', 'resolved_at', 'updated_at',
                 'assigned_frontend_id', 'assigned_backend_id', 'tester_id',
                 'subtasks_total', 'subtasks_done',
             ])
             ->with([
-                'company:id,name',
+                'company:id,name', 'requester:id,name',
                 'workLogs:id,ticket_id,user_id,side,status',
                 'frontend:id,name,avatar_path,is_active',
                 'backend:id,name,avatar_path,is_active',
@@ -130,13 +130,45 @@ class BoardController extends Controller
     /**
      * Groups by assignee or by priority, in php — the tickets are already
      * loaded, and a query per lane would be pure waste (§ 4).
+     *
+     * Each lane carries the assignee model alongside its label so the header
+     * can show an avatar. That user is already eager-loaded on the ticket, so
+     * resolving it here costs nothing.
+     *
+     * @return array<int, array{label: string, user: ?\App\Models\User, columns: array}>
      */
     private function swimlanes($tickets, string $lane): array
     {
-        $groups = $lane === 'priority'
-            ? $tickets->groupBy(fn (Ticket $t) => $t->priority->label())
-            : $tickets->groupBy(fn (Ticket $t) => $t->frontend?->name ?? $t->backend?->name ?? 'مش موزعة');
+        if ($lane === 'priority') {
+            return $tickets
+                ->groupBy(fn (Ticket $t) => $t->priority->label())
+                ->map(fn ($group, $label) => [
+                    'label' => $label,
+                    'user' => null,
+                    'columns' => $this->columns($group),
+                ])
+                ->values()
+                ->all();
+        }
 
-        return $groups->map(fn ($group) => $this->columns($group))->all();
+        return $tickets
+            ->groupBy(fn (Ticket $t) => $this->assigneeOf($t)?->id ?? 0)
+            ->map(function ($group) {
+                $assignee = $this->assigneeOf($group->first());
+
+                return [
+                    'label' => $assignee?->name ?? 'مش موزعة',
+                    'user' => $assignee,
+                    'columns' => $this->columns($group),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /** Whoever the board considers to own this ticket's current work. */
+    private function assigneeOf(Ticket $ticket): ?\App\Models\User
+    {
+        return $ticket->frontend ?? $ticket->backend;
     }
 }

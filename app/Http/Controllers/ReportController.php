@@ -2,6 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\SubtaskSide;
+use App\Enums\SubtaskStatus;
+use App\Enums\TicketScope;
+use App\Enums\TicketType;
+use App\Models\Company;
+use App\Enums\PointSide;
+use App\Models\PointTransaction;
+use App\Models\PriorityDefinition;
+use App\Models\Ticket;
+use App\Models\TicketStatusDefinition;
+use App\Models\TicketSubtask;
 use App\Models\User;
 use App\Services\ReportService;
 use Carbon\CarbonImmutable;
@@ -64,6 +75,81 @@ class ReportController extends Controller
         ]);
     }
 
+    /** F18 — the points report: where the month's points came from. */
+    public function points(Request $request): View
+    {
+        abort_unless($request->user()->hasPermission('points.view.all'), 403);
+
+        $period = $this->period($request);
+
+        return view('reports.points', [
+            'period' => $period,
+            'months' => $this->months(),
+        ] + $this->reports->pointsReport($period));
+    }
+
+    /**
+     * F18/F19.3 — the points ledger, row by row.
+     *
+     * The sibling of /points-report the way team-activity is the sibling of
+     * /reports: that one aggregates, this one shows the actual transactions
+     * behind the aggregate. When someone disputes a bonus figure, this is the
+     * screen that answers it — every row traces to one subtask, one rule and
+     * one moment.
+     */
+    public function pointsDetail(Request $request): View
+    {
+        abort_unless($request->user()->hasPermission('points.view.all'), 403);
+
+        $filters = $request->only(['person', 'period', 'from', 'to', 'side', 'type', 'kind', 'company', 'q']);
+
+        $rows = PointTransaction::query()
+            ->with([
+                'user:id,name,avatar_path,is_active',
+                'ticket:id,ticket_number,title,type,company_id,requested_by',
+                'ticket.company:id,name',
+                'ticket.requester:id,name',
+                'subtask:id,title,side',
+                'creator:id,name',
+            ])
+            ->when($filters['person'] ?? null, fn ($q, $v) => $q->where('user_id', $v))
+            ->when($filters['period'] ?? null, fn ($q, $v) => $q->forPeriod($v))
+            ->when($filters['from'] ?? null, fn ($q, $v) => $q->whereDate('created_at', '>=', $v))
+            ->when($filters['to'] ?? null, fn ($q, $v) => $q->whereDate('created_at', '<=', $v))
+            ->when($filters['side'] ?? null, fn ($q, $v) => $q->where('side', $v))
+            ->when($filters['kind'] ?? null, fn ($q, $v) => $q->where('type', $v))
+            ->when($filters['type'] ?? null, fn ($q, $v) => $q->whereHas('ticket', fn ($t) => $t->where('type', $v)))
+            ->when($filters['company'] ?? null, fn ($q, $v) => $q->whereHas('ticket', fn ($t) => $t->where('company_id', $v)))
+            ->when($filters['q'] ?? null, fn ($q, $v) => $q->where(fn ($w) => $w
+                ->where('reason', 'like', "%{$v}%")
+                ->orWhereHas('ticket', fn ($t) => $t->where('ticket_number', 'like', "%{$v}%")
+                    ->orWhere('title', 'like', "%{$v}%"))
+                ->orWhereHas('subtask', fn ($t) => $t->where('title', 'like', "%{$v}%"))))
+            ->orderByDesc('created_at');
+
+        // The total of what is on screen, not of the whole ledger — a filtered
+        // view whose total ignores the filter is worse than no total. One
+        // aggregate query rather than three separate counts.
+        $summary = (clone $rows)->toBase()->reorder()->selectRaw(
+            'COALESCE(SUM(points), 0) AS total, COUNT(*) AS entries, COUNT(DISTINCT user_id) AS people'
+        )->first();
+
+        return view('reports.points-detail', [
+            'rows' => $rows->paginate(50)->withQueryString(),
+            'summary' => $summary,
+            'filters' => $filters,
+            'months' => $this->months(),
+            'sides' => PointSide::options(),
+            'types' => TicketType::options(),
+            'selectedPerson' => filled($filters['person'] ?? null)
+                ? User::whereKey($filters['person'])->value('name')
+                : null,
+            'selectedCompany' => filled($filters['company'] ?? null)
+                ? Company::whereKey($filters['company'])->value('name')
+                : null,
+        ]);
+    }
+
     /** "نقاطي" — everyone can see their own. F18 */
     public function myPoints(Request $request): View
     {
@@ -76,10 +162,98 @@ class ReportController extends Controller
             'months' => $this->months(),
             'total' => $request->user()->pointsFor($period),
             'transactions' => $request->user()->pointTransactions()
-                ->with('ticket:id,ticket_number,title,type')
+                ->with('ticket:id,ticket_number,title,type', 'subtask:id,title')
                 ->forPeriod($period)
                 ->orderByDesc('created_at')
                 ->get(),
+        ]);
+    }
+
+    /**
+     * F19.3: one filterable screen over a team member's raw tickets and
+     * subtasks, side by side — not the pre-aggregated numbers /employees/{user}
+     * shows, the actual rows.
+     */
+    public function teamActivity(Request $request): View
+    {
+        abort_unless($request->user()->hasPermission('reports.view'), 403);
+
+        $show = in_array($request->query('show'), ['tickets', 'subtasks'], true)
+            ? $request->query('show')
+            : 'both';
+
+        $filters = $request->only([
+            'person', 'from', 'to', 'ticket_date_basis', 'subtask_date_basis',
+            'type', 'scope', 'priority', 'status', 'company', 'side', 'subtask_status',
+        ]);
+
+        $tickets = $show !== 'subtasks'
+            ? Ticket::query()
+                ->select([
+                    'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'scope', 'priority',
+                    'status', 'reported_at', 'due_date', 'resolved_at',
+                    'assigned_frontend_id', 'assigned_backend_id', 'tester_id',
+                ])
+                ->with(['company:id,name', 'requester:id,name', 'frontend:id,name,avatar_path,is_active', 'backend:id,name,avatar_path,is_active'])
+                ->filter([
+                    'assignee' => $filters['person'] ?? null,
+                    'from' => $filters['from'] ?? null,
+                    'to' => $filters['to'] ?? null,
+                    'date_basis' => $filters['ticket_date_basis'] ?? null,
+                    'type' => $filters['type'] ?? null,
+                    'scope' => $filters['scope'] ?? null,
+                    'priority' => $filters['priority'] ?? null,
+                    'status' => $filters['status'] ?? null,
+                    'company' => $filters['company'] ?? null,
+                ])
+                ->defaultOrder()
+                ->paginate(25, ['*'], 'tickets_page')
+                ->withQueryString()
+            : null;
+
+        $subtasks = $show !== 'tickets'
+            ? TicketSubtask::query()
+                ->select([
+                    'id', 'ticket_id', 'title', 'assignee_id', 'side', 'status',
+                    'start_date', 'due_date', 'estimated_hours', 'spent_hours', 'completed_at',
+                ])
+                ->with(['assignee:id,name,avatar_path,is_active', 'ticket:id,ticket_number,title,company_id,requested_by,type'])
+                ->filter([
+                    'person' => $filters['person'] ?? null,
+                    'from' => $filters['from'] ?? null,
+                    'to' => $filters['to'] ?? null,
+                    'date_basis' => $filters['subtask_date_basis'] ?? null,
+                    'side' => $filters['side'] ?? null,
+                    'status' => $filters['subtask_status'] ?? null,
+                    'type' => $filters['type'] ?? null,
+                    'company' => $filters['company'] ?? null,
+                ])
+                ->orderByDesc('due_date')
+                ->paginate(25, ['*'], 'subtasks_page')
+                ->withQueryString()
+            : null;
+
+        return view('reports.team-activity', [
+            'show' => $show,
+            'filters' => $filters,
+            'tickets' => $tickets,
+            'subtasks' => $subtasks,
+            // Only what is selected, so the filter boxes can show a name.
+            // The lists come from /lookup as the user types.
+            'selectedPerson' => filled($filters['person'] ?? null)
+                ? User::whereKey($filters['person'])->value('name')
+                : null,
+            'selectedCompany' => filled($filters['company'] ?? null)
+                ? Company::whereKey($filters['company'])->value('name')
+                : null,
+            'types' => TicketType::options(),
+            'scopes' => TicketScope::options(),
+            'priorities' => PriorityDefinition::options(),
+            'statuses' => TicketStatusDefinition::options(),
+            'sides' => SubtaskSide::options(),
+            'subtaskStatuses' => SubtaskStatus::options(),
+            'ticketDateBases' => Ticket::DATE_BASES,
+            'subtaskDateBases' => TicketSubtask::DATE_BASES,
         ]);
     }
 

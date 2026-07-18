@@ -95,11 +95,11 @@ class DemoJiraSeeder extends Seeder
     private function seedLabels(int $adminId): void
     {
         $labels = [
-            'عاجل للعميل' => 'urgent',
-            'ريجريشن' => 'bug',
-            'محتاج تصميم' => 'feature',
-            'أداء' => 'module',
-            'مستني رد العميل' => 'medium',
+            'عاجل للعميل' => 'red',
+            'ريجريشن' => 'red',
+            'محتاج تصميم' => 'blue',
+            'أداء' => 'green',
+            'مستني رد العميل' => 'amber',
         ];
 
         foreach ($labels as $name => $color) {

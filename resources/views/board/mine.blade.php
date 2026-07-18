@@ -22,29 +22,45 @@
             <x-alert variant="error">{{ $errors->first() }}</x-alert>
         @endif
 
-        <div class="board">
-            @foreach ($columns as $column)
-                <section class="board__column">
-                    <header class="board__head">
-                        <h2 class="board__title">{{ $column['label'] }}</h2>
-                        <span class="board__count">
-                            {{ $column['tickets']->count() }}
-                            @if ($column['hidden'] > 0)
-                                {{-- Never hide a cap silently. --}}
-                                <span title="فيه {{ $column['hidden'] }} كمان مش معروضين">+{{ $column['hidden'] }}</span>
-                            @endif
-                        </span>
-                    </header>
+        @php
+            /* Nothing assigned at all reads very differently from "this one
+               column happens to be empty" — and four dashed boxes cannot say
+               the difference. */
+            $isEmpty = collect($columns)->every(fn ($c) => $c['tickets']->isEmpty());
+        @endphp
 
-                    <div class="board__list">
-                        @forelse ($column['tickets'] as $ticket)
-                            <x-ticket-card :ticket="$ticket" :user="$user" />
-                        @empty
-                            <p class="board__empty">فاضي</p>
-                        @endforelse
-                    </div>
-                </section>
-            @endforeach
-        </div>
+        @if ($isEmpty)
+            <x-card>
+                <div class="board__blank">
+                    <p class="board__blank-title">مفيش حاجة مسندة ليك دلوقتي.</p>
+                    <p>أول ما تتسند ليك تذكرة هتلاقيها هنا في عمود «مسندة إليّ».</p>
+                </div>
+            </x-card>
+        @else
+            <div class="board board--standalone">
+                @foreach ($columns as $column)
+                    <section class="board__column">
+                        <header class="board__head">
+                            <h2 class="board__title">{{ $column['label'] }}</h2>
+                            <span class="board__count">
+                                {{ $column['tickets']->count() }}
+                                @if ($column['hidden'] > 0)
+                                    {{-- Never hide a cap silently. --}}
+                                    <span title="فيه {{ $column['hidden'] }} كمان مش معروضين">+{{ $column['hidden'] }}</span>
+                                @endif
+                            </span>
+                        </header>
+
+                        <div class="board__list">
+                            @forelse ($column['tickets'] as $ticket)
+                                <x-ticket-card :ticket="$ticket" :user="$user" />
+                            @empty
+                                <p class="board__empty">فاضي</p>
+                            @endforelse
+                        </div>
+                    </section>
+                @endforeach
+            </div>
+        @endif
     </div>
 @endsection

@@ -47,7 +47,7 @@ class CalendarController extends Controller
 
         [$from, $to] = $this->window($view, $anchor);
 
-        $filters = $request->only('assignee', 'company', 'type', 'priority', 'side');
+        $filters = $request->only('assignee', 'company', 'type', 'priority', 'side', 'show');
         $items = $this->calendar->itemsBetween($from, $to, $filters, $onlyUserId);
 
         $users = User::active()->without('role')->get(['id', 'name', 'avatar_path', 'is_active', 'daily_capacity_hours'])->keyBy('id');
@@ -65,7 +65,14 @@ class CalendarController extends Controller
             'users' => $users,
             'holidays' => Holiday::map(),
             'filters' => $filters,
-            'companies' => Company::active()->orderBy('name')->get(['id', 'name']),
+            // Only the names of what is currently selected, so the filter
+            // boxes can show them. The lists themselves come from /lookup.
+            'selectedCompany' => filled($filters['company'] ?? null)
+                ? Company::whereKey($filters['company'])->value('name')
+                : null,
+            'selectedAssignee' => filled($filters['assignee'] ?? null)
+                ? User::whereKey($filters['assignee'])->value('name')
+                : null,
             'sides' => SubtaskSide::options(),
             'isTeam' => $onlyUserId === null,
             'routeName' => $onlyUserId === null ? 'calendar.team' : 'calendar.mine',

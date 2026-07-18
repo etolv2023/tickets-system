@@ -1,6 +1,6 @@
 {{-- $assignable comes from the controller: three queries paid once, and only
      for someone who can actually assign. No query lives in a view. § 3 --}}
-<x-card title="التوزيع">
+<x-collapsible-card title="التوزيع">
     @error('assign')
         <x-alert variant="error">{{ $message }}</x-alert>
     @enderror
@@ -37,4 +37,4 @@
 
         <x-button variant="primary" size="sm" block>احفظ التوزيع</x-button>
     </form>
-</x-card>
+</x-collapsible-card>

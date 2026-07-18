@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Enums\PointSide;
 use App\Models\Rating;
 use App\Models\Ticket;
+use App\Notifications\NotificationEvent;
 use App\Services\ActivityLogger;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -57,6 +59,16 @@ class RatingController extends Controller
             ],
             ip: $request->ip(),
             userAgent: $request->userAgent(),
+        );
+
+        // Only the person rated hears about it, never the whole circle: a
+        // score is between the rater and the rated.
+        app(NotificationService::class)->dispatchTo(
+            $rateeId,
+            $ticket,
+            NotificationEvent::RatingGiven,
+            "اتقيّمت بـ{$data['score']}/10 على {$ticket->ticket_number}",
+            $request->user()->id,
         );
 
         return back()->with('status', 'تم حفظ التقييم.');

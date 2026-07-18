@@ -14,17 +14,27 @@ class Label extends Model
      *
      * @var array<string, string>
      */
+    /* The full picker. Keys are hue names, not role names: an admin choosing a
+       colour for a custom status is picking "أزرق", not "inquiry".
+       Every hue here has a matching --c-<key> / --c-<key>-bg token pair in
+       tokens.css and a .badge--<key> / .stripe--<key> rule. Adding one means
+       adding all three. */
     public const COLORS = [
-        'urgent' => 'أحمر',
-        'high' => 'برتقالي',
-        'medium' => 'كهرماني',
-        'low' => 'رمادي',
-        'resolved' => 'أخضر',
-        'blocked' => 'بني',
-        'bug' => 'وردي',
-        'inquiry' => 'أزرق',
-        'feature' => 'بنفسجي',
-        'module' => 'تركوازي',
+        'red' => 'أحمر',
+        'rose' => 'وردي',
+        'orange' => 'برتقالي',
+        'amber' => 'كهرماني',
+        'yellow' => 'أصفر',
+        'lime' => 'ليموني',
+        'green' => 'أخضر',
+        'teal' => 'تركوازي',
+        'cyan' => 'سماوي',
+        'blue' => 'أزرق',
+        'indigo' => 'نيلي',
+        'violet' => 'بنفسجي',
+        'plum' => 'خوخي',
+        'brown' => 'بني',
+        'slate' => 'رمادي',
     ];
 
     protected $fillable = ['name', 'color', 'created_by'];

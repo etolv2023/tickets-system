@@ -1,10 +1,32 @@
-/* App shell — sidebar + main. Logical properties only, so the nav lands on
-   the right in RTL without a single left/right rule. CLAUDE.md § 6. */
+/* App shell — sidebar + topbar + scrolling body. Logical properties only, so
+   the nav lands on the right in RTL without a single left/right rule.
 
+   The shell owns the viewport: it never scrolls. The nav and the body scroll
+   independently inside it, which keeps the topbar and the user card pinned
+   while a long ticket list runs past them. */
+
+/* The document scrolls, not an inner pane.
+
+   This used to be a fixed 100vh box with overflow:hidden and a scrolling child.
+   That pattern clips: any miscalculation in the height chain puts content past
+   the bottom edge with no way to reach it, and it did exactly that on the
+   ticket page. min-height lets the shell grow to its content instead, and the
+   nav and topbar stay put via position:sticky — same result on screen, with no
+   way to lose content off the bottom. */
 .shell {
     display: grid;
     grid-template-columns: var(--nav-width) 1fr;
     min-height: 100vh;
+    /* dvh so a mobile browser's collapsing address bar doesn't leave a strip
+       of page background below the shell. vh above is the fallback. */
+    min-height: 100dvh;
+    transition: grid-template-columns var(--transition);
+}
+
+/* Collapsed rail — icons only. The state is an attribute on <html> set before
+   first paint, so a collapsed nav never flashes open on load. */
+:root[data-sidebar='collapsed'] .shell {
+    grid-template-columns: var(--nav-width-collapsed) 1fr;
 }
 
 .shell__main {
@@ -13,13 +35,27 @@
     flex-direction: column;
 }
 
+/* --body-pad is published as a variable, not just applied, because anything
+   that needs to break OUT of the body's gutter — the sticky form footer — has
+   to negate exactly this value. Hardcoding --space-5 in that negative margin
+   worked on desktop and overflowed the page by 8px each side on a phone, where
+   the padding drops to --space-4 but the margin did not. */
 .shell__body {
+    --body-pad: var(--space-5);
     flex: 1;
-    padding: var(--space-5);
+    padding: var(--body-pad);
 }
 
+/* The ceiling exists so a line of prose never runs the width of a 27" monitor.
+
+   It went 76rem → 110rem to stop a calendar being squeezed, and overshot: at
+   1760px a ticket's description column is roughly 1200px of card holding one
+   line of Arabic, which is where the lakes of empty space on the detail screen
+   came from. --page-max is 84rem — wide enough for a board or a month grid,
+   narrow enough that a text column still looks intentional. Screens that
+   genuinely want the whole monitor opt up with .page--wide. */
 .page {
-    max-width: 76rem;
+    max-width: var(--page-max);
     margin-inline: auto;
     display: flex;
     flex-direction: column;
@@ -27,7 +63,13 @@
 }
 
 .page--narrow {
-    max-width: 42rem;
+    max-width: var(--page-max-narrow);
+}
+
+/* Screens whose content is a single wide table or board and should use the
+   full width rather than sit in a centred column. */
+.page--wide {
+    max-width: none;
 }
 
 .page__head {
@@ -79,12 +121,27 @@
     border: 0;
 }
 
+/* Below this width the rail costs more than it gives: the nav becomes a
+   horizontal strip above the content and the shell scrolls as one document. */
 @media (max-width: 60rem) {
-    .shell {
+    .shell,
+    :root[data-sidebar='collapsed'] .shell {
         grid-template-columns: 1fr;
     }
 
     .shell__body {
-        padding: var(--space-4);
+        --body-pad: var(--space-4);
     }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .shell {
+        transition: none;
+    }
+}
+
+/* Between the full width and the narrow form column: a reading-width screen
+   that still has a sidebar's worth of detail — a person's profile, a feed. */
+.page--medium {
+    max-width: var(--page-max-medium);
 }

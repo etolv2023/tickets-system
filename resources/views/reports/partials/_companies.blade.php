@@ -16,8 +16,13 @@
             <tbody>
                 @forelse ($companies as $row)
                     <tr>
+                        {{-- The internal-work row has no company_id, so it gets
+                             a label rather than a link to a customer page that
+                             does not exist. F25 --}}
                         <td>
-                            @can('companies.manage')
+                            @if ($row->company_id === null)
+                                <span class="u-muted">شغل داخلي</span>
+                            @elsecan('companies.manage')
                                 <a href="{{ route('admin.companies.show', $row->company_id) }}">{{ $row->company?->name ?? '—' }}</a>
                             @else
                                 {{ $row->company?->name ?? '—' }}

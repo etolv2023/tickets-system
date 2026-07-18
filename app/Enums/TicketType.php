@@ -33,6 +33,24 @@ enum TicketType: string
         };
     }
 
+    /**
+     * The <x-icon> name for this type.
+     *
+     * A type badge used to be a coloured word, which meant telling a bug from
+     * an inquiry required reading it. The glyph carries the meaning at a
+     * glance and survives the colour being the same across two types.
+     */
+    public function icon(): string
+    {
+        return match ($this) {
+            self::Bug => 'bug',
+            self::Inquiry => 'inquiry',
+            self::Feature => 'feature',
+            self::NewModule => 'module',
+            self::Undefined => 'undefined',
+        };
+    }
+
     /** F15: features and new modules can't be assigned before an admin approves. */
     public function needsApproval(): bool
     {

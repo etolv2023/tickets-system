@@ -1,0 +1,71 @@
+/* Copy row — a labelled value you are meant to paste somewhere else, not read.
+   Used for the client portal link and its one-time password. */
+
+.copy-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    min-width: 0;
+}
+
+.copy-row__label {
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-heavy);
+    color: var(--text-subtle);
+}
+
+.copy-row__body {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding-block: var(--space-1);
+    padding-inline: var(--space-2);
+    background-color: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    min-width: 0;
+}
+
+/* The full value stays in the DOM (and in the clipboard); only its display is
+   clipped, so a long URL never wraps the card. */
+.copy-row__value {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+}
+
+.copy-row__value--secret {
+    color: var(--text);
+    font-weight: var(--weight-medium);
+    letter-spacing: 0.02em;
+}
+
+.copy-row__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    flex: none;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: var(--radius-sm);
+    color: var(--text-subtle);
+    cursor: pointer;
+    transition: background-color var(--transition), color var(--transition);
+}
+
+.copy-row__btn:hover {
+    background-color: var(--hover);
+    color: var(--text);
+}
+
+.copy-row__btn:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+}

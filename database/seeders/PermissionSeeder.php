@@ -55,6 +55,11 @@ class PermissionSeeder extends Seeder
             'settings.manage' => 'إدارة الإعدادات',
             'audit.view' => 'عرض سجل التدقيق',
             'import.run' => 'تشغيل استيراد Excel',
+            // Deliberately its own permission, not folded into settings.manage:
+            // restore replaces every row and every file the system holds, which
+            // is a different order of risk from editing the SLA hours. Never
+            // granted to a role automatically — an admin assigns it by hand.
+            'system.backup' => 'باك أب واسترجاع النظام كامل',
         ],
     ];
 

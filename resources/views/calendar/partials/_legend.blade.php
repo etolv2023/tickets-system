@@ -24,5 +24,8 @@
         <span class="cal__item cal__item--overdue">متأخرة</span>
     </span>
 
-    <span class="cal__legend-item">المخطط المشطوب = يوم إجازة أو عطلة</span>
+    <span class="cal__legend-item">
+        <span class="cal__legend-off"></span>
+        يوم إجازة أو عطلة
+    </span>
 </div>

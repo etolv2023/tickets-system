@@ -1,0 +1,274 @@
+/* The client portal — no nav, no sidebar. Just a header and one ticket. F24 */
+
+.portal {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background-color: var(--bg);
+}
+
+/* The brand sat alone in the middle of a full-width bar. Aligning its inner
+   width with the body's puts it over the content instead of floating above it.
+
+   It gets --surface rather than the page ground so the strip reads as a bar
+   the content scrolls under, the same relationship the topbar has inside the
+   app — the portal is a different screen, not a different design. */
+.portal__head {
+    padding-block: var(--space-3);
+    padding-inline: var(--space-4);
+    background-color: var(--surface);
+    border-block-end: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: var(--z-topbar);
+}
+
+/* Brand at one end, the theme toggle at the other. */
+.portal__head-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    max-width: 58rem;
+    margin-inline: auto;
+}
+
+.portal__body {
+    max-width: 58rem;
+    margin-inline: auto;
+    padding: var(--space-6) var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+}
+
+/* The one ticket the client came to read. Its own heading, not the auth
+   screen's — the portal is a page, not a login box. */
+.portal__ticket-head {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+}
+
+.portal__ticket-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.portal__ticket-ref {
+    font-size: var(--text-sm);
+    color: var(--text-subtle);
+}
+
+.portal__ticket-title {
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-heavy);
+    line-height: var(--leading-tight);
+}
+
+/* ---- Status strip ----
+
+   Four label/value pairs on one line, hairline-separated. A row of cards would
+   be four boxes to hold four short words; this is the same information without
+   the furniture. */
+
+.portal-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-5);
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+
+.portal-facts__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    min-width: 0;
+}
+
+.portal-facts__key {
+    font-size: var(--text-xs);
+    color: var(--text-subtle);
+}
+
+.portal-facts__value {
+    font-size: var(--text-md);
+    font-weight: var(--weight-medium);
+    color: var(--text);
+}
+
+/* ---- Reply composer ----
+
+   Sits in the thread card's footer. It is the end of the conversation, so it
+   is inside the conversation. */
+
+/* .card__footer is a right-aligned flex row built for a pair of buttons. A
+   whole form dropped into it shrank to its content width and hugged one edge —
+   which is exactly what a "small and ugly" composer looks like. It takes the
+   full row instead. */
+.portal-composer {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.portal-composer__actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* The thread — client and support team told apart by a tint, not a mirrored
+   layout: on a page with no sidebar to anchor against, alternating sides reads
+   as noise rather than structure. Rows share the card's flush body, divided
+   by the same hairline every dense list in the app uses (card__row's rule). */
+.portal-thread {
+    display: flex;
+    flex-direction: column;
+}
+
+.portal-comment {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-block-start: 1px solid var(--border-subtle);
+}
+
+.portal-comment:first-child {
+    border-block-start: 0;
+}
+
+/* A reply from the team is the answer the client came to read — the one row
+   worth a tint. Their own messages need no highlight; they already know
+   which ones are theirs. */
+.portal-comment--staff {
+    background-color: var(--c-blue-bg);
+}
+
+.portal-comment__avatar {
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    background-color: var(--chip);
+    color: var(--text-subtle);
+}
+
+.portal-comment__bubble {
+    flex: 1;
+    min-width: 0;
+}
+
+.portal-comment__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--text-subtle);
+    margin-block-end: var(--space-2);
+}
+
+.portal-comment__who {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: var(--weight-bold);
+    color: var(--text);
+}
+
+.portal-comment__badge {
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-bold);
+    color: var(--text-subtle);
+    background-color: var(--chip);
+    padding-inline: var(--space-2);
+    border-radius: var(--radius-full);
+}
+
+.portal-comment__badge--team {
+    color: var(--c-blue);
+    background-color: var(--c-blue-bg);
+}
+
+/* Files shared with the client. They hang off a public comment, so they read
+   as part of that message rather than as a separate attachments panel. */
+.portal-files {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-block-start: var(--space-3);
+    padding: 0;
+    list-style: none;
+}
+
+.portal-file {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2);
+    background-color: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: inherit;
+    transition: border-color var(--transition), background-color var(--transition);
+}
+
+.portal-file:hover {
+    background-color: var(--hover);
+    border-color: var(--border-strong);
+}
+
+.portal-file:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+}
+
+.portal-file__thumb {
+    width: 2.5rem;
+    height: 2.5rem;
+    flex: none;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+}
+
+.portal-file__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex: none;
+    border-radius: var(--radius-sm);
+    background-color: var(--chip);
+    color: var(--text-subtle);
+}
+
+.portal-file__meta {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.portal-file__name {
+    max-width: 14rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+}
+
+.portal-file__size {
+    font-size: var(--text-2xs);
+    color: var(--text-subtle);
+}

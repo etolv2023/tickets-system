@@ -1,0 +1,41 @@
+/* Legend — what a colour on this screen means.
+
+   Semantic colour is the whole design thesis (CLAUDE.md § 6), which only works
+   if the reader knows what a colour is saying. Wherever a figure changes
+   colour to mean something, this says what. */
+
+.legend {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+}
+
+.legend__item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+/* A short bar rather than a dot: it reads as "the colour of a number", which
+   is where the colour actually appears. */
+.legend__key {
+    inline-size: 0.875rem;
+    block-size: 3px;
+    border-radius: var(--radius-full);
+    background-color: currentColor;
+}
+
+.legend__key--plain {
+    background-color: var(--text-subtle);
+}
+
+.legend__key--near {
+    background-color: var(--c-high);
+}
+
+.legend__key--over {
+    background-color: var(--c-urgent);
+}

@@ -31,16 +31,8 @@ class SubtaskScheduleController extends Controller
 
         $due = CarbonImmutable::parse($data['due_date']);
 
-        // Keep the duration when the start date moves with it, so dragging a
-        // 3-day task doesn't silently squash it to one.
-        $attributes = ['due_date' => $due->toDateString()];
-
-        if ($subtask->start_date !== null && $subtask->due_date !== null) {
-            $span = $subtask->start_date->diffInDays($subtask->due_date);
-            $attributes['start_date'] = $due->subDays($span)->toDateString();
-        }
-
-        $subtask->update($attributes);
+        // A subtask carries one date, so a drag is a move, not a span shift.
+        $subtask->update(['due_date' => $due->toDateString()]);
         $this->subtasks->syncCounters($subtask->ticket);
 
         $slaDue = $subtask->ticket->sla_due_at;
@@ -49,7 +41,6 @@ class SubtaskScheduleController extends Controller
         return response()->json([
             'ok' => true,
             'due_date' => $subtask->due_date->toDateString(),
-            'start_date' => $subtask->start_date?->toDateString(),
             // F13: a move past the SLA is confirmed, not blocked.
             'warning' => $overshoots
                 ? "التاريخ ده بعد مهلة الـ SLA بتاعة {$subtask->ticket->ticket_number} ({$slaDue->translatedFormat('j M')})."

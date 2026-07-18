@@ -16,9 +16,17 @@ class DatabaseSeeder extends Seeder
             $this->call([
                 DemoUserSeeder::class,
                 DemoCompanySeeder::class,
+                DemoCustomStatusSeeder::class,
                 DemoTicketSeeder::class,
                 DemoJiraSeeder::class,
                 DemoCalendarSeeder::class,
+                // Five months of finished work, so the reports, the points
+                // ledger and the notification inbox have a history to show
+                // rather than a single week of rows.
+                DemoHistorySeeder::class,
+                // Last: it reads the users and companies the others created,
+                // and it is the one you open to see how the pieces fit.
+                DemoFeatureWalkthroughSeeder::class,
             ]);
         }
     }

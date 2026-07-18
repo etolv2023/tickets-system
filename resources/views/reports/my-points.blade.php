@@ -21,8 +21,8 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>التذكرة</th>
-                            <th>النوع</th>
+                            <th>المصدر</th>
+                            <th>الصب تاسك</th>
                             <th>الجهة</th>
                             <th>السبب</th>
                             <th class="table__cell--num">النقاط</th>
@@ -32,12 +32,23 @@
                         @forelse ($transactions as $row)
                             <tr>
                                 <td>
-                                    <a href="{{ route('tickets.show', $row->ticket_id) }}">
-                                        <span class="u-mono u-ltr">{{ $row->ticket->ticket_number }}</span>
-                                        {{ Str::limit($row->ticket->title, 40) }}
-                                    </a>
+                                    @if ($row->ticket)
+                                        <a href="{{ route('tickets.show', $row->ticket_id) }}">
+                                            <span class="u-mono u-ltr">{{ $row->ticket->ticket_number }}</span>
+                                            {{ Str::limit($row->ticket->title, 40) }}
+                                        </a>
+                                        <x-badge :variant="$row->ticket->type->variant()" :icon="$row->ticket->type->icon()">{{ $row->ticket->type->label() }}</x-badge>
+                                    @else
+                                        <span class="u-subtle">—</span>
+                                    @endif
                                 </td>
-                                <td><x-badge :variant="$row->ticket->type->variant()">{{ $row->ticket->type->label() }}</x-badge></td>
+                                <td class="u-subtle">
+                                    @if ($row->type === 'correction')
+                                        <x-badge variant="neutral">تصحيح يدوي</x-badge>
+                                    @else
+                                        {{ $row->subtask->title ?? '—' }}
+                                    @endif
+                                </td>
                                 <td>{{ $row->side->label() }}</td>
                                 <td class="u-subtle">{{ $row->reason }}</td>
                                 <td class="table__cell--num">{{ rtrim(rtrim($row->points, '0'), '.') }}</td>

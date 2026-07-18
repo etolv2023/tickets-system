@@ -5,7 +5,12 @@
 
     <div class="timeline__body">
         <div class="timeline__head">
-            <span class="timeline__who">{{ $comment->user->name }}</span>
+            <span class="timeline__who">
+                {{ $comment->authorName() }}
+                @if ($comment->contact_id)
+                    <x-badge variant="inquiry">عميل</x-badge>
+                @endif
+            </span>
             <time class="timeline__when"
                   datetime="{{ $comment->created_at->toIso8601String() }}"
                   title="{{ $comment->created_at->timezone(config('app.display_timezone'))->translatedFormat('j F Y — H:i') }}">

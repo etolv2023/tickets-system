@@ -1,16 +1,21 @@
 <?php
 
 use App\Http\Controllers\Admin\AuditController;
+use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\CalendarSettingController;
 use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\ContactController;
 use App\Http\Controllers\Admin\ImportController;
 use App\Http\Controllers\Admin\LabelController;
 use App\Http\Controllers\Admin\PointRuleController;
+use App\Http\Controllers\Admin\PriorityController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\TicketStatusController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\LookupController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PortalController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SubtaskController;
 use App\Http\Controllers\SubtaskScheduleController;
@@ -63,6 +68,28 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:30,1');
 });
 
+/*
+ * F24 — the client portal. Outside `auth` on purpose: the client never logs
+ * in, the per-ticket password is the whole access control.
+ */
+Route::prefix('portal')->name('portal.')->group(function () {
+    Route::get('/{ticketNumber?}', [PortalController::class, 'show'])->name('show');
+    // Keyed by ticket number + ip inside the controller, same shape as login's
+    // throttle — this outer cap just stops one address spraying many tickets.
+    Route::post('/verify', [PortalController::class, 'verify'])->middleware('throttle:20,1')->name('verify');
+    Route::post('/{ticketNumber}/comment', [PortalController::class, 'comment'])
+        ->middleware('throttle:30,1')
+        ->name('comment');
+
+    // A client reading a file off their own ticket. Separate from the staff
+    // download routes on purpose — this one can only reach attachments that
+    // hang off a public comment. F24
+    Route::get('/{ticketNumber}/files/{attachment}', [PortalController::class, 'attachment'])
+        ->name('attachment');
+    Route::get('/{ticketNumber}/files/{attachment}/thumb', [PortalController::class, 'attachmentThumbnail'])
+        ->name('attachment.thumb');
+});
+
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
@@ -83,6 +110,7 @@ Route::middleware('auth')->group(function () {
     // F06 / F07 / F15 / F16 — everything that moves a ticket.
     Route::prefix('tickets/{ticket}')->name('tickets.')->group(function () {
         Route::post('assign', [TicketWorkflowController::class, 'assign'])->name('assign');
+        Route::post('status', [TicketWorkflowController::class, 'changeStatus'])->name('status.change');
         Route::post('work-logs/{workLog}/start', [TicketWorkflowController::class, 'start'])->name('work.start');
         Route::post('work-logs/{workLog}/finish', [TicketWorkflowController::class, 'finish'])->name('work.finish');
         Route::post('approve', [TicketWorkflowController::class, 'approve'])->name('approve');
@@ -91,6 +119,7 @@ Route::middleware('auth')->group(function () {
         Route::post('reopen', [TicketWorkflowController::class, 'reopen'])->name('reopen');
         Route::post('notify-client', [TicketWorkflowController::class, 'notifyClient'])->name('notify');
         Route::post('close', [TicketWorkflowController::class, 'close'])->name('close');
+        Route::post('portal/regenerate', [TicketWorkflowController::class, 'regeneratePortalPassword'])->name('portal.regenerate');
     });
 
     // F08 / F09 / F10 / F11 — the Jira layer, all scoped under their ticket.
@@ -136,8 +165,16 @@ Route::middleware('auth')->group(function () {
     // F19 — the numbers live here; you come to them on purpose.
     Route::get('/reports', [ReportController::class, 'index'])
         ->middleware('permission:reports.view')->name('reports.index');
+    Route::get('/reports/team-activity', [ReportController::class, 'teamActivity'])
+        ->middleware('permission:reports.view')->name('reports.team-activity');
     Route::get('/employees/{user}', [ReportController::class, 'employee'])
         ->middleware('permission:reports.view')->name('reports.employee');
+    Route::get('/points-report/detail', [ReportController::class, 'pointsDetail'])
+        ->middleware('permission:points.view.all')
+        ->name('reports.points-detail');
+    Route::get('/points-report', [ReportController::class, 'points'])
+        ->middleware('permission:points.view.all')
+        ->name('reports.points');
     Route::get('/leaderboard', [ReportController::class, 'leaderboard'])
         ->middleware('permission:points.view.all')->name('reports.leaderboard');
     Route::get('/my-points', [ReportController::class, 'myPoints'])
@@ -148,8 +185,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/export/points', [ExportController::class, 'points'])->name('export.points');
 
     // F20
+    // Type-ahead for every database-backed dropdown. Throttled: it is a search
+    // endpoint reachable from every screen.
+    Route::get('lookup/{resource}', LookupController::class)
+        ->middleware('throttle:120,1')
+        ->name('lookup');
+
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+    // The bell polls this. It is the seam a websocket would replace later.
+    Route::get('/notifications/count', [NotificationController::class, 'count'])->name('notifications.count');
     Route::get('/notifications/{id}', [NotificationController::class, 'read'])->name('notifications.read');
 
     // The only path to a stored file. Each one authorises against its ticket.
@@ -164,15 +209,39 @@ Route::middleware('auth')->group(function () {
         Route::middleware('permission:points.rules.manage')->group(function () {
             Route::get('point-rules', [PointRuleController::class, 'index'])->name('point-rules.index');
             Route::put('point-rules', [PointRuleController::class, 'update'])->name('point-rules.update');
+            Route::post('point-rules/corrections', [PointRuleController::class, 'storeCorrection'])
+                ->name('point-rules.corrections.store');
         });
 
         // F23 — read-only by design.
         Route::get('audit', [AuditController::class, 'index'])
             ->middleware('permission:audit.view')->name('audit.index');
 
+        // Full-system backup/restore — its own permission (system.backup), not
+        // settings.manage: restore replaces every row and every uploaded file
+        // the system currently holds.
+        Route::middleware('permission:system.backup')->group(function () {
+            Route::get('backup', [BackupController::class, 'index'])->name('backup');
+            Route::get('backup/download', [BackupController::class, 'download'])->name('backup.download');
+            Route::post('backup/restore', [BackupController::class, 'restore'])->name('backup.restore');
+        });
+
         Route::middleware('permission:settings.manage')->group(function () {
             Route::get('/settings', [SettingController::class, 'edit'])->name('settings');
             Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+
+            // F06.1 — the status list and the transition graph between them.
+            Route::get('ticket-statuses', [TicketStatusController::class, 'index'])->name('ticket-statuses.index');
+            Route::post('ticket-statuses', [TicketStatusController::class, 'store'])->name('ticket-statuses.store');
+            Route::put('ticket-statuses/transitions', [TicketStatusController::class, 'updateTransitions'])->name('ticket-statuses.transitions');
+            Route::put('ticket-statuses/{ticketStatus}', [TicketStatusController::class, 'update'])->name('ticket-statuses.update');
+            Route::delete('ticket-statuses/{ticketStatus}', [TicketStatusController::class, 'destroy'])->name('ticket-statuses.destroy');
+
+            // F22.1 — the priority list, SLA hours included on the same row.
+            Route::get('priorities', [PriorityController::class, 'index'])->name('priorities.index');
+            Route::post('priorities', [PriorityController::class, 'store'])->name('priorities.store');
+            Route::put('priorities/{priority}', [PriorityController::class, 'update'])->name('priorities.update');
+            Route::delete('priorities/{priority}', [PriorityController::class, 'destroy'])->name('priorities.destroy');
         });
 
         Route::middleware('permission:users.manage')

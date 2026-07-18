@@ -4,7 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title') — {{ $appName }}</title>
-    <link rel="icon" href="{{ $appLogo ? Storage::url($appLogo) : '/favicon.ico' }}">
+    {{-- The uploaded logo wins; the SVG below is the default mark. The type
+         hint is only emitted for the SVG, because an uploaded logo may be a
+         PNG and a wrong MIME hint on rel=icon is worse than none. --}}
+    @if ($appLogo)
+        <link rel="icon" href="{{ Storage::url($appLogo) }}">
+    @else
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    @endif
 
     <script>
         (function () {
@@ -15,10 +22,17 @@
         })();
     </script>
 
+    <link rel="preload" href="/fonts/cairo-arabic.woff2" as="font" type="font/woff2" crossorigin>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
     <div class="auth">
+        {{-- Parked in the corner rather than in the box: it is a property of
+             the screen, not a field of the form. Login and the client portal
+             gate both land here, and neither had any way to change the theme. --}}
+        <x-theme-toggle class="auth__theme" />
+
         <div class="auth__box">
             <div class="auth__brand">
                 @if ($appLogo)

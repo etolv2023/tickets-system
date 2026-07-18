@@ -23,7 +23,12 @@ enum PointSide: string
         };
     }
 
-    /** The tickets column naming the person who earns on this side. */
+    /**
+     * The tickets column naming the person who owns this side.
+     *
+     * Still the fallback when nobody finished a subtask on this side — the
+     * ticket's own assignee is who the commitment was made to.
+     */
     public function participantColumn(): string
     {
         return match ($this) {
@@ -31,6 +36,24 @@ enum PointSide: string
             self::Frontend => 'assigned_frontend_id',
             self::Backend => 'assigned_backend_id',
             self::Tester => 'tester_id',
+        };
+    }
+
+    /**
+     * Which subtask sides count as work on this earning side.
+     *
+     * qa maps to tester, and 'other' maps to nothing: a subtask nobody
+     * classified is not evidence of who did which side's work.
+     *
+     * @return array<int, string>
+     */
+    public function subtaskSides(): array
+    {
+        return match ($this) {
+            self::Support => [SubtaskSide::Support->value],
+            self::Frontend => [SubtaskSide::Frontend->value],
+            self::Backend => [SubtaskSide::Backend->value],
+            self::Tester => [SubtaskSide::Qa->value],
         };
     }
 

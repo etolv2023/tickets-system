@@ -58,7 +58,7 @@
                     <a
                         @class([
                             'cal__item',
-                            'cal__item--' . $subtask->ticket->priority->value,
+                            'cal__item--' . $subtask->ticket->priority->variant(),
                             'cal__item--overdue' => $subtask->isOverdue(),
                             'cal__item--done' => $subtask->status === \App\Enums\SubtaskStatus::Done,
                         ])
@@ -68,14 +68,29 @@
                         data-original-due="{{ $key }}"
                         draggable="true"
                         title="{{ $subtask->ticket->ticket_number }} — {{ $subtask->title }}{{ $subtask->estimated_hours ? ' (' . rtrim(rtrim($subtask->estimated_hours, '0'), '.') . ' س)' : '' }}"
-                    >{{ $subtask->title }}</a>
+                    >
+                        {{-- A subtask says who and how long. A ticket deadline
+                             says neither — that is the difference you are meant
+                             to see without reading. --}}
+                        @if ($subtask->assignee)
+                            <span class="cal__who">{{ $subtask->assignee->initials() }}</span>
+                        @endif
+                        <span class="cal__text">{{ $subtask->title }}</span>
+                        @if ($subtask->estimated_hours)
+                            <span class="cal__hours u-mono">{{ rtrim(rtrim($subtask->estimated_hours, '0'), '.') }}س</span>
+                        @endif
+                    </a>
                 @endforeach
             </div>
 
+            {{-- Ticket deadlines are a different kind of thing from the work
+                 below them, so they get a different shape: a solid bar, not a
+                 tinted chip. --}}
             @foreach (($ticketsByDay[$key] ?? collect()) as $ticket)
-                <a class="cal__item cal__item--{{ $ticket->priority->value }}"
+                <a class="cal__ticket cal__ticket--{{ $ticket->priority->variant() }}"
                    href="{{ route('tickets.show', $ticket) }}"
-                   title="استحقاق التذكرة">
+                   title="استحقاق التذكرة — {{ $ticket->title }}">
+                    <span class="cal__ticket-tag">تذكرة</span>
                     <span class="u-mono">{{ $ticket->ticket_number }}</span>
                 </a>
             @endforeach

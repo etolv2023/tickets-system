@@ -23,7 +23,7 @@
 @endphp
 
 @if ($sides->isNotEmpty())
-    <x-card title="التقييمات">
+    <x-collapsible-card title="التقييمات">
         <div class="stack stack--tight">
             @can('ratings.give')
                 <p class="field__hint">اختياري — مش بيعطّل إغلاق التذكرة.</p>
@@ -71,5 +71,5 @@
                 @endcan
             @endcan
         </div>
-    </x-card>
+    </x-collapsible-card>
 @endif

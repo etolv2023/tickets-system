@@ -1,0 +1,86 @@
+/* Calendar: the capacity meter and the timeline view.
+   Split out of calendar.css to keep both files under the 300-line ceiling. */
+
+/* ---- Capacity meter (F14) ----
+   Grey at the limit, amber near it, red over it. The bar is the only
+   decorative-looking shape on the calendar that is in fact pure data. */
+
+.cap {
+    --cap-color: var(--c-low);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: var(--text-2xs);
+    font-variant-numeric: tabular-nums;
+    color: var(--cap-color);
+}
+
+.cap__bar {
+    width: 1.75rem;
+    height: 4px;
+    border-radius: var(--radius-full);
+    background-color: var(--surface-3);
+    overflow: hidden;
+}
+
+.cap__fill {
+    height: 100%;
+    width: var(--value, 0%);
+    background-color: var(--cap-color);
+}
+
+.cap--at { --cap-color: var(--c-resolved); }
+.cap--near { --cap-color: var(--c-high); }
+.cap--over { --cap-color: var(--c-urgent); }
+.cap--off { --cap-color: var(--text-subtle); }
+
+/* ---- Timeline (rows per person) ---- */
+
+.timeline-grid {
+    display: grid;
+    gap: 1px;
+    background-color: var(--border-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow-x: auto;
+}
+
+.timeline-grid__row {
+    display: grid;
+    grid-template-columns: 9rem 1fr;
+    gap: 1px;
+    background-color: var(--border-subtle);
+}
+
+.timeline-grid__who {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2);
+    background-color: var(--surface-2);
+    font-size: var(--text-sm);
+    position: sticky;
+    inset-inline-start: 0;
+}
+
+/* --value is the number of days in the window — the one dynamic value the
+   template injects, per CLAUDE.md § 3. */
+.timeline-grid__days {
+    display: grid;
+    grid-template-columns: repeat(var(--value, 30), minmax(2.5rem, 1fr));
+    gap: 1px;
+    background-color: var(--border-subtle);
+}
+
+.timeline-grid__cell {
+    min-height: 2.5rem;
+    padding: 2px;
+    background-color: var(--surface);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.timeline-grid__cell--off {
+    background-color: var(--surface-2);
+}

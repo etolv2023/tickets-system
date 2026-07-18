@@ -2,52 +2,85 @@
     $user = auth()->user();
 @endphp
 
-<nav class="nav" aria-label="التنقل الرئيسي">
-    <a href="{{ route('home') }}" class="nav__brand">
+<nav class="nav" id="app-nav" aria-label="التنقل الرئيسي">
+    <a href="{{ route('home') }}" class="nav__brand" title="{{ $appName }}">
         @if ($appLogo)
             <img src="{{ Storage::url($appLogo) }}" alt="" height="24">
         @else
             <span class="nav__brand-mark">{{ mb_substr($appName, 0, 1) }}</span>
         @endif
-        <span>{{ $appName }}</span>
+        <span class="nav__label">{{ $appName }}</span>
     </a>
 
+    {{-- اليوم is the home screen (CLAUDE.md § 6) — it stands alone above every
+         folding group rather than hiding as the first link inside "الشغل". --}}
+    <a href="{{ route('home') }}" class="nav__link nav__link--home" title="اليوم"
+       @if (request()->routeIs('home')) aria-current="page" @endif>
+        <x-icon name="home" class="nav__icon" />
+        <span class="nav__label">اليوم</span>
+    </a>
+
+    {{-- Folding groups, each one topic — the old "الإدارة" alone held 12 links
+         under one label, which reads as a dumping ground rather than a menu.
+         Splitting it into three (customers, team, system) plus a personal
+         "النقاط" apart from the management-only "التقارير" means every group's
+         name actually describes everything inside it. --}}
     <div class="nav__list">
-        @include('partials.nav._work')
-        @include('partials.nav._queues')
-        @include('partials.nav._admin')
+        <x-nav-group name="work" title="الشغل" icon="board">
+            @include('partials.nav._work')
+        </x-nav-group>
+
+        <x-nav-group name="waiting" title="مستنيك" icon="hourglass">
+            @include('partials.nav._waiting')
+        </x-nav-group>
+
+        @canany(['points.view.own', 'points.view.all'])
+            <x-nav-group name="points" title="النقاط" icon="star" :open="false">
+                @include('partials.nav._points')
+            </x-nav-group>
+        @endcanany
+
+        @canany(['points.view.all', 'reports.view'])
+            <x-nav-group name="reports" title="التقارير" icon="chart" :open="false">
+                @include('partials.nav._reports')
+            </x-nav-group>
+        @endcanany
+
+        @canany(['companies.manage', 'users.manage'])
+            <x-nav-group name="admin-customers" title="العملاء" icon="building" :open="false">
+                @include('partials.nav._admin-customers')
+            </x-nav-group>
+        @endcanany
+
+        @can('users.manage')
+            <x-nav-group name="admin-team" title="الفريق" icon="users" :open="false">
+                @include('partials.nav._admin-team')
+            </x-nav-group>
+        @endcan
+
+        @canany(['users.manage', 'settings.manage', 'points.rules.manage', 'audit.view'])
+            <x-nav-group name="admin-system" title="النظام" icon="settings" :open="false">
+                @include('partials.nav._admin-system')
+            </x-nav-group>
+        @endcanany
     </div>
 
+    {{-- Footer: who you are, and the one control that belongs to you rather
+         than to the app. The bell and the theme toggle live in the topbar. --}}
     <div class="nav__foot">
         <div class="nav__user">
             <x-avatar :user="$user" />
-            <div class="spacer">
+
+            <div class="nav__user-meta">
                 <div class="nav__user-name">{{ $user->name }}</div>
                 <div class="nav__user-role">{{ $user->role->name_ar }}</div>
             </div>
 
-            {{-- F20: the bell, with the unread count. --}}
-            <a href="{{ route('notifications.index') }}" class="bell" aria-label="الإشعارات">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path d="M10 2a6 6 0 00-6 6v3.6l-1.4 2.1A1 1 0 003.4 15h13.2a1 1 0 00.8-1.3L16 11.6V8a6 6 0 00-6-6zM7.5 16.5a2.5 2.5 0 005 0h-5z" />
-                </svg>
-                @if ($unreadCount > 0)
-                    <span class="bell__count">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
-                @endif
-            </a>
-        </div>
-
-        <div class="row">
-            <button type="button" class="btn btn--ghost btn--sm" x-data @click="$store.theme.toggle()">
-                <svg class="btn__icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm5 8a5 5 0 11-10 0 5 5 0 0110 0zm-.7 5.7a1 1 0 011.4-1.4l.7.7a1 1 0 01-1.4 1.4l-.7-.7zM17 9a1 1 0 100 2h1a1 1 0 100-2h-1zm-1.7-4.3a1 1 0 011.4 1.4l-.7.7a1 1 0 11-1.4-1.4l.7-.7zM10 16a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM4.7 14.3a1 1 0 011.4 1.4l-.7.7a1 1 0 01-1.4-1.4l.7-.7zM3 9a1 1 0 000 2H2a1 1 0 100-2h1zm1.7-4.3l.7.7a1 1 0 001.4-1.4l-.7-.7a1 1 0 00-1.4 1.4z" />
-                </svg>
-                المظهر
-            </button>
-
-            <form method="POST" action="{{ route('logout') }}" class="spacer">
+            <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <x-button variant="ghost" size="sm" class="btn--block">خروج</x-button>
+                <button type="submit" class="nav__logout" title="خروج" aria-label="خروج">
+                    <x-icon name="logout" />
+                </button>
             </form>
         </div>
     </div>

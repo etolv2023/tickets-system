@@ -10,10 +10,10 @@
     width: 1.75rem;
     height: 1.75rem;
     border-radius: var(--radius-full);
-    background-color: var(--surface-3);
+    background-color: var(--chip);
     color: var(--text-muted);
     font-size: var(--text-sm);
-    font-weight: var(--weight-bold);
+    font-weight: var(--weight-heavy);
     line-height: 1;
     overflow: hidden;
     user-select: none;

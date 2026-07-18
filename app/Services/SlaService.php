@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Enums\Priority;
+use App\Casts\PriorityValue;
 use App\Models\Holiday;
 use App\Models\Setting;
 use Carbon\CarbonImmutable;
@@ -33,12 +33,12 @@ class SlaService
 
     private const DEFAULT_END = '17:00';
 
-    public function hoursFor(Priority $priority): int
+    public function hoursFor(PriorityValue $priority): int
     {
-        return (int) Setting::get($priority->slaSettingKey(), $priority->defaultSlaHours());
+        return $priority->slaHours();
     }
 
-    public function dueAt(Priority $priority, CarbonImmutable $reportedAt): CarbonImmutable
+    public function dueAt(PriorityValue $priority, CarbonImmutable $reportedAt): CarbonImmutable
     {
         return $this->addWorkingHours($reportedAt, $this->hoursFor($priority));
     }

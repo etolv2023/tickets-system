@@ -27,6 +27,7 @@ class User extends Authenticatable
         'must_change_password',
         'avatar_path',
         'is_active',
+        'email_notifications',
     ];
 
     protected $hidden = [
@@ -48,6 +49,7 @@ class User extends Authenticatable
             'daily_capacity_hours' => 'decimal:2',
             'must_change_password' => 'boolean',
             'is_active' => 'boolean',
+            'email_notifications' => 'boolean',
             'last_login_at' => 'datetime',
         ];
     }

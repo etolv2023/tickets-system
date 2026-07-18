@@ -1,10 +1,93 @@
-/* "اليوم" — the home screen. NOT a dashboard: no stat-card row, no charts.
+/* "اليوم" — the home screen. NOT a dashboard: no charts, no totals row.
    It answers four questions and nothing else (CLAUDE.md § 6, F22.1).
-   Sections fill up in phases 3-5; the shell is here so the answers have a home. */
 
+   The tiles at the top are not vanity metrics: each one counts the rows of the
+   list beneath it, so the number is an index into work, not a score. */
+
+/* ---- Welcome line ---- */
+
+.today__greeting {
+    font-size: var(--text-xl);
+    font-weight: var(--weight-black);
+    line-height: var(--leading-tight);
+}
+
+.today__date {
+    margin-block-start: var(--space-1);
+    font-size: var(--text-md);
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---- Stat tiles ---- */
+
+/* Four tiles when you can approve, three when you can't — auto-columns keeps
+   the row full either way rather than leaving a hole where a tile would be. */
+.today-stats {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: var(--space-3);
+}
+
+/* The semantic hue lives on the inline-START edge only — a 3px rule, not a
+   fill. Same edge as the priority stripe (priority-stripe.css), so every
+   coloured bar in the system lands on the same side of its box. A tinted card
+   would put four competing colours on the screen at once. */
+.stat-tile {
+    --tile-color: var(--c-slate);
+    display: block;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-inline-start: 3px solid var(--tile-color);
+    border-radius: var(--radius-lg);
+    padding-block: var(--space-4);
+    padding-inline: var(--space-4);
+    color: inherit;
+    transition: background-color var(--transition);
+}
+
+a.stat-tile:hover {
+    background-color: var(--surface-2);
+}
+
+.stat-tile--red {
+    --tile-color: var(--c-red);
+}
+
+.stat-tile--amber {
+    --tile-color: var(--c-amber);
+}
+
+.stat-tile--blue {
+    --tile-color: var(--c-blue);
+}
+
+.stat-tile--green {
+    --tile-color: var(--c-green);
+}
+
+.stat-tile__figure {
+    font-family: var(--font-mono);
+    font-size: var(--text-3xl);
+    font-weight: var(--weight-black);
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+}
+
+.stat-tile__caption {
+    margin-block-start: 3px;
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+}
+
+/* ---- The two-column list grid ---- */
+
+/* The wide column carries the list you act on first; the narrow one is the
+   checklist beside it. Sections past the second wrap into the same rhythm. */
 .today {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+    grid-template-columns: 1.6fr 1fr;
     gap: var(--space-4);
     align-items: start;
 }
@@ -19,20 +102,26 @@
     display: flex;
     align-items: baseline;
     gap: var(--space-2);
+    min-width: 0;
 }
 
 .today__q-text {
-    font-size: var(--text-base);
-    font-weight: var(--weight-bold);
+    font-size: var(--text-md);
+    font-weight: var(--weight-heavy);
+    white-space: nowrap;
 }
 
 .today__q-hint {
-    font-size: var(--text-sm);
+    font-size: var(--text-xs);
     color: var(--text-subtle);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Positioned so the absolute priority stripe anchors to the row rather than
-   the card behind it. */
+   the card behind it. Rows are divided by the faint inner line, drawn on the
+   leading edge so the last row sits flush against the card's own border. */
 .today__row {
     position: relative;
     display: flex;
@@ -41,11 +130,18 @@
     padding-block: var(--space-3);
     padding-inline-start: calc(var(--stripe-width) + var(--space-4));
     padding-inline-end: var(--space-4);
-    border-block-end: 1px solid var(--border);
+    border-block-start: 1px solid var(--border-subtle);
+    transition: background-color var(--transition);
 }
 
-.today__row:last-child {
-    border-block-end: 0;
+/* The card header already draws a hairline; a second one under it would read
+   as a double rule. */
+.today__row:first-child {
+    border-block-start: 0;
+}
+
+.today__row:hover {
+    background-color: var(--surface-2);
 }
 
 .today__row-main {
@@ -54,6 +150,7 @@
 }
 
 .today__row-title {
+    display: block;
     font-size: var(--text-md);
     font-weight: var(--weight-medium);
     overflow: hidden;
@@ -63,18 +160,20 @@
 
 .today__row-meta {
     margin-block-start: 2px;
-    font-size: var(--text-sm);
-    color: var(--text-muted);
+    font-size: var(--text-xs);
+    color: var(--text-subtle);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.today__greeting {
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
-}
+@media (max-width: 72rem) {
+    .today-stats {
+        grid-auto-flow: row;
+        grid-template-columns: repeat(2, 1fr);
+    }
 
-.today__date {
-    margin-block-start: var(--space-1);
-    font-size: var(--text-md);
-    color: var(--text-muted);
-    font-variant-numeric: tabular-nums;
+    .today {
+        grid-template-columns: 1fr;
+    }
 }

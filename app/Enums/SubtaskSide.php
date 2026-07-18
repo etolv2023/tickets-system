@@ -31,6 +31,22 @@ enum SubtaskSide: string
         return $this === self::Frontend || $this === self::Backend;
     }
 
+    /**
+     * F18: which earning side a Done subtask on this side counts as. 'other'
+     * maps to null — a subtask nobody classified is not evidence of whose
+     * work it was, so it never earns points.
+     */
+    public function toPointSide(): ?PointSide
+    {
+        return match ($this) {
+            self::Frontend => PointSide::Frontend,
+            self::Backend => PointSide::Backend,
+            self::Qa => PointSide::Tester,
+            self::Support => PointSide::Support,
+            self::Other => null,
+        };
+    }
+
     /** @return array<string, string> */
     public static function options(): array
     {

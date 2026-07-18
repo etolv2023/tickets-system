@@ -1,72 +1,228 @@
-/* Badge — every variant is one semantic token. The tint and border are derived,
-   so dark mode needs no rules here: tokens.css swaps --c-* and this follows. */
+/* Badge — a tinted pill. Each variant sets three tokens (ink, tint, line) and
+   everything else is shared. Dark mode needs no rules here: tokens.css swaps
+   the hue triple and this follows.
+
+   Badges now carry a hairline in their own hue. Without one, a tinted pill on
+   a tinted card had no edge and dissolved into whatever it sat on — the tint
+   alone only separates against a plain ground, and half this app's badges sit
+   inside cards and table rows that are not plain. The line comes from the hue,
+   so it reinforces the badge's meaning instead of competing with the neutral
+   hairlines that structure the page. */
 
 .badge {
-    --badge-color: var(--c-low);
+    --badge-color: var(--c-slate);
+    --badge-bg: var(--c-slate-bg);
+    --badge-line: var(--c-slate-line);
     display: inline-flex;
     align-items: center;
     gap: var(--space-1);
-    padding-block: 1px;
+    padding-block: 2px;
     padding-inline: var(--space-2);
-    border: 1px solid color-mix(in srgb, var(--badge-color) var(--badge-border-tint), transparent);
-    border-radius: var(--radius-sm);
-    background-color: color-mix(in srgb, var(--badge-color) var(--badge-tint), var(--surface));
+    border: 1px solid var(--badge-line);
+    border-radius: var(--radius-full);
+    background-color: var(--badge-bg);
     color: var(--badge-color);
-    font-size: var(--text-sm);
-    font-weight: var(--weight-medium);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-heavy);
     line-height: 1.5;
     white-space: nowrap;
+}
+
+/* Slightly tighter than the label it sits beside: a glyph at full text size
+   next to 11px uppercase-weight text reads as the louder of the two. */
+.badge__icon {
+    width: 0.95em;
+    height: 0.95em;
+    flex-shrink: 0;
+}
+
+/* Hue variants — what an admin picks for a custom status, priority or label.
+   Roles below are aliases onto these same five. */
+.badge--red {
+    --badge-color: var(--c-red);
+    --badge-bg: var(--c-red-bg);
+    --badge-line: var(--c-red-line);
+}
+
+.badge--amber {
+    --badge-color: var(--c-amber);
+    --badge-bg: var(--c-amber-bg);
+    --badge-line: var(--c-amber-line);
+}
+
+.badge--blue {
+    --badge-color: var(--c-blue);
+    --badge-bg: var(--c-blue-bg);
+    --badge-line: var(--c-blue-line);
+}
+
+.badge--green {
+    --badge-color: var(--c-green);
+    --badge-bg: var(--c-green-bg);
+    --badge-line: var(--c-green-line);
+}
+
+.badge--slate {
+    --badge-color: var(--c-slate);
+    --badge-bg: var(--c-slate-bg);
+    --badge-line: var(--c-slate-line);
+}
+
+.badge--rose {
+    --badge-color: var(--c-rose);
+    --badge-bg: var(--c-rose-bg);
+    --badge-line: var(--c-rose-line);
+}
+
+.badge--orange {
+    --badge-color: var(--c-orange);
+    --badge-bg: var(--c-orange-bg);
+    --badge-line: var(--c-orange-line);
+}
+
+.badge--yellow {
+    --badge-color: var(--c-yellow);
+    --badge-bg: var(--c-yellow-bg);
+    --badge-line: var(--c-yellow-line);
+}
+
+.badge--lime {
+    --badge-color: var(--c-lime);
+    --badge-bg: var(--c-lime-bg);
+    --badge-line: var(--c-lime-line);
+}
+
+.badge--teal {
+    --badge-color: var(--c-teal);
+    --badge-bg: var(--c-teal-bg);
+    --badge-line: var(--c-teal-line);
+}
+
+.badge--cyan {
+    --badge-color: var(--c-cyan);
+    --badge-bg: var(--c-cyan-bg);
+    --badge-line: var(--c-cyan-line);
+}
+
+.badge--indigo {
+    --badge-color: var(--c-indigo);
+    --badge-bg: var(--c-indigo-bg);
+    --badge-line: var(--c-indigo-line);
+}
+
+.badge--violet {
+    --badge-color: var(--c-violet);
+    --badge-bg: var(--c-violet-bg);
+    --badge-line: var(--c-violet-line);
+}
+
+.badge--plum {
+    --badge-color: var(--c-plum);
+    --badge-bg: var(--c-plum-bg);
+    --badge-line: var(--c-plum-line);
+}
+
+.badge--brown {
+    --badge-color: var(--c-brown);
+    --badge-bg: var(--c-brown-bg);
+    --badge-line: var(--c-brown-line);
 }
 
 /* Priority */
 .badge--urgent {
     --badge-color: var(--c-urgent);
+    --badge-bg: var(--c-urgent-bg);
+    --badge-line: var(--c-urgent-line);
 }
 
 .badge--high {
     --badge-color: var(--c-high);
+    --badge-bg: var(--c-high-bg);
+    --badge-line: var(--c-high-line);
 }
 
 .badge--medium {
     --badge-color: var(--c-medium);
+    --badge-bg: var(--c-medium-bg);
+    --badge-line: var(--c-medium-line);
 }
 
 .badge--low {
     --badge-color: var(--c-low);
+    --badge-bg: var(--c-low-bg);
+    --badge-line: var(--c-low-line);
 }
 
-/* State */
+/* Status */
 .badge--resolved {
     --badge-color: var(--c-resolved);
+    --badge-bg: var(--c-resolved-bg);
+    --badge-line: var(--c-resolved-line);
+}
+
+.badge--progress {
+    --badge-color: var(--c-progress);
+    --badge-bg: var(--c-progress-bg);
+    --badge-line: var(--c-progress-line);
+}
+
+.badge--pending {
+    --badge-color: var(--c-pending);
+    --badge-bg: var(--c-pending-bg);
+    --badge-line: var(--c-pending-line);
+}
+
+.badge--assigned {
+    --badge-color: var(--c-assigned);
+    --badge-bg: var(--c-assigned-bg);
+    --badge-line: var(--c-assigned-line);
 }
 
 .badge--blocked {
     --badge-color: var(--c-blocked);
+    --badge-bg: var(--c-blocked-bg);
+    --badge-line: var(--c-blocked-line);
 }
 
 /* Type */
 .badge--bug {
     --badge-color: var(--c-bug);
+    --badge-bg: var(--c-bug-bg);
+    --badge-line: var(--c-bug-line);
 }
 
 .badge--inquiry {
     --badge-color: var(--c-inquiry);
+    --badge-bg: var(--c-inquiry-bg);
+    --badge-line: var(--c-inquiry-line);
 }
 
 .badge--feature {
     --badge-color: var(--c-feature);
+    --badge-bg: var(--c-feature-bg);
+    --badge-line: var(--c-feature-line);
 }
 
 .badge--module {
     --badge-color: var(--c-module);
+    --badge-bg: var(--c-module-bg);
+    --badge-line: var(--c-module-line);
 }
 
-/* Neutral: counts, labels, anything that must NOT read as meaningful.
-   CLAUDE.md § 6 — when everything is grey, the red badge screams. */
+/* Neutral: counts and labels — anything that must NOT read as meaningful.
+   When everything is grey, the one red badge screams. */
 .badge--neutral {
     --badge-color: var(--text-muted);
-    background-color: var(--surface-2);
-    border-color: var(--border);
+    --badge-bg: var(--surface-2);
+    --badge-line: var(--border);
+}
+
+/* Squared-off and tighter — for badges riding inside a dense card header,
+   where a full pill would read as a second, competing shape. */
+.badge--sm {
+    padding-block: 1px;
+    padding-inline: 6px;
+    border-radius: var(--radius-sm);
 }
 
 .badge__dot {
@@ -77,8 +233,11 @@
     flex-shrink: 0;
 }
 
+/* Filled rather than tinted. The border becomes the fill so the pill keeps the
+   exact height of every other badge in the row — dropping it instead would
+   shrink a solid badge by 2px and break the line it sits on. */
 .badge--solid {
     background-color: var(--badge-color);
-    border-color: transparent;
+    border-color: var(--badge-color);
     color: var(--surface);
 }

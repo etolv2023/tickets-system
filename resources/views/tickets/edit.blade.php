@@ -3,7 +3,7 @@
 @section('title', 'تعديل ' . $ticket->ticket_number)
 
 @section('content')
-    <div class="page page--narrow">
+    <div class="page">
         <div class="page__head">
             <div>
                 <span class="ticket__number">{{ $ticket->ticket_number }}</span>

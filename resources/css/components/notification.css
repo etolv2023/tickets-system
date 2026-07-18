@@ -1,65 +1,5 @@
 /* The bell and its list. F20 */
 
-.notif {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--space-3);
-    padding-block: var(--space-3);
-    padding-inline: var(--space-4);
-    border-block-end: 1px solid var(--border);
-    color: var(--text);
-    transition: background-color var(--transition);
-}
-
-.notif:last-child {
-    border-block-end: 0;
-}
-
-.notif:hover {
-    background-color: var(--surface-2);
-}
-
-/* Unread is the whole point of the screen, so it gets the only colour. */
-.notif__dot {
-    flex-shrink: 0;
-    width: 6px;
-    height: 6px;
-    margin-block-start: 0.45rem;
-    border-radius: var(--radius-full);
-    background-color: transparent;
-}
-
-.notif--unread {
-    background-color: color-mix(in srgb, var(--c-inquiry) 4%, var(--surface));
-}
-
-.notif--unread .notif__dot {
-    background-color: var(--c-inquiry);
-}
-
-.notif--unread .notif__text {
-    font-weight: var(--weight-medium);
-}
-
-.notif__body {
-    flex: 1;
-    min-width: 0;
-}
-
-.notif__text {
-    display: block;
-    font-size: var(--text-md);
-}
-
-.notif__meta {
-    display: block;
-    margin-block-start: 2px;
-    font-size: var(--text-xs);
-    color: var(--text-subtle);
-}
-
-/* ---- The bell in the nav ---- */
-
 .bell {
     position: relative;
     display: inline-flex;
@@ -90,10 +30,120 @@
     align-items: center;
     justify-content: center;
     border-radius: var(--radius-full);
-    background-color: var(--c-urgent);
-    color: #ffffff;
-    font-size: 0.625rem;
+    background-color: var(--c-red);
+    color: var(--surface);
+    font-size: var(--text-2xs);
     font-weight: var(--weight-bold);
     font-variant-numeric: tabular-nums;
     line-height: 1;
+}
+
+/* ---- Notification list ---- */
+
+/* The list owns no styling of its own — the rows' hairlines are the
+   structure. It exists so the notifications page stops borrowing another
+   feature's class. */
+.notif-list {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Not sticky. Every day header here is a flat sibling of the rows (no
+   per-day wrapper), and several sticky siblings fighting over the same `top`
+   anchor is exactly what tore during scroll — a row from the group above
+   showing through under the "stuck" header instead of fully scrolling away.
+   A plain static divider never has that failure mode. */
+.notif-day {
+    padding-block: var(--space-2);
+    padding-inline: var(--space-4);
+    background-color: var(--surface-2);
+    border-block-end: 1px solid var(--border-subtle);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-heavy);
+    color: var(--text-subtle);
+}
+
+.notif {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-block-start: 1px solid var(--border-subtle);
+    color: inherit;
+    transition: background-color var(--transition);
+}
+
+.notif:hover {
+    background-color: var(--hover);
+}
+
+/* Unread carries a tinted ground and a marker, not just a bolder font: a
+   weight difference alone is invisible in a long list. */
+.notif--unread {
+    background-color: color-mix(in srgb, var(--c-blue) 4%, var(--surface));
+}
+
+.notif__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    flex: none;
+    border-radius: var(--radius-full);
+    background-color: var(--chip);
+    color: var(--text-subtle);
+}
+
+.notif__icon--red { background-color: var(--c-red-bg); color: var(--c-red); }
+.notif__icon--amber { background-color: var(--c-amber-bg); color: var(--c-amber); }
+.notif__icon--blue { background-color: var(--c-blue-bg); color: var(--c-blue); }
+.notif__icon--green { background-color: var(--c-green-bg); color: var(--c-green); }
+.notif__icon--slate { background-color: var(--c-slate-bg); color: var(--c-slate); }
+
+.notif__body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.notif__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.notif__label {
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-heavy);
+    color: var(--text-subtle);
+}
+
+.notif__new {
+    padding-block: 1px;
+    padding-inline: var(--space-2);
+    background-color: var(--c-blue-bg);
+    border-radius: var(--radius-full);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-heavy);
+    color: var(--c-blue);
+}
+
+.notif__text {
+    font-size: var(--text-md);
+    line-height: var(--leading-normal);
+}
+
+.notif--unread .notif__text {
+    font-weight: var(--weight-bold);
+}
+
+.notif__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-2xs);
+    color: var(--text-subtle);
 }

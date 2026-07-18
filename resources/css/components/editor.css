@@ -1,37 +1,145 @@
-/* Quill, retokenised. The library ships its own snow theme; this overrides it
-   so the editor reads as part of the app rather than a widget dropped into it. */
+/* Quill, retokenised. The library ships its own snow theme; everything below
+   overrides it so the editor reads as part of the app rather than a widget
+   dropped into it. Quill owns the ql-* class names — we never rename them,
+   we only out-specify them. See resources/js/components/editor.js for the
+   toolbar Quill is told to build: B/I/U · lists · header picker · link,
+   blockquote, code-block · clean. */
 
 @import 'quill/dist/quill.snow.css';
 
 .editor {
-    border: 1px solid var(--border-strong);
+    border: 1px solid var(--border);
     border-radius: var(--radius);
     background-color: var(--surface);
     overflow: hidden;
+    transition: border-color var(--transition);
 }
 
 .editor:focus-within {
-    border-color: var(--text-subtle);
+    border-color: var(--border-strong);
 }
+
+/* ---- Toolbar ---- */
 
 .editor .ql-toolbar.ql-snow {
     border: 0;
-    border-block-end: 1px solid var(--border);
-    background-color: var(--surface-2);
-    padding: var(--space-2);
+    border-block-end: 1px solid var(--border-subtle);
+    background-color: var(--surface);
+    padding: var(--space-2) var(--space-3);
     font-family: var(--font-ar);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-1);
 }
+
+/* Snow separates its groups with a physical right margin. Kill it and let the
+   flex gap do the work, with a slightly wider space between groups. */
+.editor .ql-toolbar.ql-snow .ql-formats {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.editor .ql-toolbar.ql-snow .ql-formats + .ql-formats {
+    margin-inline-start: var(--space-2);
+}
+
+.editor .ql-snow.ql-toolbar button,
+.editor .ql-snow.ql-toolbar .ql-picker-label {
+    border-radius: var(--radius-sm);
+    color: var(--text-subtle);
+    transition: background-color var(--transition), color var(--transition);
+}
+
+/* Quill draws its glyphs as stroke/fill attributes on inline SVG, so the icons
+   have to be retinted rather than inheriting currentColor. Quiet by default. */
+.editor .ql-snow .ql-stroke,
+.editor .ql-snow .ql-stroke-miter {
+    stroke: var(--text-subtle);
+}
+
+.editor .ql-snow .ql-fill {
+    fill: var(--text-subtle);
+}
+
+.editor .ql-snow.ql-toolbar button:hover,
+.editor .ql-snow.ql-toolbar button:focus-visible,
+.editor .ql-snow.ql-toolbar button.ql-active {
+    background-color: var(--hover);
+    color: var(--text);
+}
+
+.editor .ql-snow.ql-toolbar button:hover .ql-stroke,
+.editor .ql-snow.ql-toolbar button:focus-visible .ql-stroke,
+.editor .ql-snow.ql-toolbar button.ql-active .ql-stroke,
+.editor .ql-snow.ql-toolbar .ql-picker-label:hover .ql-stroke,
+.editor .ql-snow.ql-toolbar .ql-picker-label.ql-active .ql-stroke {
+    stroke: var(--text);
+}
+
+.editor .ql-snow.ql-toolbar button:hover .ql-fill,
+.editor .ql-snow.ql-toolbar button:focus-visible .ql-fill,
+.editor .ql-snow.ql-toolbar button.ql-active .ql-fill,
+.editor .ql-snow.ql-toolbar .ql-picker-label:hover .ql-fill {
+    fill: var(--text);
+}
+
+/* ---- The block-format picker ("Normal ▾") — a bordered chip, per the design ---- */
+
+.editor .ql-snow .ql-picker {
+    color: var(--text-muted);
+    font-family: var(--font-ar);
+    font-size: var(--text-xs);
+}
+
+.editor .ql-snow .ql-picker-label {
+    border: 1px solid var(--border);
+    padding-inline: var(--space-2);
+    color: var(--text-muted);
+}
+
+.editor .ql-snow .ql-picker-label:hover,
+.editor .ql-snow .ql-picker.ql-expanded .ql-picker-label {
+    border-color: var(--border-strong);
+    color: var(--text);
+}
+
+.editor .ql-snow .ql-picker-options {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    padding: var(--space-1);
+    z-index: var(--z-dropdown);
+}
+
+.editor .ql-snow .ql-picker-item {
+    color: var(--text-muted);
+    border-radius: var(--radius-sm);
+    padding: var(--space-1) var(--space-2);
+}
+
+.editor .ql-snow .ql-picker-item:hover,
+.editor .ql-snow .ql-picker-item.ql-selected {
+    background-color: var(--hover);
+    color: var(--text);
+}
+
+/* ---- Editing surface ---- */
 
 .editor .ql-container.ql-snow {
     border: 0;
     font-family: var(--font-ar);
-    font-size: var(--text-base);
+    font-size: var(--text-md);
 }
 
 .editor .ql-editor {
-    min-height: 10rem;
+    min-height: 8rem;
+    padding: var(--space-4);
     color: var(--text);
-    line-height: var(--leading-normal);
+    line-height: var(--leading-relaxed);
 }
 
 .editor .ql-editor.ql-blank::before {
@@ -41,40 +149,22 @@
     inset-inline-end: auto;
 }
 
-/* Quill draws its icons with stroke/fill attributes; retint them to the token. */
-.editor .ql-snow .ql-stroke {
-    stroke: var(--text-muted);
+.editor .ql-editor h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--weight-heavy);
+    line-height: var(--leading-tight);
 }
 
-.editor .ql-snow .ql-fill {
-    fill: var(--text-muted);
+.editor .ql-editor h4 {
+    font-size: var(--text-base);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-tight);
 }
 
-.editor .ql-snow .ql-picker {
-    color: var(--text-muted);
-}
-
-.editor .ql-snow.ql-toolbar button:hover .ql-stroke,
-.editor .ql-snow.ql-toolbar button.ql-active .ql-stroke {
-    stroke: var(--text);
-}
-
-.editor .ql-snow.ql-toolbar button:hover .ql-fill,
-.editor .ql-snow.ql-toolbar button.ql-active .ql-fill {
-    fill: var(--text);
-}
-
-.editor .ql-snow.ql-toolbar button:hover,
-.editor .ql-snow.ql-toolbar button.ql-active {
-    background-color: var(--surface-3);
-    border-radius: var(--radius-sm);
-}
-
-.editor .ql-snow .ql-picker-options {
-    background-color: var(--surface);
-    border-color: var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-md);
+.editor .ql-editor a {
+    color: var(--c-inquiry);
+    text-decoration: underline;
+    text-underline-offset: 2px;
 }
 
 /* Code stays LTR inside an RTL document. F04.1 */
@@ -82,7 +172,10 @@
 .editor .ql-editor code {
     background-color: var(--surface-2);
     color: var(--text);
+    border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
     direction: ltr;
     text-align: start;
     unicode-bidi: isolate;
@@ -93,4 +186,31 @@
     border-inline-end: 0;
     padding-inline-start: var(--space-3);
     color: var(--text-muted);
+}
+
+/* The tooltip Quill opens when you insert a link. */
+.editor .ql-snow .ql-tooltip {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    color: var(--text);
+    font-family: var(--font-ar);
+    font-size: var(--text-sm);
+    z-index: var(--z-dropdown);
+}
+
+.editor .ql-snow .ql-tooltip input[type='text'] {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    direction: ltr;
+    text-align: start;
+    unicode-bidi: isolate;
+}
+
+.editor .ql-snow .ql-tooltip a.ql-action,
+.editor .ql-snow .ql-tooltip a.ql-remove {
+    color: var(--c-inquiry);
 }

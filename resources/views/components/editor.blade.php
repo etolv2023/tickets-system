@@ -2,6 +2,10 @@
     'name',
     'value' => null,
     'placeholder' => 'اكتب هنا…',
+    /* A shorter toolbar for the client portal: someone writing to support
+       needs emphasis, a list and a link — headings and code blocks are the
+       staff editor's job. */
+    'simple' => false,
 ])
 
 @php
@@ -15,6 +19,7 @@
         name: @js($name),
         value: @js($current),
         placeholder: @js($placeholder),
+        simple: @js((bool) $simple),
     })"
     class="editor"
 >

@@ -22,7 +22,7 @@
                         <td>
                             <span class="tickets__number">{{ $ticket->ticket_number }}</span>
                             <a class="tickets__title" href="{{ route('tickets.show', $ticket) }}">{{ $ticket->title }}</a>
-                            <span class="tickets__company">{{ $ticket->company->name }}</span>
+                            <span class="tickets__company">{{ $ticket->originLabel() }}</span>
                         </td>
                         <td class="tickets__age tickets__age--overdue">
                             {{ $ticket->sla_due_at->timezone(config('app.display_timezone'))->translatedFormat('j M — H:i') }}

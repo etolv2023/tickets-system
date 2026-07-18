@@ -1,4 +1,4 @@
-<x-card title="اللابلز والمتابعة">
+<x-collapsible-card title="اللابلز والمتابعة">
     <div class="stack stack--tight">
         @if ($ticket->labels->isNotEmpty())
             <div class="row row--wrap">
@@ -51,4 +51,4 @@
             {{ $ticket->watchers->count() }} متابع صريح. المسؤولين والتيستر والي فتحها بياخدوا إشعارات أوتوماتيك.
         </p>
     </div>
-</x-card>
+</x-collapsible-card>

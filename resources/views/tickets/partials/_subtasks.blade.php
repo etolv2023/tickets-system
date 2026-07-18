@@ -32,6 +32,17 @@
         @endforelse
     </div>
 
+    <p class="subtasks__note">
+        <x-icon name="star" size="0.9em" />
+        <span>
+            <strong>كل صب تاسك ليه نقاطه الخاصة.</strong>
+            القيمة بتتحط افتراضياً من مصفوفة النقاط وقت الإنشاء، وتقدر تعدّلها
+            لكل صب تاسك لوحده. لما التذكرة تتحل، كل صب تاسك <strong>خلص</strong>
+            بياخد صاحبه نقاطه هو بالظبط — مفيش تقسيم ومفيش نقاط على مستوى
+            التذكرة نفسها.
+        </span>
+    </p>
+
     @can('create', [App\Models\TicketSubtask::class, $ticket])
         <div class="card__footer">
             @include('tickets.partials._subtask-form')

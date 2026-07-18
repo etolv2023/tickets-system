@@ -31,14 +31,12 @@
                 autofocus
             >
 
-            <select name="company" class="select filters__select">
-                <option value="">كل الشركات</option>
-                @foreach ($companies as $company)
-                    <option value="{{ $company->id }}" @selected((string) ($filters['company'] ?? '') === (string) $company->id)>
-                        {{ $company->name }}
-                    </option>
-                @endforeach
-            </select>
+            <div class="filters__combobox">
+                <x-combobox name="company" resource="companies"
+                            :value="$filters['company'] ?? null"
+                            :selected="$selectedCompany ?? null"
+                            placeholder="كل الشركات" />
+            </div>
 
             <select name="status" class="select filters__select">
                 <option value="">كل الحالات</option>

@@ -43,7 +43,7 @@
                     required
                     @class(['input', 'input--invalid' => $errors->has('work_day_start')])
                 >
-                <span class="settings__unit">→</span>
+                <span class="settings__unit" aria-hidden="true">—</span>
                 <input
                     type="time"
                     id="work_day_end"

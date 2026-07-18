@@ -106,6 +106,89 @@ class ReportService
     }
 
     /** F19.2 — the month's ranking. */
+    /**
+     * The points report: the same ledger read four ways.
+     *
+     * The leaderboard answers "who is ahead". This answers the questions a
+     * manager actually asks at bonus time — where did the points come from,
+     * which side earns them, is the month bigger or smaller than the last, and
+     * which tickets paid the most.
+     *
+     * @return array<string, mixed>
+     */
+    public function pointsReport(string $period): array
+    {
+        $byPerson = PointTransaction::query()
+            ->selectRaw('user_id, SUM(points) total, COUNT(*) awards')
+            ->selectRaw("SUM(CASE WHEN side = 'support'  THEN points ELSE 0 END) support")
+            ->selectRaw("SUM(CASE WHEN side = 'frontend' THEN points ELSE 0 END) frontend")
+            ->selectRaw("SUM(CASE WHEN side = 'backend'  THEN points ELSE 0 END) backend")
+            ->selectRaw("SUM(CASE WHEN side = 'tester'   THEN points ELSE 0 END) tester")
+            ->forPeriod($period)
+            ->groupBy('user_id')
+            ->orderByDesc('total')
+            ->with('user:id,name,avatar_path,is_active,role_id', 'user.role:id,name_ar')
+            ->get();
+
+        $bySide = PointTransaction::query()
+            ->selectRaw('side, SUM(points) total, COUNT(*) awards')
+            ->forPeriod($period)
+            ->groupBy('side')
+            ->orderByDesc('total')
+            ->get();
+
+        // Where the points came from: a ticket's type is what the matrix
+        // priced, so this is the report that justifies the matrix.
+        $byType = PointTransaction::query()
+            ->join('tickets', 'tickets.id', '=', 'point_transactions.ticket_id')
+            ->selectRaw('tickets.type, SUM(point_transactions.points) total, COUNT(*) awards')
+            ->selectRaw('COUNT(DISTINCT tickets.id) tickets')
+            ->forPeriod($period)
+            ->groupBy('tickets.type')
+            ->orderByDesc('total')
+            ->get();
+
+        $topTickets = PointTransaction::query()
+            ->selectRaw('ticket_id, SUM(points) total, COUNT(*) people')
+            // A manual correction may not reference a ticket at all (ticket_id
+            // nullable since F18's rework); this table is about tickets.
+            ->whereNotNull('ticket_id')
+            ->forPeriod($period)
+            ->groupBy('ticket_id')
+            ->orderByDesc('total')
+            ->limit(10)
+            ->with('ticket:id,ticket_number,title,type,company_id,requested_by',
+                'ticket.company:id,name', 'ticket.requester:id,name')
+            ->get();
+
+        // F18: manual adjustments, shown apart from what subtasks earned —
+        // an admin scanning the total should be able to tell how much of it
+        // was typed in by hand.
+        $corrections = PointTransaction::query()
+            ->selectRaw('COUNT(*) awards, SUM(points) total')
+            ->where('type', 'correction')
+            ->forPeriod($period)
+            ->first();
+
+        return [
+            'byPerson' => $byPerson,
+            'bySide' => $bySide,
+            'byType' => $byType,
+            'topTickets' => $topTickets,
+            'total' => (float) $byPerson->sum('total'),
+            'people' => $byPerson->count(),
+            'tickets' => (int) PointTransaction::query()->forPeriod($period)
+                ->whereNotNull('ticket_id')->distinct()->count('ticket_id'),
+            'correctionsTotal' => (float) ($corrections->total ?? 0),
+            'correctionsCount' => (int) ($corrections->awards ?? 0),
+            // Last month, so the headline number has something to mean.
+            'previous' => (float) PointTransaction::query()
+                ->forPeriod(\Carbon\CarbonImmutable::createFromFormat('Y-m', $period)
+                    ->subMonth()->format('Y-m'))
+                ->sum('points'),
+        ];
+    }
+
     public function leaderboard(string $period): Collection
     {
         return PointTransaction::query()
@@ -137,6 +220,7 @@ class ReportService
             ->whereBetween('reported_at', [$from, $to])
             ->groupBy('company_id')
             ->orderByDesc('total')
+            // Grouped rows, not tickets: there is no single requester here.
             ->with('company:id,name')
             ->get();
     }
@@ -159,8 +243,8 @@ class ReportService
     public function slaBreaches(string $from, string $to): Collection
     {
         return Ticket::query()
-            ->select(['id', 'ticket_number', 'title', 'company_id', 'priority', 'status', 'sla_due_at', 'resolved_at'])
-            ->with('company:id,name')
+            ->select(['id', 'ticket_number', 'title', 'company_id', 'requested_by', 'priority', 'status', 'sla_due_at', 'resolved_at'])
+            ->with('company:id,name', 'requester:id,name')
             ->whereNotNull('sla_due_at')
             ->whereBetween('reported_at', [$from, $to])
             ->where(fn ($q) => $q
@@ -233,8 +317,8 @@ class ReportService
     private function ticketsTouched(User $user, string $from, string $to): Collection
     {
         return Ticket::query()
-            ->select(['id', 'ticket_number', 'title', 'type', 'priority', 'status', 'company_id', 'reported_at', 'resolved_at'])
-            ->with('company:id,name')
+            ->select(['id', 'ticket_number', 'title', 'type', 'priority', 'status', 'company_id', 'requested_by', 'reported_at', 'resolved_at'])
+            ->with('company:id,name', 'requester:id,name')
             ->whereBetween('resolved_at', [$from, $to])
             ->where(fn ($q) => $q
                 ->where('assigned_frontend_id', $user->id)

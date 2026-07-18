@@ -7,6 +7,7 @@
     background-color: var(--surface-2);
     border: 1px solid var(--border-strong);
     border-radius: var(--radius);
+    font-family: var(--font-mono);
     font-size: var(--text-lg);
     letter-spacing: 0.05em;
     user-select: all;
@@ -20,15 +21,15 @@
 }
 
 .import-row--create {
-    color: var(--c-resolved);
+    color: var(--c-green);
 }
 
 .import-row--update {
-    color: var(--c-inquiry);
+    color: var(--c-blue);
 }
 
 .import-row--fail {
-    color: var(--c-urgent);
+    color: var(--c-red);
 }
 
 .import-summary {
@@ -49,21 +50,23 @@
 }
 
 .import-summary__item--create {
-    --summary-color: var(--c-resolved);
+    --summary-color: var(--c-green);
 }
 
 .import-summary__item--update {
-    --summary-color: var(--c-inquiry);
+    --summary-color: var(--c-blue);
 }
 
 .import-summary__item--fail {
-    --summary-color: var(--c-urgent);
+    --summary-color: var(--c-red);
 }
 
 .import-summary__value {
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
+    font-family: var(--font-mono);
+    font-size: var(--text-3xl);
+    font-weight: var(--weight-black);
     font-variant-numeric: tabular-nums;
+    line-height: var(--leading-tight);
     color: var(--summary-color);
 }
 
@@ -98,4 +101,60 @@
     direction: ltr;
     unicode-bidi: isolate;
     text-align: start;
+}
+
+/* ---- Role permission editor ----
+   Grouped panels rather than one long column. A flat list of forty checkboxes
+   shows neither where a section starts nor how much of it is switched on. */
+
+.fold__link {
+    padding: 0;
+    background: none;
+    border: 0;
+    color: var(--c-blue);
+    font-family: inherit;
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-bold);
+    cursor: pointer;
+}
+
+.perms__all:hover {
+    text-decoration: underline;
+}
+
+.perms__list {
+    display: flex;
+    flex-direction: column;
+}
+
+/* The whole row toggles, not just the box. */
+.perms__item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding-block: var(--space-2);
+    padding-inline: var(--space-3);
+    border-block-start: 1px solid var(--border-subtle);
+    cursor: pointer;
+    transition: background-color var(--transition);
+}
+
+.perms__item:first-child {
+    border-block-start: 0;
+}
+
+.perms__item:hover {
+    background-color: var(--hover);
+}
+
+.perms__label {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    font-size: var(--text-md);
+}
+
+.perms__key {
+    font-size: var(--text-2xs);
+    color: var(--text-subtle);
 }

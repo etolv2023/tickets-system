@@ -2,25 +2,30 @@
     <input type="hidden" name="view" value="{{ $view }}">
     <input type="hidden" name="date" value="{{ $anchor->toDateString() }}">
 
+    {{-- Searched server-side: both of these lists grow with the database. --}}
     @if ($isTeam)
-        <select name="assignee" class="select filters__select">
-            <option value="">كل الفريق</option>
-            @foreach ($users as $person)
-                <option value="{{ $person->id }}" @selected((string) ($filters['assignee'] ?? '') === (string) $person->id)>
-                    {{ $person->name }}
-                </option>
-            @endforeach
-        </select>
+        <div class="filters__combobox">
+            <x-combobox name="assignee" resource="users"
+                        :value="$filters['assignee'] ?? null"
+                        :selected="$selectedAssignee ?? null"
+                        placeholder="كل الفريق" />
+        </div>
     @endif
 
-    <select name="company" class="select filters__select">
-        <option value="">كل الشركات</option>
-        @foreach ($companies as $company)
-            <option value="{{ $company->id }}" @selected((string) ($filters['company'] ?? '') === (string) $company->id)>
-                {{ $company->name }}
-            </option>
+    {{-- What kind of thing to draw. First in the row because it changes what
+         every other filter is even filtering. --}}
+    <select name="show" class="select filters__select">
+        @foreach (['all' => 'تذاكر وصب تاسكس', 'subtasks' => 'صب تاسكس بس', 'tickets' => 'تذاكر بس'] as $value => $label)
+            <option value="{{ $value }}" @selected(($filters['show'] ?? 'all') === $value)>{{ $label }}</option>
         @endforeach
     </select>
+
+    <div class="filters__combobox">
+        <x-combobox name="company" resource="companies"
+                    :value="$filters['company'] ?? null"
+                    :selected="$selectedCompany ?? null"
+                    placeholder="كل الشركات" />
+    </div>
 
     <select name="type" class="select filters__select">
         <option value="">كل الأنواع</option>
@@ -31,7 +36,7 @@
 
     <select name="priority" class="select filters__select">
         <option value="">كل الأولويات</option>
-        @foreach (\App\Enums\Priority::options() as $value => $label)
+        @foreach (\App\Models\PriorityDefinition::options() as $value => $label)
             <option value="{{ $value }}" @selected(($filters['priority'] ?? '') === $value)>{{ $label }}</option>
         @endforeach
     </select>

@@ -4,12 +4,18 @@
     position: relative;
 }
 
-/* The stripe anchors to the row, so the priority is readable while scanning
-   without a second colour competing with the status badge. CLAUDE.md § 6 */
+/* The tickets index itself no longer stripes its rows — it carries a priority
+   BADGE column instead, per the approved design. This rule stays because the
+   testing queue and the report tables still render a stripe cell, and they
+   share these classes. */
+/* Exactly as wide as the stripe. width:1% left a 24px empty gutter under an
+   empty header cell, which read as a broken column rather than as the card's
+   edge marker. */
 .tickets__cell--stripe {
     position: relative;
-    width: 1%;
-    padding-inline: 0;
+    width: var(--stripe-width);
+    min-width: var(--stripe-width);
+    padding: 0;
 }
 
 .tickets__number {
@@ -24,16 +30,48 @@
 .tickets__title {
     display: block;
     max-width: 32rem;
+    font-weight: var(--weight-bold);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
+/* Stacked under the title in the report and queue tables, which pack the
+   number, title and company into one cell. */
 .tickets__company {
     display: block;
     margin-block-start: 2px;
     font-size: var(--text-sm);
     color: var(--text-subtle);
+}
+
+/* The tickets index gives the company its own column instead. */
+.tickets__cell--company {
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+/* Type is a glyph plus muted text, not a badge. Four badge colours in one row
+   would drown the two that carry urgency — priority and status — so the type
+   gets shape instead of a pill, and only the glyph carries the hue. */
+.tickets__type {
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.tickets__type-icon {
+    /* Set inline per row from the type's variant; --text-subtle is the guard
+       for "neutral", which is a variant name but not a hue. */
+    color: var(--type-color, var(--text-subtle));
+    vertical-align: -0.2em;
+    margin-inline-end: var(--space-1);
+}
+
+/* The row count under the table. Reads as a footnote, not a heading. */
+.tickets__count {
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
 }
 
 .tickets__age {
@@ -44,7 +82,7 @@
 /* Past its SLA. The only red in the row. F03.1 */
 .tickets__age--overdue {
     color: var(--c-urgent);
-    font-weight: var(--weight-medium);
+    font-weight: var(--weight-heavy);
 }
 
 .tickets__people {

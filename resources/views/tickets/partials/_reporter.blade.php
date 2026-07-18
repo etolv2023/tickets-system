@@ -1,41 +1,61 @@
-{{-- $contactsByCompany is built in the controller. Selecting a company filters
-     the contact list client-side — no round-trip, and no query in a view. --}}
-<div
-    x-data="{
-        company: @js(old('company_id', '')),
-        contact: @js(old('contact_id', '')),
-        contacts: @js($contactsByCompany),
-        get available() { return this.contacts[this.company] ?? []; },
-    }"
-    class="form-stack"
->
-    <div class="form-grid">
-        <x-field name="company_id" label="الشركة" required>
-            <select id="company_id" name="company_id" required x-model="company"
-                    @change="contact = ''"
-                    @class(['select', 'select--invalid' => $errors->has('company_id')])>
-                <option value="">اختار شركة…</option>
-                @foreach ($companies as $company)
-                    <option value="{{ $company->id }}">{{ $company->name }}</option>
-                @endforeach
-            </select>
-        </x-field>
+{{-- Two kinds of ticket, one form.
 
-        <x-field name="contact_id" label="جهة الاتصال"
-                 hint="اختار شركة الأول. لو المُبلغ مش في القائمة سيبها واكتب اسمه تحت.">
-            <select id="contact_id" name="contact_id" x-model="contact" :disabled="!company"
-                    @class(['select', 'select--invalid' => $errors->has('contact_id')])>
-                <option value="">— مش من القائمة —</option>
-                <template x-for="item in available" :key="item.id">
-                    <option :value="item.id" x-text="item.label"></option>
-                </template>
-            </select>
-        </x-field>
+     A client ticket is owed to a customer: it needs a company, a contact or a
+     reporter name, and it gets an SLA and a portal. An internal one is raised
+     by the team lead or the CTO — there is no customer, so what it needs is
+     simply who asked for it.
+
+     The distinction is stored as the absence of a company, not as a flag, so
+     the toggle below clears whichever side it is leaving. --}}
+<div x-data="{
+        internal: @js((bool) old('is_internal', false)),
+        contactChosen: @js((bool) old('contact_id')),
+     }" class="form-stack">
+
+    <div class="origin-toggle">
+        <label class="origin-toggle__option" :class="{ 'is-active': ! internal }">
+            <input type="radio" name="is_internal" value="0" class="checkbox"
+                   x-model.boolean="internal" :checked="! internal">
+            <span>
+                <strong>من عميل</strong>
+                <small>تذكرة عليها التزام ومهلة SLA وبوابة للعميل.</small>
+            </span>
+        </label>
+
+        <label class="origin-toggle__option" :class="{ 'is-active': internal }">
+            <input type="radio" name="is_internal" value="1" class="checkbox"
+                   x-model.boolean="internal" :checked="internal">
+            <span>
+                <strong>داخلية</strong>
+                <small>شغل من التيم ليد أو الـ CTO — من غير عميل ومن غير مهلة.</small>
+            </span>
+        </label>
     </div>
 
-    {{-- Only asked for when the reporter isn't a saved contact. --}}
-    <div x-show="!contact" x-cloak>
-        <x-field name="reporter_name" label="اسم المُبلغ"
-                 hint="هيتسجّل على التذكرة زي ما هو، وميتغيرش بعد كده." />
+    {{-- Client side --}}
+    <div x-show="! internal" x-cloak class="form-stack">
+        <div class="form-grid">
+            <x-combobox name="company_id" resource="companies" label="الشركة" required
+                        id="company_id"
+                        placeholder="اكتب اسم الشركة أو كودها…" />
+
+            <x-combobox name="contact_id" resource="contacts" label="جهة الاتصال"
+                        scope="company_id"
+                        placeholder="اكتب اسم جهة الاتصال…"
+                        hint="اختار شركة الأول. لو المُبلغ مش في القائمة سيبها واكتب اسمه تحت."
+                        @change="contactChosen = !! $event.target.value" />
+        </div>
+
+        <div x-show="!contactChosen" x-cloak>
+            <x-field name="reporter_name" label="اسم المُبلغ"
+                     hint="هيتسجّل على التذكرة زي ما هو، وميتغيرش بعد كده." />
+        </div>
+    </div>
+
+    {{-- Internal side --}}
+    <div x-show="internal" x-cloak>
+        <x-combobox name="requested_by" resource="users" label="طلبها مين"
+                    placeholder="اكتب اسم زميل…"
+                    hint="الشخص اللي طلب الشغل ده من التيم." />
     </div>
 </div>

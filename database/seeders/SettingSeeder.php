@@ -2,13 +2,13 @@
 
 namespace Database\Seeders;
 
-use App\Enums\Priority;
 use App\Models\Setting;
 use Illuminate\Database\Seeder;
 
 /**
- * Defaults for F22.2. SLA windows and daily capacity come from PLAN.md § 12
- * (#5 and #10). Every one of these is editable at /admin/settings.
+ * Defaults for F22.2. Daily capacity comes from PLAN.md § 12 #10. Every one of
+ * these is editable at /admin/settings. SLA hours per priority live on the
+ * `priorities` table now (F22.1), not here.
  */
 class SettingSeeder extends Seeder
 {
@@ -27,15 +27,9 @@ class SettingSeeder extends Seeder
             ['key' => 'work_day_start', 'value' => '09:00', 'type' => 'string'],
             ['key' => 'work_day_end', 'value' => '17:00', 'type' => 'string'],
             ['key' => 'email_notifications_enabled', 'value' => '0', 'type' => 'bool'],
+            ['key' => 'mail_from_address', 'value' => null, 'type' => 'string'],
+            ['key' => 'mail_from_name', 'value' => null, 'type' => 'string'],
         ];
-
-        foreach (Priority::cases() as $priority) {
-            $defaults[] = [
-                'key' => $priority->slaSettingKey(),
-                'value' => (string) $priority->defaultSlaHours(),
-                'type' => 'int',
-            ];
-        }
 
         foreach ($defaults as $setting) {
             // Only insert what's missing: never clobber a value an admin edited.

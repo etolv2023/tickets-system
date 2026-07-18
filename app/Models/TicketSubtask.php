@@ -16,7 +16,7 @@ class TicketSubtask extends Model
 
     protected $fillable = [
         'ticket_id', 'title', 'description', 'assignee_id', 'side', 'status',
-        'start_date', 'due_date', 'estimated_hours', 'blocked_reason',
+        'start_date', 'due_date', 'estimated_hours', 'points', 'rule_id', 'blocked_reason',
         'position', 'created_by', 'started_at', 'completed_at',
     ];
 
@@ -29,6 +29,7 @@ class TicketSubtask extends Model
             'due_date' => 'date',
             'estimated_hours' => 'decimal:2',
             'spent_hours' => 'decimal:2',
+            'points' => 'decimal:2',
             'started_at' => 'datetime',
             'completed_at' => 'datetime',
         ];
@@ -42,6 +43,12 @@ class TicketSubtask extends Model
     public function assignee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assignee_id');
+    }
+
+    /** F18: the point_rules row that supplied this subtask's default points, if any. */
+    public function rule(): BelongsTo
+    {
+        return $this->belongsTo(PointRule::class, 'rule_id');
     }
 
     public function timeEntries(): HasMany
@@ -89,6 +96,37 @@ class TicketSubtask extends Model
     public function scopeOpen(Builder $query): Builder
     {
         return $query->where('status', '!=', SubtaskStatus::Done->value);
+    }
+
+    /** The date columns a date-range filter may run against. */
+    public const DATE_BASES = [
+        'start_date' => 'تاريخ البداية',
+        'due_date' => 'تاريخ الاستحقاق',
+        'completed_at' => 'تاريخ الإنجاز',
+    ];
+
+    /**
+     * The team-activity report's filter set (F19.3). Person, side, status, a
+     * date range against a caller-chosen column, and the parent ticket's own
+     * type/company — so "show me bug-related subtasks" works without the
+     * caller joining by hand.
+     *
+     * @param  array<string, mixed>  $filters
+     */
+    public function scopeFilter(Builder $query, array $filters): Builder
+    {
+        $dateBasis = array_key_exists($filters['date_basis'] ?? null, self::DATE_BASES)
+            ? $filters['date_basis']
+            : 'start_date';
+
+        return $query
+            ->when($filters['person'] ?? null, fn (Builder $q, $v) => $q->where('assignee_id', $v))
+            ->when($filters['side'] ?? null, fn (Builder $q, $v) => $q->where('side', $v))
+            ->when($filters['status'] ?? null, fn (Builder $q, $v) => $q->where('status', $v))
+            ->when($filters['from'] ?? null, fn (Builder $q, $v) => $q->whereDate($dateBasis, '>=', $v))
+            ->when($filters['to'] ?? null, fn (Builder $q, $v) => $q->whereDate($dateBasis, '<=', $v))
+            ->when($filters['type'] ?? null, fn (Builder $q, $v) => $q->whereHas('ticket', fn (Builder $t) => $t->where('type', $v)))
+            ->when($filters['company'] ?? null, fn (Builder $q, $v) => $q->whereHas('ticket', fn (Builder $t) => $t->where('company_id', $v)));
     }
 
     /** Due today or already late — the "what's on my plate" question. F22.1 */

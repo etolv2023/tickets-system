@@ -69,6 +69,20 @@
     font-weight: var(--weight-medium);
 }
 
+/* Actual vs estimated hours. Silent while inside the estimate; the moment it
+   is exceeded the pair turns amber — the number is the warning, not an icon. */
+.subtask__hours {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.subtask__hours--over {
+    color: var(--c-high);
+    font-weight: var(--weight-heavy);
+}
+
 .subtask__reason {
     margin-block-start: var(--space-1);
     font-size: var(--text-sm);
@@ -206,4 +220,25 @@
     color: var(--c-blocked);
     font-size: var(--text-xs);
     font-weight: var(--weight-medium);
+}
+
+/* Explains why there is no points field on a subtask. It sits under the list
+   rather than in a tooltip because it is the answer to a question people ask
+   while looking at the list. */
+.subtasks__note {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border-block-start: 1px solid var(--border-subtle);
+    background-color: var(--surface-2);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    line-height: var(--leading-normal);
+}
+
+.subtasks__note .icon {
+    flex: none;
+    margin-block-start: 2px;
+    color: var(--c-amber);
 }

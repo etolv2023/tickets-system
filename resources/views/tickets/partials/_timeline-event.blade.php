@@ -27,6 +27,10 @@
             @if ($event->note && $event->from_status !== $event->to_status)
                 — {{ $event->note }}
             @endif
+
+            @if ($event->recipientLabel())
+                — مستنيين رد من {{ $event->recipientLabel() }}
+            @endif
         </p>
     </div>
 </div>

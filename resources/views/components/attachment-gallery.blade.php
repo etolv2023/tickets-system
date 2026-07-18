@@ -59,21 +59,18 @@
                 <span class="lightbox__name" x-text="current?.name"></span>
                 <div class="row">
                     <a class="lightbox__btn" :href="current?.download" aria-label="نزّل">
-                        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path d="M10 3a1 1 0 011 1v6.6l2.3-2.3a1 1 0 111.4 1.4l-4 4a1 1 0 01-1.4 0l-4-4a1 1 0 011.4-1.4L9 10.6V4a1 1 0 011-1zM3 15a1 1 0 011 1h12a1 1 0 112 0v1a1 1 0 01-1 1H3a1 1 0 01-1-1v-1a1 1 0 011-1z" />
-                        </svg>
+                        <x-icon name="download" />
                     </a>
                     <button type="button" class="lightbox__btn" @click="close()" aria-label="اقفل">
-                        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path d="M6.3 6.3a1 1 0 011.4 0L10 8.6l2.3-2.3a1 1 0 111.4 1.4L11.4 10l2.3 2.3a1 1 0 01-1.4 1.4L10 11.4l-2.3 2.3a1 1 0 01-1.4-1.4L8.6 10 6.3 7.7a1 1 0 010-1.4z" />
-                        </svg>
+                        <x-icon name="close" />
                     </button>
                 </div>
             </div>
 
             <template x-if="items.length > 1">
                 <button type="button" class="lightbox__nav lightbox__nav--prev" @click.stop="prev()" aria-label="السابق">
-                    <span class="lightbox__btn">›</span>
+                    {{-- In RTL the previous item sits to the right. --}}
+                    <span class="lightbox__btn"><x-icon name="chevron-right" /></span>
                 </button>
             </template>
 
@@ -81,7 +78,7 @@
 
             <template x-if="items.length > 1">
                 <button type="button" class="lightbox__nav lightbox__nav--next" @click.stop="next()" aria-label="التالي">
-                    <span class="lightbox__btn">‹</span>
+                    <span class="lightbox__btn"><x-icon name="chevron-left" /></span>
                 </button>
             </template>
         </div>

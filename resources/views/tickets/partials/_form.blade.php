@@ -3,30 +3,49 @@
 <div class="form-stack">
     <x-form-errors />
 
+    <div class="ticket-form">
+    <div class="ticket-form__col">
     @if ($ticket)
         {{-- Company, contact and the reported time are the snapshot of who said
-             what and when. They are shown, never edited. F03 --}}
+             what and when. Rendered as locked fields rather than a facts list:
+             they sit in the same column as the editable ones, so the form reads
+             as one shape and the lock is the only difference. F03 --}}
         <x-card title="المُبلغ">
-            <div class="facts">
-                <div class="facts__row">
-                    <span class="facts__label">الشركة</span>
-                    <span class="facts__value">{{ $ticket->company->name }}</span>
+            <x-slot:actions>
+                <span class="field__snapshot">
+                    <x-icon name="lock" size="0.9em" />
+                    لقطة ثابتة
+                </span>
+            </x-slot:actions>
+
+            <div class="form-stack">
+                <div class="form-grid">
+                    <div class="field">
+                        <label class="field__label" for="locked-company">
+                            {{ $ticket->isInternal() ? 'طلبها' : 'الشركة' }}
+                        </label>
+                        <input id="locked-company" class="input input--locked" type="text"
+                               value="{{ $ticket->originLabel() }}" readonly>
+                    </div>
+
+                    @unless ($ticket->isInternal())
+                        <div class="field">
+                            <label class="field__label" for="locked-reporter">المُبلغ</label>
+                            <input id="locked-reporter" class="input input--locked" type="text"
+                                   value="{{ $ticket->reporter_name }}{{ $ticket->reporter_erp_id ? " ({$ticket->reporter_erp_id})" : '' }}"
+                                   readonly>
+                        </div>
+                    @endunless
                 </div>
-                <div class="facts__row">
-                    <span class="facts__label">المُبلغ</span>
-                    <span class="facts__value">
-                        {{ $ticket->reporter_name }}
-                        @if ($ticket->reporter_erp_id)
-                            <span class="u-mono u-subtle">({{ $ticket->reporter_erp_id }})</span>
-                        @endif
-                    </span>
+
+                <div class="field">
+                    <label class="field__label" for="locked-reported-at">وقت الإبلاغ</label>
+                    <input id="locked-reported-at" class="input input--locked u-mono u-ltr" type="text"
+                           value="{{ $ticket->reported_at->timezone(config('app.display_timezone'))->translatedFormat('j F Y — H:i') }}"
+                           readonly>
                 </div>
-                <div class="facts__row">
-                    <span class="facts__label">وقت الإبلاغ</span>
-                    <span class="facts__value facts__value--num">
-                        {{ $ticket->reported_at->timezone(config('app.display_timezone'))->translatedFormat('j F Y — H:i') }}
-                    </span>
-                </div>
+
+                <p class="field__hint">الحقول دي بتتسجّل مرة واحدة وقت فتح التذكرة ومبتتغيّرش.</p>
             </div>
         </x-card>
     @else
@@ -47,7 +66,9 @@
             </div>
         </div>
     </x-card>
+    </div>
 
+    <div class="ticket-form__col">
     <x-card title="التصنيف">
         <div class="form-grid">
             <x-field name="type" label="النوع" required
@@ -74,9 +95,9 @@
             <x-field name="priority" label="الأولوية" required hint="بتحدد مهلة الـ SLA أوتوماتيك.">
                 <select id="priority" name="priority" required @class(['select', 'select--invalid' => $errors->has('priority')])>
                     @foreach ($priorities as $priority)
-                        <option value="{{ $priority->value }}"
-                                @selected(old('priority', $ticket?->priority?->value ?? 'medium') === $priority->value)>
-                            {{ $priority->label() }} — {{ $priority->defaultSlaHours() }} ساعة
+                        <option value="{{ $priority->key }}"
+                                @selected(old('priority', $ticket?->priority?->value ?? 'medium') === $priority->key)>
+                            {{ $priority->name_ar }} — {{ $priority->sla_hours }} ساعة
                         </option>
                     @endforeach
                 </select>
@@ -88,12 +109,18 @@
     </x-card>
 
     @unless ($ticket)
+        @isset($assignable)
+            @include('tickets.partials._assign-fields')
+        @endisset
+
         <x-card title="المرفقات">
             <x-uploader :max="\App\Services\AttachmentService::MAX_PER_TICKET" />
         </x-card>
     @endunless
+    </div>
+    </div>
 
-    <div class="form-actions">
+    <div class="form-actions form-actions--sticky">
         <x-button variant="primary">{{ $ticket ? 'حفظ التعديلات' : 'افتح التذكرة' }}</x-button>
         <x-button variant="ghost" :href="$ticket ? route('tickets.show', $ticket) : route('tickets.index')">إلغاء</x-button>
     </div>

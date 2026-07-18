@@ -1,14 +1,13 @@
 /* Filter bar — used by every list screen (companies, users, tickets, board). */
 
+/* The bar itself is nothing — no card, no border. Each control carries its own
+   surface and outline, so the row reads as a set of chips rather than a panel
+   bolted above the table. */
 .filters {
     display: flex;
     align-items: center;
     gap: var(--space-2);
     flex-wrap: wrap;
-    padding: var(--space-3);
-    background-color: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
 }
 
 .filters__search {
@@ -28,9 +27,96 @@
     gap: var(--space-2);
 }
 
+/* Forces the group onto its own line inside a flex-wrap .filters bar — for a
+   labelled sub-set of filters (e.g. "فلاتر الصب تاسكس") that should read as
+   one row, separate from the filters above it. */
+.filters__group--full {
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    padding-block-start: var(--space-2);
+    border-block-start: 1px solid var(--border);
+}
+
+/* Controls inside the bar sit tighter than a form field would — this is a row
+   of chips, not a form. */
+.filters .input,
+.filters .select {
+    font-size: var(--text-sm);
+}
+
 /* Shows which filters are live without making the user re-read the controls. */
 .filters__count {
     font-size: var(--text-sm);
     color: var(--text-muted);
     font-variant-numeric: tabular-nums;
+}
+
+/* A combobox inside the filter bar carries its own .field wrapper, which adds
+   the vertical stack a form field needs and this row does not. */
+.filters__combobox {
+    min-width: 12rem;
+}
+
+.filters__combobox .field {
+    gap: 0;
+}
+
+/* Every control in the bar sits on the same baseline. The buttons were 2px
+   shorter than the selects, which is exactly enough to read as misaligned. */
+.filters > .btn,
+.filters .input,
+.filters .select,
+.filters__combobox .input {
+    min-height: 2.25rem;
+}
+
+/* Date inputs size to their content. .input is width:100%, which inside a
+   wrapping flex row turned a from/to pair into two full-width blocks — the
+   filter bar grew to 182px tall for two dates. */
+.filters input[type='date'] {
+    width: auto;
+    min-width: 8.5rem;
+}
+
+/* A from/to pair is one idea, so it gets one outline instead of two separate
+   boxes with loose words between them. */
+.filters__range {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding-inline: var(--space-2);
+    min-height: 2.25rem;
+    /* Matches .input — this shell IS a field, so it sits on the same plane as
+       every other field rather than one step in front of them. */
+    background-color: var(--field-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.filters__range-label {
+    font-size: var(--text-2xs);
+    color: var(--text-subtle);
+}
+
+/* The inputs inside are bare: the shell carries the border. */
+.filters__range input[type='date'] {
+    min-width: 7.5rem;
+    padding: 0;
+    background: none;
+    border: 0;
+    color: var(--text);
+    font-family: inherit;
+    font-size: var(--text-sm);
+}
+
+.filters__range input[type='date']:focus {
+    outline: none;
+}
+
+/* The shell carries the focus state for the two bare inputs inside it, so a
+   date range rings once rather than twice. */
+.filters__range:focus-within {
+    background-color: var(--field-bg-focus);
+    border-color: var(--action);
+    box-shadow: 0 0 0 3px var(--action-bg);
 }

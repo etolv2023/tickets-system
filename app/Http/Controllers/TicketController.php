@@ -2,21 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\Priority;
 use App\Enums\TicketScope;
-use App\Enums\TicketStatus;
 use App\Enums\TicketType;
 use App\Http\Requests\Tickets\StoreTicketRequest;
 use App\Http\Requests\Tickets\UpdateTicketRequest;
 use App\Models\Company;
 use App\Models\CompanyContact;
 use App\Models\Label;
+use App\Models\PriorityDefinition;
 use App\Models\Role;
 use App\Models\Ticket;
+use App\Models\TicketStatusDefinition;
 use App\Models\User;
 use App\Services\ActivityLogger;
 use App\Services\AttachmentService;
 use App\Services\TicketService;
+use App\Services\TicketWorkflowService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -27,6 +28,7 @@ class TicketController extends Controller
     public function __construct(
         private readonly TicketService $tickets,
         private readonly AttachmentService $attachments,
+        private readonly TicketWorkflowService $workflow,
     ) {
     }
 
@@ -40,12 +42,12 @@ class TicketController extends Controller
             // Never select description here: it's LONGTEXT and this page shows
             // 25 rows of it that nobody reads (CLAUDE.md § 4.3).
             ->select([
-                'id', 'ticket_number', 'company_id', 'title', 'type', 'scope', 'priority',
+                'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'scope', 'priority',
                 'status', 'reported_at', 'sla_due_at', 'resolved_at', 'updated_at',
                 'assigned_frontend_id', 'assigned_backend_id', 'tester_id', 'created_by',
                 'subtasks_total', 'subtasks_done',
             ])
-            ->with(['company:id,name,code', 'frontend:id,name,avatar_path,is_active', 'backend:id,name,avatar_path,is_active'])
+            ->with(['company:id,name,code', 'requester:id,name', 'frontend:id,name,avatar_path,is_active', 'backend:id,name,avatar_path,is_active'])
             ->visibleTo($request->user())
             ->filter($filters)
             ->defaultOrder()
@@ -55,7 +57,11 @@ class TicketController extends Controller
         return view('tickets.index', [
             'tickets' => $tickets,
             'filters' => $filters,
-            'companies' => Company::active()->orderBy('name')->get(['id', 'name']),
+            // Just the one that is selected, so the box can show its name.
+            // The rest arrive from /lookup as the user types.
+            'selectedCompany' => filled($filters['company'] ?? null)
+                ? Company::whereKey($filters['company'])->value('name')
+                : null,
         ]);
     }
 
@@ -63,7 +69,12 @@ class TicketController extends Controller
     {
         $this->authorize('create', Ticket::class);
 
-        return view('tickets.create', $this->formData());
+        return view('tickets.create', $this->formData() + [
+            // The same distribution block as the ticket page — assigning
+            // right away means the starter subtask (F06.3) exists from the
+            // first moment, never a ticket sitting unassigned by omission.
+            'assignable' => auth()->user()->hasPermission('tickets.assign') ? $this->assignableUsers() : null,
+        ]);
     }
 
     public function store(StoreTicketRequest $request, ActivityLogger $logger): RedirectResponse
@@ -90,8 +101,33 @@ class TicketController extends Controller
             userAgent: $request->userAgent(),
         );
 
+        $this->assignAtCreation($ticket, $request);
+
         return redirect()->route('tickets.show', $ticket)
             ->with('status', "تم فتح التذكرة {$ticket->ticket_number}.");
+    }
+
+    /**
+     * The create-page distribution block reuses TicketWorkflowService::assign()
+     * as-is — same starter-subtask behaviour as assigning from the ticket page
+     * (F06.3), no separate code path. A feature/module ticket starts
+     * pending_approval and assign() refuses it before approval (F15); the
+     * fields are simply ignored for those until someone approves and assigns
+     * from the ticket page instead.
+     */
+    private function assignAtCreation(Ticket $ticket, StoreTicketRequest $request): void
+    {
+        if (! auth()->user()->hasPermission('tickets.assign') || $ticket->type->needsApproval()) {
+            return;
+        }
+
+        $assignees = $request->only('assigned_frontend_id', 'assigned_backend_id', 'tester_id');
+
+        if (collect($assignees)->filter()->isEmpty()) {
+            return;
+        }
+
+        $this->workflow->assign($ticket, $assignees, $request->user()->id);
     }
 
     /**
@@ -140,6 +176,7 @@ class TicketController extends Controller
             // The dropdown lists every panel needs, fetched once and shared.
             // Separately they were four queries over the same users table.
             ...$this->panelData($ticket),
+            ...$this->statusChangeData($ticket),
             // F09: this person's own entries. Someone else's hours aren't their
             // business, and the totals are already rolled up on the ticket.
             // No subtask eager-load: the titles come from the subtasks already
@@ -200,23 +237,14 @@ class TicketController extends Controller
 
     private function formData(): array
     {
+        // Companies and contacts are NOT sent to the view any more. They come
+        // from /lookup as the user types, so the page no longer carries the
+        // whole customer table — two queries and a JSON blob that grew with
+        // the database are now zero of both.
         return [
-            'companies' => Company::active()->orderBy('name')->get(['id', 'name']),
             'types' => TicketType::options(),
             'scopes' => TicketScope::options(),
-            'priorities' => Priority::cases(),
-            // Contacts for every active company, grouped. One query beats an
-            // ajax round-trip per company selection, and the whole set is small.
-            'contactsByCompany' => CompanyContact::query()
-                ->active()
-                ->whereHas('company', fn ($q) => $q->where('is_active', true))
-                ->orderBy('name')
-                ->get(['id', 'company_id', 'name', 'erp_employee_id'])
-                ->groupBy('company_id')
-                ->map(fn ($group) => $group->map(fn ($c) => [
-                    'id' => $c->id,
-                    'label' => $c->name . ' — ' . $c->erp_employee_id,
-                ])->values()),
+            'priorities' => PriorityDefinition::map(),
         ];
     }
 
@@ -241,6 +269,7 @@ class TicketController extends Controller
         ])
             ->merge($ticket->subtasks->pluck('assignee_id'))
             ->merge($ticket->statusHistory->pluck('user_id'))
+            ->merge($ticket->statusHistory->pluck('recipient_user_id'))
             ->merge($comments->pluck('user_id'))
             ->filter()
             ->unique();
@@ -252,14 +281,54 @@ class TicketController extends Controller
                 ->get(['id', 'name', 'avatar_path', 'is_active'])
                 ->keyBy('id');
 
+        $contactIds = $ticket->statusHistory->pluck('recipient_contact_id')
+            ->merge($comments->pluck('contact_id'))
+            ->filter()
+            ->unique();
+
+        $contacts = $contactIds->isEmpty()
+            ? collect()
+            : CompanyContact::whereIn('id', $contactIds)->get(['id', 'name'])->keyBy('id');
+
         $ticket->setRelation('creator', $people->get($ticket->created_by));
         $ticket->setRelation('frontend', $people->get($ticket->assigned_frontend_id));
         $ticket->setRelation('backend', $people->get($ticket->assigned_backend_id));
         $ticket->setRelation('tester', $people->get($ticket->tester_id));
 
         $ticket->subtasks->each(fn ($s) => $s->setRelation('assignee', $people->get($s->assignee_id)));
-        $ticket->statusHistory->each(fn ($h) => $h->setRelation('user', $people->get($h->user_id)));
-        $comments->each(fn ($c) => $c->setRelation('user', $people->get($c->user_id)));
+        $ticket->statusHistory->each(function ($h) use ($people, $contacts) {
+            $h->setRelation('user', $people->get($h->user_id));
+            $h->setRelation('recipientUser', $people->get($h->recipient_user_id));
+            $h->setRelation('recipientContact', $contacts->get($h->recipient_contact_id));
+        });
+        $comments->each(function ($c) use ($people, $contacts) {
+            $c->setRelation('user', $people->get($c->user_id));
+            $c->setRelation('contact', $contacts->get($c->contact_id));
+        });
+    }
+
+    /**
+     * The manual "غيّر الحالة" panel's own data (F06): the statuses this ticket
+     * may actually move to from here, and who could be named as the recipient
+     * — a teammate or one of the ticket's own company's contacts.
+     *
+     * @return array<string, mixed>
+     */
+    private function statusChangeData(Ticket $ticket): array
+    {
+        if (! auth()->user()->can('changeStatus', $ticket)) {
+            return ['nextStatuses' => collect(), 'recipientTeam' => collect(), 'recipientContacts' => collect()];
+        }
+
+        $statuses = TicketStatusDefinition::map();
+        $allowed = TicketStatusDefinition::transitionMap()[$ticket->status->value] ?? [];
+
+        return [
+            'nextStatuses' => collect($allowed)->map(fn ($key) => $statuses[$key])->filter(),
+            'recipientTeam' => User::active()->orderBy('name')->get(['id', 'name']),
+            'recipientContacts' => CompanyContact::where('company_id', $ticket->company_id)
+                ->active()->orderBy('name')->get(['id', 'name']),
+        ];
     }
 
     /**
@@ -287,6 +356,23 @@ class TicketController extends Controller
             ];
         }
 
+        return [
+            'assignable' => $canAssign ? $this->assignableUsers() : null,
+            // A subtask may go to anyone — F08 puts no skills constraint on it.
+            'assignableAll' => $canPlan ? User::active()->without('role')->orderBy('name')->get() : collect(),
+            'labels' => $canLabel ? Label::orderBy('name')->get(['id', 'name', 'color']) : collect(),
+        ];
+    }
+
+    /**
+     * The three assignment dropdowns' lists (F06), driven by skills rather
+     * than role — a "both" developer belongs in both lists (F00.3). Shared by
+     * the ticket page's distribution panel and the create-page block (F06.3).
+     *
+     * @return array<string, \Illuminate\Support\Collection>
+     */
+    private function assignableUsers(): array
+    {
         // without('role'): User eager-loads its role for the chrome, but the
         // role id here comes from the cached map — that join would be a query
         // spent to learn something already in memory.
@@ -299,15 +385,9 @@ class TicketController extends Controller
         $testerRoleId = Role::idByKey('tester');
 
         return [
-            // Driven by skills, not role — a "both" developer is in both lists. F00.3
-            'assignable' => $canAssign ? [
-                'frontend' => $users->filter(fn (User $u) => $u->skills->coversFrontend())->values(),
-                'backend' => $users->filter(fn (User $u) => $u->skills->coversBackend())->values(),
-                'testers' => $users->filter(fn (User $u) => $u->role_id === $testerRoleId)->values(),
-            ] : null,
-            // A subtask may go to anyone — F08 puts no skills constraint on it.
-            'assignableAll' => $canPlan ? $users : collect(),
-            'labels' => $canLabel ? Label::orderBy('name')->get(['id', 'name', 'color']) : collect(),
+            'frontend' => $users->filter(fn (User $u) => $u->skills->coversFrontend())->values(),
+            'backend' => $users->filter(fn (User $u) => $u->skills->coversBackend())->values(),
+            'testers' => $users->filter(fn (User $u) => $u->role_id === $testerRoleId)->values(),
         ];
     }
 }

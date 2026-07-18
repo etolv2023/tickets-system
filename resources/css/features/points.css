@@ -50,11 +50,75 @@
     text-align: center;
 }
 
+/* ---- Leaderboard podium ----
+
+   Three tiles, first place in the middle and taller. Amber is the only colour
+   on the podium and it marks exactly one thing: the top of the board. Ranks
+   four and below are a list, because a podium that goes ten deep is a table
+   wearing a costume. */
+
+.podium {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3);
+    align-items: end;
+}
+
+.podium__place {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    text-align: center;
+}
+
+.podium__place--first {
+    padding-block: var(--space-5);
+    border: 2px solid var(--c-high);
+}
+
+.podium__rank {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--text-subtle);
+}
+
+.podium__place--first .podium__rank {
+    color: var(--c-high);
+    font-weight: var(--weight-heavy);
+}
+
+.podium__name {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-heavy);
+}
+
+.podium__points {
+    font-family: var(--font-mono);
+    font-size: var(--text-xl);
+    font-weight: var(--weight-black);
+    font-variant-numeric: tabular-nums;
+}
+
+.podium__place--first .podium__points {
+    font-size: var(--text-3xl);
+}
+
+.podium__meta {
+    font-size: var(--text-xs);
+    color: var(--text-subtle);
+}
+
 /* ---- My points / leaderboard ---- */
 
 .points-total {
+    font-family: var(--font-mono);
     font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
+    font-weight: var(--weight-black);
     font-variant-numeric: tabular-nums;
 }
 
@@ -76,7 +140,8 @@
     width: 1.75rem;
     flex-shrink: 0;
     font-family: var(--font-mono);
-    font-size: var(--text-md);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-heavy);
     color: var(--text-subtle);
     text-align: center;
 }
@@ -84,6 +149,20 @@
 .points-row__name {
     flex: 1;
     min-width: 0;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* How often they scored, next to what they scored. Muted, because the ranking
+   is the point and this is the footnote that explains it. */
+.points-row__count {
+    flex-shrink: 0;
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
 }
 
 .points-row__points {
@@ -96,4 +175,37 @@
     .rating {
         grid-template-columns: 1fr;
     }
+}
+
+/* ---- Points report ---- */
+
+/* The month-over-month change, under the headline figure. */
+.points-delta {
+    display: block;
+    margin-block-start: 2px;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    color: var(--c-red);
+}
+
+.points-delta--up {
+    color: var(--c-green);
+}
+
+/* A points figure in a table: the number people are actually reading. */
+.points-cell {
+    font-family: var(--font-mono);
+    font-weight: var(--weight-heavy);
+    color: var(--text);
+}
+
+/* A neutral stat tile, for a figure that is a fact rather than a warning. */
+.stat-tile--slate {
+    --tile-color: var(--c-slate);
+}
+
+/* A correction that takes points away. Red is the only honest colour for a
+   negative number in a ledger. */
+.points-cell--negative {
+    color: var(--c-red);
 }

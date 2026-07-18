@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Enums\SubtaskSide;
 use App\Enums\SubtaskStatus;
+use App\Models\PointRule;
 use App\Models\Ticket;
 use App\Models\TicketSubtask;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +24,18 @@ class SubtaskService
     public function create(Ticket $ticket, array $data, int $createdBy): TicketSubtask
     {
         return DB::transaction(function () use ($ticket, $data, $createdBy) {
+            $side = $data['side'] ?? SubtaskSide::Other;
+            $side = $side instanceof SubtaskSide ? $side : SubtaskSide::from($side);
+
+            // F18: the subtask carries its own points from the moment it's
+            // created, prefilled from the matrix — but a caller sending an
+            // explicit value (the create/edit form) always wins.
+            if (! isset($data['points']) || $data['points'] === '' || $data['points'] === null) {
+                [$data['points'], $data['rule_id']] = $this->defaultPoints($ticket, $side);
+            } else {
+                [, $data['rule_id']] = $this->defaultPoints($ticket, $side);
+            }
+
             $subtask = $ticket->subtasks()->create($data + [
                 'created_by' => $createdBy,
                 // Appended to the end; drag-and-drop reorders later.
@@ -32,6 +46,38 @@ class SubtaskService
 
             return $subtask;
         });
+    }
+
+    /**
+     * F18: the matrix value for this ticket's (type, scope) and this
+     * subtask's side — exact (type, scope, side), else fallback
+     * (type, 'any', side). Purely a default; the caller may still override
+     * the points themselves. Side 'other' or no matching rule → zero and no
+     * rule, same as a gap in the matrix always meant: zero, never an
+     * exception.
+     *
+     * @return array{0: float, 1: int|null}
+     */
+    private function defaultPoints(Ticket $ticket, SubtaskSide $side): array
+    {
+        $pointSide = $side->toPointSide();
+
+        if ($pointSide === null) {
+            return [0.0, null];
+        }
+
+        $rules = PointRule::map();
+        $type = $ticket->type->value;
+
+        $rule = $rules["{$type}|{$ticket->scope->value}|{$pointSide->value}"]
+            ?? $rules["{$type}|any|{$pointSide->value}"]
+            ?? null;
+
+        if ($rule === null || ! $rule->is_active) {
+            return [0.0, null];
+        }
+
+        return [(float) $rule->points, $rule->id];
     }
 
     /**
@@ -102,7 +148,14 @@ class SubtaskService
      */
     public function syncCounters(Ticket $ticket): void
     {
+        // subtasks() carries a default orderBy('position') for display. An
+        // aggregate SELECT with that ORDER BY still in place trips MySQL's
+        // ONLY_FULL_GROUP_BY (error 1140: "Mixing of GROUP columns... is
+        // illegal if there is no GROUP BY clause") — the column isn't
+        // aggregated and there's no GROUP BY to license it. reorder() drops
+        // the inherited ORDER BY for this one query.
         $counts = $ticket->subtasks()
+            ->reorder()
             ->selectRaw('COUNT(*) total, SUM(status = ?) done, SUM(estimated_hours) estimate', [
                 SubtaskStatus::Done->value,
             ])

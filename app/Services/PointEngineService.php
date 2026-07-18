@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use App\Enums\PointSide;
-use App\Models\PointRule;
+use App\Enums\SubtaskStatus;
 use App\Models\PointTransaction;
 use App\Models\Ticket;
+use App\Models\TicketSubtask;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -14,22 +14,33 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Awards points on the FIRST entry into resolved — once, ever (F18).
  *
+ * Every point traces to exactly one Done subtask. There is no ticket-level
+ * matrix consulted here and no even split among several earners on a side —
+ * each subtask carries its own points (SubtaskService sets a default from
+ * point_rules, freely editable from then on), and whoever finished it takes
+ * exactly that. A ticket resolved with nothing Done on a side pays nobody on
+ * that side; there is deliberately no fallback to a named assignee, because a
+ * side that was ever worked on always has a starter subtask (F06.3) and F07
+ * refuses to finish a side while any of its subtasks are still open.
+ *
  * These rows become money in a bonus run, so the guards are layered rather than
  * trusted one at a time:
  *
  *   1. points_awarded_at — the cheap check, and the one that expresses intent.
  *   2. The whole award runs in one transaction, with the ticket row locked, so
  *      two concurrent resolves can't both pass guard 1.
- *   3. UNIQUE(ticket_id, user_id, side) — the last line. If a race ever beat
- *      1 and 2, the database refuses the duplicate rather than paying twice.
+ *   3. UNIQUE(subtask_id) — the last line. A subtask can only ever be paid
+ *      once; if a race ever beat 1 and 2, the database refuses the duplicate.
  *
  * Deliberate choices, all from F18:
  *   - period comes from resolved_at, not now(): a ticket resolved in March and
  *     stamped in April belongs to March's bonus.
- *   - Editing a rule is NOT retrospective. The ledger keeps what it paid.
+ *   - Editing a subtask's points after it was paid is NOT retrospective — the
+ *     ledger keeps what it paid, same as editing the matrix never was.
  *   - The same person on frontend AND backend earns two separate rows. Intended.
- *   - No matching rule = zero + a warning, never an exception. A missing rule
- *     must not block a ticket from being resolved.
+ *   - A subtask with no assignee, zero points, or side 'other' earns nothing —
+ *     never an exception. Manual corrections (PointCorrectionService) are the
+ *     only path for anything the automatic award doesn't cover.
  *   - Logged time has no bearing on any of this (PLAN.md § 5).
  */
 class PointEngineService
@@ -46,7 +57,7 @@ class PointEngineService
             return;
         }
 
-        if (! Schema::hasTable('point_rules')) {
+        if (! Schema::hasTable('ticket_subtasks')) {
             return;
         }
 
@@ -61,8 +72,16 @@ class PointEngineService
 
             $period = ($locked->resolved_at ?? now())->format('Y-m');
 
-            foreach (PointSide::cases() as $side) {
-                $this->awardSide($locked, $side, $period);
+            $subtasks = TicketSubtask::query()
+                ->where('ticket_id', $locked->id)
+                ->whereNull('deleted_at')
+                ->where('status', SubtaskStatus::Done->value)
+                ->whereNotNull('assignee_id')
+                ->where('points', '>', 0)
+                ->get();
+
+            foreach ($subtasks as $subtask) {
+                $this->awardSubtask($locked, $subtask, $period);
             }
 
             $locked->forceFill(['points_awarded_at' => now()])->saveQuietly();
@@ -70,85 +89,35 @@ class PointEngineService
         });
     }
 
-    private function awardSide(Ticket $ticket, PointSide $side, string $period): void
+    private function awardSubtask(Ticket $ticket, TicketSubtask $subtask, string $period): void
     {
-        $userId = $ticket->{$side->participantColumn()};
+        $side = $subtask->side->toPointSide();
 
-        if ($userId === null) {
-            return;
-        }
-
-        $rule = $this->resolveRule($ticket, $side);
-
-        if ($rule === null) {
-            // F18: no rule means zero and a warning — never an exception. A gap
-            // in the matrix must not stop a ticket being resolved.
-            Log::warning('point rule missing', [
-                'ticket' => $ticket->ticket_number,
-                'type' => $ticket->type->value,
-                'scope' => $ticket->scope->value,
-                'side' => $side->value,
-            ]);
-
-            return;
-        }
-
-        if (! $rule->is_active || (float) $rule->points == 0.0) {
+        // 'other' is not evidence of whose work this was — no side, no award.
+        if ($side === null) {
             return;
         }
 
         try {
             PointTransaction::create([
-                'user_id' => $userId,
+                'user_id' => $subtask->assignee_id,
                 'ticket_id' => $ticket->id,
+                'subtask_id' => $subtask->id,
                 'side' => $side->value,
-                'points' => $rule->points,
-                'rule_id' => $rule->id,
+                'points' => $subtask->points,
+                'type' => 'award',
+                'rule_id' => $subtask->rule_id,
                 'period' => $period,
-                'reason' => "{$ticket->type->label()} — {$side->label()}",
+                'reason' => "{$ticket->type->label()} — {$side->label()} ({$subtask->title})",
             ]);
         } catch (UniqueConstraintViolationException) {
-            // Guard 3 fired: this exact row already exists. Nothing to do —
-            // the point of the index is that it makes this harmless.
+            // Guard 3 fired: this exact subtask already has a row. Nothing to
+            // do — the point of the index is that it makes this harmless.
             Log::warning('duplicate point award blocked by the unique index', [
                 'ticket' => $ticket->ticket_number,
-                'user' => $userId,
-                'side' => $side->value,
+                'subtask' => $subtask->id,
+                'user' => $subtask->assignee_id,
             ]);
         }
     }
-
-    /**
-     * F18: exact (type, scope, side), else fall back to (type, 'any', side).
-     * An inquiry has no meaningful scope, so its rules live under 'any'.
-     */
-    private function resolveRule(Ticket $ticket, PointSide $side): ?PointRule
-    {
-        $rules = PointRule::map();
-        $type = $ticket->type->value;
-
-        return $rules["{$type}|{$ticket->scope->value}|{$side->value}"]
-            ?? $rules["{$type}|any|{$side->value}"]
-            ?? null;
-    }
-
-    /*
-     * On corrections — a conflict between the two specs, left unresolved on
-     * purpose rather than guessed at:
-     *
-     *   PLAN.md § 4.7 requires UNIQUE(ticket_id, user_id, side), and PROMPT.md
-     *   calls it "خط الدفاع الأخير" against double-spending.
-     *
-     *   F18 says a correction is a new row with negative points.
-     *
-     * Both cannot hold: a correcting row carries the same (ticket, user, side)
-     * as the row it corrects, and the unique index refuses it.
-     *
-     * The index is implemented, because it is the stronger and more explicitly
-     * stated guarantee, and because these rows become money. That means there is
-     * no correction path yet — and shipping a reverse() that always throws would
-     * be worse than not shipping one. Resolving this needs a decision:
-     * either a discriminator column in the unique key, or corrections handled
-     * outside the ledger.
-     */
 }

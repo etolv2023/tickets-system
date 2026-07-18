@@ -37,7 +37,7 @@ class SettingService
         $changes = [];
 
         foreach ($values as $key => $value) {
-            $type = self::TYPES[$key] ?? (str_starts_with($key, 'sla_hours_') ? 'int' : 'string');
+            $type = self::TYPES[$key] ?? 'string';
             $stored = $this->serialize($value, $type);
 
             $setting = Setting::firstOrNew(['key' => $key]);

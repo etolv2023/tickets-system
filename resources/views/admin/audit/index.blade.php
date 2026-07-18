@@ -14,14 +14,12 @@
         </div>
 
         <form method="GET" action="{{ route('admin.audit.index') }}" class="filters">
-            <select name="user" class="select filters__select">
-                <option value="">كل المستخدمين</option>
-                @foreach ($users as $person)
-                    <option value="{{ $person->id }}" @selected((string) ($filters['user'] ?? '') === (string) $person->id)>
-                        {{ $person->name }}
-                    </option>
-                @endforeach
-            </select>
+            <div class="filters__combobox">
+                <x-combobox name="user" resource="users"
+                            :value="$filters['user'] ?? null"
+                            :selected="$selectedUser ?? null"
+                            placeholder="كل المستخدمين" />
+            </div>
 
             <select name="action" class="select filters__select">
                 <option value="">كل الأفعال</option>
@@ -39,7 +37,7 @@
 
             <div class="filters__group">
                 <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" class="input" aria-label="من">
-                <span class="u-subtle">→</span>
+                <span class="u-subtle" aria-hidden="true">—</span>
                 <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" class="input" aria-label="لـ">
             </div>
 

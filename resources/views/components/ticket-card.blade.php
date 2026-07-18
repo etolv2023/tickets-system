@@ -18,13 +18,13 @@
 
     <div class="tcard__top">
         <span class="tcard__number">{{ $ticket->ticket_number }}</span>
-        <x-badge :variant="$ticket->type->variant()">{{ $ticket->type->label() }}</x-badge>
+        <x-badge :variant="$ticket->type->variant()" :icon="$ticket->type->icon()">{{ $ticket->type->label() }}</x-badge>
     </div>
 
     <a class="tcard__title" href="{{ route('tickets.show', $ticket) }}">{{ $ticket->title }}</a>
 
     <div class="tcard__meta">
-        <span>{{ $ticket->company->name }}</span>
+        <span>{{ $ticket->originLabel() }}</span>
         @if ($mine)
             <x-badge variant="neutral">{{ $mine->side->label() }}</x-badge>
         @endif

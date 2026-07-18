@@ -50,7 +50,7 @@
                             <tr>
                                 <td><x-badge :variant="$label->color">{{ $label->name }}</x-badge></td>
                                 <td>
-                                    <form method="POST" action="{{ route('admin.labels.update', $label) }}" class="row">
+                                    <form method="POST" action="{{ route('admin.labels.update', $label) }}" class="opt-form">
                                         @csrf
                                         @method('PUT')
                                         <input type="hidden" name="name" value="{{ $label->name }}">

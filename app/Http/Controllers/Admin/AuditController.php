@@ -32,7 +32,10 @@ class AuditController extends Controller
                 ->paginate(50)
                 ->withQueryString(),
             'filters' => $filters,
-            'users' => User::without('role')->orderBy('name')->get(['id', 'name']),
+            // Only the selected name; the list comes from /lookup.
+            'selectedUser' => filled($filters['user'] ?? null)
+                ? User::whereKey($filters['user'])->value('name')
+                : null,
             // Built from what's actually been logged, so the filter can't offer
             // an action nobody ever performed.
             'actions' => ActivityLog::query()

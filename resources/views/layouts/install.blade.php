@@ -7,6 +7,8 @@
 
     {{-- No settings lookup anywhere in this layout: at this point there is no
          database to read a system name or logo from. --}}
+    <link rel="preload" href="/fonts/cairo-arabic.woff2" as="font" type="font/woff2" crossorigin>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>

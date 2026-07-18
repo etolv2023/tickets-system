@@ -7,7 +7,11 @@
         <div class="page__head">
             <div>
                 <h1 class="page-title">الإعدادات</h1>
-                <p class="page-subtitle">إعدادات النظام العامة والمهل الزمنية.</p>
+                <p class="page-subtitle">
+                    إعدادات النظام العامة وساعات الدوام.
+                    مهل الـ SLA لكل أولوية بقت في
+                    <a href="{{ route('admin.priorities.index') }}">شاشة الأولويات</a>.
+                </p>
             </div>
         </div>
 
@@ -22,7 +26,6 @@
             @method('PUT')
 
             @include('admin.settings.partials._identity')
-            @include('admin.settings.partials._sla')
             @include('admin.settings.partials._capacity')
             @include('admin.settings.partials._notifications')
 

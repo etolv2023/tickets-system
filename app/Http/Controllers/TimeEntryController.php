@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Tickets\TimeEntryRequest;
 use App\Models\Ticket;
 use App\Models\TimeEntry;
+use App\Notifications\NotificationEvent;
+use App\Services\NotificationService;
 use App\Services\TimeTrackingService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -13,13 +15,23 @@ use Illuminate\View\View;
 
 class TimeEntryController extends Controller
 {
-    public function __construct(private readonly TimeTrackingService $time)
+    public function __construct(
+        private readonly TimeTrackingService $time,
+        private readonly NotificationService $notifications,
+    )
     {
     }
 
     public function store(TimeEntryRequest $request, Ticket $ticket): RedirectResponse
     {
-        $this->time->log($ticket, $request->validated(), $request->user()->id);
+        $entry = $this->time->log($ticket, $request->validated(), $request->user()->id);
+
+        $this->notifications->dispatch(
+            $ticket,
+            NotificationEvent::TimeLogged,
+            "{$request->user()->name} سجّل {$entry->hours} ساعة على {$ticket->ticket_number}",
+            $request->user()->id,
+        );
 
         return back()->with('status', 'تم تسجيل الوقت.');
     }

@@ -1,0 +1,24 @@
+/* Ticket create/edit: two columns instead of one long centred stack — the
+   reporter and the problem on one side, everything that classifies and routes
+   the ticket on the other. Below the two-column breakpoint it drops to one,
+   same order as the markup (reporter, problem, then classification). */
+
+.ticket-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: start;
+}
+
+.ticket-form__col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+}
+
+@media (max-width: 60rem) {
+    .ticket-form {
+        grid-template-columns: 1fr;
+    }
+}

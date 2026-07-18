@@ -1,0 +1,119 @@
+/* The two decision queues: testing (F16) and approvals (F15).
+
+   Neither is a list you scan — each is a stack of single decisions, so the
+   card is the unit, not the table row. A table would put the verb in a
+   cramped actions column; here the two buttons are the point of the card. */
+
+.queue {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.queue-card {
+    position: relative;
+    overflow: hidden;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background-color: var(--surface);
+}
+
+/* Waiting on a decision. Amber on the inline-start edge — the same edge the
+   priority stripe uses, because that is where this layout puts a semantic bar.
+   Approval cards carry no priority stripe, so the two never collide. */
+.queue-card--pending {
+    border-inline-start: var(--stripe-width) solid var(--c-amber);
+}
+
+.queue-card__badges {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-block-end: var(--space-2);
+}
+
+.queue-card__number {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--text-subtle);
+    direction: ltr;
+    unicode-bidi: isolate;
+}
+
+.queue-card__title {
+    display: block;
+    font-size: var(--text-base);
+    font-weight: var(--weight-heavy);
+    line-height: var(--leading-tight);
+    color: var(--text);
+}
+
+a.queue-card__title:hover {
+    text-decoration: underline;
+}
+
+.queue-card__meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-block-start: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+}
+
+/* Age is the only thing on the meta line allowed to turn red. */
+.queue-card__age--overdue {
+    color: var(--c-red);
+    font-weight: var(--weight-bold);
+}
+
+.queue-card__desc {
+    margin-block-start: var(--space-2);
+    font-size: var(--text-md);
+    line-height: var(--leading-relaxed);
+    color: var(--text-muted);
+}
+
+.queue-card__actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-block-start: var(--space-3);
+}
+
+/* "Open the ticket" is the escape hatch, not a third decision — it sits at the
+   far end, away from the two buttons that actually move the ticket. */
+.queue-card__open {
+    margin-inline-start: auto;
+}
+
+/* Returning or rejecting needs a written reason. It opens in place: leaving
+   the queue to type one sentence loses the reviewer's place in the stack. */
+.queue-card__reason {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-block-start: var(--space-3);
+    padding-block-start: var(--space-3);
+    border-block-start: 1px solid var(--border-subtle);
+}
+
+.queue-card__reason-actions {
+    display: flex;
+    gap: var(--space-2);
+}
+
+/* Nothing to decide is good news, not a void — a dashed box, never a grey slab. */
+.queue__empty {
+    padding: var(--space-6);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-lg);
+    text-align: center;
+    font-size: var(--text-md);
+    color: var(--text-muted);
+}

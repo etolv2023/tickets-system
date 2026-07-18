@@ -3,7 +3,7 @@
 @section('title', 'ملف ' . $employee->name)
 
 @section('content')
-    <div class="page">
+    <div class="page page--medium">
         <div class="page__head">
             <div class="row">
                 <x-avatar :user="$employee" size="xl" />
@@ -32,7 +32,7 @@
                         @if ($type->value !== 'undefined')
                             <div class="facts__row">
                                 <span class="facts__label">
-                                    <x-badge :variant="$type->variant()">{{ $type->label() }}</x-badge>
+                                    <x-badge :variant="$type->variant()" :icon="$type->icon()">{{ $type->label() }}</x-badge>
                                 </span>
                                 <span class="facts__value facts__value--num">
                                     {{ $data['byType'][$type->value] ?? 0 }}
@@ -124,9 +124,9 @@
                                 <td>
                                     <span class="tickets__number">{{ $ticket->ticket_number }}</span>
                                     <a class="tickets__title" href="{{ route('tickets.show', $ticket) }}">{{ $ticket->title }}</a>
-                                    <span class="tickets__company">{{ $ticket->company->name }}</span>
+                                    <span class="tickets__company">{{ $ticket->originLabel() }}</span>
                                 </td>
-                                <td><x-badge :variant="$ticket->type->variant()">{{ $ticket->type->label() }}</x-badge></td>
+                                <td><x-badge :variant="$ticket->type->variant()" :icon="$ticket->type->icon()">{{ $ticket->type->label() }}</x-badge></td>
                                 <td><x-badge :variant="$ticket->status->variant()">{{ $ticket->status->label() }}</x-badge></td>
                                 <td class="tickets__age">{{ $ticket->ageLabel() }}</td>
                             </tr>

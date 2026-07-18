@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Enums\LinkType;
 use App\Models\Ticket;
 use App\Models\TicketLink;
+use App\Notifications\NotificationEvent;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -17,16 +19,17 @@ class TicketLinkController extends Controller
         abort_unless($request->user()->hasPermission('links.manage'), 403);
         $this->authorize('view', $ticket);
 
+        // Picked from a type-ahead that searches number and title, so what
+        // arrives is a key rather than a number a human retyped.
         $data = $request->validate([
-            // Linked by ticket number, because that's the handle a human has.
-            'ticket_number' => ['required', 'string', 'exists:tickets,ticket_number'],
+            'to_ticket_id' => ['required', 'integer', 'exists:tickets,id'],
             'type' => ['required', Rule::enum(LinkType::class)],
-        ], [], ['ticket_number' => 'رقم التذكرة', 'type' => 'نوع الربط']);
+        ], [], ['to_ticket_id' => 'التذكرة', 'type' => 'نوع الربط']);
 
-        $target = Ticket::where('ticket_number', $data['ticket_number'])->firstOrFail();
+        $target = Ticket::findOrFail($data['to_ticket_id']);
 
         if ($target->id === $ticket->id) {
-            return back()->withErrors(['ticket_number' => 'مينفعش تربط التذكرة بنفسها.']);
+            return back()->withErrors(['to_ticket_id' => 'مينفعش تربط التذكرة بنفسها.']);
         }
 
         // You can only link to something you're allowed to see, or the link
@@ -39,7 +42,7 @@ class TicketLinkController extends Controller
             ->exists();
 
         if ($exists) {
-            return back()->withErrors(['ticket_number' => 'الربط ده موجود بالفعل.']);
+            return back()->withErrors(['to_ticket_id' => 'الربط ده موجود بالفعل.']);
         }
 
         TicketLink::create([
@@ -48,6 +51,25 @@ class TicketLinkController extends Controller
             'type' => $data['type'],
             'created_by' => $request->user()->id,
         ]);
+
+        // Both circles hear it: a link is a fact about two tickets, and the
+        // other ticket's owners are exactly the people it may now block.
+        $notifications = app(NotificationService::class);
+        $label = LinkType::from($data['type'])->label();
+
+        $notifications->dispatch(
+            $ticket,
+            NotificationEvent::TicketLinked,
+            "{$ticket->ticket_number} بقت {$label} {$target->ticket_number}",
+            $request->user()->id,
+        );
+
+        $notifications->dispatch(
+            $target,
+            NotificationEvent::TicketLinked,
+            "{$target->ticket_number} اترطبت بـ{$ticket->ticket_number} ({$label})",
+            $request->user()->id,
+        );
 
         return back()->with('status', "تم الربط بـ{$target->ticket_number}.");
     }

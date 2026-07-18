@@ -10,7 +10,10 @@
                 <p class="page-subtitle">الأرقام مكانها هنا — بتروحلها بقصد.</p>
             </div>
             <div class="page__actions">
-                <x-button variant="secondary" :href="route('export.tickets')">تصدير التذاكر</x-button>
+                <x-button variant="secondary" :href="route('export.tickets')">
+                    <x-icon name="download" class="btn__icon" />
+                    تصدير Excel
+                </x-button>
             </div>
         </div>
 

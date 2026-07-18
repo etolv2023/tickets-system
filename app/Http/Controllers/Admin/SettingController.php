@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\Priority;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateSettingsRequest;
 use App\Models\Setting;
@@ -22,7 +21,6 @@ class SettingController extends Controller
     {
         return view('admin.settings.index', [
             'values' => Setting::all_cached(),
-            'priorities' => Priority::cases(),
             'weekDays' => $this->weekDays(),
         ]);
     }

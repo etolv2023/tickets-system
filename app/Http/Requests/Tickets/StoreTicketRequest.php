@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Tickets;
 
-use App\Enums\Priority;
 use App\Enums\TicketScope;
 use App\Enums\TicketType;
 use App\Models\Company;
@@ -18,23 +17,64 @@ class StoreTicketRequest extends FormRequest
         return $this->user()->can('create', \App\Models\Ticket::class);
     }
 
+    /** An internal ticket is raised by the team, not owed to a customer. F25 */
+    public function isInternal(): bool
+    {
+        return $this->boolean('is_internal');
+    }
+
+    /**
+     * Normalises the two shapes to one before the rules run, so a leftover
+     * value from the side the user switched away from cannot be saved.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge($this->isInternal()
+            ? ['company_id' => null, 'contact_id' => null, 'reporter_name' => null]
+            : ['requested_by' => null]);
+    }
+
     public function rules(): array
     {
+        $internal = $this->isInternal();
+
         return [
-            'company_id' => ['required', 'integer', Rule::exists('companies', 'id')->where('is_active', true)],
+            'is_internal' => ['nullable', 'boolean'],
+
+            // Exactly one origin. required_if rather than a bare required, so
+            // an internal ticket is not asked for a customer it does not have.
+            'company_id' => [
+                Rule::requiredIf(! $internal), 'nullable', 'integer',
+                Rule::exists('companies', 'id')->where('is_active', true),
+            ],
+            'requested_by' => [
+                Rule::requiredIf($internal), 'nullable', 'integer',
+                Rule::exists('users', 'id')->where('is_active', true),
+            ],
+
             'contact_id' => ['nullable', 'integer', 'exists:company_contacts,id'],
             // Only needed when the reporter isn't a saved contact.
-            'reporter_name' => ['required_without:contact_id', 'nullable', 'string', 'max:150'],
+            'reporter_name' => [
+                Rule::requiredIf(! $internal && blank($this->input('contact_id'))),
+                'nullable', 'string', 'max:150',
+            ],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:200000'],
             'type' => ['required', Rule::enum(TicketType::class)],
             'scope' => ['required', Rule::enum(TicketScope::class)],
-            'priority' => ['required', Rule::enum(Priority::class)],
+            'priority' => ['required', Rule::exists('priorities', 'key')],
             'module' => ['nullable', 'string', 'max:100'],
             'attachments' => ['nullable', 'array', 'max:' . AttachmentService::MAX_PER_TICKET],
             // The real type is re-checked with finfo in AttachmentService;
             // this only keeps the obvious junk out early.
             'attachments.*' => ['file', 'mimes:jpg,jpeg,png,gif,webp,pdf', 'max:5120'],
+
+            // F06.3: the same distribution block as the ticket page, offered
+            // at creation. Ignored server-side for a feature/module ticket
+            // (needsApproval) until it's approved — see TicketController.
+            'assigned_frontend_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
+            'assigned_backend_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
+            'tester_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
         ];
     }
 
@@ -66,6 +106,8 @@ class StoreTicketRequest extends FormRequest
     {
         return [
             'company_id' => 'الشركة',
+            'requested_by' => 'طالب الشغل',
+            'is_internal' => 'نوع التذكرة',
             'contact_id' => 'جهة الاتصال',
             'reporter_name' => 'اسم المُبلغ',
             'title' => 'العنوان',
@@ -76,6 +118,9 @@ class StoreTicketRequest extends FormRequest
             'module' => 'الموديول',
             'attachments' => 'المرفقات',
             'attachments.*' => 'المرفق',
+            'assigned_frontend_id' => 'مبرمج فرونت',
+            'assigned_backend_id' => 'مبرمج باك',
+            'tester_id' => 'تيستر',
         ];
     }
 }

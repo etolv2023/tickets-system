@@ -29,12 +29,25 @@
                 @if ($subtask->due_date)
                     <span @class(['subtask__date--overdue' => $subtask->isOverdue()])>
                         استحقاق {{ $subtask->due_date->translatedFormat('j M') }}
-                        @if ($subtask->isOverdue()) ⚠ @endif
+                        @if ($subtask->isOverdue())
+                            <x-icon name="alert" size="0.9em" />
+                        @endif
+                    </span>
+                @endif
+
+                @if ($subtask->points > 0)
+                    <span class="points-cell" title="النقاط الي هتتصرف لما التذكرة تتحل">
+                        {{ rtrim(rtrim($subtask->points, '0'), '.') }} نقطة
                     </span>
                 @endif
 
                 @if ($subtask->estimated_hours)
-                    <span class="u-mono">
+                    {{-- Over the estimate the pair turns amber: the number is
+                         the warning, so no icon is needed beside it. --}}
+                    <span @class([
+                        'subtask__hours',
+                        'subtask__hours--over' => (float) $subtask->spent_hours > (float) $subtask->estimated_hours,
+                    ])>
                         {{ rtrim(rtrim($subtask->spent_hours, '0'), '.') }}/{{ rtrim(rtrim($subtask->estimated_hours, '0'), '.') }} س
                     </span>
                 @endif

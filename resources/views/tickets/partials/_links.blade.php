@@ -58,8 +58,10 @@
                     </select>
                 </x-field>
 
-                <x-field name="ticket_number" label="رقم التذكرة" dir="ltr"
-                         placeholder="TK-2026-00001" required />
+                {{-- Searched server-side by number OR title: nobody remembers
+                     TK-2026-00147, they remember "the double-tax invoice one". --}}
+                <x-combobox name="to_ticket_id" resource="tickets" label="التذكرة" required
+                            placeholder="اكتب رقم التذكرة أو جزء من عنوانها…" />
 
                 <x-button variant="secondary" size="sm" block>اربط</x-button>
             </form>

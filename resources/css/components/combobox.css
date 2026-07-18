@@ -1,0 +1,97 @@
+/* Combobox — a text input that fetches its options as you type.
+   Replaces a <select> whose option list grew with the database. */
+
+.combobox {
+    position: relative;
+}
+
+.combobox__clear {
+    position: absolute;
+    inset-inline-end: var(--space-2);
+    inset-block-start: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: var(--radius-sm);
+    color: var(--text-subtle);
+    cursor: pointer;
+}
+
+.combobox__clear:hover {
+    background-color: var(--hover);
+    color: var(--text);
+}
+
+/* Fixed, not absolute: an absolutely-positioned list is still clipped by any
+   ancestor with overflow:hidden, and every .card has that for its corners.
+   Position and width are set from JS by measuring the input. */
+/* Never narrower than a name needs, even when anchored to a small filter. */
+.combobox__list {
+    min-width: 15rem;
+    position: fixed;
+    z-index: var(--z-modal);
+    overflow-y: auto;
+    margin: 0;
+    padding: var(--space-1);
+    list-style: none;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    /* The one place a card-like surface earns a shadow: it floats over
+       content rather than sitting in the flow. */
+    box-shadow: var(--shadow-md);
+}
+
+/* Label above hint, not beside it. Side by side, a 192px filter box left the
+   name 79px — an email fully readable and a person's name cut in half. */
+.combobox__item {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1px;
+    padding-block: var(--space-2);
+    padding-inline: var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-md);
+    cursor: pointer;
+}
+
+.combobox__item.is-active {
+    background-color: var(--hover);
+}
+
+/* The label is what you are choosing; the hint only tells two similar labels
+   apart. Without an explicit flex the hint claimed its full natural width and
+   squeezed the label to zero — a person picker showing the email and hiding
+   the name. The label wins the space now, and the hint yields. */
+.combobox__label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: var(--weight-medium);
+}
+
+.combobox__hint {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--text-2xs);
+    color: var(--text-subtle);
+}
+
+.combobox__empty {
+    padding-block: var(--space-3);
+    padding-inline: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--text-subtle);
+    text-align: center;
+}

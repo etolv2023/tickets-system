@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Number;
 
 class TicketAttachment extends Model
 {
@@ -33,8 +32,28 @@ class TicketAttachment extends Model
         return str_starts_with($this->mime_type, 'image/');
     }
 
+    /**
+     * A human file size, in Arabic.
+     *
+     * Deliberately not Number::fileSize(): that routes through the intl
+     * extension, which is off by default on Windows PHP builds, so a missing
+     * extension took the whole ticket page down with a 500 over a label that
+     * reads "١٫٢ ميجا". A unit table cannot fail.
+     */
     public function sizeLabel(): string
     {
-        return Number::fileSize($this->size_bytes, precision: 1);
+        $units = ['بايت', 'كيلو', 'ميجا', 'جيجا'];
+        $size = max(0, (int) $this->size_bytes);
+        $unit = 0;
+
+        while ($size >= 1024 && $unit < count($units) - 1) {
+            $size /= 1024;
+            $unit++;
+        }
+
+        // Bytes are always whole; anything larger reads better with one decimal.
+        $value = $unit === 0 ? (string) $size : number_format($size, 1);
+
+        return $value . ' ' . $units[$unit];
     }
 }

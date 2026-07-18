@@ -1,11 +1,21 @@
 /* Login and forced password change — centred single-column shell. */
 
 .auth {
+    position: relative;
     min-height: 100vh;
+    min-height: 100dvh;
     display: grid;
     place-items: center;
     padding: var(--space-4);
     background-color: var(--bg);
+}
+
+/* Corner-parked, out of the form's way. inset-inline-END so it lands top-left
+   in this RTL layout — the far corner from where the eye starts reading. */
+.auth__theme {
+    position: absolute;
+    inset-block-start: var(--space-4);
+    inset-inline-end: var(--space-4);
 }
 
 .auth__box {

@@ -29,9 +29,24 @@ class CalendarService
      */
     public function itemsBetween(CarbonImmutable $from, CarbonImmutable $to, array $filters = [], ?int $onlyUserId = null): array
     {
-        $subtasks = TicketSubtask::query()
-            ->select(['id', 'ticket_id', 'title', 'assignee_id', 'side', 'status', 'start_date', 'due_date', 'estimated_hours'])
-            ->with(['ticket:id,ticket_number,title,priority,company_id,type', 'ticket.company:id,name'])
+        // "show" narrows the calendar to one kind of thing. A month with every
+        // subtask, every ticket deadline and every SLA marker on it is a wall;
+        // being able to ask for just one of them is what makes it readable.
+        $show = $filters['show'] ?? 'all';
+        $wantSubtasks = $show === 'all' || $show === 'subtasks';
+        $wantTickets = $show === 'all' || $show === 'tickets';
+
+        $subtasks = ! $wantSubtasks ? collect() : TicketSubtask::query()
+            ->select(['id', 'ticket_id', 'title', 'assignee_id', 'side', 'status', 'due_date', 'estimated_hours'])
+            // The assignee's initials sit on every chip, so the relation has
+            // to come with the query — under preventLazyLoading a missing one
+            // is a 500, not a slow page.
+            ->with([
+                'assignee:id,name,avatar_path,is_active',
+                'ticket:id,ticket_number,title,priority,company_id,requested_by,type',
+                'ticket.company:id,name',
+                'ticket.requester:id,name',
+            ])
             ->whereNotNull('due_date')
             ->whereBetween('due_date', [$from->toDateString(), $to->toDateString()])
             ->when($onlyUserId, fn ($q) => $q->where('assignee_id', $onlyUserId))
@@ -46,9 +61,9 @@ class CalendarService
             )
             ->get();
 
-        $tickets = Ticket::query()
-            ->select(['id', 'ticket_number', 'title', 'priority', 'due_date', 'company_id', 'status'])
-            ->with('company:id,name')
+        $tickets = ! $wantTickets ? collect() : Ticket::query()
+            ->select(['id', 'ticket_number', 'title', 'priority', 'due_date', 'company_id', 'requested_by', 'status'])
+            ->with('company:id,name', 'requester:id,name')
             ->whereNotNull('due_date')
             ->whereBetween('due_date', [$from->toDateString(), $to->toDateString()])
             ->when($onlyUserId, fn ($q) => $q->where(fn ($w) => $w
@@ -58,9 +73,10 @@ class CalendarService
 
         // SLA deadlines are drawn differently from work — they're a promise, not
         // a task, and F13 asks for a red marker rather than a block.
-        $slas = Ticket::query()
-            ->select(['id', 'ticket_number', 'title', 'priority', 'sla_due_at', 'company_id', 'status'])
-            ->with('company:id,name')
+        // An SLA marker is a ticket fact, so it follows the ticket toggle.
+        $slas = ! $wantTickets ? collect() : Ticket::query()
+            ->select(['id', 'ticket_number', 'title', 'priority', 'sla_due_at', 'company_id', 'requested_by', 'status'])
+            ->with('company:id,name', 'requester:id,name')
             ->whereNotNull('sla_due_at')
             ->whereBetween('sla_due_at', [$from->startOfDay(), $to->endOfDay()])
             ->whereNotIn('status', ['resolved', 'closed', 'rejected'])

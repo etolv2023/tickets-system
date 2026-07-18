@@ -15,7 +15,10 @@ class PointTransaction extends Model
 {
     public const UPDATED_AT = null;
 
-    protected $fillable = ['user_id', 'ticket_id', 'side', 'points', 'rule_id', 'period', 'reason'];
+    protected $fillable = [
+        'user_id', 'ticket_id', 'subtask_id', 'side', 'points', 'type',
+        'created_by', 'rule_id', 'period', 'reason',
+    ];
 
     protected function casts(): array
     {
@@ -49,9 +52,25 @@ class PointTransaction extends Model
         return $this->belongsTo(Ticket::class);
     }
 
+    public function subtask(): BelongsTo
+    {
+        return $this->belongsTo(TicketSubtask::class, 'subtask_id');
+    }
+
+    /** Who entered a manual correction. Null on an automatic award. */
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
     public function rule(): BelongsTo
     {
         return $this->belongsTo(PointRule::class, 'rule_id');
+    }
+
+    public function correctedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function scopeForPeriod(Builder $query, string $period): Builder

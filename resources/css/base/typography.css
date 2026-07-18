@@ -1,8 +1,9 @@
-/* Typography — Arabic UI face, monospace for data (CLAUDE.md § 6). */
+/* Typography — Cairo for the Arabic UI, IBM Plex Mono for anything that is
+   data rather than prose: ticket numbers, hours, ISO dates, ERP ids. */
 
 body {
     font-family: var(--font-ar);
-    font-size: var(--text-base);
+    font-size: var(--text-md);
     line-height: var(--leading-normal);
     font-weight: var(--weight-normal);
     -webkit-font-smoothing: antialiased;
@@ -33,7 +34,7 @@ h4 {
     font-size: var(--text-base);
 }
 
-/* Every number in the UI aligns in its column. CLAUDE.md § 6. */
+/* Every number in the UI aligns in its column. */
 table,
 .u-nums,
 time,
@@ -44,9 +45,22 @@ time,
 /* Identifiers, counts and dates read as data, not prose. */
 .u-mono {
     font-family: var(--font-mono);
-    font-size: var(--text-md);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
     letter-spacing: -0.01em;
 }
+
+/* A large monospace figure — the number on a stat tile. */
+.u-figure {
+    font-family: var(--font-mono);
+    font-size: var(--text-3xl);
+    font-weight: var(--weight-black);
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+}
+
+/* .u-ltr — Latin data inside RTL prose — lives in base/rtl.css, next to the
+   other bidi fixes. */
 
 code,
 pre,
@@ -81,11 +95,22 @@ a {
 /* Page heading block used by every screen shell. */
 .page-title {
     font-size: var(--text-xl);
-    font-weight: var(--weight-bold);
+    font-weight: var(--weight-black);
+    line-height: var(--leading-tight);
 }
 
 .page-subtitle {
     margin-block-start: var(--space-1);
     font-size: var(--text-md);
+    color: var(--text-muted);
+}
+
+/* One or two sentences explaining what a screen is, for the screens that
+   genuinely need it. Measure-capped: an explanation running the full width of
+   a 110rem page is an explanation nobody reads. */
+.page-lead {
+    max-width: 64ch;
+    font-size: var(--text-md);
+    line-height: var(--leading-relaxed);
     color: var(--text-muted);
 }

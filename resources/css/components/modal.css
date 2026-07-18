@@ -1,0 +1,115 @@
+/* Modal — the one component in the system that carries a shadow.
+
+   Cards structure the page with hairlines and stay flat; a modal has to read as
+   lifted off it, so --shadow-lg plus the --overlay backdrop do the separating.
+   The backdrop is always dark, in both themes, which is why it is one of the
+   always-dark tokens rather than a surface. */
+
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-5);
+    background-color: var(--overlay);
+}
+
+/* Clicking the backdrop closes; clicking the panel must not. The panel stops
+   the click in Blade via @click.stop — nothing here to do but sit above it. */
+.modal__panel {
+    position: relative;
+    /* Was a bare 520px with max-width:100%, which meant the panel only ever
+       stopped growing — it never got the chance to be smaller than its content
+       on a narrow screen without the outer padding fighting it. min() states
+       the intent directly: 520 wide, or the viewport minus its gutters. */
+    width: min(32.5rem, 100%);
+    max-height: 90vh;
+    max-height: 90dvh;
+    overflow-y: auto;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+}
+
+/* On a phone the modal is the screen. Full-bleed gutters and a smaller radius
+   stop it reading as a tiny card marooned in a dark field. */
+@media (max-width: 30rem) {
+    .modal {
+        padding: var(--space-3);
+    }
+
+    .modal__panel {
+        border-radius: var(--radius-lg);
+    }
+
+    .modal__header,
+    .modal__body,
+    .modal__footer {
+        padding-inline: var(--space-4);
+    }
+
+    .modal__body {
+        padding-block: var(--space-4);
+    }
+}
+
+.modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding-block: var(--space-4);
+    padding-inline: var(--space-5);
+    border-block-end: 1px solid var(--border-subtle);
+}
+
+.modal__title {
+    font-size: var(--text-base);
+    font-weight: var(--weight-heavy);
+}
+
+/* A quiet square control in the corner — never a coloured button. */
+.modal__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background-color: var(--bg);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color var(--transition), border-color var(--transition);
+}
+
+.modal__close:hover {
+    color: var(--text);
+    border-color: var(--border-strong);
+}
+
+.modal__close:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+}
+
+.modal__body {
+    padding-block: var(--space-5);
+    padding-inline: var(--space-5);
+}
+
+.modal__footer {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding-block: var(--space-3);
+    padding-inline: var(--space-5);
+    border-block-start: 1px solid var(--border-subtle);
+    background-color: var(--surface-2);
+    position: sticky;
+    inset-block-end: 0;
+}

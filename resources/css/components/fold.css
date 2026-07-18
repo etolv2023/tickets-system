@@ -1,0 +1,102 @@
+/* Collapsible section — a stack of foldable blocks.
+
+   Full width, one under the other. A grid of these makes the eye hunt for
+   which column it was reading; a stack reads top to bottom like the list it
+   actually is. */
+
+.fold {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.fold + .fold {
+    margin-block-start: var(--space-3);
+}
+
+.fold__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding-block: var(--space-2);
+    padding-inline: var(--space-3);
+    background-color: var(--surface-2);
+}
+
+/* The header is only a divider while the body is showing. */
+.fold:has(.fold__body:not([style*='display: none'])) .fold__head {
+    border-block-end: 1px solid var(--border);
+}
+
+.fold__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    flex: none;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: var(--radius-sm);
+    color: var(--text-subtle);
+    cursor: pointer;
+}
+
+.fold__toggle:hover {
+    background-color: var(--hover);
+    color: var(--text);
+}
+
+.fold__toggle:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+}
+
+.fold__chevron {
+    transition: transform var(--transition);
+}
+
+.fold__toggle[aria-expanded='false'] .fold__chevron {
+    transform: rotate(180deg);
+}
+
+.fold__title {
+    font-size: var(--text-md);
+    font-weight: var(--weight-heavy);
+}
+
+.fold__meta {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    color: var(--text-subtle);
+}
+
+.fold__actions {
+    margin-inline-start: auto;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fold__chevron {
+        transition: none;
+    }
+}
+
+/* A quiet text action in a fold header — "select all", "clear". */
+.fold__link {
+    padding: 0;
+    background: none;
+    border: 0;
+    color: var(--c-blue);
+    font-family: inherit;
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-bold);
+    cursor: pointer;
+}
+
+.fold__link:hover {
+    text-decoration: underline;
+}

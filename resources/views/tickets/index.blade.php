@@ -3,23 +3,13 @@
 @section('title', 'التذاكر')
 
 @section('content')
-    <div class="page">
-        <div class="page__head">
-            <div>
-                <h1 class="page-title">التذاكر</h1>
-                <p class="page-subtitle">{{ $tickets->total() }} تذكرة · مرتبة بالأولوية ثم الأقدم أولاً.</p>
-            </div>
-            @can('create', App\Models\Ticket::class)
-                <div class="page__actions">
-                    <x-button variant="primary" :href="route('tickets.create')">افتح تذكرة</x-button>
-                </div>
-            @endcan
-        </div>
-
+    <div class="page page--wide">
         @if (session('status'))
             <x-alert variant="success">{{ session('status') }}</x-alert>
         @endif
 
+        {{-- No page heading above the filters: the nav already says where you
+             are, and the design puts the "new ticket" action inside the bar. --}}
         @include('tickets.partials._filters')
 
         <x-card flush>
@@ -27,29 +17,41 @@
                 <table class="table table--hover">
                     <thead>
                         <tr>
-                            <th></th>
-                            <th>التذكرة</th>
+                            <th>الرقم</th>
+                            <th>العنوان</th>
+                            <th>الشركة</th>
                             <th>النوع</th>
+                            <th>الأولوية</th>
                             <th>الحالة</th>
                             <th>المسؤولين</th>
-                            <th>{{ ($filters['status'] ?? '') === 'resolved' ? 'زمن الحل' : 'العمر' }}</th>
+                            <th>{{ ($filters['status'] ?? '') === 'resolved' ? 'زمن الحل' : 'SLA' }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($tickets as $ticket)
                             <tr class="tickets__row">
-                                <td class="tickets__cell--stripe">
-                                    <x-priority-stripe :priority="$ticket->priority" />
-                                </td>
-                                <td>
+                                <td class="table__cell--tight">
                                     <span class="tickets__number">{{ $ticket->ticket_number }}</span>
+                                </td>
+                                <td>
                                     <a class="tickets__title" href="{{ route('tickets.show', $ticket) }}">{{ $ticket->title }}</a>
-                                    <span class="tickets__company">{{ $ticket->company->name }}</span>
                                 </td>
-                                <td>
-                                    <x-badge :variant="$ticket->type->variant()">{{ $ticket->type->label() }}</x-badge>
+                                <td class="tickets__cell--company">{{ $ticket->originLabel() }}</td>
+                                {{-- Type stays un-badged: four pills in one row and none of
+                                     them reads. It gets the glyph instead, tinted in the
+                                     type's own hue — the type is legible at a glance now
+                                     without adding a third competing pill shape. --}}
+                                <td class="tickets__type">
+                                    <x-icon :name="$ticket->type->icon()" class="tickets__type-icon"
+                                            {{-- The fallback catches "neutral", which is a variant
+                                                 name but deliberately not a hue token. --}}
+                                            style="--type-color: var(--c-{{ $ticket->type->variant() }}, var(--text-subtle))" />
+                                    {{ $ticket->type->label() }}
                                 </td>
-                                <td>
+                                <td class="table__cell--tight">
+                                    <x-badge :variant="$ticket->priority->variant()" :icon="$ticket->priority->icon()">{{ $ticket->priority->label() }}</x-badge>
+                                </td>
+                                <td class="table__cell--tight">
                                     <x-badge :variant="$ticket->status->variant()">{{ $ticket->status->label() }}</x-badge>
                                 </td>
                                 <td>
@@ -65,16 +67,20 @@
                                         @endunless
                                     </div>
                                 </td>
-                                <td @class(['tickets__age', 'tickets__age--overdue' => $ticket->isOverdue()])>
-                                    {{ $ticket->ageLabel() }}
+                                {{-- Red is the whole message here; the age stays
+                                     beside it so nothing is lost to the colour. --}}
+                                <td class="table__cell--tight">
                                     @if ($ticket->isOverdue())
-                                        <span title="عدّى مهلة الـ SLA">⚠</span>
+                                        <span class="tickets__age tickets__age--overdue">تخطّى</span>
+                                        <span class="tickets__age u-subtle">{{ $ticket->ageLabel() }}</span>
+                                    @else
+                                        <span class="tickets__age">{{ $ticket->ageLabel() }}</span>
                                     @endif
                                 </td>
                             </tr>
                         @empty
                             <tr class="table__empty">
-                                <td colspan="6">
+                                <td colspan="8">
                                     {{ array_filter($filters) ? 'مفيش تذاكر بالفلاتر دي.' : 'مفيش تذاكر لسه.' }}
                                 </td>
                             </tr>
@@ -83,6 +89,12 @@
                 </table>
             </div>
         </x-card>
+
+        {{-- The count reads as a footnote under the table, not as a heading
+             above it — you look at it after scanning, if at all. --}}
+        <span class="tickets__count">
+            {{ $tickets->total() }} تذكرة · مرتبة بالأولوية ثم الأقدم أولاً.
+        </span>
 
         {{ $tickets->links() }}
     </div>

@@ -33,8 +33,11 @@ class ContactController extends Controller
                 ->orderBy('name')
                 ->paginate(25)
                 ->withQueryString(),
-            'companies' => Company::orderBy('name')->get(['id', 'name']),
             'filters' => $request->only('q', 'company', 'status'),
+            // Only the selected name; the list comes from /lookup.
+            'selectedCompany' => filled($request->query('company'))
+                ? Company::whereKey($request->query('company'))->value('name')
+                : null,
         ]);
     }
 

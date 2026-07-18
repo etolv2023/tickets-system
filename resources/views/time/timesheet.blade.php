@@ -16,6 +16,14 @@
             </div>
         </div>
 
+        {{-- The screen was a bare grid of dashes with nothing saying what it
+             was for or where the numbers come from. One sentence fixes that,
+             and it is the same sentence whether the week is full or empty. --}}
+        <p class="page-lead">
+            الساعات اللي سجّلتها خلال أسبوع واحد: كل صف تذكرة، وكل عمود يوم، والخانة هي ساعاتك على
+            التذكرة دي في اليوم ده. العرض بس — الوقت نفسه بتسجّله من جوه التذكرة.
+        </p>
+
         @if (session('status'))
             <x-alert variant="success">{{ session('status') }}</x-alert>
         @endif
@@ -30,75 +38,27 @@
             </x-button>
         </div>
 
-        <div class="timesheet__week">
-            @foreach ($days as $day)
-                @php
-                    $hours = $byDay[$day->toDateString()] ?? 0;
-                    // Capacity colouring: at, near, over. F14
-                    $state = match (true) {
-                        $hours == 0 => 'empty',
-                        $hours > $capacity => 'over',
-                        $hours >= $capacity * 0.85 => 'near',
-                        default => 'at',
-                    };
-                @endphp
-
-                <div class="timesheet__day timesheet__day--{{ $state }}">
-                    <span class="timesheet__day-name">{{ $day->translatedFormat('l') }}</span>
-                    <span class="timesheet__day-date">{{ $day->translatedFormat('j/n') }}</span>
-                    <span class="timesheet__day-hours">
-                        {{ $hours > 0 ? rtrim(rtrim(number_format($hours, 2), '0'), '.') : '—' }}
-                    </span>
+        @if ($entries->isEmpty())
+            {{-- An empty week used to show an empty matrix and an empty table
+                 below it — two ways of saying nothing, and neither told you
+                 how to make it say something. --}}
+            <x-card>
+                <div class="blank">
+                    <h2 class="blank__title">مسجّلتش وقت في الأسبوع ده</h2>
+                    <p class="blank__body">
+                        الوقت بيتسجل من صفحة التذكرة نفسها: تفتح التذكرة، وتحت الصب تاسك اللي شغال
+                        عليها تسجّل عدد الساعات واليوم اللي شتغلته فيه. أول ما تسجّل، هيظهر هنا في
+                        الأسبوع اللي التاريخ بتاعه فيه.
+                    </p>
+                    <div class="blank__actions">
+                        <x-button variant="primary" :href="route('board.mine')">افتح بوردي</x-button>
+                        <x-button variant="ghost" :href="route('tickets.index')">كل التذاكر</x-button>
+                    </div>
                 </div>
-            @endforeach
-        </div>
-
-        <p class="field__hint">
-            سعتك اليومية {{ rtrim(rtrim($capacity, '0'), '.') }} ساعة. الأحمر معناه اليوم عدّى السعة.
-        </p>
-
-        <x-card title="التسجيلات" flush>
-            <div class="table-wrap">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>التاريخ</th>
-                            <th>التذكرة</th>
-                            <th>الصب تاسك</th>
-                            <th>ملاحظة</th>
-                            <th class="table__cell--num">ساعات</th>
-                            <th class="table__cell--actions"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($entries as $entry)
-                            <tr>
-                                <td class="u-nums">{{ $entry->spent_on->translatedFormat('D j M') }}</td>
-                                <td>
-                                    <a href="{{ route('tickets.show', $entry->ticket_id) }}">
-                                        <span class="u-mono u-ltr">{{ $entry->ticket->ticket_number }}</span>
-                                        {{ Str::limit($entry->ticket->title, 40) }}
-                                    </a>
-                                </td>
-                                <td>{{ $entry->subtask?->title ?? '—' }}</td>
-                                <td class="u-subtle">{{ $entry->note ?? '—' }}</td>
-                                <td class="table__cell--num">{{ rtrim(rtrim($entry->hours, '0'), '.') }}</td>
-                                <td class="table__cell--actions">
-                                    <form method="POST" action="{{ route('time.destroy', $entry) }}">
-                                        @csrf
-                                        @method('DELETE')
-                                        <x-button variant="ghost" size="sm">حذف</x-button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr class="table__empty">
-                                <td colspan="6">مسجّلتش وقت في الأسبوع ده.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </x-card>
+            </x-card>
+        @else
+            @include('time.partials._sheet')
+            @include('time.partials._entries')
+        @endif
     </div>
 @endsection

@@ -42,30 +42,29 @@
     white-space: nowrap;
 }
 
-/* SLA hours: one row per priority, carrying that priority's own stripe.
-   Positioned so the absolute .stripe anchors to the row, not the card. */
-.sla-row {
-    position: relative;
+/* Editing a status / priority / label in place. The fields are capped so a
+   one-word Arabic name doesn't get a field wide enough for a paragraph. */
+.opt-form {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.opt-form__name {
+    max-inline-size: 10rem;
+}
+
+.opt-form__num {
+    max-inline-size: 6rem;
+}
+
+/* A note that belongs to a flush card body: it has to bring its own gutter. */
+.settings__note {
     padding-block: var(--space-3);
-    padding-inline-start: calc(var(--stripe-width) + var(--space-4));
-    padding-inline-end: var(--space-4);
-    border-block-end: 1px solid var(--border);
-}
-
-.sla-row:last-child {
-    border-block-end: 0;
-}
-
-.sla-row__name {
-    flex: 1;
-    font-size: var(--text-md);
-}
-
-.sla-row__input {
-    width: 6rem;
+    padding-inline: var(--space-4);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
 }
 
 /* Permission matrix */
@@ -108,4 +107,55 @@
     gap: var(--space-1);
     font-size: var(--text-sm);
     color: var(--text-subtle);
+}
+
+/* ---- Transition editor ----
+   One block per source status instead of a 12x12 grid. A matrix that size only
+   labels its edges, so a cell in the middle carries no readable meaning; here
+   every checkbox sits next to the name of the status it leads to. */
+
+.flow__intro {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-block-end: var(--space-5);
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--surface-2);
+    border-radius: var(--radius);
+    font-size: var(--text-md);
+}
+
+.flow__targets {
+    padding: var(--space-3);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+/* A chip, not a table cell: the label is the hit target, so the whole thing
+   toggles rather than a 14px box you have to aim at. */
+.flow__target {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding-block: var(--space-1);
+    padding-inline: var(--space-2);
+    background-color: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    transition: background-color var(--transition), border-color var(--transition);
+}
+
+.flow__target:hover {
+    background-color: var(--hover);
+    border-color: var(--border-strong);
+}
+
+.flow__target:has(:checked) {
+    background-color: var(--c-blue-bg);
+    border-color: var(--c-blue);
+    color: var(--c-blue);
+    font-weight: var(--weight-bold);
 }

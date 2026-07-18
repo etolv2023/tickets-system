@@ -1,15 +1,29 @@
-/* Sidebar nav — flat list, no nested accordions (CLAUDE.md § 6). */
+/* Sidebar nav — flat list, no nested accordions.
+
+   It scrolls independently of the page body, so the brand stays at the top and
+   the user card at the bottom no matter how long the list gets.
+
+   The collapsed rail is driven entirely from :root[data-sidebar='collapsed'],
+   set before first paint. Nothing here depends on JavaScript having run. */
 
 .nav {
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
-    padding: var(--space-4);
-    background-color: var(--surface);
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-3);
+    background-color: var(--nav-bg);
     border-inline-end: 1px solid var(--border);
+    /* Sticky rather than fixed-height: the rail holds its own viewport-tall
+       box while the document scrolls past it, and the list inside scrolls on
+       its own so the brand and the user card stay pinned. */
     position: sticky;
     top: 0;
     height: 100vh;
+    /* dvh tracks the mobile browser's collapsing address bar; vh does not, and
+       the difference is the rail's footer sitting under the chrome. The vh line
+       above stays as the fallback for anything that doesn't know dvh. */
+    height: 100dvh;
+    overflow: hidden;
     z-index: var(--z-nav);
 }
 
@@ -17,38 +31,110 @@
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    font-size: var(--text-lg);
-    font-weight: var(--weight-bold);
     padding-inline: var(--space-2);
+    padding-block-end: var(--space-2);
+    font-size: var(--text-base);
+    font-weight: var(--weight-heavy);
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .nav__brand-mark {
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1.875rem;
+    height: 1.875rem;
     border-radius: var(--radius);
     background-color: var(--action);
     color: var(--action-text);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: var(--text-sm);
+    font-size: var(--text-base);
+    font-weight: var(--weight-black);
     flex-shrink: 0;
 }
 
+/* اليوم stands alone above every group — the home screen, not one more row
+   in "الشغل". A touch bolder than a plain link, and its own divider below
+   it, so it reads as the one fixed point the rest of the nav hangs off. */
+.nav__link--home {
+    font-weight: var(--weight-bold);
+    margin-block-end: var(--space-2);
+    padding-block-end: var(--space-3);
+    border-block-end: 1px solid var(--border-subtle);
+}
+
+/* ---- The rail's scrollbar ----
+
+   Two separate problems, both visible the moment enough groups were open:
+
+   1. It ate 10px of a 193px rail, and it appeared and disappeared as groups
+      folded — so opening one group shifted every label sideways. That is the
+      jumping. scrollbar-gutter: stable reserves the channel whether or not
+      it is in use, so the width never changes.
+
+   2. Styling it was not working, and could not be made to work. The moment
+      `scrollbar-width` is set on an element, Chromium switches that element to
+      the standard scrollbar and IGNORES every ::-webkit-scrollbar rule on it —
+      so the 6px width, the transparent track and the rounded thumb written
+      here were all dead code. What actually painted was the platform
+      scrollbar, arrow buttons and all, which is why it looked like a Windows
+      control bolted onto the rail. Its appearance also shifts with the OS
+      "always show scrollbars" setting, so it was never going to be consistent.
+
+   So the rail does not use a native scrollbar at all. It hides it on both
+   engine paths and signals "there is more below" with a short fade at the
+   bottom edge instead — which renders identically everywhere, and gives the
+   rail its 10px back. The list still scrolls by wheel, trackpad, touch and
+   keyboard; only the painted bar is gone. */
 .nav__list {
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 2px;
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.nav__list::-webkit-scrollbar {
+    display: none;
+}
+
+/* The "there is more below" signal, painted by the footer rather than by a
+   mask on the list.
+
+   A mask-image on the list was the obvious way to do this and the wrong one:
+   masking a scrolling container promotes it to its own composited layer, and
+   it was expensive enough that the renderer could no longer even produce a
+   screenshot of the page. This is one absolutely-positioned gradient box that
+   never scrolls and never touches the scroller's compositing.
+
+   .nav__foot follows .nav__list directly in the flex column, so bottom:100%
+   lands the fade exactly on the list's lower edge without anyone having to
+   know how tall the footer is. */
+.nav__foot {
+    position: relative;
+}
+
+.nav__foot::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: 100%;
+    height: 1.5rem;
+    background: linear-gradient(to top, var(--nav-bg), transparent);
+    pointer-events: none;
 }
 
 .nav__section {
     padding-block: var(--space-3) var(--space-1);
     padding-inline: var(--space-2);
-    font-size: var(--text-xs);
-    font-weight: var(--weight-medium);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-heavy);
+    letter-spacing: 0.03em;
     color: var(--text-subtle);
+    white-space: nowrap;
 }
 
 .nav__link {
@@ -56,28 +142,63 @@
     align-items: center;
     gap: var(--space-2);
     padding-block: var(--space-2);
-    padding-inline: var(--space-2);
+    /* The inline-start padding clears the active marker bar so the label sits
+       in the same place whether or not the row is current. */
+    padding-inline: var(--space-3) var(--space-2);
     border-radius: var(--radius);
     color: var(--text-muted);
     font-size: var(--text-md);
     font-weight: var(--weight-medium);
+    white-space: nowrap;
     transition: background-color var(--transition), color var(--transition);
 }
 
+/* --nav-hover, not --hover: the rail sits on its own plane now, and --hover is
+   a step against the PAGE. Using it here moved the row the wrong direction. */
 .nav__link:hover {
-    background-color: var(--surface-2);
+    background-color: var(--nav-hover);
     color: var(--text);
 }
 
+/* The current page. The rail is the recessed plane, so lifting the active row
+   all the way to --surface — the card plane — makes it the one thing in the
+   column that reads as being in front. Two full ramp steps of separation, plus
+   the marker bar, which is what actually carries at a glance. */
 .nav__link[aria-current='page'] {
-    background-color: var(--surface-2);
+    position: relative;
+    background-color: var(--surface);
+    box-shadow: var(--shadow-sm);
     color: var(--text);
+    font-weight: var(--weight-bold);
+}
+
+.nav__link[aria-current='page']::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block: 25%;
+    width: var(--stripe-width);
+    border-radius: var(--radius-full);
+    background-color: var(--action);
 }
 
 .nav__icon {
-    width: 1rem;
-    height: 1rem;
     flex-shrink: 0;
+    color: var(--text-subtle);
+    transition: color var(--transition);
+}
+
+.nav__link:hover .nav__icon {
+    color: var(--text-muted);
+}
+
+.nav__link[aria-current='page'] .nav__icon {
+    color: var(--action);
+}
+
+.nav__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .nav__count {
@@ -87,11 +208,8 @@
     color: var(--text-subtle);
 }
 
-/* Footer: identity + the two controls that belong to the person, not the app. */
+/* Footer: identity, and the way out. */
 .nav__foot {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
     padding-block-start: var(--space-3);
     border-block-start: 1px solid var(--border);
 }
@@ -103,9 +221,15 @@
     min-width: 0;
 }
 
+.nav__user-meta {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
 .nav__user-name {
-    font-size: var(--text-md);
-    font-weight: var(--weight-medium);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -113,23 +237,274 @@
 
 .nav__user-role {
     font-size: var(--text-xs);
-    color: var(--text-muted);
+    color: var(--text-subtle);
+    white-space: nowrap;
+}
+
+.nav__logout {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    flex: none;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: var(--radius);
+    color: var(--text-subtle);
+    cursor: pointer;
+    transition: background-color var(--transition), color var(--transition);
+}
+
+.nav__logout:hover {
+    background-color: var(--nav-hover);
+    color: var(--c-red);
+}
+
+.nav__logout:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+}
+
+/* ---- Collapsed rail ---- */
+
+:root[data-sidebar='collapsed'] .nav {
+    padding-inline: var(--space-2);
+}
+
+:root[data-sidebar='collapsed'] .nav__label,
+:root[data-sidebar='collapsed'] .nav__section,
+:root[data-sidebar='collapsed'] .nav__user-meta,
+:root[data-sidebar='collapsed'] .nav__logout {
+    display: none;
+}
+
+:root[data-sidebar='collapsed'] .nav__brand,
+:root[data-sidebar='collapsed'] .nav__link,
+:root[data-sidebar='collapsed'] .nav__user {
+    justify-content: center;
+    padding-inline: 0;
+}
+
+/* Sections vanish with the labels, so the groups need their own separator to
+   stay legible as groups. */
+:root[data-sidebar='collapsed'] .nav__list {
+    gap: 3px;
+}
+
+/* ---- Mobile: the rail becomes a drawer ----
+
+   It used to go position:static with the link list as a wrapping row. With
+   seven folding groups that produced roughly eleven hundred pixels of menu
+   stacked above the content — on every single page load, on the device where
+   vertical space is scarcest. You scrolled past the whole nav to reach the
+   screen you asked for.
+
+   So below the breakpoint it leaves the flow entirely and slides in over the
+   content from the topbar's existing toggle. The state is an attribute on
+   <html>, like every other shell state, but deliberately NOT persisted: a
+   full-screen overlay must never be what greets you on the next page load.
+
+   Slid with `translate`, not with an animated inset. Animating
+   inset-inline-start was the obvious choice — the logical property already
+   knows the drawer docks right in RTL and left in LTR — but the value would
+   not recompute once the element was laid out as position:fixed, not even when
+   set inline, so the drawer opened off-screen. translate has no such problem
+   and composites on the GPU besides.
+
+   translate IS physical, so the direction has to be stated. :dir() carries it,
+   with the RTL sign as the unconditional default: every layout in this app
+   hardcodes dir="rtl", so that is the branch that actually runs. */
+@media (max-width: 60rem) {
+    .nav {
+        --nav-drawer-w: min(17rem, 82vw);
+        position: fixed;
+        inset-block: 0;
+        inset-inline-start: 0;
+        width: var(--nav-drawer-w);
+        height: 100dvh;
+        z-index: var(--z-modal);
+        border-inline-end: 0;
+        box-shadow: var(--shadow-md);
+        /* Parked off the inline-start edge — the right one, in RTL. */
+        translate: 100% 0;
+        transition: translate var(--transition);
+    }
+
+    .nav:dir(ltr) {
+        translate: -100% 0;
+    }
+
+    :root[data-nav-open] .nav,
+    :root[data-nav-open] .nav:dir(ltr) {
+        translate: 0 0;
+    }
+
+    /* The collapsed-rail rules are desktop-only: a drawer that opens as a strip
+       of unlabelled icons is not a menu. Labels always show here. */
+    :root[data-sidebar='collapsed'] .nav__label,
+    :root[data-sidebar='collapsed'] .nav__section,
+    :root[data-sidebar='collapsed'] .nav__user-meta,
+    :root[data-sidebar='collapsed'] .nav__logout {
+        display: revert;
+    }
+
+    :root[data-sidebar='collapsed'] .nav__brand,
+    :root[data-sidebar='collapsed'] .nav__link,
+    :root[data-sidebar='collapsed'] .nav__user {
+        justify-content: flex-start;
+        padding-inline: var(--space-3) var(--space-2);
+    }
+
+    :root[data-sidebar='collapsed'] .nav-group__head {
+        display: flex;
+    }
+}
+
+/* Sits under the drawer and over everything else. Zero-size and unpainted
+   until the drawer opens, so it costs nothing on a desktop. */
+.nav-backdrop {
+    display: none;
 }
 
 @media (max-width: 60rem) {
+    :root[data-nav-open] .nav-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: calc(var(--z-modal) - 1);
+        background-color: var(--overlay);
+    }
+
+    /* The page behind an open drawer must not scroll under it. */
+    :root[data-nav-open] body {
+        overflow: hidden;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
     .nav {
-        position: static;
-        height: auto;
-        border-inline-end: 0;
-        border-block-end: 1px solid var(--border);
+        transition: none;
+    }
+}
+
+/* The drawer covers the screen, so focus must not be able to wander to the
+   page behind it — and a closed drawer must not be a tab stop at all. */
+@media (max-width: 60rem) {
+    .nav {
+        visibility: hidden;
+        transition: translate var(--transition), visibility var(--transition);
     }
 
-    .nav__list {
-        flex-direction: row;
-        flex-wrap: wrap;
+    :root[data-nav-open] .nav {
+        visibility: visible;
     }
+}
 
-    .nav__section {
-        display: none;
+/* ---- Folding nav groups ----
+   Seven small, named groups instead of one long scroll — each heading has to
+   read as a section break, not just another row the same shape as a link. */
+
+/* Space separates the groups, not a rule. Six hairlines stacked down a 210px
+   column read as a table of contents; the gap alone does the same job without
+   adding six more lines to a screen that already has plenty. */
+.nav-group + .nav-group {
+    margin-block-start: var(--space-4);
+}
+
+.nav-group__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding-block: var(--space-1);
+    padding-inline: var(--space-2);
+    background: none;
+    border: 0;
+    border-radius: var(--radius);
+    color: var(--text-subtle);
+    cursor: pointer;
+    /* Deliberately no hover fill — that treatment is a link's, and a header
+       filling in on hover is what made it read as just another row. */
+    transition: color var(--transition);
+}
+
+.nav-group__head:hover {
+    color: var(--text);
+}
+
+.nav-group__head:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: -2px;
+}
+
+.nav-group__heading {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+}
+
+.nav-group__icon {
+    flex-shrink: 0;
+    color: var(--text-faint);
+}
+
+.nav-group__head:hover .nav-group__icon {
+    color: var(--text-subtle);
+}
+
+/* ---- Why the seven group hues are gone ----
+
+   § 6 used to give every group its own hue from the ten extra swatches, so a
+   section could be recognised by colour. In practice seven saturated hues in a
+   210px column is a rainbow: it made the rail the loudest thing on screen and,
+   worse, it spent colour on navigation — the one part of the app where nothing
+   is ever urgent. The five semantic hues then had to shout over it.
+
+   Structure now comes from position and weight, and the rail's only colour is
+   the current page. That is the one thing in the nav that IS information. */
+
+/* A heading, not a link: smaller and tracked out so it reads as a label over
+   the rows rather than as the first row. This is the whole reason the group
+   hues are no longer needed — the shape says "section" on its own. */
+.nav-group__title {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-heavy);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nav-group__chevron {
+    flex: none;
+    transition: transform var(--transition);
+}
+
+.nav-group__head[aria-expanded='false'] .nav-group__chevron {
+    transform: rotate(180deg);
+}
+
+.nav-group__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* On the collapsed rail there are no headings to fold — the icons are the
+   whole menu, so every group is simply open. */
+:root[data-sidebar='collapsed'] .nav-group__head {
+    display: none;
+}
+
+:root[data-sidebar='collapsed'] .nav-group__body {
+    display: flex !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nav-group__chevron {
+        transition: none;
     }
 }

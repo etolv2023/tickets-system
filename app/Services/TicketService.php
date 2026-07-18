@@ -2,7 +2,8 @@
 
 namespace App\Services;
 
-use App\Enums\TicketStatus;
+use App\Casts\PriorityValue;
+use App\Casts\TicketStatusValue;
 use App\Enums\TicketType;
 use App\Models\CompanyContact;
 use App\Models\Ticket;
@@ -35,14 +36,18 @@ class TicketService
 
             $reportedAt = CarbonImmutable::now();
             $type = TicketType::from($data['type']);
-            $priority = \App\Enums\Priority::from($data['priority']);
+            $priority = PriorityValue::for($data['priority']);
 
-            return Ticket::create([
+            // F25: internal work has no customer — the origin is a colleague.
+            $internal = blank($data['company_id'] ?? null);
+
+            $ticket = Ticket::create([
                 'ticket_number' => $this->numbers->next((int) $reportedAt->format('Y')),
-                'company_id' => $data['company_id'],
+                'company_id' => $data['company_id'] ?? null,
+                'requested_by' => $internal ? ($data['requested_by'] ?? null) : null,
                 'contact_id' => $contact?->id,
                 // Frozen now. Editing the contact later must not rewrite history. F03
-                'reporter_name' => $contact?->name ?? $data['reporter_name'],
+                'reporter_name' => $contact?->name ?? ($data['reporter_name'] ?? null),
                 'reporter_erp_id' => $contact?->erp_employee_id,
                 'title' => $data['title'],
                 'description' => $this->clean($data['description'] ?? null),
@@ -51,13 +56,21 @@ class TicketService
                 'priority' => $priority,
                 'module' => $data['module'] ?? null,
                 // A feature can't be worked on before an admin says yes. F15
-                'status' => $type->needsApproval() ? TicketStatus::PendingApproval : TicketStatus::New,
+                'status' => $type->needsApproval() ? TicketStatusValue::for('pending_approval') : TicketStatusValue::for('new'),
                 'approval_status' => $type->needsApproval() ? 'pending' : 'not_required',
                 'created_by' => $createdBy,
                 // Automatic — never typed in by a human. F03
                 'reported_at' => $reportedAt,
+                // An internal ticket is a promise to the team lead who asked
+                // for it, and it runs on the same clock as everything else.
                 'sla_due_at' => $this->sla->dueAt($priority, $reportedAt),
             ]);
+
+            // F24: every ticket gets a portal password from the start — staff
+            // relay it to whoever needs the link.
+            $ticket->generatePortalPassword();
+
+            return $ticket;
         });
     }
 
@@ -66,7 +79,7 @@ class TicketService
      */
     public function update(Ticket $ticket, array $data): Ticket
     {
-        $priority = \App\Enums\Priority::from($data['priority']);
+        $priority = PriorityValue::for($data['priority']);
 
         $attributes = [
             'title' => $data['title'],
@@ -106,6 +119,22 @@ class TicketService
 
             return $comment;
         });
+    }
+
+    /**
+     * F24: a client-portal comment. Always public (a client can't write an
+     * internal note) and always attributed to the ticket's own contact —
+     * there's no session user to attribute it to.
+     */
+    public function addPortalComment(Ticket $ticket, string $body): TicketComment
+    {
+        // Not staff replying, so first_response_at (F05's "time to first
+        // reply" clock) never starts here — only the client's own message.
+        return $ticket->comments()->create([
+            'contact_id' => $ticket->contact_id,
+            'body' => $this->clean($body),
+            'is_internal' => false,
+        ]);
     }
 
     /**

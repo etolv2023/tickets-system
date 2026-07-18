@@ -1,0 +1,176 @@
+/* Topbar — fixed-height strip above the scrolling body.
+
+   Its controls are deliberately quiet: same surface as the page background,
+   hairline border, no fill. Colour in this bar would compete with the badges
+   in the content below it, which are the things that actually mean something. */
+
+.topbar {
+    height: var(--topbar-height);
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding-inline: var(--space-5);
+    background-color: var(--surface);
+    border-block-end: 1px solid var(--border);
+    /* Stays with you while the document scrolls under it. */
+    position: sticky;
+    top: 0;
+    z-index: var(--z-topbar);
+}
+
+.topbar__title {
+    font-size: var(--text-base);
+    font-weight: var(--weight-heavy);
+    line-height: var(--leading-tight);
+    white-space: nowrap;
+}
+
+/* Shared shape for every square control in the bar. */
+.topbar__btn,
+.topbar__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.0625rem;
+    height: 2.0625rem;
+    flex: none;
+    padding: 0;
+    background-color: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    cursor: pointer;
+    transition: background-color var(--transition), border-color var(--transition);
+}
+
+.topbar__btn:hover,
+.topbar__toggle:hover {
+    background-color: var(--hover);
+    border-color: var(--border-strong);
+}
+
+.topbar__btn:focus-visible,
+.topbar__toggle:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+}
+
+/* The rail toggle points at the nav, which sits at the inline end in RTL. */
+.topbar__toggle {
+    margin-inline-end: calc(var(--space-1) * -1);
+}
+
+.topbar__search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 15rem;
+}
+
+.topbar__search-icon {
+    position: absolute;
+    inset-inline-start: var(--space-3);
+    color: var(--text-subtle);
+    pointer-events: none;
+}
+
+.topbar__search input {
+    width: 100%;
+    padding-block: var(--space-2);
+    padding-inline-start: calc(var(--space-6) + var(--space-1));
+    padding-inline-end: var(--space-3);
+    background-color: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: inherit;
+    font-size: var(--text-sm);
+}
+
+.topbar__search input::placeholder {
+    color: var(--text-subtle);
+}
+
+.topbar__search input:focus {
+    outline: none;
+    border-color: var(--border-strong);
+    background-color: var(--surface);
+}
+
+/* Clear the browser's native search affordances — they break the RTL padding. */
+.topbar__search input::-webkit-search-decoration,
+.topbar__search input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+}
+
+/* Theme toggle shows the theme you would switch TO: a moon while light,
+   a sun while dark. The selectors mirror tokens.css exactly — an explicit
+   data-theme always wins over the OS preference. */
+.topbar__theme-dark {
+    display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) .topbar__theme-light {
+        display: none;
+    }
+
+    :root:not([data-theme='light']) .topbar__theme-dark {
+        display: block;
+    }
+}
+
+:root[data-theme='dark'] .topbar__theme-light {
+    display: none;
+}
+
+:root[data-theme='dark'] .topbar__theme-dark {
+    display: block;
+}
+
+:root[data-theme='light'] .topbar__theme-light {
+    display: block;
+}
+
+:root[data-theme='light'] .topbar__theme-dark {
+    display: none;
+}
+
+/* Unread badge on the bell. Positioned against .topbar__btn. */
+.bell {
+    position: relative;
+}
+
+.bell__count {
+    position: absolute;
+    inset-block-start: -5px;
+    inset-inline-end: -5px;
+    min-width: 1.05rem;
+    padding-inline: 4px;
+    background-color: var(--c-red);
+    border-radius: var(--radius-full);
+    color: var(--on-solid);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-medium);
+    line-height: 1.05rem;
+    text-align: center;
+}
+
+@media (max-width: 60rem) {
+    .topbar {
+        padding-inline: var(--space-4);
+    }
+
+    /* The toggle USED to be hidden here — "no rail left to collapse" was true
+       back when the nav stacked above the content on mobile. It is now the
+       drawer's only handle, so hiding it left the phone layout with no way to
+       reach the navigation at all.
+
+       The search field stays hidden: it needs real width to be usable, and
+       /search is a screen of its own. */
+    .topbar__search {
+        display: none;
+    }
+}

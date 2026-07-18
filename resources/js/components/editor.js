@@ -7,7 +7,19 @@ import Quill from 'quill';
  * storing. Nothing here is a security control — the toolbar is only what the
  * user is *offered*, not what they're limited to.
  */
-export default function editor({ name, value = '', placeholder = '' }) {
+const FULL = [
+    ['bold', 'italic', 'underline'],
+    [{ list: 'ordered' }, { list: 'bullet' }],
+    [{ header: [3, 4, false] }],
+    ['link', 'blockquote', 'code-block'],
+    ['clean'],
+];
+
+// The portal set. Neither list offers an image button, so nothing here can
+// inline a base64 payload — worth keeping true as the toolbars diverge.
+const SIMPLE = [['bold', 'italic'], [{ list: 'ordered' }, { list: 'bullet' }], ['link'], ['clean']];
+
+export default function editor({ name, value = '', placeholder = '', simple = false }) {
     return {
         quill: null,
 
@@ -19,13 +31,7 @@ export default function editor({ name, value = '', placeholder = '' }) {
                 theme: 'snow',
                 placeholder,
                 modules: {
-                    toolbar: [
-                        ['bold', 'italic', 'underline'],
-                        [{ list: 'ordered' }, { list: 'bullet' }],
-                        [{ header: [3, 4, false] }],
-                        ['link', 'blockquote', 'code-block'],
-                        ['clean'],
-                    ],
+                    toolbar: simple ? SIMPLE : FULL,
                     // Pasting from Word drags in a wall of inline styles. Taking
                     // only the text and the tags we allow keeps that out. F04.1
                     clipboard: { matchVisual: false },

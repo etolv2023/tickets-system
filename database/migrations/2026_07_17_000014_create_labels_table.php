@@ -14,7 +14,7 @@ return new class extends Migration
             $table->id();
             $table->string('name', 50)->unique();
             // Stores a token name (urgent, inquiry, …), never a hex value.
-            $table->string('color', 20)->default('low');
+            $table->string('color', 20)->default('slate');
             $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
             $table->timestamps();
         });

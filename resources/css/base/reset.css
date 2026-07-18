@@ -14,6 +14,8 @@ body {
     background-color: var(--bg);
     color: var(--text);
     min-height: 100vh;
+    /* dvh tracks the mobile address bar collapsing; vh above is the fallback. */
+    min-height: 100dvh;
 }
 
 /* Focus: visible for keyboard users, silent for mouse users. */
@@ -31,7 +33,14 @@ body {
     background-color: color-mix(in srgb, var(--focus) 22%, transparent);
 }
 
-/* Scrollbars follow the chrome, not the OS default. */
+/* Scrollbars follow the chrome, not the OS default.
+
+   These two standard properties are what actually paint in Chromium and
+   Firefox. The ::-webkit-scrollbar block below does NOT: setting
+   `scrollbar-width` on an element makes Chromium ignore every
+   ::-webkit-scrollbar rule for it. The block is kept only for engines that
+   support the pseudo-elements and not the standard properties (older WebKit),
+   and it must stay in agreement with the values above rather than drift. */
 * {
     scrollbar-width: thin;
     scrollbar-color: var(--border-strong) transparent;
@@ -40,6 +49,13 @@ body {
 ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
+}
+
+/* Legacy-path only. Without it those engines draw the platform's arrow
+   buttons at both ends, which is the single thing that makes a scrollbar read
+   as an OS control dropped onto the page. */
+::-webkit-scrollbar-button {
+    display: none;
 }
 
 ::-webkit-scrollbar-track {

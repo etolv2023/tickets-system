@@ -1,9 +1,12 @@
 /* Priority stripe — a 3px vertical bar on the inline-start edge of a card.
-   CLAUDE.md § 6: priority is a stripe, status is a text badge. They never
-   share a colour, so the two can sit on the same card without fighting. */
+   Priority is a stripe, status is a text badge: different shapes, so the two
+   can sit on the same card without competing for the same reading.
+
+   The variant comes from the priority's stored colour, which is now a hue name
+   (red, amber, ...). The role aliases below stay for the built-in four. */
 
 .stripe {
-    --stripe-color: var(--c-low);
+    --stripe-color: var(--c-slate);
     position: absolute;
     inset-block: 0;
     inset-inline-start: 0;
@@ -11,6 +14,68 @@
     background-color: var(--stripe-color);
 }
 
+/* Hues — what an admin-created priority stores. */
+.stripe--red {
+    --stripe-color: var(--c-red);
+}
+
+.stripe--amber {
+    --stripe-color: var(--c-amber);
+}
+
+.stripe--blue {
+    --stripe-color: var(--c-blue);
+}
+
+.stripe--green {
+    --stripe-color: var(--c-green);
+}
+
+.stripe--slate {
+    --stripe-color: var(--c-slate);
+}
+
+.stripe--rose {
+    --stripe-color: var(--c-rose);
+}
+
+.stripe--orange {
+    --stripe-color: var(--c-orange);
+}
+
+.stripe--yellow {
+    --stripe-color: var(--c-yellow);
+}
+
+.stripe--lime {
+    --stripe-color: var(--c-lime);
+}
+
+.stripe--teal {
+    --stripe-color: var(--c-teal);
+}
+
+.stripe--cyan {
+    --stripe-color: var(--c-cyan);
+}
+
+.stripe--indigo {
+    --stripe-color: var(--c-indigo);
+}
+
+.stripe--violet {
+    --stripe-color: var(--c-violet);
+}
+
+.stripe--plum {
+    --stripe-color: var(--c-plum);
+}
+
+.stripe--brown {
+    --stripe-color: var(--c-brown);
+}
+
+/* Role aliases — the four system priorities. */
 .stripe--urgent {
     --stripe-color: var(--c-urgent);
 }
@@ -25,6 +90,18 @@
 
 .stripe--low {
     --stripe-color: var(--c-low);
+}
+
+.stripe--resolved {
+    --stripe-color: var(--c-resolved);
+}
+
+.stripe--blocked {
+    --stripe-color: var(--c-blocked);
+}
+
+.stripe--neutral {
+    --stripe-color: var(--c-slate);
 }
 
 /* A card carrying a stripe indents its content so text never touches the bar. */

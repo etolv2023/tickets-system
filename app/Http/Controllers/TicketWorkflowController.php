@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\TicketStatus;
+use App\Casts\TicketStatusValue;
 use App\Http\Requests\Tickets\AssignTicketRequest;
+use App\Http\Requests\Tickets\ChangeTicketStatusRequest;
 use App\Models\Ticket;
 use App\Models\TicketWorkLog;
 use App\Services\ActivityLogger;
@@ -119,7 +120,7 @@ class TicketWorkflowController extends Controller
         $this->authorize('resolve', $ticket);
 
         try {
-            $this->workflow->transition($ticket, TicketStatus::Resolved, $request->user()->id, 'تم التأكيد');
+            $this->workflow->transition($ticket, TicketStatusValue::for('resolved'), $request->user()->id, 'تم التأكيد');
         } catch (DomainException $e) {
             return back()->withErrors(['workflow' => $e->getMessage()]);
         }
@@ -139,7 +140,7 @@ class TicketWorkflowController extends Controller
         );
 
         try {
-            $this->workflow->transition($ticket, TicketStatus::Reopened, $request->user()->id, $data['reason']);
+            $this->workflow->transition($ticket, TicketStatusValue::for('reopened'), $request->user()->id, $data['reason']);
             // The work starts over, so the commitments reopen with it.
             $ticket->workLogs()->update(['status' => 'in_progress', 'finished_at' => null]);
         } catch (DomainException $e) {
@@ -164,6 +165,59 @@ class TicketWorkflowController extends Controller
         );
 
         return back()->with('status', 'سجّلنا إن العميل اتبلغ.');
+    }
+
+    /** F06: the manual "غيّر الحالة" action, with an optional "waiting on" recipient. */
+    public function changeStatus(ChangeTicketStatusRequest $request, Ticket $ticket, ActivityLogger $logger): RedirectResponse
+    {
+        $data = $request->validated();
+
+        $recipient = ($data['recipient_type'] ?? null) === null ? null : [
+            'type' => $data['recipient_type'],
+            'user_id' => $data['recipient_user_id'] ?? null,
+            'contact_id' => $data['recipient_contact_id'] ?? null,
+        ];
+
+        try {
+            $this->workflow->changeStatus(
+                $ticket,
+                TicketStatusValue::for($data['to_status']),
+                $request->user()->id,
+                $data['note'] ?? null,
+                $recipient,
+            );
+        } catch (DomainException $e) {
+            return back()->withErrors(['status' => $e->getMessage()]);
+        }
+
+        $logger->log(
+            action: 'ticket.status_changed',
+            userId: $request->user()->id,
+            subject: $ticket,
+            changes: ['to' => $data['to_status'], 'recipient' => $recipient],
+            ip: $request->ip(),
+            userAgent: $request->userAgent(),
+        );
+
+        return back()->with('status', 'اتغيّرت الحالة.');
+    }
+
+    /** F24: only ever readable once, right after (re)generating. Sensitive — logged. */
+    public function regeneratePortalPassword(Request $request, Ticket $ticket, ActivityLogger $logger): RedirectResponse
+    {
+        $this->authorize('update', $ticket);
+
+        $plaintext = $ticket->generatePortalPassword();
+
+        $logger->log(
+            action: 'ticket.portal_password_regenerated',
+            userId: $request->user()->id,
+            subject: $ticket,
+            ip: $request->ip(),
+            userAgent: $request->userAgent(),
+        );
+
+        return back()->with('portalPassword', $plaintext);
     }
 
     public function close(Request $request, Ticket $ticket): RedirectResponse

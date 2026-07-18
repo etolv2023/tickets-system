@@ -12,8 +12,9 @@
                 <tbody>
                     @forelse ($resolution['byPriority'] as $row)
                         <tr>
+                            @php($priority = \App\Casts\PriorityValue::for($row->k))
                             <td>
-                                <x-badge :variant="$row->k">{{ \App\Enums\Priority::from($row->k)->label() }}</x-badge>
+                                <x-badge :variant="$priority->variant()" :icon="$priority->icon()">{{ $priority->label() }}</x-badge>
                             </td>
                             <td class="table__cell--num">{{ round($row->avg_hours) }}</td>
                             <td class="table__cell--num">{{ $row->n }}</td>
@@ -38,7 +39,7 @@
                 </thead>
                 <tbody>
                     @forelse ($resolution['byType'] as $row)
-                        @php $enum = \App\Enums\TicketType::from($row->k); @endphp
+                        @php($enum = \App\Enums\TicketType::from($row->k))
                         <tr>
                             <td><x-badge :variant="$enum->variant()">{{ $enum->label() }}</x-badge></td>
                             <td class="table__cell--num">{{ round($row->avg_hours) }}</td>

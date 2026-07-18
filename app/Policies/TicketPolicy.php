@@ -125,6 +125,12 @@ class TicketPolicy
         return $user->hasPermission('tickets.close') && $this->view($user, $ticket);
     }
 
+    /** F06: manual status changes (with an optional "waiting on" recipient) piggyback on general edit rights. */
+    public function changeStatus(User $user, Ticket $ticket): bool
+    {
+        return $user->hasPermission('tickets.edit') && $this->view($user, $ticket);
+    }
+
     private function isAssigned(User $user, Ticket $ticket): bool
     {
         return in_array($user->id, [

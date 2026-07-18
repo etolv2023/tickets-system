@@ -3,6 +3,7 @@
 
 .install {
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -85,9 +86,9 @@
 }
 
 .steps__item--done .steps__dot {
-    background-color: var(--c-resolved);
-    border-color: var(--c-resolved);
-    color: #ffffff;
+    background-color: var(--c-green);
+    border-color: var(--c-green);
+    color: var(--surface);
 }
 
 .steps__item--done .steps__label {
@@ -138,11 +139,11 @@
 }
 
 .checklist__mark--ok {
-    color: var(--c-resolved);
+    color: var(--c-green);
 }
 
 .checklist__mark--fail {
-    color: var(--c-urgent);
+    color: var(--c-red);
 }
 
 .install__nav {
@@ -158,8 +159,8 @@
     overflow-y: auto;
     padding: var(--space-3);
     border-radius: var(--radius);
-    background-color: var(--n-950);
-    color: var(--n-300);
+    background-color: var(--inverse-surface);
+    color: var(--inverse-text-muted);
     font-family: var(--font-mono);
     font-size: var(--text-sm);
     line-height: var(--leading-relaxed);
@@ -181,5 +182,5 @@
 .install__done-mark {
     width: 3rem;
     height: 3rem;
-    color: var(--c-resolved);
+    color: var(--c-green);
 }

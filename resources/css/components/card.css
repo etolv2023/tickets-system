@@ -1,21 +1,32 @@
-/* Card — hairline border, no shadow, 4px radius (CLAUDE.md § 6). */
+/* Card — hairline border over a one-pixel shadow. The border still does the
+   separating work; the shadow only says which side of it is on top.
+
+   This used to be border-only, deliberately. It stopped working once --surface
+   was pure white and --bg was a near-white warm grey: a 4% luminance step with
+   an 8% hairline is not enough signal for the eye to build a stack out of, and
+   the whole screen read as flat panels floating in soup. --surface and --bg are
+   now two real steps apart on the ramp, and --shadow-xs closes the argument. */
 
 .card {
     position: relative;
     background-color: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xs);
     overflow: hidden;
 }
 
 .card--interactive {
-    transition: border-color var(--transition), background-color var(--transition);
+    transition: border-color var(--transition), box-shadow var(--transition);
 }
 
 .card--interactive:hover {
     border-color: var(--border-strong);
+    box-shadow: var(--shadow-sm);
 }
 
+/* The header sits one step back from the body, so a card reads as a titled
+   thing rather than as a list whose first row happens to be bold. */
 .card__header {
     display: flex;
     align-items: center;
@@ -23,12 +34,14 @@
     gap: var(--space-3);
     padding-block: var(--space-3);
     padding-inline: var(--space-4);
+    background-color: var(--surface-2);
     border-block-end: 1px solid var(--border);
 }
 
 .card__title {
-    font-size: var(--text-base);
-    font-weight: var(--weight-bold);
+    font-size: var(--text-md);
+    font-weight: var(--weight-heavy);
+    letter-spacing: 0.01em;
 }
 
 .card__body {
@@ -47,7 +60,32 @@
     gap: var(--space-2);
     padding-block: var(--space-3);
     padding-inline: var(--space-4);
-    border-block-start: 1px solid var(--border);
+    border-block-start: 1px solid var(--border-subtle);
+    background-color: var(--surface-2);
+}
+
+/* A row inside a flush card body. Rows are divided by the faint inner line,
+   never by the outer border — that one belongs to the card's edge. */
+.card__row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding-block: var(--space-3);
+    padding-inline: var(--space-4);
+    border-block-start: 1px solid var(--border-subtle);
+}
+
+.card__row:first-child {
+    border-block-start: 0;
+}
+
+.card__row--link {
+    color: inherit;
+    cursor: pointer;
+    transition: background-color var(--transition);
+}
+
+.card__row--link:hover {
     background-color: var(--surface-2);
 }
 

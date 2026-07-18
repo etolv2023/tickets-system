@@ -1,7 +1,10 @@
-/* Rendering of stored editor HTML. The markup here has already been through
-   Purifier on the server; this only decides how it looks. F04.1 */
+/* Rendering of stored editor HTML — ticket descriptions and comment bodies.
+   The markup has already been through Purifier on the server; this only decides
+   how it looks. Long Arabic body copy, so it runs at --leading-relaxed. F04.1 */
 
 .prose {
+    color: var(--text);
+    font-size: var(--text-md);
     line-height: var(--leading-relaxed);
     overflow-wrap: break-word;
 }
@@ -14,9 +17,27 @@
     margin: 0;
 }
 
-.prose h3,
-.prose h4 {
+/* The editor only offers h3/h4, but stored HTML may predate that. */
+.prose h1,
+.prose h2,
+.prose h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--weight-heavy);
+    line-height: var(--leading-tight);
+    margin-block-start: var(--space-5);
+}
+
+.prose h4,
+.prose h5,
+.prose h6 {
+    font-size: var(--text-base);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-tight);
     margin-block-start: var(--space-4);
+}
+
+.prose > :first-child {
+    margin-block-start: 0;
 }
 
 .prose ul,
@@ -32,7 +53,17 @@
     list-style: decimal;
 }
 
+.prose li::marker {
+    color: var(--text-subtle);
+}
+
 .prose li + li {
+    margin-block-start: var(--space-1);
+}
+
+/* Nested lists sit tight against their parent item. */
+.prose li > ul,
+.prose li > ol {
     margin-block-start: var(--space-1);
 }
 
@@ -42,16 +73,37 @@
     text-underline-offset: 2px;
 }
 
+.prose a:hover {
+    text-decoration-thickness: 2px;
+}
+
+.prose strong,
+.prose b {
+    font-weight: var(--weight-bold);
+}
+
 .prose blockquote {
     padding-inline-start: var(--space-3);
     border-inline-start: 3px solid var(--border-strong);
+    border-inline-end: 0;
+    margin-inline: 0;
     color: var(--text-muted);
 }
 
+/* Latin code must not be reordered by the surrounding RTL paragraph. */
 .prose pre,
-.prose code {
+.prose code,
+.prose kbd,
+.prose samp {
     background-color: var(--surface-2);
+    border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    direction: ltr;
+    text-align: start;
+    unicode-bidi: isolate;
 }
 
 .prose code {
@@ -61,9 +113,25 @@
 .prose pre {
     padding: var(--space-3);
     overflow-x: auto;
+    line-height: var(--leading-normal);
+}
+
+/* A code element inside a pre is the block itself — no double chrome. */
+.prose pre code {
+    background: none;
+    border: 0;
+    padding: 0;
+    font-size: inherit;
+}
+
+.prose hr {
+    border: 0;
+    border-block-start: 1px solid var(--border);
 }
 
 .prose img {
+    max-width: 100%;
+    height: auto;
     border-radius: var(--radius);
     border: 1px solid var(--border);
 }
@@ -72,6 +140,7 @@
     width: 100%;
     border-collapse: collapse;
     font-size: var(--text-md);
+    font-variant-numeric: tabular-nums;
 }
 
 .prose th,
@@ -83,7 +152,7 @@
 
 .prose th {
     background-color: var(--surface-2);
-    font-weight: var(--weight-medium);
+    font-weight: var(--weight-bold);
 }
 
 .prose__empty {

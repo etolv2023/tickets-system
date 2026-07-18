@@ -2,9 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Enums\Priority;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdateSettingsRequest extends FormRequest
 {
@@ -15,7 +13,7 @@ class UpdateSettingsRequest extends FormRequest
 
     public function rules(): array
     {
-        $rules = [
+        return [
             'app_name' => ['required', 'string', 'max:100'],
             // The extension is only a first filter; SettingService re-checks the
             // real MIME with finfo before touching the file (CLAUDE.md § 5).
@@ -29,23 +27,11 @@ class UpdateSettingsRequest extends FormRequest
             'work_day_start' => ['required', 'date_format:H:i'],
             'work_day_end' => ['required', 'date_format:H:i', 'after:work_day_start'],
             'email_notifications_enabled' => ['nullable', 'boolean'],
+            // Who the mail comes from. A setting, not a config constant, so it
+            // changes without a deploy.
+            'mail_from_address' => ['nullable', 'email', 'max:150'],
+            'mail_from_name' => ['nullable', 'string', 'max:100'],
         ];
-
-        foreach (Priority::cases() as $priority) {
-            // One hour minimum, one year maximum — anything outside that is a typo.
-            $rules[$priority->slaSettingKey()] = ['required', 'integer', 'between:1,8760'];
-        }
-
-        return $rules;
-    }
-
-    public function attributes(): array
-    {
-        return array_reduce(
-            Priority::cases(),
-            fn (array $carry, Priority $p) => $carry + [$p->slaSettingKey() => "مهلة {$p->label()}"],
-            []
-        );
     }
 
     protected function prepareForValidation(): void

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Setting;
 use App\Models\User;
+use App\Services\VirusScanner;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\Paginator;
@@ -16,7 +17,9 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        // Its constructor takes host/port/enabled, not classes, so the
+        // container cannot work it out on its own.
+        $this->app->singleton(VirusScanner::class, fn () => VirusScanner::fromConfig());
     }
 
     public function boot(): void
@@ -41,7 +44,7 @@ class AppServiceProvider extends ServiceProvider
      */
     private function configureViews(): void
     {
-        View::composer(['layouts.app', 'layouts.auth'], function ($view) {
+        View::composer(['layouts.app', 'layouts.auth', 'layouts.portal'], function ($view) {
             $view->with([
                 'appName' => Setting::get('app_name', 'نظام التذاكر'),
                 'appLogo' => Setting::get('app_logo'),
@@ -50,7 +53,9 @@ class AppServiceProvider extends ServiceProvider
 
         // The bell's unread count. One cheap COUNT per page for a logged-in
         // user, cached for a minute so a burst of navigation doesn't repeat it.
-        View::composer('partials.nav', function ($view) {
+        // The bell lives in the topbar; the cache means naming both costs
+        // nothing extra.
+        View::composer('partials.topbar', function ($view) {
             $user = auth()->user();
 
             $view->with('unreadCount', $user === null ? 0 : Cache::remember(

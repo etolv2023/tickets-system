@@ -3,6 +3,7 @@
 use App\Http\Middleware\CheckPermission;
 use App\Http\Middleware\EnsureInstalled;
 use App\Http\Middleware\ForcePasswordChange;
+use App\Http\Middleware\PreventDuplicateSubmit;
 use App\Http\Middleware\QueryCount;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
@@ -29,6 +30,10 @@ return Application::configure(basePath: dirname(__DIR__))
             EnsureInstalled::class,
             SecurityHeaders::class,
             ForcePasswordChange::class,
+            // The server-side half of the double-click guard. After the session
+            // starts (it keys off the session id for guests) and before any
+            // controller runs.
+            PreventDuplicateSubmit::class,
         ]);
 
         $middleware->alias([

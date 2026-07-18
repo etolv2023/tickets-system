@@ -34,17 +34,26 @@
             </x-alert>
         @endif
 
-        @forelse ($lanes as $laneName => $columns)
-            <x-card :title="$laneName" flush>
+        @forelse ($lanes as $swimlane)
+            <x-card flush>
+                <x-slot:title>
+                    <span class="board__lane">
+                        @if ($swimlane['user'])
+                            <x-avatar :user="$swimlane['user']" size="sm" />
+                        @endif
+                        {{ $swimlane['label'] }}
+                    </span>
+                </x-slot:title>
+
                 <x-slot:actions>
                     <span class="u-subtle">
-                        {{ collect($columns)->sum(fn ($c) => $c['tickets']->count()) }} تذكرة
+                        {{ collect($swimlane['columns'])->sum(fn ($c) => $c['tickets']->count()) }} تذكرة
                     </span>
                 </x-slot:actions>
 
                 <div class="card__body">
                     <div class="board">
-                        @foreach ($columns as $column)
+                        @foreach ($swimlane['columns'] as $column)
                             <section class="board__column">
                                 <header class="board__head">
                                     <h3 class="board__title">{{ $column['label'] }}</h3>

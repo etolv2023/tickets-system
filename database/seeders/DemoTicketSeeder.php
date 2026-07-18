@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Enums\Priority;
+use App\Casts\PriorityValue;
+use App\Casts\TicketStatusValue;
 use App\Enums\TicketScope;
-use App\Enums\TicketStatus;
 use App\Enums\TicketType;
 use App\Enums\WorkSide;
 use App\Models\Company;
@@ -39,14 +39,14 @@ class DemoTicketSeeder extends Seeder
 
         // [days ago, company, title, type, scope, priority, status, front, back, tester]
         $rows = [
-            [9, 'NILE', 'فاتورة المبيعات بتطلع بضريبة مضاعفة', TicketType::Bug, TicketScope::Backend, Priority::Urgent, TicketStatus::InProgress, null, 'backend', 'tester'],
-            [7, 'DELTA', 'شاشة المخزون بتعلّق لما الأصناف تعدي 5000', TicketType::Bug, TicketScope::Both, Priority::High, TicketStatus::Assigned, 'frontend', 'backend', 'tester'],
-            [6, 'DELTA', 'إزاي أطلع تقرير الأرصدة لفرع واحد؟', TicketType::Inquiry, TicketScope::Inquiry, Priority::Low, TicketStatus::Resolved, null, null, null],
-            [5, 'SHARQ', 'تصدير كشف حساب العميل PDF', TicketType::Feature, TicketScope::Both, Priority::Medium, TicketStatus::PendingApproval, null, null, null],
-            [4, 'NILE', 'زرار الحفظ مش ظاهر على الموبايل', TicketType::Bug, TicketScope::Frontend, Priority::Medium, TicketStatus::DevDone, 'fullstack', null, 'tester'],
-            [3, 'KHIBRA', 'موديول متابعة المشاريع', TicketType::NewModule, TicketScope::Both, Priority::Low, TicketStatus::PendingApproval, null, null, null],
-            [2, 'DELTA', 'الرصيد الافتتاحي بيتصفر بعد الترحيل', TicketType::Bug, TicketScope::Backend, Priority::Urgent, TicketStatus::New, null, null, null],
-            [1, 'SHARQ', 'تغيير لوجو الشركة في التقارير', TicketType::Feature, TicketScope::Frontend, Priority::Low, TicketStatus::New, null, null, null],
+            [9, 'NILE', 'فاتورة المبيعات بتطلع بضريبة مضاعفة', TicketType::Bug, TicketScope::Backend, PriorityValue::for('urgent'), TicketStatusValue::for('in_progress'), null, 'backend', 'tester'],
+            [7, 'DELTA', 'شاشة المخزون بتعلّق لما الأصناف تعدي 5000', TicketType::Bug, TicketScope::Both, PriorityValue::for('high'), TicketStatusValue::for('assigned'), 'frontend', 'backend', 'tester'],
+            [6, 'DELTA', 'إزاي أطلع تقرير الأرصدة لفرع واحد؟', TicketType::Inquiry, TicketScope::Inquiry, PriorityValue::for('low'), TicketStatusValue::for('resolved'), null, null, null],
+            [5, 'SHARQ', 'تصدير كشف حساب العميل PDF', TicketType::Feature, TicketScope::Both, PriorityValue::for('medium'), TicketStatusValue::for('pending_approval'), null, null, null],
+            [4, 'NILE', 'زرار الحفظ مش ظاهر على الموبايل', TicketType::Bug, TicketScope::Frontend, PriorityValue::for('medium'), TicketStatusValue::for('dev_done'), 'fullstack', null, 'tester'],
+            [3, 'KHIBRA', 'موديول متابعة المشاريع', TicketType::NewModule, TicketScope::Both, PriorityValue::for('low'), TicketStatusValue::for('pending_approval'), null, null, null],
+            [2, 'DELTA', 'الرصيد الافتتاحي بيتصفر بعد الترحيل', TicketType::Bug, TicketScope::Backend, PriorityValue::for('urgent'), TicketStatusValue::for('new'), null, null, null],
+            [1, 'SHARQ', 'تغيير لوجو الشركة في التقارير', TicketType::Feature, TicketScope::Frontend, PriorityValue::for('low'), TicketStatusValue::for('new'), null, null, null],
         ];
 
         $people = ['frontend' => $frontend, 'backend' => $backend, 'fullstack' => $fullstack, 'tester' => $tester];
@@ -65,7 +65,7 @@ class DemoTicketSeeder extends Seeder
                 $numbers, $sla, $company, $contact, $title, $type, $scope, $priority,
                 $status, $reportedAt, $support, $people, $front, $back, $test
             ) {
-                $resolved = in_array($status, [TicketStatus::Resolved, TicketStatus::Closed], true);
+                $resolved = in_array($status, [TicketStatusValue::for('resolved'), TicketStatusValue::for('closed')], true);
 
                 $ticket = Ticket::updateOrCreate(
                     ['title' => $title, 'company_id' => $company->id],
@@ -102,12 +102,12 @@ class DemoTicketSeeder extends Seeder
      * in_progress must have a started side, or the board would show a "بدأت"
      * button on work that already began. F07
      */
-    private function seedWorkLogs(Ticket $ticket, TicketStatus $status): void
+    private function seedWorkLogs(Ticket $ticket, TicketStatusValue $status): void
     {
         $logStatus = match ($status) {
-            TicketStatus::Assigned => 'pending',
-            TicketStatus::InProgress => 'in_progress',
-            TicketStatus::DevDone, TicketStatus::Testing, TicketStatus::Resolved, TicketStatus::Closed => 'done',
+            TicketStatusValue::for('assigned') => 'pending',
+            TicketStatusValue::for('in_progress') => 'in_progress',
+            TicketStatusValue::for('dev_done'), TicketStatusValue::for('testing'), TicketStatusValue::for('resolved'), TicketStatusValue::for('closed') => 'done',
             default => null,
         };
 
@@ -135,7 +135,7 @@ class DemoTicketSeeder extends Seeder
         }
     }
 
-    private function seedHistory(Ticket $ticket, TicketStatus $status, CarbonImmutable $reportedAt, int $userId): void
+    private function seedHistory(Ticket $ticket, TicketStatusValue $status, CarbonImmutable $reportedAt, int $userId): void
     {
         if ($ticket->statusHistory()->exists()) {
             return;
@@ -143,15 +143,15 @@ class DemoTicketSeeder extends Seeder
 
         $ticket->statusHistory()->create([
             'from_status' => null,
-            'to_status' => TicketStatus::New->value,
+            'to_status' => TicketStatusValue::for('new')->value,
             'user_id' => $userId,
             'note' => null,
             'created_at' => $reportedAt,
         ]);
 
-        if ($status !== TicketStatus::New) {
+        if ($status !== TicketStatusValue::for('new')) {
             $ticket->statusHistory()->create([
-                'from_status' => TicketStatus::New->value,
+                'from_status' => TicketStatusValue::for('new')->value,
                 'to_status' => $status->value,
                 'user_id' => $userId,
                 'created_at' => $reportedAt->addHours(4),

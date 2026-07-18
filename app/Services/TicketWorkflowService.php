@@ -2,9 +2,10 @@
 
 namespace App\Services;
 
-use App\Enums\TicketStatus;
+use App\Casts\TicketStatusValue;
 use App\Enums\WorkSide;
 use App\Models\Ticket;
+use App\Models\TicketStatusDefinition;
 use App\Models\TicketWorkLog;
 use DomainException;
 use Illuminate\Support\Facades\DB;
@@ -21,31 +22,22 @@ use Illuminate\Support\Facades\DB;
  */
 class TicketWorkflowService
 {
-    /** @var array<string, array<int, string>> what may follow what */
-    private const TRANSITIONS = [
-        'new' => ['pending_approval', 'assigned', 'resolved', 'rejected'],
-        'pending_approval' => ['assigned', 'rejected'],
-        'rejected' => [],
-        'assigned' => ['in_progress', 'resolved', 'new'],
-        'in_progress' => ['dev_done', 'assigned'],
-        'dev_done' => ['testing', 'resolved', 'in_progress'],
-        'testing' => ['resolved', 'reopened'],
-        'reopened' => ['in_progress', 'assigned', 'resolved'],
-        'resolved' => ['closed', 'reopened'],
-        'closed' => ['reopened'],
-    ];
-
     public function __construct(
         private readonly PointEngineService $points,
         private readonly NotificationService $notifications,
+        private readonly SubtaskService $subtasks,
     ) {
     }
 
     /**
      * Records the move and writes history. Refuses anything the machine doesn't
      * allow — loudly, never silently (F06).
+     *
+     * @param  array{type: string, user_id?: int|null, contact_id?: int|null}|null  $recipient
+     *         Who the ticket is now waiting on (F06 manual status changes only —
+     *         automatic transitions never pass this).
      */
-    public function transition(Ticket $ticket, TicketStatus $to, ?int $userId = null, ?string $note = null): Ticket
+    public function transition(Ticket $ticket, TicketStatusValue $to, ?int $userId = null, ?string $note = null, ?array $recipient = null): Ticket
     {
         $from = $ticket->status;
 
@@ -53,20 +45,20 @@ class TicketWorkflowService
             return $ticket;
         }
 
-        if (! in_array($to->value, self::TRANSITIONS[$from->value] ?? [], true)) {
+        if (! in_array($to->value, TicketStatusDefinition::transitionMap()[$from->value] ?? [], true)) {
             throw new DomainException(
                 "مينفعش تنقل التذكرة من «{$from->label()}» لـ «{$to->label()}»."
             );
         }
 
-        return DB::transaction(function () use ($ticket, $from, $to, $userId, $note) {
+        return DB::transaction(function () use ($ticket, $from, $to, $userId, $note, $recipient) {
             $ticket->status = $to;
 
-            if ($to === TicketStatus::Resolved && $ticket->resolved_at === null) {
+            if ($to === TicketStatusValue::for('resolved') && $ticket->resolved_at === null) {
                 $ticket->resolved_at = now();
             }
 
-            if ($to === TicketStatus::Closed) {
+            if ($to === TicketStatusValue::for('closed')) {
                 $ticket->closed_at = now();
             }
 
@@ -77,10 +69,13 @@ class TicketWorkflowService
                 'to_status' => $to->value,
                 'user_id' => $userId,
                 'note' => $note,
+                'recipient_type' => $recipient['type'] ?? null,
+                'recipient_user_id' => $recipient['user_id'] ?? null,
+                'recipient_contact_id' => $recipient['contact_id'] ?? null,
             ]);
 
             // Points are awarded on the first entry into resolved, once, ever. F18
-            if ($to === TicketStatus::Resolved) {
+            if ($to === TicketStatusValue::for('resolved')) {
                 $this->points->award($ticket);
             }
 
@@ -90,11 +85,66 @@ class TicketWorkflowService
         });
     }
 
+    /**
+     * F06: the manual "غيّر الحالة" action — a status move the user picks by
+     * hand, optionally naming who it's waiting on. Naming a recipient also
+     * drops a follow-up subtask on the ticket's own developer(s), so the
+     * question doesn't just sit on a badge — it shows up on their calendar.
+     *
+     * @param  array{type: string, user_id?: int|null, contact_id?: int|null}|null  $recipient
+     */
+    public function changeStatus(Ticket $ticket, TicketStatusValue $to, int $actorId, ?string $note, ?array $recipient): Ticket
+    {
+        return DB::transaction(function () use ($ticket, $to, $actorId, $note, $recipient) {
+            $ticket = $this->transition($ticket, $to, $actorId, $note, $recipient);
+
+            if ($recipient !== null) {
+                $this->createFollowUpSubtask($ticket, $to, $note, $actorId);
+            }
+
+            return $ticket;
+        });
+    }
+
+    /**
+     * One subtask per side the ticket is actually assigned to — the question
+     * is the ticket's own developer's to chase, never the recipient's,
+     * regardless of whether the recipient is a colleague or a client contact.
+     */
+    private function createFollowUpSubtask(Ticket $ticket, TicketStatusValue $to, ?string $note, int $actorId): void
+    {
+        $title = "متابعة: {$ticket->title} — {$to->label()}";
+
+        foreach (WorkSide::cases() as $side) {
+            $userId = $ticket->{$side->assigneeColumn()};
+
+            if ($userId === null) {
+                continue;
+            }
+
+            $this->subtasks->create($ticket, [
+                'title' => $title,
+                'description' => $note,
+                'assignee_id' => $userId,
+                'side' => $side->value,
+                'due_date' => now()->toDateString(),
+            ], $actorId);
+
+            $this->notifications->notifyUser(
+                $userId,
+                $ticket,
+                'subtask.assigned',
+                "اتعملك صب تاسك متابعة على {$ticket->ticket_number}: {$to->label()}",
+                $actorId,
+            );
+        }
+    }
+
     /** F20: the events worth interrupting someone for — and only those. */
-    private function announce(Ticket $ticket, TicketStatus $from, TicketStatus $to, ?int $actorId, ?string $note): void
+    private function announce(Ticket $ticket, TicketStatusValue $from, TicketStatusValue $to, ?int $actorId, ?string $note): void
     {
         // A bounced ticket is the one event a developer must not miss. F16
-        if ($to === TicketStatus::Reopened) {
+        if ($to === TicketStatusValue::for('reopened')) {
             foreach ([$ticket->assigned_frontend_id, $ticket->assigned_backend_id] as $devId) {
                 $this->notifications->notifyUser(
                     $devId,
@@ -108,13 +158,13 @@ class TicketWorkflowService
             return;
         }
 
-        if ($to === TicketStatus::PendingApproval) {
+        if ($to === TicketStatusValue::for('pending_approval')) {
             return;
         }
 
         $this->notifications->notifyWatchers(
             $ticket,
-            'ticket.status',
+            'ticket.status_changed',
             "{$ticket->ticket_number} بقت «{$to->label()}»",
             $actorId,
         );
@@ -178,10 +228,23 @@ class TicketWorkflowService
                     ['ticket_id' => $ticket->id, 'side' => $side->value],
                     ['user_id' => $userId]
                 );
+
+                // A side that's had nobody on it before gets a starter subtask,
+                // same title as the ticket, on the same developer — a default
+                // starting point, not a requirement (they can retitle/reassign
+                // it freely). Reassigning an already-worked side never repeats
+                // this, or every hand-off would pile up a fresh duplicate.
+                if (($before[$side->assigneeColumn()] ?? null) === null) {
+                    $this->subtasks->create($ticket, [
+                        'title' => $ticket->title,
+                        'assignee_id' => $userId,
+                        'side' => $side->value,
+                    ], $actorId);
+                }
             }
 
-            if ($ticket->status === TicketStatus::New || $ticket->status === TicketStatus::PendingApproval) {
-                $this->transition($ticket, TicketStatus::Assigned, $actorId, 'تم التوزيع');
+            if ($ticket->status === TicketStatusValue::for('new') || $ticket->status === TicketStatusValue::for('pending_approval')) {
+                $this->transition($ticket, TicketStatusValue::for('assigned'), $actorId, 'تم التوزيع');
             }
 
             return $ticket->refresh();
@@ -200,8 +263,8 @@ class TicketWorkflowService
 
             $ticket = $log->ticket;
 
-            if (in_array($ticket->status, [TicketStatus::Assigned, TicketStatus::Reopened], true)) {
-                $this->transition($ticket, TicketStatus::InProgress, $actorId, "{$log->side->label()}: بدأ الشغل");
+            if (in_array($ticket->status, [TicketStatusValue::for('assigned'), TicketStatusValue::for('reopened')], true)) {
+                $this->transition($ticket, TicketStatusValue::for('in_progress'), $actorId, "{$log->side->label()}: بدأ الشغل");
             }
         });
     }
@@ -234,12 +297,12 @@ class TicketWorkflowService
             $ticket = $log->ticket->refresh();
 
             if ($this->allSidesDone($ticket)) {
-                $this->transition($ticket, TicketStatus::DevDone, $actorId, 'كل الجهات خلصت');
+                $this->transition($ticket, TicketStatusValue::for('dev_done'), $actorId, 'كل الجهات خلصت');
 
                 // No tester means nobody is going to verify it, so the ticket
                 // waits for support or a manager rather than sitting in limbo. F16
                 if ($ticket->tester_id !== null) {
-                    $this->transition($ticket, TicketStatus::Testing, $actorId, 'في انتظار التيست');
+                    $this->transition($ticket, TicketStatusValue::for('testing'), $actorId, 'في انتظار التيست');
                 }
             }
         });
@@ -304,7 +367,7 @@ class TicketWorkflowService
                 'approved_at' => now(),
             ]);
 
-            return $this->transition($ticket, TicketStatus::Rejected, $adminId, $reason);
+            return $this->transition($ticket, TicketStatusValue::for('rejected'), $adminId, $reason);
         });
     }
 
@@ -315,7 +378,7 @@ class TicketWorkflowService
             throw new DomainException('لازم تسجّل إن العميل اتبلغ قبل ما تقفل التذكرة.');
         }
 
-        return $this->transition($ticket, TicketStatus::Closed, $actorId, 'تم الإغلاق');
+        return $this->transition($ticket, TicketStatusValue::for('closed'), $actorId, 'تم الإغلاق');
     }
 
     public function markClientNotified(Ticket $ticket, int $actorId): Ticket

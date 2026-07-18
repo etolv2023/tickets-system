@@ -29,10 +29,15 @@ class SubtaskRequest extends FormRequest
             'assignee_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
             'side' => ['required', Rule::enum(SubtaskSide::class)],
             'status' => ['required', Rule::enum(SubtaskStatus::class)],
-            'start_date' => ['nullable', 'date'],
-            // F08: a due date before the start date is a typo, not a plan.
-            'due_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+            // A subtask carries one date. It is estimated in hours, so a
+            // multi-day start..due span contradicted its own estimate; the due
+            // date is what the calendar and "due today" both read.
+            'due_date' => ['nullable', 'date'],
             'estimated_hours' => ['nullable', 'numeric', 'min:0', 'max:999'],
+            // F18: left blank on creation, SubtaskService fills the matrix
+            // default. Always editable from then on — this is the subtask's
+            // own points, not a read-only echo of the ticket.
+            'points' => ['nullable', 'numeric', 'min:0', 'max:999'],
             // F08: blocked without a reason tells nobody anything.
             'blocked_reason' => [
                 Rule::requiredIf(fn () => $this->input('status') === SubtaskStatus::Blocked->value),
@@ -75,6 +80,7 @@ class SubtaskRequest extends FormRequest
             'start_date' => 'تاريخ البداية',
             'due_date' => 'تاريخ الاستحقاق',
             'estimated_hours' => 'التقدير بالساعات',
+            'points' => 'النقاط',
             'blocked_reason' => 'سبب التوقف',
         ];
     }

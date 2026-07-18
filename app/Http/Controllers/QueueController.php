@@ -17,10 +17,14 @@ class QueueController extends Controller
         return view('queues.approvals', [
             'tickets' => Ticket::query()
                 ->select([
-                    'id', 'ticket_number', 'company_id', 'title', 'type', 'scope',
+                    'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'scope',
                     'priority', 'status', 'reported_at', 'sla_due_at', 'created_by',
                 ])
-                ->with(['company:id,name', 'creator:id,name,avatar_path,is_active'])
+                // An approver decides from what the ticket asks for, so the card
+                // shows a line of it. A bounded slice, not the whole LONGTEXT —
+                // § 4.3. The expression is a constant, no user input.
+                ->selectRaw('LEFT(description, 1000) AS description_excerpt')
+                ->with(['company:id,name', 'requester:id,name', 'creator:id,name,avatar_path,is_active'])
                 ->where('approval_status', 'pending')
                 ->defaultOrder()
                 ->paginate(25),
@@ -37,12 +41,12 @@ class QueueController extends Controller
         return view('queues.testing', [
             'tickets' => Ticket::query()
                 ->select([
-                    'id', 'ticket_number', 'company_id', 'title', 'type', 'scope',
+                    'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'scope',
                     'priority', 'status', 'reported_at', 'sla_due_at',
                     'assigned_frontend_id', 'assigned_backend_id',
                 ])
                 ->with([
-                    'company:id,name',
+                    'company:id,name', 'requester:id,name',
                     'frontend:id,name,avatar_path,is_active',
                     'backend:id,name,avatar_path,is_active',
                 ])
@@ -54,8 +58,8 @@ class QueueController extends Controller
             // picks it up — surface those rather than let them rot. F16
             'unassigned' => $user->hasPermission('tickets.view.all')
                 ? Ticket::query()
-                    ->select(['id', 'ticket_number', 'company_id', 'title', 'priority', 'status', 'reported_at', 'sla_due_at'])
-                    ->with('company:id,name')
+                    ->select(['id', 'ticket_number', 'company_id', 'requested_by', 'title', 'priority', 'status', 'reported_at', 'sla_due_at'])
+                    ->with('company:id,name', 'requester:id,name')
                     ->where('status', 'dev_done')
                     ->whereNull('tester_id')
                     ->defaultOrder()

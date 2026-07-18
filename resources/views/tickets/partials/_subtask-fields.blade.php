@@ -42,13 +42,21 @@
         <x-field name="estimated_hours" label="التقدير (ساعات)" type="number"
                  :value="$subtask?->estimated_hours" step="0.25" min="0" max="999"
                  :id="$prefix . 'estimate'" />
+
+        <x-field name="points" label="النقاط" type="number"
+                 :value="$subtask?->points" step="0.5" min="0" max="999"
+                 :id="$prefix . 'points'"
+                 hint="{{ $subtask ? '' : 'سيبها فاضية لتاخد قيمة مصفوفة النقاط الافتراضية.' }}" />
     </div>
 
+    {{-- One date, not two. The estimate is in hours, so a start-to-due span of
+         several days said something the hours contradicted — a 4-hour task
+         sitting across 3 days. The subtask lands on the calendar on the day it
+         is due, and the hours say how long it takes. --}}
     <div class="form-grid">
-        <x-field name="start_date" label="تاريخ البداية" type="date"
-                 :value="$subtask?->start_date?->toDateString()" :id="$prefix . 'start'" />
         <x-field name="due_date" label="تاريخ الاستحقاق" type="date"
-                 :value="$subtask?->due_date?->toDateString()" :id="$prefix . 'due'" />
+                 :value="$subtask?->due_date?->toDateString()" :id="$prefix . 'due'"
+                 hint="اليوم الي الصب تاسك مستحقة فيه — ده اللي بيظهر في الكاليندر." />
     </div>
 
     <div x-show="status === 'blocked'" x-cloak>

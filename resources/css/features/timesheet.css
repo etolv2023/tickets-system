@@ -1,60 +1,120 @@
-/* /my-timesheet — F09 */
+/* /my-timesheet — F09.
 
-.timesheet__week {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: var(--space-2);
+   A ticket × day matrix. The question the sheet answers is "where did the week
+   go", and that only reads if the ticket is the row and the day is the column.
+   Every figure is mono and tabular so the columns align as columns of numbers,
+   not columns of text. */
+
+.sheet {
+    --sheet-cols: minmax(0, 1.5fr) repeat(7, minmax(0, 1fr)) minmax(0, 0.8fr);
+    /* Nine columns need room to stay columns. Below this the ticket label and
+       the day headers wrap into each other and the matrix stops being one. */
+    --sheet-min: 44rem;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    /* Scrolls itself rather than the page. The minmax(0,…) tracks let the grid
+       shrink, but the words inside the cells do not — so on a phone the rows
+       pushed the whole document sideways instead of just the sheet. */
+    overflow-x: auto;
+    overflow-y: hidden;
 }
 
-.timesheet__day {
-    --day-color: var(--border);
+.sheet__row {
+    display: grid;
+    grid-template-columns: var(--sheet-cols);
+    min-width: var(--sheet-min);
+    align-items: center;
+    font-size: var(--text-sm);
+    border-block-end: 1px solid var(--border-subtle);
+}
+
+.sheet__row:last-child {
+    border-block-end: 0;
+}
+
+.sheet__row--head {
+    background-color: var(--surface-2);
+    border-block-end: 1px solid var(--border);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-heavy);
+    color: var(--text-subtle);
+}
+
+/* The daily total closes the sheet, so it takes the footer ground and the
+   heavier weight — it is a conclusion, not another row. */
+.sheet__row--foot {
+    background-color: var(--surface-2);
+    border-block-start: 1px solid var(--border);
+    border-block-end: 0;
+    font-weight: var(--weight-heavy);
+}
+
+.sheet__ticket {
     display: flex;
     flex-direction: column;
-    gap: var(--space-1);
-    padding: var(--space-3);
-    border: 1px solid var(--border);
-    border-block-start: var(--stripe-width) solid var(--day-color);
-    border-radius: var(--radius);
-    background-color: var(--surface);
+    gap: 2px;
+    min-width: 0;
+    padding: var(--space-3) var(--space-4);
+}
+
+.sheet__number {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    color: var(--text-subtle);
+    direction: ltr;
+    unicode-bidi: isolate;
+}
+
+.sheet__title {
+    font-weight: var(--weight-bold);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sheet__label {
+    padding: var(--space-3) var(--space-4);
+}
+
+.sheet__cell {
+    padding-block: var(--space-3);
     text-align: center;
-}
-
-/* Capacity, not decoration: at the limit is grey, near it amber, over it red.
-   F14 */
-.timesheet__day--at {
-    --day-color: var(--c-low);
-}
-
-.timesheet__day--near {
-    --day-color: var(--c-medium);
-}
-
-.timesheet__day--over {
-    --day-color: var(--c-urgent);
-}
-
-.timesheet__day--empty {
-    background-color: var(--bg);
-}
-
-.timesheet__day-name {
-    font-size: var(--text-xs);
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
     color: var(--text-muted);
 }
 
-.timesheet__day-date {
-    font-size: var(--text-xs);
+/* An empty cell is an em dash, and it must not read as loudly as a real
+   number — otherwise a sparse week looks busy. */
+.sheet__cell--empty {
     color: var(--text-subtle);
-    font-variant-numeric: tabular-nums;
 }
 
-.timesheet__day-hours {
-    font-size: var(--text-lg);
-    font-weight: var(--weight-bold);
-    font-variant-numeric: tabular-nums;
+/* Today's column. Seven identical columns of dashes give you nowhere to stand;
+   this is the only orientation the grid offers. */
+.sheet__cell--today {
+    background-color: var(--chip);
 }
 
-.timesheet__day--over .timesheet__day-hours {
+/* Ground only, never ink: an empty cell under today must still read as empty,
+   and the capacity colours below must still win on the footer row. */
+.sheet__row--head .sheet__cell--today {
+    color: var(--text);
+}
+
+.sheet__cell--total {
+    font-weight: var(--weight-heavy);
+    color: var(--text);
+}
+
+/* Capacity, not decoration: over the day's capacity is red, near it amber.
+   F14 */
+.sheet__cell--near {
+    color: var(--c-high);
+}
+
+.sheet__cell--over {
     color: var(--c-urgent);
 }
 
@@ -66,12 +126,19 @@
 }
 
 .timesheet__total {
+    font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     font-weight: var(--weight-bold);
 }
 
+/* Below this the matrix would crush; the sheet scrolls in its own box rather
+   than pushing the page sideways. */
 @media (max-width: 60rem) {
-    .timesheet__week {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+    .sheet {
+        overflow-x: auto;
+    }
+
+    .sheet__row {
+        min-width: 44rem;
     }
 }

@@ -49,7 +49,7 @@
                                     <a class="today__row-title" href="{{ route('tickets.show', $ticket) }}">{{ $ticket->title }}</a>
                                     <div class="today__row-meta">
                                         <span class="u-mono u-ltr">{{ $ticket->ticket_number }}</span>
-                                        · {{ $ticket->company->name }}
+                                        · {{ $ticket->originLabel() }}
                                     </div>
                                 </div>
                                 <x-badge :variant="$ticket->status->variant()">{{ $ticket->status->label() }}</x-badge>
@@ -92,13 +92,13 @@
                                         {{ Str::limit(strip_tags($comment->body), 70) }}
                                     </a>
                                     <div class="today__row-meta">
-                                        {{ $comment->user->name }}
+                                        {{ $comment->authorName() }}
                                         · <span class="u-mono u-ltr">{{ $comment->ticket->ticket_number }}</span>
                                         · {{ $comment->created_at->diffForHumans() }}
                                     </div>
                                 </div>
                                 @if ($comment->is_internal)
-                                    <x-badge variant="medium">داخلي</x-badge>
+                                    <x-badge variant="neutral">داخلي</x-badge>
                                 @endif
                             </div>
                         @endforeach

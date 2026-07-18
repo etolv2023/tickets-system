@@ -13,7 +13,7 @@
 }
 
 .field__required {
-    color: var(--c-urgent);
+    color: var(--c-red);
     margin-inline-start: 2px;
 }
 
@@ -27,23 +27,49 @@
     align-items: center;
     gap: var(--space-1);
     font-size: var(--text-sm);
-    color: var(--c-urgent);
+    color: var(--c-red);
 }
 
+/* A field is a well, not a card: it sits one step BEHIND the surface it is on,
+   which is what tells you it takes input. It used to be --surface — the same
+   plane as the card around it — so a form read as a stack of outlines with
+   nothing to aim at. */
 .input,
 .select,
 .textarea {
     width: 100%;
     padding-block: var(--space-2);
     padding-inline: var(--space-3);
-    background-color: var(--surface);
-    border: 1px solid var(--border-strong);
+    background-color: var(--field-bg);
+    border: 1px solid var(--border);
     border-radius: var(--radius);
     color: var(--text);
     font-family: inherit;
     font-size: var(--text-md);
     line-height: 1.5;
-    transition: border-color var(--transition);
+    transition: border-color var(--transition), background-color var(--transition),
+        box-shadow var(--transition);
+}
+
+/* Focus lifts the well one step and rings it in the accent. A border-colour
+   change alone — which is all this used to do — is invisible on a dense form.
+   --field-bg-focus rather than --surface: "one step forward" is lighter in
+   both themes, and --surface is the DARKER of the two in dark mode. */
+.input:focus,
+.select:focus,
+.textarea:focus {
+    outline: none;
+    background-color: var(--field-bg-focus);
+    border-color: var(--action);
+    box-shadow: 0 0 0 3px var(--action-bg);
+}
+
+/* A field the system owns rather than the user — a frozen snapshot of the
+   reporter, an auto-assigned number. Reads as filled-in, not as editable. */
+.input--locked,
+.select--locked {
+    background-color: var(--surface-2);
+    color: var(--text-muted);
 }
 
 .input::placeholder,
@@ -68,7 +94,7 @@
 .input--invalid,
 .select--invalid,
 .textarea--invalid {
-    border-color: var(--c-urgent);
+    border-color: var(--c-red);
 }
 
 .textarea {
@@ -76,15 +102,26 @@
     resize: vertical;
 }
 
-/* Native select arrow sits on the wrong side in RTL; draw our own. */
+/* Native select arrow sits on the wrong side in RTL; draw our own.
+
+   The stroke colour is inlined because a data URI cannot read a custom
+   property. #94908a is deliberately the midpoint between --text-subtle in the
+   two themes (--n-8 light, --n-8 dark) so one glyph serves both; a mask-image
+   would track the token exactly, but only by wrapping every <select> in the
+   app in an extra element, which is not worth it for a chevron.
+
+   The POPUP list this control opens is drawn by the OS, not by us. It renders
+   dark now because :root declares color-scheme (tokens.css) — that, not
+   anything here, was what made the open dropdown look broken in dark mode. */
 .select {
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2364748b' stroke-width='1.5'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2394908a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: left var(--space-3) center;
     background-size: 1rem;
     padding-inline-end: var(--space-3);
     padding-inline-start: var(--space-6);
+    cursor: pointer;
 }
 
 .checkbox-row {
@@ -131,9 +168,29 @@
     gap: var(--space-2);
 }
 
+/* A long form's primary action must not be something you scroll to find. On
+   the ticket form the submit sits below an editor, a classification block and
+   a dropzone — far past the fold. This pins it to the bottom of the scrolling
+   body instead. */
+/* The negative margin has to negate the body's ACTUAL gutter, which is smaller
+   on a phone — --body-pad (layout.css) is that number. It used to be a
+   hardcoded --space-5, so on mobile the bar stuck out 8px past each edge and
+   dragged a horizontal scrollbar onto the whole create-ticket page. The
+   fallback keeps it correct anywhere this class is used outside .shell__body. */
+.form-actions--sticky {
+    position: sticky;
+    bottom: 0;
+    z-index: var(--z-dropdown);
+    margin-inline: calc(var(--body-pad, var(--space-5)) * -1);
+    margin-block-end: calc(var(--body-pad, var(--space-5)) * -1);
+    padding: var(--space-3) var(--body-pad, var(--space-5));
+    background-color: var(--surface);
+    border-block-start: 1px solid var(--border);
+}
+
 /* Flash + validation summary. */
 .alert {
-    --alert-color: var(--c-inquiry);
+    --alert-color: var(--c-blue);
     display: flex;
     align-items: flex-start;
     gap: var(--space-2);
@@ -146,11 +203,15 @@
 }
 
 .alert--error {
-    --alert-color: var(--c-urgent);
+    --alert-color: var(--c-red);
 }
 
 .alert--success {
-    --alert-color: var(--c-resolved);
+    --alert-color: var(--c-green);
+}
+
+.alert--warning {
+    --alert-color: var(--c-amber);
 }
 
 .alert__icon {
@@ -165,4 +226,49 @@
     margin-block-start: var(--space-1);
     padding-inline-start: var(--space-4);
     list-style: disc;
+}
+
+/* ---- Origin toggle ----
+   Two mutually exclusive shapes of the same form: a client ticket or internal
+   work. Radio cards rather than a checkbox, because the two options carry
+   different consequences and both deserve to be spelled out. */
+
+.origin-toggle {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: var(--space-3);
+}
+
+.origin-toggle__option {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: border-color var(--transition), background-color var(--transition);
+}
+
+.origin-toggle__option:hover {
+    border-color: var(--border-strong);
+}
+
+.origin-toggle__option.is-active {
+    background-color: var(--c-blue-bg);
+    border-color: var(--c-blue);
+}
+
+.origin-toggle__option strong {
+    display: block;
+    font-size: var(--text-md);
+    font-weight: var(--weight-bold);
+}
+
+.origin-toggle__option small {
+    display: block;
+    margin-block-start: 2px;
+    font-size: var(--text-sm);
+    color: var(--text-muted);
 }
