@@ -23,17 +23,17 @@
 #
 # Set WEB_USER to the user the web server itself runs as (www-data on Debian/
 # Ubuntu with Apache or Nginx+PHP-FPM, apache on RHEL/CentOS, nobody on some
-# setups — check your vhost/pool config, this script cannot guess it) if
-# storage/ and bootstrap/cache/ are owned by someone other than that user.
+# setups — check your vhost/pool config, this script cannot guess it).
 # Laravel writes logs, sessions, compiled views, and every upload (attachments,
-# the logo, import files) into those two directories on every request, as
-# whichever user PHP itself is running as — if that is not who currently owns
-# them, this is the "the page works until you try to open a ticket or click
-# save" class of bug, and it is silent: nothing in this script's own commands
-# above would fail if a route handler only fails later, mid-request, ******
-# ownership only actually gets FIXED here if you run this script with enough
-# privilege to chown (root, or via sudo) — set WEB_USER without that and it
-# only warns.
+# the logo, import files) into storage/ and bootstrap/cache/ on every request,
+# as whichever user PHP is actually running as. If that user doesn't own those
+# two directories, nothing in THIS script fails — git pull, composer, the
+# builds and the cache commands all run as whoever invoked this script, not as
+# the web server — so the deploy reports success and the breakage only shows
+# up later, silently, the first time a real request tries to write a log or
+# save an upload. Fixing ownership needs the privilege to chown (root, or
+# sudo); passing WEB_USER without that only prints a warning, it does not fail
+# the deploy over it.
 
 set -euo pipefail
 
@@ -58,6 +58,26 @@ git pull
 
 echo "==> production dependencies (no dev, optimised autoloader)"
 composer install --no-dev --optimize-autoloader --no-interaction
+
+echo "==> write permissions for storage/ and bootstrap/cache/"
+# ug+rwX (capital X), not 775: adds read/write for owner+group and execute
+# ONLY on things that already have it for someone (directories, and any file
+# already executable) — it can't accidentally make a random uploaded file
+# executable the way a flat 775 would.
+chmod -R ug+rwX storage bootstrap/cache
+
+if [ -n "${WEB_USER:-}" ]; then
+    if [ "$(id -u)" -eq 0 ]; then
+        chown -R "${WEB_USER}:${WEB_GROUP:-$WEB_USER}" storage bootstrap/cache
+        echo "    owner set to ${WEB_USER}:${WEB_GROUP:-$WEB_USER}"
+    else
+        echo "    !! WEB_USER=${WEB_USER} set, but this script isn't running as root — can't chown." >&2
+        echo "       Re-run with sudo, or chown storage/ and bootstrap/cache/ to ${WEB_USER} yourself." >&2
+    fi
+else
+    echo "    WEB_USER not set — leaving ownership as-is. Set it (and run as root/sudo) if the"
+    echo "    web server user differs from whoever is running this script."
+fi
 
 echo "==> front-end dependencies + build"
 npm ci
