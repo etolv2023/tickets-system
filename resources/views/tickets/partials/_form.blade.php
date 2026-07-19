@@ -113,6 +113,8 @@
             @include('tickets.partials._assign-fields')
         @endisset
 
+        @include('tickets.partials._subtask-repeater')
+
         <x-card title="المرفقات">
             <x-uploader :max="\App\Services\AttachmentService::MAX_PER_TICKET" />
         </x-card>

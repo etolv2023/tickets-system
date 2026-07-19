@@ -85,12 +85,13 @@
     }
 }
 
-/* A quiet text action in a fold header — "select all", "clear". */
+/* A quiet text action in a fold header — "select all", "clear". A text
+   action is interactive, so it wears the interaction hue. */
 .fold__link {
     padding: 0;
     background: none;
     border: 0;
-    color: var(--c-blue);
+    color: var(--action);
     font-family: inherit;
     font-size: var(--text-2xs);
     font-weight: var(--weight-bold);

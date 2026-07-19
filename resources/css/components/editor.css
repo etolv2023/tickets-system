@@ -161,8 +161,10 @@
     line-height: var(--leading-tight);
 }
 
+/* A link is interactive — interaction hue, not the slate it used to borrow
+   via the inquiry alias. */
 .editor .ql-editor a {
-    color: var(--c-inquiry);
+    color: var(--action);
     text-decoration: underline;
     text-underline-offset: 2px;
 }
@@ -212,5 +214,5 @@
 
 .editor .ql-snow .ql-tooltip a.ql-action,
 .editor .ql-snow .ql-tooltip a.ql-remove {
-    color: var(--c-inquiry);
+    color: var(--action);
 }

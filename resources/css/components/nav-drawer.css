@@ -1,0 +1,101 @@
+/* Mobile: the rail becomes a drawer — split from nav.css (300-line rule,
+   CLAUDE.md § 3). Imported AFTER nav.css and nav-group.css so every rule in
+   here wins below the breakpoint.
+
+   It used to go position:static with the link list as a wrapping row. With
+   seven folding groups that produced roughly eleven hundred pixels of menu
+   stacked above the content — on every single page load, on the device where
+   vertical space is scarcest. You scrolled past the whole nav to reach the
+   screen you asked for.
+
+   So below the breakpoint it leaves the flow entirely and slides in over the
+   content from the topbar's existing toggle. The state is an attribute on
+   <html>, like every other shell state, but deliberately NOT persisted: a
+   full-screen overlay must never be what greets you on the next page load.
+
+   Slid with `translate`, not with an animated inset. Animating
+   inset-inline-start was the obvious choice — the logical property already
+   knows the drawer docks right in RTL and left in LTR — but the value would
+   not recompute once the element was laid out as position:fixed, not even when
+   set inline, so the drawer opened off-screen. translate has no such problem
+   and composites on the GPU besides.
+
+   translate IS physical, so the direction has to be stated. :dir() carries it,
+   with the RTL sign as the unconditional default: every layout in this app
+   hardcodes dir="rtl", so that is the branch that actually runs. */
+@media (max-width: 60rem) {
+    .nav {
+        --nav-drawer-w: min(17rem, 82vw);
+        position: fixed;
+        inset-block: 0;
+        inset-inline-start: 0;
+        width: var(--nav-drawer-w);
+        height: 100dvh;
+        z-index: var(--z-modal);
+        border-inline-end: 0;
+        box-shadow: var(--shadow-md);
+        /* Parked off the inline-start edge — the right one, in RTL. */
+        translate: 100% 0;
+        /* The drawer covers the screen, so focus must not be able to wander to
+           the page behind it — and a closed drawer must not be a tab stop. */
+        visibility: hidden;
+        transition: translate var(--transition), visibility var(--transition);
+    }
+
+    .nav:dir(ltr) {
+        translate: -100% 0;
+    }
+
+    :root[data-nav-open] .nav,
+    :root[data-nav-open] .nav:dir(ltr) {
+        translate: 0 0;
+        visibility: visible;
+    }
+
+    /* The collapsed-rail rules are desktop-only: a drawer that opens as a strip
+       of unlabelled icons is not a menu. Labels always show here. */
+    :root[data-sidebar='collapsed'] .nav__label,
+    :root[data-sidebar='collapsed'] .nav__section,
+    :root[data-sidebar='collapsed'] .nav__user-meta,
+    :root[data-sidebar='collapsed'] .nav__logout {
+        display: revert;
+    }
+
+    :root[data-sidebar='collapsed'] .nav__brand,
+    :root[data-sidebar='collapsed'] .nav__link,
+    :root[data-sidebar='collapsed'] .nav__user {
+        justify-content: flex-start;
+        padding-inline: var(--space-3) var(--space-2);
+    }
+
+    :root[data-sidebar='collapsed'] .nav-group__head {
+        display: flex;
+    }
+}
+
+/* Sits under the drawer and over everything else. Zero-size and unpainted
+   until the drawer opens, so it costs nothing on a desktop. */
+.nav-backdrop {
+    display: none;
+}
+
+@media (max-width: 60rem) {
+    :root[data-nav-open] .nav-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: calc(var(--z-modal) - 1);
+        background-color: var(--overlay);
+    }
+
+    /* The page behind an open drawer must not scroll under it. */
+    :root[data-nav-open] body {
+        overflow: hidden;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nav {
+        transition: none;
+    }
+}

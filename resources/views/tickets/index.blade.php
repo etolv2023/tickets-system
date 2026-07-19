@@ -8,6 +8,13 @@
             <x-alert variant="success">{{ session('status') }}</x-alert>
         @endif
 
+        {{-- A status change can be refused from here now (an unfinished
+             subtask, a client not yet notified), so the refusal has to have
+             somewhere to land. --}}
+        @if ($errors->any())
+            <x-alert variant="error">{{ $errors->first() }}</x-alert>
+        @endif
+
         {{-- No page heading above the filters: the nav already says where you
              are, and the design puts the "new ticket" action inside the bar. --}}
         @include('tickets.partials._filters')
@@ -51,8 +58,12 @@
                                 <td class="table__cell--tight">
                                     <x-badge :variant="$ticket->priority->variant()" :icon="$ticket->priority->icon()">{{ $ticket->priority->label() }}</x-badge>
                                 </td>
+                                {{-- Editable in place: the common move is one
+                                     click from the list, without opening the
+                                     ticket. Falls back to a badge for anyone
+                                     who can't change it. --}}
                                 <td class="table__cell--tight">
-                                    <x-badge :variant="$ticket->status->variant()">{{ $ticket->status->label() }}</x-badge>
+                                    <x-status-select :ticket="$ticket" />
                                 </td>
                                 <td>
                                     <div class="tickets__people">
@@ -62,7 +73,10 @@
                                         @if ($ticket->backend)
                                             <x-avatar :user="$ticket->backend" size="sm" />
                                         @endif
-                                        @unless ($ticket->frontend || $ticket->backend)
+                                        @if ($ticket->devops)
+                                            <x-avatar :user="$ticket->devops" size="sm" />
+                                        @endif
+                                        @unless ($ticket->frontend || $ticket->backend || $ticket->devops)
                                             <span class="u-subtle">مش موزعة</span>
                                         @endunless
                                     </div>

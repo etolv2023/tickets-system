@@ -24,8 +24,10 @@
     color: var(--c-green);
 }
 
+/* Cyan: informational, alongside green = will create and red = failed.
+   Blue is reserved for controls (2026-07-19). */
 .import-row--update {
-    color: var(--c-blue);
+    color: var(--c-cyan);
 }
 
 .import-row--fail {
@@ -54,7 +56,7 @@
 }
 
 .import-summary__item--update {
-    --summary-color: var(--c-blue);
+    --summary-color: var(--c-cyan);
 }
 
 .import-summary__item--fail {
@@ -107,11 +109,14 @@
    Grouped panels rather than one long column. A flat list of forty checkboxes
    shows neither where a section starts nor how much of it is switched on. */
 
+/* Duplicates .fold__link in components/fold.css — kept for now (folding it
+   into the component is a separate cleanup), but the colour must match: a
+   text action wears the interaction hue. */
 .fold__link {
     padding: 0;
     background: none;
     border: 0;
-    color: var(--c-blue);
+    color: var(--action);
     font-family: inherit;
     font-size: var(--text-2xs);
     font-weight: var(--weight-bold);

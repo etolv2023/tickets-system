@@ -68,7 +68,8 @@ class CalendarService
             ->whereBetween('due_date', [$from->toDateString(), $to->toDateString()])
             ->when($onlyUserId, fn ($q) => $q->where(fn ($w) => $w
                 ->where('assigned_frontend_id', $onlyUserId)
-                ->orWhere('assigned_backend_id', $onlyUserId)))
+                ->orWhere('assigned_backend_id', $onlyUserId)
+                ->orWhere('devops_id', $onlyUserId)))
             ->get();
 
         // SLA deadlines are drawn differently from work — they're a promise, not
@@ -83,7 +84,8 @@ class CalendarService
             ->when($onlyUserId, fn ($q) => $q->where(fn ($w) => $w
                 ->where('assigned_frontend_id', $onlyUserId)
                 ->orWhere('assigned_backend_id', $onlyUserId)
-                ->orWhere('tester_id', $onlyUserId)))
+                ->orWhere('tester_id', $onlyUserId)
+                ->orWhere('devops_id', $onlyUserId)))
             ->get();
 
         $leaves = UserLeave::query()

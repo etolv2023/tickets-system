@@ -41,9 +41,10 @@
     background-color: var(--surface-2);
 }
 
+/* "Drop it here" is an affordance mid-interaction — the interaction hue. */
 .uploader__drop--dragging {
-    border-color: var(--c-inquiry);
-    background-color: var(--c-inquiry-bg);
+    border-color: var(--action);
+    background-color: var(--action-bg);
     color: var(--text);
 }
 

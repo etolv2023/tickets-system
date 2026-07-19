@@ -12,6 +12,7 @@ enum PointSide: string
     case Frontend = 'frontend';
     case Backend = 'backend';
     case Tester = 'tester';
+    case Devops = 'devops';
 
     public function label(): string
     {
@@ -20,6 +21,7 @@ enum PointSide: string
             self::Frontend => 'فرونت',
             self::Backend => 'باك',
             self::Tester => 'تيستر',
+            self::Devops => 'ديف أوبس',
         };
     }
 
@@ -36,6 +38,7 @@ enum PointSide: string
             self::Frontend => 'assigned_frontend_id',
             self::Backend => 'assigned_backend_id',
             self::Tester => 'tester_id',
+            self::Devops => 'devops_id',
         };
     }
 
@@ -54,6 +57,7 @@ enum PointSide: string
             self::Frontend => [SubtaskSide::Frontend->value],
             self::Backend => [SubtaskSide::Backend->value],
             self::Tester => [SubtaskSide::Qa->value],
+            self::Devops => [SubtaskSide::Devops->value],
         };
     }
 

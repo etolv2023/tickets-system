@@ -1,7 +1,10 @@
-/* The calendar, hand-built with CSS Grid. A calendar library is ~200KB for
-   something this is (PLAN.md § 8). F13 / F14
+/* The calendar month grid, hand-built with CSS Grid. A calendar library is
+   ~200KB for something this is (PLAN.md § 8). F13 / F14
 
-   The capacity meter and the timeline view live in calendar-timeline.css. */
+   Split when this file passed the 300-line rule (CLAUDE.md § 3):
+       calendar.css           the grid, the days, the toolbar (this file)
+       calendar-event.css     everything that renders as a chip inside a day
+       calendar-timeline.css  the capacity meter and the timeline view */
 
 .cal {
     display: grid;
@@ -59,14 +62,16 @@
     );
 }
 
-/* Today is a change of ground plus a blue number — no ring. A ring would read
-   as a selection state, and nothing here is selected. */
+/* Today is a change of ground plus an accented number — no ring. A ring would
+   read as a selection state, and nothing here is selected. The number is the
+   interaction hue on purpose: "where you are" is the same statement the
+   nav-active row makes, not a status — same family as nav-current. */
 .cal__day--today {
     background-color: var(--surface-2);
 }
 
 .cal__day--today .cal__num {
-    color: var(--c-blue);
+    color: var(--action);
     font-weight: var(--weight-heavy);
 }
 
@@ -95,110 +100,6 @@
     order: 1;
     font-size: var(--text-2xs);
     color: var(--text-subtle);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* ---- Chips in a day ----
-   Every chip is the same shape. Only the hue separates a promise (SLA, red)
-   from a plan (subtask, neutral) from an absence (leave, green). */
-
-/* Subtasks stay neutral so a red SLA chip can carry the whole cell. The
-   priority survives as the leading edge rule. */
-.cal__item {
-    --item-color: var(--c-low);
-    display: flex;
-    align-items: center;
-    gap: var(--space-1);
-    padding: 3px var(--space-1);
-    border-radius: var(--radius-sm);
-    border-inline-start: 2px solid var(--item-color);
-    background-color: var(--chip);
-    color: var(--text);
-    font-size: var(--text-xs);
-    line-height: var(--leading-tight);
-    overflow: hidden;
-    white-space: nowrap;
-    cursor: grab;
-}
-
-.cal__item:hover {
-    background-color: var(--surface-3);
-    color: var(--text);
-}
-
-.cal__item--urgent { --item-color: var(--c-urgent); }
-.cal__item--high { --item-color: var(--c-high); }
-.cal__item--medium { --item-color: var(--c-medium); }
-.cal__item--low { --item-color: var(--c-low); }
-
-/* The rest of the semantic palette — reachable once priority levels became
-   admin-editable (F22.1). */
-.cal__item--resolved { --item-color: var(--c-resolved); }
-.cal__item--blocked { --item-color: var(--c-blocked); }
-.cal__item--bug { --item-color: var(--c-bug); }
-.cal__item--inquiry { --item-color: var(--c-inquiry); }
-.cal__item--feature { --item-color: var(--c-feature); }
-.cal__item--module { --item-color: var(--c-module); }
-
-/* Late and not done — this one does earn the tint. F13 */
-.cal__item--overdue {
-    --item-color: var(--c-urgent);
-    background-color: var(--c-red-bg);
-    color: var(--c-red);
-    font-weight: var(--weight-medium);
-}
-
-.cal__item--done {
-    opacity: 0.55;
-    text-decoration: line-through;
-}
-
-/* An SLA deadline is a promise, not a task — outlined rather than filled, so
-   it never reads as a draggable one. It is a flex child of .cal__day (a
-   column flex container), and a flex item's default min-width is its content
-   size, not 0 — without min-width: 0 here, a long ticket number refuses to
-   shrink and spills past the day cell into the next column instead of
-   truncating. F13 */
-.cal__sla {
-    display: flex;
-    align-items: center;
-    gap: var(--space-1);
-    min-width: 0;
-    max-width: 100%;
-    padding: 2px var(--space-1);
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--c-red);
-    background-color: transparent;
-    color: var(--c-urgent);
-    font-size: var(--text-2xs);
-    font-weight: var(--weight-medium);
-    line-height: var(--leading-tight);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.cal__sla-dot {
-    width: 7px;
-    height: 7px;
-    flex-shrink: 0;
-    border-radius: var(--radius-full);
-    background-color: var(--c-urgent);
-}
-
-/* Leave: the person isn't here, so nothing on this day is real work. F14 */
-.cal__leave {
-    display: flex;
-    align-items: center;
-    gap: var(--space-1);
-    padding: 1px var(--space-1);
-    border-radius: var(--radius-sm);
-    background-color: var(--c-green-bg);
-    color: var(--c-green);
-    font-size: var(--text-2xs);
-    line-height: var(--leading-tight);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -253,81 +154,4 @@
     .cal__day {
         height: 5.5rem;
     }
-}
-
-/* ---- Telling the three kinds of thing apart ----
-
-   A subtask, a ticket deadline and an SLA marker used to be the same 18px
-   tinted pill, and an overdue subtask rendered in exactly the same red as an
-   SLA. Colour alone was carrying a distinction it could not carry, so each now
-   has its own shape as well.
-
-   subtask  — tinted chip, initials, hours. Work someone is doing.
-   ticket   — solid bar with a "تذكرة" tag. A deadline, not a task.
-   SLA      — outlined, with a dot. A promise to the customer. */
-
-.cal__who {
-    flex: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 1.05rem;
-    height: 1.05rem;
-    padding-inline: 2px;
-    background-color: var(--surface);
-    border-radius: var(--radius-sm);
-    font-size: var(--text-2xs);
-    font-weight: var(--weight-heavy);
-    color: var(--text-muted);
-}
-
-.cal__text {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.cal__hours {
-    flex: none;
-    font-size: var(--text-2xs);
-    color: var(--text-subtle);
-}
-
-/* Solid, not tinted: a deadline is a different class of object from the work
-   underneath it, and reads as one at a glance. */
-.cal__ticket {
-    --ticket-color: var(--c-slate);
-    display: flex;
-    align-items: center;
-    gap: var(--space-1);
-    min-width: 0;
-    max-width: 100%;
-    padding: 3px var(--space-1);
-    border-radius: var(--radius-sm);
-    background-color: var(--ticket-color);
-    color: var(--on-solid);
-    font-size: var(--text-xs);
-    font-weight: var(--weight-bold);
-    line-height: var(--leading-tight);
-    white-space: nowrap;
-    overflow: hidden;
-}
-
-.cal__ticket--urgent { --ticket-color: var(--c-urgent); }
-.cal__ticket--high { --ticket-color: var(--c-high); }
-.cal__ticket--medium { --ticket-color: var(--c-medium); }
-.cal__ticket--low { --ticket-color: var(--c-low); }
-.cal__ticket--red { --ticket-color: var(--c-red); }
-.cal__ticket--amber { --ticket-color: var(--c-amber); }
-.cal__ticket--blue { --ticket-color: var(--c-blue); }
-.cal__ticket--green { --ticket-color: var(--c-green); }
-.cal__ticket--slate { --ticket-color: var(--c-slate); }
-
-.cal__ticket-tag {
-    flex: none;
-    padding-inline: 3px;
-    background-color: rgb(255 255 255 / 0.22);
-    border-radius: 3px;
-    font-size: var(--text-2xs);
 }

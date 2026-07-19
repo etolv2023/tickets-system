@@ -74,11 +74,13 @@
     }
 }
 
-/* Primary: near-black, not a brand colour. Colour here would compete with the
-   semantic badges the button sits next to. */
+/* Primary: the interaction blue — under the "anything blue is interactive"
+   rule this cannot collide with a badge, because no badge is ever blue. The
+   whisper of shadow keeps it a physical button rather than a painted chip. */
 .btn--primary {
     background-color: var(--action);
     color: var(--action-text);
+    box-shadow: var(--shadow-xs);
 }
 
 .btn--primary:hover:not(:disabled) {
@@ -101,16 +103,22 @@
     color: var(--text-muted);
 }
 
+/* On hover a ghost declares itself interactive — so it answers in the
+   interaction hue, not just a darker grey. */
 .btn--ghost:hover:not(:disabled) {
     background-color: var(--hover);
-    color: var(--text);
+    color: var(--action);
 }
 
 /* Destructive actions borrow the red hue — the one place a "decorative"
-   colour is actually load-bearing. */
+   colour is actually load-bearing.
+
+   var(--surface), not --on-solid: the fill is the theme-tuned red INK, which
+   in dark mode is a pastel too light to carry white. The card colour reads as
+   white in light mode and as dark ink on the pastel in dark — AA in both. */
 .btn--danger {
     background-color: var(--c-red);
-    color: var(--on-solid);
+    color: var(--surface);
 }
 
 .btn--danger:hover:not(:disabled) {
@@ -121,11 +129,17 @@
    it is the end of a ticket's life, and the design calls it out in green. */
 .btn--confirm {
     background-color: var(--c-green);
-    color: var(--on-solid);
+    color: var(--surface);
 }
 
 .btn--confirm:hover:not(:disabled) {
     background-color: color-mix(in srgb, var(--c-green) 85%, var(--shade));
+}
+
+/* Their spinners borrow the same ink as their labels. */
+.btn--danger.is-loading::after,
+.btn--confirm.is-loading::after {
+    color: var(--surface);
 }
 
 /* Rejecting is destructive but not the primary path: outlined, not filled. */

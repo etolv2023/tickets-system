@@ -2,6 +2,12 @@
 
 @section('title', 'بورد التيم')
 
+@push('scripts')
+    {{-- Dragging cards between columns, plus the subtask controls the cards
+         carry. board.js imports what it needs from subtasks.js. --}}
+    @vite('resources/js/features/board.js')
+@endpush
+
 @section('content')
     <div class="page">
         <div class="page__head">
@@ -24,6 +30,12 @@
             <x-alert variant="success">{{ session('status') }}</x-alert>
         @endif
 
+        {{-- A status change made from a card can be refused; the message has
+             to land somewhere. --}}
+        @if ($errors->any())
+            <x-alert variant="error">{{ $errors->first() }}</x-alert>
+        @endif
+
         {{-- A board that quietly drops half the work is worse than no board.
              If the ceiling bit, say so and point at the screen that doesn't cap. --}}
         @if ($shown < $total)
@@ -33,6 +45,9 @@
                 للصورة الكاملة استخدم <a href="{{ route('tickets.index') }}">قائمة التذاكر</a> بالفلاتر.
             </x-alert>
         @endif
+
+        {{-- Where a refused drop reports itself. --}}
+        <p class="board__message" data-board-message role="status" aria-live="polite"></p>
 
         @forelse ($lanes as $swimlane)
             <x-card flush>
@@ -53,7 +68,7 @@
 
                 <div class="card__body">
                     <div class="board">
-                        @foreach ($swimlane['columns'] as $column)
+                        @foreach ($swimlane['columns'] as $key => $column)
                             <section class="board__column">
                                 <header class="board__head">
                                     <h3 class="board__title">{{ $column['label'] }}</h3>
@@ -65,7 +80,8 @@
                                     </span>
                                 </header>
 
-                                <div class="board__list">
+                                <div class="board__list" data-board-list="{{ $key }}"
+                                     data-board-group="lane-{{ $loop->parent->index }}">
                                     @forelse ($column['tickets'] as $ticket)
                                         <x-ticket-card :ticket="$ticket" :user="$user" />
                                     @empty

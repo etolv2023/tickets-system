@@ -67,8 +67,9 @@
     margin-block-start: var(--space-1);
 }
 
+/* Links are interactive — the one blue in a block of prose. */
 .prose a {
-    color: var(--c-inquiry);
+    color: var(--action);
     text-decoration: underline;
     text-underline-offset: 2px;
 }

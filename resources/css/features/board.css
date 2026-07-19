@@ -137,97 +137,6 @@
     margin-block-end: var(--space-2);
 }
 
-/* ---- Ticket card ---- */
-
-/* Sits on --surface, one step above the column's --surface-2, so it reads as
-   an object placed on the column rather than a hole cut in it. */
-.tcard {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    padding: var(--space-3);
-    padding-inline-start: calc(var(--stripe-width) + var(--space-3));
-    background-color: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    transition: border-color var(--transition);
-}
-
-.tcard:hover {
-    border-color: var(--border-strong);
-}
-
-/* Reversed so the type badge leads and the id trails, matching every other
-   ticket surface in the app. The markup order serves the screen reader. */
-.tcard__top {
-    display: flex;
-    flex-direction: row-reverse;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-2);
-}
-
-.tcard__number {
-    font-family: var(--font-mono);
-    font-size: var(--text-2xs);
-    color: var(--text-subtle);
-    direction: ltr;
-    unicode-bidi: isolate;
-}
-
-/* The line people actually scan. It was 12px on a 132px card. */
-.tcard__title {
-    font-size: var(--text-sm);
-    font-weight: var(--weight-bold);
-    line-height: var(--leading-normal);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.tcard__meta {
-    display: flex;
-    align-items: center;
-    gap: var(--space-1);
-    flex-wrap: wrap;
-    font-size: var(--text-2xs);
-    color: var(--text-subtle);
-}
-
-/* Separators are drawn, not typed, so the template stays free of glyphs. */
-.tcard__meta > * + *::before {
-    content: '·';
-    margin-inline-end: var(--space-1);
-    color: var(--text-subtle);
-}
-
-.tcard__age--overdue {
-    color: var(--c-urgent);
-    font-weight: var(--weight-medium);
-}
-
-/* The other side's state. This is what tells you you're waiting on someone
-   rather than blocked on yourself. F12.1 */
-.tcard__other {
-    display: flex;
-    align-items: center;
-    gap: var(--space-1);
-    padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-sm);
-    background-color: var(--surface-2);
-    border: 1px solid var(--border-subtle);
-    font-size: var(--text-2xs);
-    color: var(--text-muted);
-}
-
-.tcard__actions {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-}
-
 /* Swimlane header: the assignee's avatar sits beside their name, so a lane is
    identifiable before you read it. Priority lanes have no avatar and the row
    simply collapses to the label. */
@@ -246,5 +155,33 @@
 @media (max-width: 44rem) {
     .board {
         grid-template-columns: 1fr;
+    }
+}
+
+/* A refused drop. Stays out of the layout while empty. */
+.board__message:empty {
+    display: none;
+}
+
+.board__message {
+    margin-block-end: var(--space-4);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--c-red-line);
+    border-radius: var(--radius);
+    background-color: var(--c-red-bg);
+    color: var(--c-red);
+    font-size: var(--text-sm);
+}
+
+/* A column this card can't go to, while it is being dragged. Dimmed rather
+   than hidden: the board must not reflow under the pointer. */
+.board__column--closed {
+    opacity: 0.45;
+    transition: opacity var(--transition);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .board__column--closed {
+        transition: none;
     }
 }

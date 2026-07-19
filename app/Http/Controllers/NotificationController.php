@@ -45,7 +45,27 @@ class NotificationController extends Controller
      */
     public function count(Request $request): JsonResponse
     {
-        return response()->json(['unread' => $this->unreadCount($request)]);
+        $user = $request->user();
+
+        // Read through rather than from the cache. A badge that is a minute
+        // stale on a page render bothers nobody; a desktop notification that
+        // arrives a minute after the event is a broken notification. Writing
+        // the fresh value back keeps the next page render cheap.
+        $latest = $user->unreadNotifications()->latest()->first();
+        $unread = $user->unreadNotifications()->count();
+
+        Cache::put("notif.unread.{$user->id}", $unread, now()->addMinute());
+
+        return response()->json([
+            'unread' => $unread,
+            // What the browser notification actually says, and where clicking
+            // it lands. Null when there is nothing unread.
+            'latest' => $latest === null ? null : [
+                'id' => $latest->id,
+                'message' => $latest->data['message'] ?? 'فيه تحديث على تذكرة.',
+                'url' => route('notifications.read', $latest->id),
+            ],
+        ]);
     }
 
     public function read(Request $request, string $id): RedirectResponse

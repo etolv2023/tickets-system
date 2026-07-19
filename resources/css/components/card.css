@@ -35,7 +35,9 @@
     padding-block: var(--space-3);
     padding-inline: var(--space-4);
     background-color: var(--surface-2);
-    border-block-end: 1px solid var(--border);
+    /* Subtle, not full: the tint step already separates the header — a full
+       hairline on top of it drew a box inside the card's box. */
+    border-block-end: 1px solid var(--border-subtle);
 }
 
 .card__title {

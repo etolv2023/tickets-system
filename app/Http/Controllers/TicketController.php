@@ -16,6 +16,7 @@ use App\Models\TicketStatusDefinition;
 use App\Models\User;
 use App\Services\ActivityLogger;
 use App\Services\AttachmentService;
+use App\Services\SubtaskService;
 use App\Services\TicketService;
 use App\Services\TicketWorkflowService;
 use Illuminate\Http\RedirectResponse;
@@ -29,6 +30,7 @@ class TicketController extends Controller
         private readonly TicketService $tickets,
         private readonly AttachmentService $attachments,
         private readonly TicketWorkflowService $workflow,
+        private readonly SubtaskService $subtasks,
     ) {
     }
 
@@ -44,10 +46,10 @@ class TicketController extends Controller
             ->select([
                 'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'scope', 'priority',
                 'status', 'reported_at', 'sla_due_at', 'resolved_at', 'updated_at',
-                'assigned_frontend_id', 'assigned_backend_id', 'tester_id', 'created_by',
+                'assigned_frontend_id', 'assigned_backend_id', 'tester_id', 'devops_id', 'created_by',
                 'subtasks_total', 'subtasks_done',
             ])
-            ->with(['company:id,name,code', 'requester:id,name', 'frontend:id,name,avatar_path,is_active', 'backend:id,name,avatar_path,is_active'])
+            ->with(['company:id,name,code', 'requester:id,name', 'frontend:id,name,avatar_path,is_active', 'backend:id,name,avatar_path,is_active', 'devops:id,name,avatar_path,is_active'])
             ->visibleTo($request->user())
             ->filter($filters)
             ->defaultOrder()
@@ -101,6 +103,13 @@ class TicketController extends Controller
             userAgent: $request->userAgent(),
         );
 
+        // Before assignAtCreation, not after: assign() seeds a starter subtask
+        // for any side that has none, and it must be able to see the plan the
+        // user typed here or it would add a duplicate on top of it.
+        foreach ($request->validated('subtasks') ?? [] as $row) {
+            $this->subtasks->create($ticket, $row + ['status' => 'todo'], $request->user()->id);
+        }
+
         $this->assignAtCreation($ticket, $request);
 
         return redirect()->route('tickets.show', $ticket)
@@ -121,7 +130,7 @@ class TicketController extends Controller
             return;
         }
 
-        $assignees = $request->only('assigned_frontend_id', 'assigned_backend_id', 'tester_id');
+        $assignees = $request->only('assigned_frontend_id', 'assigned_backend_id', 'tester_id', 'devops_id');
 
         if (collect($assignees)->filter()->isEmpty()) {
             return;
@@ -220,6 +229,27 @@ class TicketController extends Controller
         return redirect()->route('tickets.show', $ticket)->with('status', 'تم حفظ التعديلات.');
     }
 
+    public function destroy(Request $request, Ticket $ticket, ActivityLogger $logger): RedirectResponse
+    {
+        $this->authorize('delete', $ticket);
+
+        $number = $ticket->ticket_number;
+
+        // Logged before the delete, so the row still reads as it was.
+        $logger->log(
+            action: 'ticket.deleted',
+            userId: $request->user()->id,
+            subject: $ticket,
+            changes: ['from' => $ticket->only('ticket_number', 'title', 'status')],
+            ip: $request->ip(),
+            userAgent: $request->userAgent(),
+        );
+
+        $this->tickets->delete($ticket);
+
+        return redirect()->route('tickets.index')->with('status', "تم حذف التذكرة {$number}.");
+    }
+
     /** F11 — labels on a ticket. */
     public function syncLabels(Request $request, Ticket $ticket): RedirectResponse
     {
@@ -266,6 +296,7 @@ class TicketController extends Controller
             $ticket->assigned_frontend_id,
             $ticket->assigned_backend_id,
             $ticket->tester_id,
+            $ticket->devops_id,
         ])
             ->merge($ticket->subtasks->pluck('assignee_id'))
             ->merge($ticket->statusHistory->pluck('user_id'))
@@ -294,6 +325,7 @@ class TicketController extends Controller
         $ticket->setRelation('frontend', $people->get($ticket->assigned_frontend_id));
         $ticket->setRelation('backend', $people->get($ticket->assigned_backend_id));
         $ticket->setRelation('tester', $people->get($ticket->tester_id));
+        $ticket->setRelation('devops', $people->get($ticket->devops_id));
 
         $ticket->subtasks->each(fn ($s) => $s->setRelation('assignee', $people->get($s->assignee_id)));
         $ticket->statusHistory->each(function ($h) use ($people, $contacts) {
@@ -322,6 +354,12 @@ class TicketController extends Controller
 
         $statuses = TicketStatusDefinition::map();
         $allowed = TicketStatusDefinition::transitionMap()[$ticket->status->value] ?? [];
+
+        // "جاري العمل" and "تم التطوير" are computed from ticket_work_logs and
+        // belong to the بدأت / خلصت buttons. Offering them here let the badge
+        // and the work logs drift apart — the ticket would claim to be in
+        // progress while every side still said pending.
+        $allowed = array_diff($allowed, TicketWorkflowService::COMPUTED_STATUSES);
 
         return [
             'nextStatuses' => collect($allowed)->map(fn ($key) => $statuses[$key])->filter(),
@@ -383,11 +421,15 @@ class TicketController extends Controller
             ->get();
 
         $testerRoleId = Role::idByKey('tester');
+        $devopsRoleId = Role::idByKey('devops');
 
         return [
             'frontend' => $users->filter(fn (User $u) => $u->skills->coversFrontend())->values(),
             'backend' => $users->filter(fn (User $u) => $u->skills->coversBackend())->values(),
             'testers' => $users->filter(fn (User $u) => $u->role_id === $testerRoleId)->values(),
+            // By role, like testers. Developers are filtered by skills because
+            // "both" exists there; devops has no such value to filter on.
+            'devops' => $users->filter(fn (User $u) => $u->role_id === $devopsRoleId)->values(),
         ];
     }
 }

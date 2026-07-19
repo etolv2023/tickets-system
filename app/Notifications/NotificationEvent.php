@@ -90,7 +90,9 @@ enum NotificationEvent: string
             self::TicketDueSoon, self::SubtaskDueToday, self::CommentFromClient => 'amber',
             self::TicketResolved, self::TicketClosed, self::TicketApproved,
             self::SubtaskCompleted, self::BlockerResolved, self::PointsAwarded => 'green',
-            self::TicketAssigned, self::SubtaskAssigned, self::MentionedInComment => 'blue',
+            // Cyan, not blue — blue became the interaction hue (2026-07-19)
+            // and a notification's category dot is information, not a control.
+            self::TicketAssigned, self::SubtaskAssigned, self::MentionedInComment => 'cyan',
             default => 'slate',
         };
     }

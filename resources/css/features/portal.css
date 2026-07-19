@@ -147,8 +147,10 @@
 /* A reply from the team is the answer the client came to read — the one row
    worth a tint. Their own messages need no highlight; they already know
    which ones are theirs. */
+/* The team speaking is the brand's voice — brand and interaction share the
+   one sanctioned blue family (§ tokens-color.css). */
 .portal-comment--staff {
-    background-color: var(--c-blue-bg);
+    background-color: var(--action-bg);
 }
 
 .portal-comment__avatar {
@@ -196,8 +198,8 @@
 }
 
 .portal-comment__badge--team {
-    color: var(--c-blue);
-    background-color: var(--c-blue-bg);
+    color: var(--action);
+    background-color: var(--action-bg);
 }
 
 /* Files shared with the client. They hang off a public comment, so they read

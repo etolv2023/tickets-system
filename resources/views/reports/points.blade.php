@@ -27,7 +27,7 @@
 
         {{-- The headline. Four numbers that frame everything under them. --}}
         <div class="today-stats">
-            <div class="stat-tile stat-tile--blue">
+            <div class="stat-tile stat-tile--teal">
                 <div class="stat-tile__figure">{{ $n($total) }}</div>
                 <div class="stat-tile__caption">
                     إجمالي نقاط الشهر
@@ -75,6 +75,7 @@
                             <th class="table__cell--num">فرونت</th>
                             <th class="table__cell--num">باك</th>
                             <th class="table__cell--num">تيست</th>
+                            <th class="table__cell--num">ديف أوبس</th>
                             <th class="table__cell--num">تذاكر</th>
                             <th class="table__cell--num">الإجمالي</th>
                         </tr>
@@ -95,11 +96,12 @@
                                 <td class="table__cell--num">{{ $row->frontend > 0 ? $n($row->frontend) : '—' }}</td>
                                 <td class="table__cell--num">{{ $row->backend > 0 ? $n($row->backend) : '—' }}</td>
                                 <td class="table__cell--num">{{ $row->tester > 0 ? $n($row->tester) : '—' }}</td>
+                                <td class="table__cell--num">{{ $row->devops > 0 ? $n($row->devops) : '—' }}</td>
                                 <td class="table__cell--num u-subtle">{{ $row->awards }}</td>
                                 <td class="table__cell--num points-cell">{{ $n($row->total) }}</td>
                             </tr>
                         @empty
-                            <tr class="table__empty"><td colspan="7">مفيش نقاط اتصرفت في الشهر ده.</td></tr>
+                            <tr class="table__empty"><td colspan="8">مفيش نقاط اتصرفت في الشهر ده.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

@@ -2,6 +2,12 @@
 
 @section('title', 'بوردي')
 
+@push('scripts')
+    {{-- Dragging cards between columns, plus the subtask controls the cards
+         carry. board.js imports what it needs from subtasks.js. --}}
+    @vite('resources/js/features/board.js')
+@endpush
+
 @section('content')
     <div class="page">
         <div class="page__head">
@@ -37,8 +43,11 @@
                 </div>
             </x-card>
         @else
+            {{-- Where a refused drop reports itself. --}}
+            <p class="board__message" data-board-message role="status" aria-live="polite"></p>
+
             <div class="board board--standalone">
-                @foreach ($columns as $column)
+                @foreach ($columns as $key => $column)
                     <section class="board__column">
                         <header class="board__head">
                             <h2 class="board__title">{{ $column['label'] }}</h2>
@@ -51,7 +60,7 @@
                             </span>
                         </header>
 
-                        <div class="board__list">
+                        <div class="board__list" data-board-list="{{ $key }}" data-board-group="board">
                             @forelse ($column['tickets'] as $ticket)
                                 <x-ticket-card :ticket="$ticket" :user="$user" />
                             @empty

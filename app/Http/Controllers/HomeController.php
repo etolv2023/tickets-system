@@ -130,7 +130,8 @@ class HomeController extends Controller
         return Ticket::query()
             ->where(fn ($q) => $q
                 ->where('assigned_frontend_id', $userId)
-                ->orWhere('assigned_backend_id', $userId))
+                ->orWhere('assigned_backend_id', $userId)
+                ->orWhere('devops_id', $userId))
             ->whereNotIn('status', ['resolved', 'closed', 'rejected'])
             // Only if it actually blocks something that is itself still open —
             // blocking a closed ticket holds nobody up.

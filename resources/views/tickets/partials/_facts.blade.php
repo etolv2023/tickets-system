@@ -131,6 +131,10 @@
             <span class="facts__label">تيستر</span>
             <span class="facts__value">{{ $ticket->tester?->name ?? '—' }}</span>
         </div>
+        <div class="facts__row">
+            <span class="facts__label">ديف أوبس</span>
+            <span class="facts__value">{{ $ticket->devops?->name ?? '—' }}</span>
+        </div>
     </div>
 
     {{-- Assignment, the start/finish buttons and the state machine arrive in
