@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Casts\TicketStatusValue;
+use App\Enums\SubtaskStatus;
 use App\Enums\WorkSide;
 use App\Models\Ticket;
 use App\Models\TicketStatusDefinition;
@@ -17,11 +18,29 @@ use Illuminate\Support\Facades\DB;
  *   - in_progress and dev_done are never set by hand. They are computed from
  *     ticket_work_logs, because the truth is "did each side actually start /
  *     finish", not "did someone remember to move a dropdown".
- *   - A side that has subtasks can't be called done until its subtasks are
- *     (enforced in phase 4 via canFinish(); the hook is already here).
+ *   - A side that has subtasks can't be called done until its subtasks are —
+ *     finishBlocker() per side, subtaskBlocker() for the ticket as a whole.
  */
 class TicketWorkflowService
 {
+    /**
+     * Statuses that assert the work is over. Entering either with unfinished
+     * subtasks is what let points be awarded for work nobody did.
+     */
+    private const SUBTASK_GATED = ['resolved', 'closed'];
+
+    /**
+     * Statuses that are computed from ticket_work_logs, never chosen by hand
+     * (see the class docblock). start() and finish() own them, driven by the
+     * بدأت / خلصت buttons.
+     *
+     * Offering these in a status picker desynchronises the two models: the
+     * ticket claims "جاري العمل" while both work logs still say pending, the
+     * button still reads بدأت, and allSidesDone() — which the point engine
+     * depends on — is reading a different truth than the badge.
+     */
+    public const COMPUTED_STATUSES = ['in_progress', 'dev_done', 'testing'];
+
     public function __construct(
         private readonly PointEngineService $points,
         private readonly NotificationService $notifications,
@@ -49,6 +68,10 @@ class TicketWorkflowService
             throw new DomainException(
                 "مينفعش تنقل التذكرة من «{$from->label()}» لـ «{$to->label()}»."
             );
+        }
+
+        if (($blocker = $this->subtaskBlocker($ticket, $to)) !== null) {
+            throw new DomainException($blocker);
         }
 
         return DB::transaction(function () use ($ticket, $from, $to, $userId, $note, $recipient) {
@@ -234,7 +257,12 @@ class TicketWorkflowService
                 // starting point, not a requirement (they can retitle/reassign
                 // it freely). Reassigning an already-worked side never repeats
                 // this, or every hand-off would pile up a fresh duplicate.
-                if (($before[$side->assigneeColumn()] ?? null) === null) {
+                // ★ …and only when the side has nothing at all. The starter
+                // exists so a newly-assigned side is never an empty list; a
+                // developer who already wrote their own plan on the create form
+                // does not want ours stacked on top of it.
+                if (($before[$side->assigneeColumn()] ?? null) === null
+                    && ! $ticket->subtasks()->where('side', $side->value)->exists()) {
                     $this->subtasks->create($ticket, [
                         'title' => $ticket->title,
                         'assignee_id' => $userId,
@@ -329,6 +357,114 @@ class TicketWorkflowService
         return $open === 0
             ? null
             : "لسه فيه {$open} صب تاسك مش خالصة على جهة {$log->side->label()}. خلّصها الأول.";
+    }
+
+    /**
+     * ★ The same rule, one level up: the whole ticket can't claim the work is
+     * over while any subtask is still open.
+     *
+     * finishBlocker() guards one work log's «خلصت», per side. That left a hole:
+     * transitionMap seeds assigned→resolved and new→resolved, so the "غيّر
+     * الحالة" panel could jump straight to resolved with subtasks still open —
+     * and award() fires on entry to resolved. Points become money in bonuses,
+     * so this is guarded at transition(), the single choke point every status
+     * change passes through: the panel, the board drag, and close() all inherit
+     * it from here.
+     *
+     * closed is gated as well as resolved. Today closed is only reachable from
+     * resolved, so gating resolved covers it — but the graph is admin-editable
+     * at /admin/ticket-statuses, and the day someone adds dev_done→closed that
+     * transitive protection disappears silently. Gating both costs nothing.
+     *
+     * Sides are deliberately NOT filtered. SubtaskSide::blocksWorkLog() answers
+     * "does this block THIS side's خلصت"; at ticket level the question is "is
+     * the work done", and a qa or support subtask is work.
+     */
+    private function subtaskBlocker(Ticket $ticket, TicketStatusValue $to): ?string
+    {
+        if (! in_array($to->value, self::SUBTASK_GATED, true)) {
+            return null;
+        }
+
+        // SubtaskService maintains these counters on every mutation (§ 4.6), so
+        // the passing case — the overwhelming majority — is arithmetic on a row
+        // already in memory. Zero queries.
+        if ($ticket->subtasks_total - $ticket->subtasks_done <= 0) {
+            return null;
+        }
+
+        // Only a suspected block pays for an authoritative count. reorder()
+        // drops the relation's default orderBy('position'), which
+        // ONLY_FULL_GROUP_BY rejects on an aggregate — same reason as
+        // SubtaskService::syncCounters().
+        $open = $ticket->subtasks()->reorder()
+            ->where('status', '!=', SubtaskStatus::Done->value)
+            ->count();
+
+        if ($open === 0) {
+            // The counter drifted. Heal it rather than block on a stale number.
+            $this->subtasks->syncCounters($ticket);
+
+            return null;
+        }
+
+        return "لسه فيه {$open} صب تاسك مش خالصة على التذكرة. خلّصها أو احذفها قبل ما تحوّلها لـ «{$to->label()}».";
+    }
+
+    /**
+     * The inverse of finish(): a side that said "خلصت" takes it back.
+     *
+     * Same shape as the reopen action a tester performs, minus the customer
+     * framing — this is the developer correcting themselves, not the ticket
+     * being returned. The recorded time is kept: the work really did happen,
+     * and duration_minutes feeds reports that must not lose it.
+     */
+    public function resume(TicketWorkLog $log, int $actorId): void
+    {
+        if ($log->status !== 'done') {
+            throw new DomainException('الشغل ده مش مقفول أصلاً.');
+        }
+
+        DB::transaction(function () use ($log, $actorId) {
+            $log->update(['status' => 'in_progress', 'finished_at' => null]);
+
+            $ticket = $log->ticket->refresh();
+
+            // dev_done and testing both mean "development is over". Taking a
+            // side back makes that untrue, so the ticket follows its sides.
+            if (in_array($ticket->status->value, ['dev_done', 'testing'], true)) {
+                $this->transition($ticket, TicketStatusValue::for('in_progress'), $actorId, "{$log->side->label()}: رجع يشتغل");
+            }
+        });
+    }
+
+    /**
+     * The inverse of start(): a side that said "بدأت" puts it back down.
+     *
+     * started_at is cleared because the side genuinely has not started — and
+     * leaving it set would make the next finish() compute duration_minutes from
+     * a timestamp that no longer means anything. Hours actually worked live in
+     * time_entries, which this never touches.
+     */
+    public function unstart(TicketWorkLog $log, int $actorId): void
+    {
+        if ($log->status !== 'in_progress') {
+            throw new DomainException('الشغل ده مش شغّال دلوقتي.');
+        }
+
+        DB::transaction(function () use ($log, $actorId) {
+            $log->update(['status' => 'pending', 'started_at' => null]);
+
+            $ticket = $log->ticket->refresh();
+
+            // in_progress means "somebody is on it". Once nobody is, the ticket
+            // has to say so, or the card keeps showing خلصت for work that was
+            // never started.
+            if ($ticket->status === TicketStatusValue::for('in_progress')
+                && $ticket->workLogs()->where('status', '!=', 'pending')->doesntExist()) {
+                $this->transition($ticket, TicketStatusValue::for('assigned'), $actorId, 'رجعت لقائمة الانتظار');
+            }
+        });
     }
 
     private function allSidesDone(Ticket $ticket): bool

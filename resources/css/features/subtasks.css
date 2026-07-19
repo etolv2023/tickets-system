@@ -242,3 +242,16 @@
     margin-block-start: 2px;
     color: var(--c-amber);
 }
+
+/* A refused status change. Stays out of the layout while empty, so the row
+   keeps its height until there is something to say. */
+.subtask__message:empty {
+    display: none;
+}
+
+.subtask__message {
+    margin-block-start: var(--space-2);
+    color: var(--c-red);
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+}

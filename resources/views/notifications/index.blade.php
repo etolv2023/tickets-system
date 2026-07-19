@@ -22,6 +22,23 @@
             @endif
         </div>
 
+        {{-- The permission prompt only opens from a real user gesture, so this
+             is a button rather than something that fires on load. It sits in
+             the flow of the page instead of the header because a ghost button
+             up there read as body text and nobody found it. Gone once granted:
+             a banner asking for something you already gave is noise. --}}
+        <div x-data="notifyPermission(@js(config('webpush.public_key')))" x-cloak
+             x-show="state === 'default' || state === 'denied'"
+             class="notify-prompt">
+            <div class="notify-prompt__text">
+                <p class="notify-prompt__title" x-text="label">فعّل إشعارات المتصفح</p>
+                <p class="notify-prompt__hint" x-text="hint"></p>
+            </div>
+
+            <x-button variant="primary" size="sm" type="button"
+                      x-show="state === 'default'" @click="request()">فعّل</x-button>
+        </div>
+
         @if (session('status'))
             <x-alert variant="success">{{ session('status') }}</x-alert>
         @endif

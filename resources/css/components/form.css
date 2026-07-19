@@ -64,6 +64,15 @@
     box-shadow: 0 0 0 3px var(--action-bg);
 }
 
+/* A control that sits in a toolbar rather than a form column: it shrinks to
+   its content instead of filling the row, so it can stand next to a button
+   in a page header. */
+.select--sm {
+    width: auto;
+    padding-block: var(--space-1);
+    font-size: var(--text-sm);
+}
+
 /* A field the system owns rather than the user — a frozen snapshot of the
    reporter, an auto-assigned number. Reads as filled-in, not as editable. */
 .input--locked,

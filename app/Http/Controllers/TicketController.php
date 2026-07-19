@@ -16,6 +16,7 @@ use App\Models\TicketStatusDefinition;
 use App\Models\User;
 use App\Services\ActivityLogger;
 use App\Services\AttachmentService;
+use App\Services\SubtaskService;
 use App\Services\TicketService;
 use App\Services\TicketWorkflowService;
 use Illuminate\Http\RedirectResponse;
@@ -29,6 +30,7 @@ class TicketController extends Controller
         private readonly TicketService $tickets,
         private readonly AttachmentService $attachments,
         private readonly TicketWorkflowService $workflow,
+        private readonly SubtaskService $subtasks,
     ) {
     }
 
@@ -100,6 +102,13 @@ class TicketController extends Controller
             ip: $request->ip(),
             userAgent: $request->userAgent(),
         );
+
+        // Before assignAtCreation, not after: assign() seeds a starter subtask
+        // for any side that has none, and it must be able to see the plan the
+        // user typed here or it would add a duplicate on top of it.
+        foreach ($request->validated('subtasks') ?? [] as $row) {
+            $this->subtasks->create($ticket, $row + ['status' => 'todo'], $request->user()->id);
+        }
 
         $this->assignAtCreation($ticket, $request);
 
@@ -220,6 +229,27 @@ class TicketController extends Controller
         return redirect()->route('tickets.show', $ticket)->with('status', 'تم حفظ التعديلات.');
     }
 
+    public function destroy(Request $request, Ticket $ticket, ActivityLogger $logger): RedirectResponse
+    {
+        $this->authorize('delete', $ticket);
+
+        $number = $ticket->ticket_number;
+
+        // Logged before the delete, so the row still reads as it was.
+        $logger->log(
+            action: 'ticket.deleted',
+            userId: $request->user()->id,
+            subject: $ticket,
+            changes: ['from' => $ticket->only('ticket_number', 'title', 'status')],
+            ip: $request->ip(),
+            userAgent: $request->userAgent(),
+        );
+
+        $this->tickets->delete($ticket);
+
+        return redirect()->route('tickets.index')->with('status', "تم حذف التذكرة {$number}.");
+    }
+
     /** F11 — labels on a ticket. */
     public function syncLabels(Request $request, Ticket $ticket): RedirectResponse
     {
@@ -322,6 +352,12 @@ class TicketController extends Controller
 
         $statuses = TicketStatusDefinition::map();
         $allowed = TicketStatusDefinition::transitionMap()[$ticket->status->value] ?? [];
+
+        // "جاري العمل" and "تم التطوير" are computed from ticket_work_logs and
+        // belong to the بدأت / خلصت buttons. Offering them here let the badge
+        // and the work logs drift apart — the ticket would claim to be in
+        // progress while every side still said pending.
+        $allowed = array_diff($allowed, TicketWorkflowService::COMPUTED_STATUSES);
 
         return [
             'nextStatuses' => collect($allowed)->map(fn ($key) => $statuses[$key])->filter(),

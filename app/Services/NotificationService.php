@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Setting;
+use App\Jobs\SendPushPing;
 use App\Models\Ticket;
 use App\Models\TicketSubtask;
 use App\Models\User;
@@ -129,11 +130,21 @@ class NotificationService
         $this->dispatchTo($userId, $ticket, NotificationEvent::from($event), $message, $actorId);
     }
 
-    /** @param array<int, int> $userIds */
+    /**
+     * Both dispatch paths end here, which is why the push ping is fired from
+     * here too rather than from each of them — one place to forget instead of
+     * two. F20.2
+     *
+     * @param  array<int, int>  $userIds
+     */
     private function clearBadges(array $userIds): void
     {
         foreach ($userIds as $id) {
             Cache::forget("notif.unread.{$id}");
+
+            // Queued: the ping is an outbound request per registered browser,
+            // and the action that caused the notification must not wait on it.
+            SendPushPing::dispatch($id);
         }
     }
 

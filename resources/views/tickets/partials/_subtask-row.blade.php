@@ -14,7 +14,26 @@
             <div @class(['subtask__title', 'subtask__title--done' => $done])>{{ $subtask->title }}</div>
 
             <div class="subtask__meta">
-                <x-badge :variant="$subtask->status->variant()">{{ $subtask->status->label() }}</x-badge>
+                {{-- A blocked subtask keeps the badge: unblocking needs the
+                     reason cleared, which only the full edit form can do, and
+                     a select without a "blocked" option would silently show
+                     the wrong value. --}}
+                @can('update', [$subtask, $ticket])
+                    @if ($subtask->status !== \App\Enums\SubtaskStatus::Blocked)
+                        <select class="select select--sm" aria-label="حالة الصب تاسك"
+                                data-subtask-status="{{ route('subtasks.status', $subtask) }}"
+                                data-current="{{ $subtask->status->value }}">
+                            @foreach ([\App\Enums\SubtaskStatus::Todo, \App\Enums\SubtaskStatus::InProgress, \App\Enums\SubtaskStatus::Done] as $option)
+                                <option value="{{ $option->value }}" @selected($subtask->status === $option)>{{ $option->label() }}</option>
+                            @endforeach
+                        </select>
+                    @else
+                        <x-badge :variant="$subtask->status->variant()">{{ $subtask->status->label() }}</x-badge>
+                    @endif
+                @else
+                    <x-badge :variant="$subtask->status->variant()">{{ $subtask->status->label() }}</x-badge>
+                @endcan
+
                 <x-badge variant="neutral">{{ $subtask->side->label() }}</x-badge>
 
                 @if ($subtask->assignee)
@@ -56,6 +75,10 @@
             @if ($subtask->blocked_reason)
                 <p class="subtask__reason">متوقفة: {{ $subtask->blocked_reason }}</p>
             @endif
+
+            {{-- Where a refused status change reports itself. Empty until the
+                 server says no — an alert() would steal focus mid-scan. --}}
+            <p class="subtask__message" data-subtask-message role="status" aria-live="polite"></p>
         </div>
 
         {{-- Inline editing: adding and changing a subtask never leaves the

@@ -1,0 +1,193 @@
+/* Dark-theme overrides — the same token names, redefined.
+
+   Two blocks, deliberately duplicated: the @media one follows the OS when the
+   user has not chosen, and the [data-theme] one wins when they have. Keeping
+   them identical is the point — a value that drifts between them shows up as a
+   theme that changes when you toggle it and back again.
+
+   The ramp is NOT an inversion. --n-1 is redefined lighter than --n-2 and
+   --n-3 on purpose: --n-1 always means "the surface a card sits on", so a
+   component asking for it gets the right plane in either theme.
+
+   Nothing here is a component rule. A [data-theme='dark'] selector in a
+   component file means a token was missing (CLAUDE.md § 6). */
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --n-0: #101010;
+    --n-1: #2b2a27;
+    --n-2: #232320;
+    --n-3: #1a1a18;
+    --n-4: #343330;
+    --n-5: #3e3c38;
+    --n-6: #48463f;
+    --n-7: #5c5952;
+    --n-8: #7b766e;
+    --n-9: #a8a49c;
+    --n-10: #c9c5bd;
+    --n-11: #ddd9d2;
+    --n-12: #eae7e1;
+
+    --c-red: #e8867c;
+    --c-red-bg: #3a1f1c;
+    --c-amber: #d9ad5a;
+    --c-amber-bg: #302815;
+    --c-blue: #84a9d4;
+    --c-blue-bg: #1c2839;
+    --c-green: #6fbb87;
+    --c-green-bg: #18281d;
+    --c-slate: #a4a29b;
+    --c-slate-bg: #2a2a23;
+    --c-rose: #e0879e;
+    --c-rose-bg: #381c23;
+    --c-orange: #dd9a68;
+    --c-orange-bg: #332318;
+    --c-yellow: #ccb45c;
+    --c-yellow-bg: #2d2916;
+    --c-lime: #a8c072;
+    --c-lime-bg: #222a16;
+    --c-teal: #6bbcb0;
+    --c-teal-bg: #142a27;
+    --c-cyan: #78b0cc;
+    --c-cyan-bg: #142831;
+    --c-indigo: #97a1de;
+    --c-indigo-bg: #202238;
+    --c-violet: #b598dd;
+    --c-violet-bg: #282038;
+    --c-plum: #cc93b8;
+    --c-plum-bg: #321e2c;
+    --c-brown: #bfa088;
+    --c-brown-bg: #2f261e;
+
+    /* On a dark ground the card is the LIGHTER surface, so --surface reaches
+       up the ramp while --bg stays at its foot — the same relationship as the
+       light theme, read in the other direction. */
+    --bg: var(--n-3);
+    --surface: var(--n-1);
+    --surface-2: var(--n-4);
+    --surface-3: var(--n-5);
+    --surface-raised: var(--n-4);
+    --nav-bg: var(--n-0);
+    --nav-hover: var(--n-2);
+    --hover: var(--n-4);
+    --active: var(--n-5);
+    --chip: var(--n-4);
+
+    --field-bg: var(--n-4);
+    --field-bg-focus: var(--n-5);
+
+    --text: var(--n-12);
+    /* ★ Both rungs moved one step darker, and --n-9 was darkened with them.
+       --text-subtle was --n-8, which measured 3.09-3.47:1 on every surface in
+       both themes — below AA everywhere, across ~80 call sites. Remapping only
+       it would have collapsed the three-step ladder into two, so the whole
+       ladder shifted instead. --text-faint is gone: at 1.95-2.72:1 it was
+       below even the 3:1 non-text bar, and unusable is not a "level". */
+    --text-muted: var(--n-10);
+    --text-subtle: var(--n-9);
+
+    /* Lighter than the light theme's borders: a 9%-white hairline on a dark
+       ground carries far less than a 9%-black one on paper. */
+    --border: rgb(255 255 255 / 0.16);
+    --border-subtle: rgb(255 255 255 / 0.10);
+    --border-strong: rgb(255 255 255 / 0.32);
+
+    --action: #97a1de;
+    --action-hover: #aeb6e6;
+    --action-text: #1a1c2e;
+
+    --shadow-xs: 0 1px 1px rgb(0 0 0 / 0.2);
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 14px rgb(0 0 0 / 0.45);
+    --shadow-lg: 0 24px 60px -20px rgb(0 0 0 / 0.7);
+    }
+}
+
+/* Second half — the explicit toggle. Identical to the block above by design. */
+:root[data-theme='dark'] {
+    color-scheme: dark;
+
+    --n-0: #101010;
+    --n-1: #2b2a27;
+    --n-2: #232320;
+    --n-3: #1a1a18;
+    --n-4: #343330;
+    --n-5: #3e3c38;
+    --n-6: #48463f;
+    --n-7: #5c5952;
+    --n-8: #7b766e;
+    --n-9: #a8a49c;
+    --n-10: #c9c5bd;
+    --n-11: #ddd9d2;
+    --n-12: #eae7e1;
+
+    --c-red: #e8867c;
+    --c-red-bg: #3a1f1c;
+    --c-amber: #d9ad5a;
+    --c-amber-bg: #302815;
+    --c-blue: #84a9d4;
+    --c-blue-bg: #1c2839;
+    --c-green: #6fbb87;
+    --c-green-bg: #18281d;
+    --c-slate: #a4a29b;
+    --c-slate-bg: #2a2a23;
+    --c-rose: #e0879e;
+    --c-rose-bg: #381c23;
+    --c-orange: #dd9a68;
+    --c-orange-bg: #332318;
+    --c-yellow: #ccb45c;
+    --c-yellow-bg: #2d2916;
+    --c-lime: #a8c072;
+    --c-lime-bg: #222a16;
+    --c-teal: #6bbcb0;
+    --c-teal-bg: #142a27;
+    --c-cyan: #78b0cc;
+    --c-cyan-bg: #142831;
+    --c-indigo: #97a1de;
+    --c-indigo-bg: #202238;
+    --c-violet: #b598dd;
+    --c-violet-bg: #282038;
+    --c-plum: #cc93b8;
+    --c-plum-bg: #321e2c;
+    --c-brown: #bfa088;
+    --c-brown-bg: #2f261e;
+
+    --bg: var(--n-3);
+    --surface: var(--n-1);
+    --surface-2: var(--n-4);
+    --surface-3: var(--n-5);
+    --surface-raised: var(--n-4);
+    --nav-bg: var(--n-0);
+    --nav-hover: var(--n-2);
+    --hover: var(--n-4);
+    --active: var(--n-5);
+    --chip: var(--n-4);
+
+    --field-bg: var(--n-4);
+    --field-bg-focus: var(--n-5);
+
+    --text: var(--n-12);
+    /* ★ Both rungs moved one step darker, and --n-9 was darkened with them.
+       --text-subtle was --n-8, which measured 3.09-3.47:1 on every surface in
+       both themes — below AA everywhere, across ~80 call sites. Remapping only
+       it would have collapsed the three-step ladder into two, so the whole
+       ladder shifted instead. --text-faint is gone: at 1.95-2.72:1 it was
+       below even the 3:1 non-text bar, and unusable is not a "level". */
+    --text-muted: var(--n-10);
+    --text-subtle: var(--n-9);
+
+    --border: rgb(255 255 255 / 0.16);
+    --border-subtle: rgb(255 255 255 / 0.10);
+    --border-strong: rgb(255 255 255 / 0.32);
+
+    --action: #97a1de;
+    --action-hover: #aeb6e6;
+    --action-text: #1a1c2e;
+
+    --shadow-xs: 0 1px 1px rgb(0 0 0 / 0.2);
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 14px rgb(0 0 0 / 0.45);
+    --shadow-lg: 0 24px 60px -20px rgb(0 0 0 / 0.7);
+}

@@ -448,7 +448,7 @@
 
 .nav-group__icon {
     flex-shrink: 0;
-    color: var(--text-faint);
+    color: var(--text-subtle);
 }
 
 .nav-group__head:hover .nav-group__icon {

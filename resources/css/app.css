@@ -4,6 +4,8 @@
 
 @import './base/fonts.css';
 @import './base/tokens.css';
+@import './base/tokens-color.css';
+@import './base/tokens-dark.css';
 @import './base/reset.css';
 @import './base/typography.css';
 @import './base/rtl.css';
@@ -42,6 +44,7 @@
 @import './features/ticket-detail.css';
 @import './features/ticket-form.css';
 @import './features/board.css';
+@import './features/board-card.css';
 @import './features/subtasks.css';
 @import './features/timesheet.css';
 @import './features/calendar.css';

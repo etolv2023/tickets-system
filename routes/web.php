@@ -16,9 +16,11 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\LookupController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PortalController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SubtaskController;
 use App\Http\Controllers\SubtaskScheduleController;
+use App\Http\Controllers\SubtaskStatusController;
 use App\Http\Controllers\TicketLinkController;
 use App\Http\Controllers\TicketWatcherController;
 use App\Http\Controllers\TimeEntryController;
@@ -26,6 +28,7 @@ use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\BoardController;
+use App\Http\Controllers\BoardMoveController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\QueueController;
 use App\Http\Controllers\RatingController;
@@ -103,7 +106,7 @@ Route::middleware('auth')->group(function () {
     // F03 / F04 / F05 — tickets. Authorisation is per object via TicketPolicy,
     // so there is no permission middleware here: a developer may open the
     // tickets they're assigned to without holding tickets.view.all.
-    Route::resource('tickets', TicketController::class)->except('destroy');
+    Route::resource('tickets', TicketController::class);
     Route::post('tickets/{ticket}/comments', [TicketCommentController::class, 'store'])
         ->name('tickets.comments.store');
 
@@ -149,8 +152,18 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:reports.view')->name('calendar.team');
     Route::patch('/subtasks/{subtask}/schedule', [SubtaskScheduleController::class, 'move'])
         ->name('subtasks.schedule');
+
+    // Same reasoning, one field over: status on its own, from a row on the
+    // ticket page or a card on the board.
+    Route::patch('/subtasks/{subtask}/status', [SubtaskStatusController::class, 'update'])
+        ->name('subtasks.status');
     Route::get('/my-timesheet', [TimeEntryController::class, 'timesheet'])
         ->middleware('permission:time.log')->name('time.timesheet');
+
+    // F12.1 — a drag between board columns. Its own endpoint, answering json:
+    // the browser needs a message it can show while snapping the card back.
+    Route::patch('tickets/{ticket}/board-column', [BoardMoveController::class, 'move'])
+        ->name('board.move');
 
     Route::get('/my-board', [BoardController::class, 'mine'])
         ->middleware('permission:worklog.manage')->name('board.mine');
@@ -195,6 +208,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
     // The bell polls this. It is the seam a websocket would replace later.
     Route::get('/notifications/count', [NotificationController::class, 'count'])->name('notifications.count');
+
+    // F20.2 — a browser registering itself for push. Not under a permission
+    // gate: allowing notifications on your own machine is not an admin action.
+    Route::post('/push/subscribe', [PushSubscriptionController::class, 'store'])->name('push.subscribe');
+    Route::delete('/push/subscribe', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
     Route::get('/notifications/{id}', [NotificationController::class, 'read'])->name('notifications.read');
 
     // The only path to a stored file. Each one authorises against its ticket.
