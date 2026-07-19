@@ -61,6 +61,18 @@ class RoleSeeder extends Seeder
                 'points.view.own',
             ],
         ],
+        'devops' => [
+            'name' => 'ديف أوبس',
+            // Same set as a developer: DevOps holds no work log, but everything
+            // else about being on a ticket is identical — see it, comment,
+            // manage its subtasks, log time, earn on it.
+            'permissions' => [
+                'tickets.view.assigned',
+                'comments.create', 'comments.internal',
+                'subtasks.manage', 'time.log', 'links.manage',
+                'points.view.own',
+            ],
+        ],
         'tester' => [
             'name' => 'تيستر',
             'permissions' => [

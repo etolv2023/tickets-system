@@ -32,7 +32,7 @@ class TicketsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, 
     public function query()
     {
         return Ticket::query()
-            ->with(['company:id,name', 'requester:id,name', 'frontend:id,name', 'backend:id,name', 'tester:id,name', 'creator:id,name'])
+            ->with(['company:id,name', 'requester:id,name', 'frontend:id,name', 'backend:id,name', 'tester:id,name', 'devops:id,name', 'creator:id,name'])
             // The same visibility gate as the screen. An export is not a
             // back door around row-level access.
             ->visibleTo($this->user)
@@ -44,7 +44,7 @@ class TicketsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, 
     {
         return [
             'رقم التذكرة', 'العنوان', 'الشركة', 'المُبلغ', 'النوع', 'النطاق',
-            'الأولوية', 'الحالة', 'فتحها', 'فرونت', 'باك', 'تيستر',
+            'الأولوية', 'الحالة', 'فتحها', 'فرونت', 'باك', 'تيستر', 'ديف أوبس',
             'وقت الإبلاغ', 'مهلة SLA', 'وقت الحل', 'العمر / زمن الحل',
             'المقدّر (س)', 'الفعلي (س)', 'صب تاسكس',
         ];
@@ -66,6 +66,7 @@ class TicketsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, 
             $ticket->frontend?->name,
             $ticket->backend?->name,
             $ticket->tester?->name,
+            $ticket->devops?->name,
             $ticket->reported_at?->timezone(config('app.display_timezone'))->format('Y-m-d H:i'),
             $ticket->sla_due_at?->timezone(config('app.display_timezone'))->format('Y-m-d H:i'),
             $ticket->resolved_at?->timezone(config('app.display_timezone'))->format('Y-m-d H:i'),

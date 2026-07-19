@@ -56,10 +56,18 @@ class BoardController extends Controller
                 }
 
                 return match ($key) {
-                    // start() or resume() — "this is what I'm on now".
-                    'in_progress' => $mine->whereIn('status', ['pending', 'done'])->isNotEmpty(),
+                    // Two conditions, and the second is the one that was
+                    // missing: a resolved ticket has done work logs, so the
+                    // log check alone said "droppable" — but resolved cannot
+                    // reach in_progress at all. The drop then reopened the
+                    // logs and left the ticket resolved. Reopening a resolved
+                    // ticket is the ارتجاع action; it needs a reason, and a
+                    // drag has nowhere to ask for one.
+                    'in_progress' => $mine->whereIn('status', ['pending', 'done'])->isNotEmpty()
+                        && in_array('in_progress', $allowed, true),
                     // finish() needs something actually running.
-                    'dev_done' => $mine->where('status', 'in_progress')->isNotEmpty(),
+                    'dev_done' => $mine->where('status', 'in_progress')->isNotEmpty()
+                        && in_array($ticket->status->value, ['in_progress', 'dev_done', 'testing'], true),
                     // Putting it back down: either there is running work to
                     // unstart, or the status move alone is legal.
                     'assigned' => $mine->where('status', 'in_progress')->isNotEmpty()
@@ -100,7 +108,7 @@ class BoardController extends Controller
             ->select([
                 'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'priority', 'status',
                 'reported_at', 'sla_due_at', 'resolved_at', 'updated_at',
-                'assigned_frontend_id', 'assigned_backend_id', 'tester_id',
+                'assigned_frontend_id', 'assigned_backend_id', 'tester_id', 'devops_id',
                 'subtasks_total', 'subtasks_done',
             ])
             // One extra query for the whole board, not one per card. No
@@ -114,7 +122,8 @@ class BoardController extends Controller
             ->where(fn ($q) => $q
                 ->where('assigned_frontend_id', $user->id)
                 ->orWhere('assigned_backend_id', $user->id)
-                ->orWhere('tester_id', $user->id))
+                ->orWhere('tester_id', $user->id)
+                ->orWhere('devops_id', $user->id))
             ->onBoard()
             ->defaultOrder()
             ->get();
@@ -160,7 +169,7 @@ class BoardController extends Controller
             ->select([
                 'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'priority', 'status',
                 'reported_at', 'sla_due_at', 'resolved_at', 'updated_at',
-                'assigned_frontend_id', 'assigned_backend_id', 'tester_id',
+                'assigned_frontend_id', 'assigned_backend_id', 'tester_id', 'devops_id',
                 'subtasks_total', 'subtasks_done',
             ])
             ->with([
@@ -171,6 +180,10 @@ class BoardController extends Controller
                 'incomingLinks.fromTicket:id,status',
                 'subtasks' => fn ($q) => $q->select(['id', 'ticket_id', 'title', 'status', 'side', 'position']),
             ])
+            // Only the assignee lane reads it — assigneeOf() falls back to
+            // devops for the swimlane label. Loading it unconditionally put
+            // this page at 15 queries, which is § 4's ceiling exactly.
+            ->when($lane === 'assignee', fn ($q) => $q->with('devops:id,name,avatar_path,is_active'))
             ->onBoard()
             ->defaultOrder()
             // A hard ceiling on the whole board. The lanes below are built in
@@ -231,6 +244,6 @@ class BoardController extends Controller
     /** Whoever the board considers to own this ticket's current work. */
     private function assigneeOf(Ticket $ticket): ?\App\Models\User
     {
-        return $ticket->frontend ?? $ticket->backend;
+        return $ticket->frontend ?? $ticket->backend ?? $ticket->devops;
     }
 }

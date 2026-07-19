@@ -12,11 +12,14 @@
     --space-6: 2rem;
     --space-7: 3rem;
 
-    /* ---- Radius — soft, but scaled to the element ---- */
-    --radius-sm: 5px;
-    --radius: 9px;
-    --radius-lg: 13px;
-    --radius-xl: 15px;
+    /* ---- Radius — soft, but scaled to the element ----
+       ★ Redesign (2026-07-19): moved onto the even 6/8/12/16 progression. The
+       odd 5/9/13/15 steps date from the warm skin; the doubling rhythm reads
+       cleaner where a small control sits inside a large card. */
+    --radius-sm: 6px;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
     --radius-full: 9999px;
 
     /* ---- Typography ----
@@ -53,11 +56,17 @@
     /* ---- Elevation ----
        Cards still rely on --border for their edge; --shadow-xs is a whisper
        under that border, enough to lift a card off the page without the
-       screen turning into a pile of floating panels. */
-    --shadow-xs: 0 1px 1px rgb(26 25 23 / 0.03);
-    --shadow-sm: 0 1px 2px rgb(26 25 23 / 0.05);
-    --shadow-md: 0 4px 14px rgb(26 25 23 / 0.08);
-    --shadow-lg: 0 24px 60px -20px rgb(0 0 0 / 0.5);
+       screen turning into a pile of floating panels.
+
+       ★ Redesign (2026-07-19): shadows became two-layer (a tight contact
+       shadow + a soft ambient one) and their ink is the ramp's darkest cool
+       hue, never pure black — a black shadow on a blue-grey page goes muddy.
+       The ladder still means what it meant: xs under cards, sm on hover and
+       the nav-active row, md for dropdowns/popovers, lg for the modal only. */
+    --shadow-xs: 0 1px 2px rgb(23 32 48 / 0.05);
+    --shadow-sm: 0 1px 2px rgb(23 32 48 / 0.05), 0 2px 8px rgb(23 32 48 / 0.05);
+    --shadow-md: 0 2px 4px rgb(23 32 48 / 0.06), 0 10px 28px rgb(23 32 48 / 0.10);
+    --shadow-lg: 0 4px 12px rgb(15 22 36 / 0.12), 0 28px 64px -16px rgb(15 22 36 / 0.38);
 
     /* ---- Motion — short and purposeful ---- */
     --transition: 120ms ease;

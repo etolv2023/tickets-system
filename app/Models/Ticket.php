@@ -24,7 +24,7 @@ class Ticket extends Model
     protected $fillable = [
         'ticket_number', 'company_id', 'requested_by', 'contact_id', 'reporter_name', 'reporter_erp_id',
         'title', 'description', 'type', 'scope', 'priority', 'status', 'module',
-        'created_by', 'assigned_frontend_id', 'assigned_backend_id', 'tester_id',
+        'created_by', 'assigned_frontend_id', 'assigned_backend_id', 'tester_id', 'devops_id',
         'approval_status', 'approved_by', 'approved_at',
         'reported_at', 'first_response_at', 'sla_due_at', 'resolved_at',
         'resolution_note', 'client_notified_at', 'client_notified_by', 'closed_at',
@@ -118,6 +118,15 @@ class Ticket extends Model
     public function tester(): BelongsTo
     {
         return $this->belongsTo(User::class, 'tester_id');
+    }
+
+    /**
+     * The fourth person on a ticket. Like the tester and unlike the two
+     * developers, DevOps holds no work log — it never gates dev_done.
+     */
+    public function devops(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'devops_id');
     }
 
     public function comments(): HasMany
@@ -385,7 +394,8 @@ class Ticket extends Model
             ->when($filters['assignee'] ?? null, fn (Builder $q, $v) => $q->where(fn (Builder $w) => $w
                 ->where('assigned_frontend_id', $v)
                 ->orWhere('assigned_backend_id', $v)
-                ->orWhere('tester_id', $v)))
+                ->orWhere('tester_id', $v)
+                ->orWhere('devops_id', $v)))
             ->when($filters['from'] ?? null, fn (Builder $q, $v) => $q->whereDate($dateBasis, '>=', $v))
             ->when($filters['to'] ?? null, fn (Builder $q, $v) => $q->whereDate($dateBasis, '<=', $v))
             ->when($filters['q'] ?? null, fn (Builder $q, $term) => $q->search($term));
@@ -419,7 +429,8 @@ class Ticket extends Model
         return $query->where(function (Builder $q) use ($user) {
             $q->where('assigned_frontend_id', $user->id)
                 ->orWhere('assigned_backend_id', $user->id)
-                ->orWhere('tester_id', $user->id);
+                ->orWhere('tester_id', $user->id)
+                ->orWhere('devops_id', $user->id);
 
             if ($user->hasPermission('tickets.view.own')) {
                 $q->orWhere('created_by', $user->id);

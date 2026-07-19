@@ -1,8 +1,13 @@
-/* Badge — a tinted pill. Each variant sets three tokens (ink, tint, line) and
-   everything else is shared. Dark mode needs no rules here: tokens.css swaps
-   the hue triple and this follows.
+/* Badge — a tinted rounded rectangle. Each variant sets three tokens (ink,
+   tint, line) and everything else is shared. Dark mode needs no rules here:
+   tokens.css swaps the hue triple and this follows.
 
-   Badges now carry a hairline in their own hue. Without one, a tinted pill on
+   ★ Redesign (2026-07-19): rect, not pill. The pill-vs-rect distinction was
+   carrying no meaning — the shape contrast that matters is stripe (priority)
+   versus badge (everything else) — and the straighter corners give Cairo's
+   diacritics 2px more room at this size.
+
+   Badges carry a hairline in their own hue. Without one, a tinted badge on
    a tinted card had no edge and dissolved into whatever it sat on — the tint
    alone only separates against a plain ground, and half this app's badges sit
    inside cards and table rows that are not plain. The line comes from the hue,
@@ -19,7 +24,7 @@
     padding-block: 2px;
     padding-inline: var(--space-2);
     border: 1px solid var(--badge-line);
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-sm);
     background-color: var(--badge-bg);
     color: var(--badge-color);
     font-size: var(--text-2xs);
@@ -220,12 +225,11 @@
     --badge-line: var(--border);
 }
 
-/* Squared-off and tighter — for badges riding inside a dense card header,
-   where a full pill would read as a second, competing shape. */
+/* Tighter — for badges riding inside a dense card header. The base badge is
+   already the squared shape, so this is purely a size step now. */
 .badge--sm {
     padding-block: 1px;
     padding-inline: 6px;
-    border-radius: var(--radius-sm);
 }
 
 .badge__dot {

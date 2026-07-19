@@ -87,6 +87,7 @@ class StoreTicketRequest extends FormRequest
             'assigned_frontend_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
             'assigned_backend_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
             'tester_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
+            'devops_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
 
             // F08 — the optional inline plan. store() consumes validated(), so
             // without these rules the rows would be silently dropped.
@@ -140,6 +141,7 @@ class StoreTicketRequest extends FormRequest
             'assigned_frontend_id' => 'مبرمج فرونت',
             'assigned_backend_id' => 'مبرمج باك',
             'tester_id' => 'تيستر',
+            'devops_id' => 'ديف أوبس',
             'subtasks' => 'الصب تاسكس',
             'subtasks.*.title' => 'عنوان الصب تاسك',
             'subtasks.*.side' => 'جهة الصب تاسك',

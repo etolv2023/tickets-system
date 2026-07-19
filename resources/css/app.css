@@ -13,7 +13,11 @@
 @import 'tailwindcss/components';
 
 @import './components/layout.css';
+/* nav split three ways (300-line rule); the drawer file must come LAST of the
+   three so its mobile media rules override the rail and the groups. */
 @import './components/nav.css';
+@import './components/nav-group.css';
+@import './components/nav-drawer.css';
 @import './components/topbar.css';
 @import './components/button.css';
 @import './components/badge.css';
@@ -48,6 +52,7 @@
 @import './features/subtasks.css';
 @import './features/timesheet.css';
 @import './features/calendar.css';
+@import './features/calendar-event.css';
 @import './features/calendar-timeline.css';
 @import './features/points.css';
 @import './features/queues.css';

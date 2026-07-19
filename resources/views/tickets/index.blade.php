@@ -73,7 +73,10 @@
                                         @if ($ticket->backend)
                                             <x-avatar :user="$ticket->backend" size="sm" />
                                         @endif
-                                        @unless ($ticket->frontend || $ticket->backend)
+                                        @if ($ticket->devops)
+                                            <x-avatar :user="$ticket->devops" size="sm" />
+                                        @endif
+                                        @unless ($ticket->frontend || $ticket->backend || $ticket->devops)
                                             <span class="u-subtle">مش موزعة</span>
                                         @endunless
                                     </div>

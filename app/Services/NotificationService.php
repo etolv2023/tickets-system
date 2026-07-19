@@ -100,6 +100,7 @@ class NotificationService
             $ticket->assigned_frontend_id,
             $ticket->assigned_backend_id,
             $ticket->tester_id,
+            $ticket->devops_id,
         ]);
 
         $explicit = $ticket->watchers()->pluck('users.id')->all();

@@ -114,8 +114,8 @@
 /* Native select arrow sits on the wrong side in RTL; draw our own.
 
    The stroke colour is inlined because a data URI cannot read a custom
-   property. #94908a is deliberately the midpoint between --text-subtle in the
-   two themes (--n-8 light, --n-8 dark) so one glyph serves both; a mask-image
+   property. #7c8594 is deliberately the midpoint between --n-8 in the two
+   themes (#87909f light, #717a89 dark) so one glyph serves both; a mask-image
    would track the token exactly, but only by wrapping every <select> in the
    app in an extra element, which is not worth it for a chevron.
 
@@ -124,7 +124,7 @@
    anything here, was what made the open dropdown look broken in dark mode. */
 .select {
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2394908a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%237c8594' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: left var(--space-3) center;
     background-size: 1rem;
@@ -197,9 +197,10 @@
     border-block-start: 1px solid var(--border);
 }
 
-/* Flash + validation summary. */
+/* Flash + validation summary. Info speaks cyan, not blue — blue is reserved
+   for things you can click (§ tokens-color.css). */
 .alert {
-    --alert-color: var(--c-blue);
+    --alert-color: var(--c-cyan);
     display: flex;
     align-items: flex-start;
     gap: var(--space-2);
@@ -264,9 +265,11 @@
     border-color: var(--border-strong);
 }
 
+/* A chosen option is a selection state — interaction, so the interaction
+   hue, not the semantic safety-net blue it used to borrow. */
 .origin-toggle__option.is-active {
-    background-color: var(--c-blue-bg);
-    border-color: var(--c-blue);
+    background-color: var(--action-bg);
+    border-color: var(--action);
 }
 
 .origin-toggle__option strong {

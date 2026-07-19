@@ -70,6 +70,11 @@ class User extends Authenticatable
         return $this->hasMany(Ticket::class, 'assigned_backend_id');
     }
 
+    public function assignedDevops(): HasMany
+    {
+        return $this->hasMany(Ticket::class, 'devops_id');
+    }
+
     public function subtasks(): HasMany
     {
         return $this->hasMany(TicketSubtask::class, 'assignee_id');

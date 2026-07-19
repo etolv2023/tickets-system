@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Casts\TicketStatusValue;
 use App\Http\Requests\BoardMoveRequest;
 use App\Models\Ticket;
+use App\Models\TicketStatusDefinition;
 use App\Services\ActivityLogger;
 use App\Services\TicketWorkflowService;
 use DomainException;
@@ -74,6 +75,10 @@ class BoardMoveController extends Controller
             'landed' => $landed,
             'status' => $ticket->status->value,
             'label' => $ticket->status->label(),
+            // Only ever one honest reason left: this person's side moved, and
+            // another side has not. Everything else that could leave the ticket
+            // behind is refused above with its own message rather than reported
+            // here under a guess.
             'message' => $landed
                 ? null
                 : "اتسجّل إن شغلك خلص، بس التذكرة لسه في «{$ticket->status->label()}» — فيه جهة تانية لسه شغالة.",
@@ -94,6 +99,13 @@ class BoardMoveController extends Controller
         // Both readings are the same gesture, so the log's state picks the verb
         // rather than the user having to.
         if ($column === 'in_progress') {
+            // A resolved or closed ticket has done work logs, so resume() would
+            // happily reopen them — and then leave the ticket where it was,
+            // because resolved cannot reach in_progress. Reopening a delivered
+            // ticket is the ارتجاع action: it needs a reason on the record, and
+            // a drag has nowhere to ask for one.
+            $this->requireReachable($ticket, 'in_progress');
+
             $this->drive($ticket, $actorId, ['pending' => 'start', 'done' => 'resume']);
 
             return;
@@ -123,6 +135,36 @@ class BoardMoveController extends Controller
         }
 
         $this->workflow->transition($ticket, TicketStatusValue::for($target), $actorId, 'نقل من البورد');
+    }
+
+    /**
+     * The work-log columns act on ticket_work_logs, so they bypass
+     * transition()'s own graph check — which means they have to make it
+     * themselves, or they leave the logs and the ticket disagreeing.
+     */
+    private function requireReachable(Ticket $ticket, string $target): void
+    {
+        $from = $ticket->status;
+
+        if ($from->value === $target) {
+            return;
+        }
+
+        if (in_array($target, TicketStatusDefinition::transitionMap()[$from->value] ?? [], true)) {
+            return;
+        }
+
+        throw new DomainException(
+            "مينفعش تنقل التذكرة من «{$from->label()}» لـ «{$this->labelFor($target)}»"
+            . ($from->value === 'resolved' || $from->value === 'closed'
+                ? ' — لو محتاج تشتغل عليها تاني، استخدم «الارتجاع» في صفحة التذكرة (بيطلب سبب).'
+                : '.')
+        );
+    }
+
+    private function labelFor(string $key): string
+    {
+        return TicketStatusDefinition::map()[$key]->name_ar ?? $key;
     }
 
     /**

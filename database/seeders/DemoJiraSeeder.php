@@ -97,7 +97,10 @@ class DemoJiraSeeder extends Seeder
         $labels = [
             'عاجل للعميل' => 'red',
             'ريجريشن' => 'red',
-            'محتاج تصميم' => 'blue',
+            // Teal, not blue — blue is reserved for interactive chrome and the
+            // seeder runs AFTER the blue→teal remap migration, so a blue row
+            // here would sneak the forbidden hue back in.
+            'محتاج تصميم' => 'teal',
             'أداء' => 'green',
             'مستني رد العميل' => 'amber',
         ];

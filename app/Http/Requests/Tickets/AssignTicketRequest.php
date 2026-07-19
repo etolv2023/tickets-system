@@ -34,6 +34,13 @@ class AssignTicketRequest extends FormRequest
                 'nullable', 'integer',
                 Rule::exists('users', 'id')->where('is_active', true),
             ],
+            // Role, not skills — same as the tester. `skills` is a flat enum
+            // whose "both" already means frontend+backend, so a third side has
+            // no expressible value there.
+            'devops_id' => [
+                'nullable', 'integer',
+                Rule::exists('users', 'id')->where('is_active', true),
+            ],
         ];
     }
 
@@ -43,6 +50,7 @@ class AssignTicketRequest extends FormRequest
             'assigned_frontend_id' => 'مبرمج الفرونت',
             'assigned_backend_id' => 'مبرمج الباك',
             'tester_id' => 'التيستر',
+            'devops_id' => 'الديف أوبس',
         ];
     }
 

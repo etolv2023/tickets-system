@@ -46,10 +46,10 @@ class TicketController extends Controller
             ->select([
                 'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'scope', 'priority',
                 'status', 'reported_at', 'sla_due_at', 'resolved_at', 'updated_at',
-                'assigned_frontend_id', 'assigned_backend_id', 'tester_id', 'created_by',
+                'assigned_frontend_id', 'assigned_backend_id', 'tester_id', 'devops_id', 'created_by',
                 'subtasks_total', 'subtasks_done',
             ])
-            ->with(['company:id,name,code', 'requester:id,name', 'frontend:id,name,avatar_path,is_active', 'backend:id,name,avatar_path,is_active'])
+            ->with(['company:id,name,code', 'requester:id,name', 'frontend:id,name,avatar_path,is_active', 'backend:id,name,avatar_path,is_active', 'devops:id,name,avatar_path,is_active'])
             ->visibleTo($request->user())
             ->filter($filters)
             ->defaultOrder()
@@ -130,7 +130,7 @@ class TicketController extends Controller
             return;
         }
 
-        $assignees = $request->only('assigned_frontend_id', 'assigned_backend_id', 'tester_id');
+        $assignees = $request->only('assigned_frontend_id', 'assigned_backend_id', 'tester_id', 'devops_id');
 
         if (collect($assignees)->filter()->isEmpty()) {
             return;
@@ -296,6 +296,7 @@ class TicketController extends Controller
             $ticket->assigned_frontend_id,
             $ticket->assigned_backend_id,
             $ticket->tester_id,
+            $ticket->devops_id,
         ])
             ->merge($ticket->subtasks->pluck('assignee_id'))
             ->merge($ticket->statusHistory->pluck('user_id'))
@@ -324,6 +325,7 @@ class TicketController extends Controller
         $ticket->setRelation('frontend', $people->get($ticket->assigned_frontend_id));
         $ticket->setRelation('backend', $people->get($ticket->assigned_backend_id));
         $ticket->setRelation('tester', $people->get($ticket->tester_id));
+        $ticket->setRelation('devops', $people->get($ticket->devops_id));
 
         $ticket->subtasks->each(fn ($s) => $s->setRelation('assignee', $people->get($s->assignee_id)));
         $ticket->statusHistory->each(function ($h) use ($people, $contacts) {
@@ -419,11 +421,15 @@ class TicketController extends Controller
             ->get();
 
         $testerRoleId = Role::idByKey('tester');
+        $devopsRoleId = Role::idByKey('devops');
 
         return [
             'frontend' => $users->filter(fn (User $u) => $u->skills->coversFrontend())->values(),
             'backend' => $users->filter(fn (User $u) => $u->skills->coversBackend())->values(),
             'testers' => $users->filter(fn (User $u) => $u->role_id === $testerRoleId)->values(),
+            // By role, like testers. Developers are filtered by skills because
+            // "both" exists there; devops has no such value to filter on.
+            'devops' => $users->filter(fn (User $u) => $u->role_id === $devopsRoleId)->values(),
         ];
     }
 }

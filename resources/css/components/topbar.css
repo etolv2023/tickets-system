@@ -1,8 +1,12 @@
 /* Topbar — fixed-height strip above the scrolling body.
 
-   Its controls are deliberately quiet: same surface as the page background,
-   hairline border, no fill. Colour in this bar would compete with the badges
-   in the content below it, which are the things that actually mean something. */
+   ★ Redesign (2026-07-19): the bar dropped from the card plane to the PAGE
+   plane. A card-coloured strip up top read as one more surface competing with
+   the real cards below it; on the page plane with a subtle hairline it is
+   chrome — present, never a participant. The controls went ghost for the same
+   reason: a row of bordered boxes was three little cards in the sky. Colour
+   in this bar would compete with the badges in the content below it, which
+   are the things that actually mean something. */
 
 .topbar {
     height: var(--topbar-height);
@@ -11,8 +15,8 @@
     align-items: center;
     gap: var(--space-3);
     padding-inline: var(--space-5);
-    background-color: var(--surface);
-    border-block-end: 1px solid var(--border);
+    background-color: var(--bg);
+    border-block-end: 1px solid var(--border-subtle);
     /* Stays with you while the document scrolls under it. */
     position: sticky;
     top: 0;
@@ -26,7 +30,8 @@
     white-space: nowrap;
 }
 
-/* Shared shape for every square control in the bar. */
+/* Shared shape for every square control in the bar — a ghost: no fill, no
+   border, the glyph alone. The hover fill supplies the edge on demand. */
 .topbar__btn,
 .topbar__toggle {
     display: inline-flex;
@@ -36,18 +41,18 @@
     height: 2.0625rem;
     flex: none;
     padding: 0;
-    background-color: var(--bg);
-    border: 1px solid var(--border);
+    background-color: transparent;
+    border: 0;
     border-radius: var(--radius);
-    color: var(--text);
+    color: var(--text-subtle);
     cursor: pointer;
-    transition: background-color var(--transition), border-color var(--transition);
+    transition: background-color var(--transition), color var(--transition);
 }
 
 .topbar__btn:hover,
 .topbar__toggle:hover {
     background-color: var(--hover);
-    border-color: var(--border-strong);
+    color: var(--text);
 }
 
 .topbar__btn:focus-visible,
@@ -75,17 +80,22 @@
     pointer-events: none;
 }
 
+/* A well, not a box: the field sits one step behind the bar with no border at
+   rest — same grammar as every form field (--field-bg, § form.css). Focus
+   answers in the interaction hue, because a focused control is the definition
+   of interactive. */
 .topbar__search input {
     width: 100%;
     padding-block: var(--space-2);
     padding-inline-start: calc(var(--space-6) + var(--space-1));
     padding-inline-end: var(--space-3);
-    background-color: var(--bg);
-    border: 1px solid var(--border);
+    background-color: var(--field-bg);
+    border: 1px solid transparent;
     border-radius: var(--radius);
     color: var(--text);
     font-family: inherit;
     font-size: var(--text-sm);
+    transition: background-color var(--transition), border-color var(--transition), box-shadow var(--transition);
 }
 
 .topbar__search input::placeholder {
@@ -94,8 +104,9 @@
 
 .topbar__search input:focus {
     outline: none;
-    border-color: var(--border-strong);
-    background-color: var(--surface);
+    border-color: var(--action);
+    box-shadow: 0 0 0 3px var(--action-bg);
+    background-color: var(--field-bg-focus);
 }
 
 /* Clear the browser's native search affordances — they break the RTL padding. */
@@ -150,7 +161,11 @@
     padding-inline: 4px;
     background-color: var(--c-red);
     border-radius: var(--radius-full);
-    color: var(--on-solid);
+    /* var(--surface), not --on-solid: the fill is the theme-tuned red INK,
+       which in dark mode is a pastel too light to carry white text. The card
+       colour reads as "white" in light mode and as dark ink on the pastel in
+       dark mode — AA in both without a theme-aware rule. */
+    color: var(--surface);
     font-family: var(--font-mono);
     font-size: var(--text-2xs);
     font-weight: var(--weight-medium);

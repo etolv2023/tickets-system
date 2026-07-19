@@ -29,6 +29,7 @@ class DemoUserSeeder extends Seeder
             // skills = both puts this one in BOTH assignment lists. F00.3
             ['ياسمين فؤاد', 'fullstack@etolv.test', 'frontend', UserSkill::Both, []],
             ['أحمد منصور', 'tester@etolv.test', 'tester', UserSkill::None, []],
+            ['طارق سليم', 'devops@etolv.test', 'devops', UserSkill::None, []],
             // is_active = false must be refused at login with a clear message. F00.2
             ['سلمى راضي', 'inactive@etolv.test', 'support', UserSkill::None, ['is_active' => false]],
             // Mimics an Excel-imported user: blocked until they set a password. F02
