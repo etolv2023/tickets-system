@@ -5,6 +5,7 @@ import lightbox from './components/lightbox';
 import pointMatrix from './components/point-matrix';
 import combobox from './components/combobox';
 import bell from './components/bell';
+import notifyPermission from './components/notify-permission';
 import registerSubmitGuard from './components/submit-guard';
 
 // Before Alpine, and before anything else can attach a submit handler: a
@@ -175,6 +176,7 @@ Alpine.data('lightbox', lightbox);
 Alpine.data('pointMatrix', pointMatrix);
 Alpine.data('combobox', combobox);
 Alpine.data('bell', bell);
+Alpine.data('notifyPermission', notifyPermission);
 
 window.Alpine = Alpine;
 Alpine.start();

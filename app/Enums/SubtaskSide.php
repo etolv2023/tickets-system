@@ -12,6 +12,7 @@ enum SubtaskSide: string
     case Backend = 'backend';
     case Qa = 'qa';
     case Support = 'support';
+    case Devops = 'devops';
     case Other = 'other';
 
     public function label(): string
@@ -21,11 +22,19 @@ enum SubtaskSide: string
             self::Backend => 'باك',
             self::Qa => 'اختبار',
             self::Support => 'دعم',
+            self::Devops => 'ديف أوبس',
             self::Other => 'أخرى',
         };
     }
 
-    /** Only these two gate a work log's "خلصت". F07 */
+    /**
+     * Only these two gate a work log's "خلصت". F07
+     *
+     * Devops is deliberately not one of them: it holds no work log, so there is
+     * nothing for it to block. An open devops subtask still stops the TICKET
+     * reaching resolved — subtaskBlocker() counts every side — but it does not
+     * stop the frontend or the backend declaring their own work finished.
+     */
     public function blocksWorkLog(): bool
     {
         return $this === self::Frontend || $this === self::Backend;
@@ -43,6 +52,7 @@ enum SubtaskSide: string
             self::Backend => PointSide::Backend,
             self::Qa => PointSide::Tester,
             self::Support => PointSide::Support,
+            self::Devops => PointSide::Devops,
             self::Other => null,
         };
     }

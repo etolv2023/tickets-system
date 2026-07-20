@@ -33,7 +33,7 @@
                 </div>
             @endcan
 
-            <div class="stat-tile stat-tile--blue">
+            <div class="stat-tile stat-tile--teal">
                 <div class="stat-tile__figure">{{ $counts['blockingOthers'] }}</div>
                 <div class="stat-tile__caption">تذاكر شغلك بيبلوكها</div>
             </div>

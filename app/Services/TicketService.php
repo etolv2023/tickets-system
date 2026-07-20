@@ -138,6 +138,22 @@ class TicketService
     }
 
     /**
+     * F03 — a soft delete, so the ticket number is never reused
+     * (TicketNumberService already counts trashed rows).
+     */
+    public function delete(Ticket $ticket): void
+    {
+        DB::transaction(function () use ($ticket) {
+            // ticket_subtasks' FK is cascadeOnDelete — a database-level rule
+            // that never fires on a soft delete. Without this line the ticket
+            // disappears from every list while its subtasks stay live on the
+            // calendar, which queries ticket_subtasks in its own right.
+            $ticket->subtasks()->delete();
+            $ticket->delete();
+        });
+    }
+
+    /**
      * Every piece of editor HTML passes through here before it is stored — on
      * the server, never in the browser (F04.1, CLAUDE.md § 5).
      */

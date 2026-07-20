@@ -137,6 +137,7 @@ class TicketPolicy
             $ticket->assigned_frontend_id,
             $ticket->assigned_backend_id,
             $ticket->tester_id,
+            $ticket->devops_id,
         ], true);
     }
 }

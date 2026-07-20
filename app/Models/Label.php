@@ -15,10 +15,16 @@ class Label extends Model
      * @var array<string, string>
      */
     /* The full picker. Keys are hue names, not role names: an admin choosing a
-       colour for a custom status is picking "أزرق", not "inquiry".
+       colour for a custom status is picking "تركوازي", not "progress".
        Every hue here has a matching --c-<key> / --c-<key>-bg token pair in
        tokens.css and a .badge--<key> / .stripe--<key> rule. Adding one means
-       adding all three. */
+       adding all three.
+
+       'blue' is deliberately absent (redesign 2026-07-19): blue is reserved
+       for interactive chrome — anything blue is a control, never a state.
+       Existing blue rows were remapped to teal by migration; the --c-blue
+       tokens and .badge--blue/.stripe--blue rules survive only as a safety
+       net for rows that predate the remap. */
     public const COLORS = [
         'red' => 'أحمر',
         'rose' => 'وردي',
@@ -29,7 +35,6 @@ class Label extends Model
         'green' => 'أخضر',
         'teal' => 'تركوازي',
         'cyan' => 'سماوي',
-        'blue' => 'أزرق',
         'indigo' => 'نيلي',
         'violet' => 'بنفسجي',
         'plum' => 'خوخي',

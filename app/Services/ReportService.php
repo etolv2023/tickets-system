@@ -31,6 +31,7 @@ class ReportService
             ->where(fn ($q) => $q
                 ->where('assigned_frontend_id', $user->id)
                 ->orWhere('assigned_backend_id', $user->id)
+                ->orWhere('devops_id', $user->id)
                 ->orWhere('created_by', $user->id))
             ->groupBy('type')
             ->pluck('n', 'type')
@@ -86,7 +87,8 @@ class ReportService
             ->whereBetween('resolved_at', [$from, $to])
             ->where(fn ($q) => $q
                 ->where('assigned_frontend_id', $user->id)
-                ->orWhere('assigned_backend_id', $user->id))
+                ->orWhere('assigned_backend_id', $user->id)
+                ->orWhere('devops_id', $user->id))
             ->count();
 
         $reopened = DB::table('ticket_status_history')
@@ -95,7 +97,8 @@ class ReportService
             ->whereBetween('ticket_status_history.created_at', [$from, $to])
             ->where(fn ($q) => $q
                 ->where('tickets.assigned_frontend_id', $user->id)
-                ->orWhere('tickets.assigned_backend_id', $user->id))
+                ->orWhere('tickets.assigned_backend_id', $user->id)
+                ->orWhere('tickets.devops_id', $user->id))
             ->count();
 
         return [
@@ -124,6 +127,7 @@ class ReportService
             ->selectRaw("SUM(CASE WHEN side = 'frontend' THEN points ELSE 0 END) frontend")
             ->selectRaw("SUM(CASE WHEN side = 'backend'  THEN points ELSE 0 END) backend")
             ->selectRaw("SUM(CASE WHEN side = 'tester'   THEN points ELSE 0 END) tester")
+            ->selectRaw("SUM(CASE WHEN side = 'devops'   THEN points ELSE 0 END) devops")
             ->forPeriod($period)
             ->groupBy('user_id')
             ->orderByDesc('total')
@@ -264,11 +268,12 @@ class ReportService
             ->withCount([
                 'assignedFrontend as frontend_open' => fn ($q) => $q->whereNotIn('status', ['resolved', 'closed', 'rejected']),
                 'assignedBackend as backend_open' => fn ($q) => $q->whereNotIn('status', ['resolved', 'closed', 'rejected']),
+                'assignedDevops as devops_open' => fn ($q) => $q->whereNotIn('status', ['resolved', 'closed', 'rejected']),
             ])
             ->active()
             ->get()
-            ->filter(fn ($u) => $u->frontend_open > 0 || $u->backend_open > 0)
-            ->sortByDesc(fn ($u) => $u->frontend_open + $u->backend_open)
+            ->filter(fn ($u) => $u->frontend_open > 0 || $u->backend_open > 0 || $u->devops_open > 0)
+            ->sortByDesc(fn ($u) => $u->frontend_open + $u->backend_open + $u->devops_open)
             ->values();
     }
 
@@ -307,7 +312,8 @@ class ReportService
             ->whereBetween('resolved_at', [$from, $to])
             ->where(fn ($q) => $q
                 ->where('assigned_frontend_id', $user->id)
-                ->orWhere('assigned_backend_id', $user->id))
+                ->orWhere('assigned_backend_id', $user->id)
+                ->orWhere('devops_id', $user->id))
             ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, reported_at, resolved_at)) h')
             ->value('h');
 
@@ -324,6 +330,7 @@ class ReportService
                 ->where('assigned_frontend_id', $user->id)
                 ->orWhere('assigned_backend_id', $user->id)
                 ->orWhere('tester_id', $user->id)
+                ->orWhere('devops_id', $user->id)
                 ->orWhere('created_by', $user->id))
             ->orderByDesc('resolved_at')
             ->limit(100)

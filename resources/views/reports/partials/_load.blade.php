@@ -10,6 +10,7 @@
                     <th>المبرمج</th>
                     <th class="table__cell--num">فرونت</th>
                     <th class="table__cell--num">باك</th>
+                    <th class="table__cell--num">ديف أوبس</th>
                     <th class="table__cell--num">الإجمالي</th>
                 </tr>
             </thead>
@@ -24,10 +25,11 @@
                         </td>
                         <td class="table__cell--num">{{ $person->frontend_open }}</td>
                         <td class="table__cell--num">{{ $person->backend_open }}</td>
-                        <td class="table__cell--num">{{ $person->frontend_open + $person->backend_open }}</td>
+                        <td class="table__cell--num">{{ $person->devops_open }}</td>
+                        <td class="table__cell--num">{{ $person->frontend_open + $person->backend_open + $person->devops_open }}</td>
                     </tr>
                 @empty
-                    <tr class="table__empty"><td colspan="4">مفيش شغل مفتوح على حد.</td></tr>
+                    <tr class="table__empty"><td colspan="5">مفيش شغل مفتوح على حد.</td></tr>
                 @endforelse
             </tbody>
         </table>

@@ -84,7 +84,7 @@
         {{-- The totals describe what the filter selected, never the whole
              ledger: a total that ignores the filter above it is a trap. --}}
         <div class="today-stats">
-            <div class="stat-tile stat-tile--blue">
+            <div class="stat-tile stat-tile--teal">
                 <div class="stat-tile__figure">{{ $n($summary->total) }}</div>
                 <div class="stat-tile__caption">إجمالي النقاط في النتيجة دي</div>
             </div>

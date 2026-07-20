@@ -1,4 +1,4 @@
-{{-- $assignable comes from the controller: three queries paid once, and only
+{{-- $assignable comes from the controller: one query paid once, and only
      for someone who can actually assign. No query lives in a view. § 3 --}}
 <x-collapsible-card title="التوزيع">
     @error('assign')
@@ -31,6 +31,15 @@
                 <option value="">— مفيش —</option>
                 @foreach ($assignable['testers'] as $tester)
                     <option value="{{ $tester->id }}" @selected($ticket->tester_id === $tester->id)>{{ $tester->name }}</option>
+                @endforeach
+            </select>
+        </x-field>
+
+        <x-field name="devops_id" label="ديف أوبس" hint="مالوش زرار «بدأت/خلصت» — التذكرة بتوصل «تم التطوير» من غيره.">
+            <select id="devops_id" name="devops_id" class="select">
+                <option value="">— مفيش —</option>
+                @foreach ($assignable['devops'] as $person)
+                    <option value="{{ $person->id }}" @selected($ticket->devops_id === $person->id)>{{ $person->name }}</option>
                 @endforeach
             </select>
         </x-field>

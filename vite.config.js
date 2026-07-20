@@ -9,6 +9,7 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
+                'resources/js/features/subtasks.js',
                 'resources/js/features/board.js',
                 'resources/js/features/calendar.js',
             ],

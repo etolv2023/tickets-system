@@ -1,0 +1,103 @@
+/* Folding nav groups — split from nav.css (300-line rule, CLAUDE.md § 3).
+   Seven small, named groups instead of one long scroll — each heading has to
+   read as a section break, not just another row the same shape as a link. */
+
+/* Space separates the groups, not a rule. Six hairlines stacked down a 210px
+   column read as a table of contents; the gap alone does the same job without
+   adding six more lines to a screen that already has plenty. */
+.nav-group + .nav-group {
+    margin-block-start: var(--space-4);
+}
+
+.nav-group__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding-block: var(--space-1);
+    padding-inline: var(--space-2);
+    background: none;
+    border: 0;
+    border-radius: var(--radius);
+    color: var(--text-subtle);
+    cursor: pointer;
+    /* Deliberately no hover fill — that treatment is a link's, and a header
+       filling in on hover is what made it read as just another row. */
+    transition: color var(--transition);
+}
+
+.nav-group__head:hover {
+    color: var(--text);
+}
+
+.nav-group__head:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: -2px;
+}
+
+.nav-group__heading {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+}
+
+.nav-group__icon {
+    flex-shrink: 0;
+    color: var(--text-subtle);
+}
+
+/* ---- Why the seven group hues are gone ----
+
+   § 6 used to give every group its own hue from the ten extra swatches, so a
+   section could be recognised by colour. In practice seven saturated hues in a
+   210px column is a rainbow: it made the rail the loudest thing on screen and,
+   worse, it spent colour on navigation — the one part of the app where nothing
+   is ever urgent. The five semantic hues then had to shout over it.
+
+   Structure now comes from position and weight, and the rail's only colour is
+   the current page. That is the one thing in the nav that IS information. */
+
+/* A heading, not a link: smaller and tracked out so it reads as a label over
+   the rows rather than as the first row. This is the whole reason the group
+   hues are no longer needed — the shape says "section" on its own. */
+.nav-group__title {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-heavy);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nav-group__chevron {
+    flex: none;
+    transition: transform var(--transition);
+}
+
+.nav-group__head[aria-expanded='false'] .nav-group__chevron {
+    transform: rotate(180deg);
+}
+
+.nav-group__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* On the collapsed rail there are no headings to fold — the icons are the
+   whole menu, so every group is simply open. (The drawer file reverts this
+   below the breakpoint: a drawer always shows its headings.) */
+:root[data-sidebar='collapsed'] .nav-group__head {
+    display: none;
+}
+
+:root[data-sidebar='collapsed'] .nav-group__body {
+    display: flex !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nav-group__chevron {
+        transition: none;
+    }
+}

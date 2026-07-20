@@ -7,7 +7,7 @@
                 <div class="progress__track">
                     <div class="progress__bar" style="--value: {{ $ticket->progressPercent() }}%"></div>
                 </div>
-                <span class="progress__label">{{ $ticket->subtasks_done }}/{{ $ticket->subtasks_total }} مكتملة</span>
+                <span class="progress__label"><span data-subtask-counter>{{ $ticket->subtasks_done }}/{{ $ticket->subtasks_total }}</span> مكتملة</span>
             </div>
         @endif
     </x-slot:actions>

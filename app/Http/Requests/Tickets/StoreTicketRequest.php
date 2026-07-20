@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Tickets;
 
+use App\Enums\SubtaskSide;
 use App\Enums\TicketScope;
 use App\Enums\TicketType;
 use App\Models\Company;
@@ -32,6 +33,17 @@ class StoreTicketRequest extends FormRequest
         $this->merge($this->isInternal()
             ? ['company_id' => null, 'contact_id' => null, 'reporter_name' => null]
             : ['requested_by' => null]);
+
+        // An untouched repeater row is not an error, it is a row the user did
+        // not fill. Dropping the blanks here is what makes "empty repeater ==
+        // today's behaviour" literally true rather than approximately true —
+        // otherwise a row added and then ignored would fail required on title.
+        if (is_array($rows = $this->input('subtasks'))) {
+            $this->merge(['subtasks' => array_values(array_filter(
+                $rows,
+                fn ($row) => filled($row['title'] ?? null)
+            ))]);
+        }
     }
 
     public function rules(): array
@@ -81,6 +93,14 @@ class StoreTicketRequest extends FormRequest
             'assigned_frontend_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
             'assigned_backend_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
             'tester_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
+            'devops_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
+
+            // F08 — the optional inline plan. store() consumes validated(), so
+            // without these rules the rows would be silently dropped.
+            'subtasks' => ['nullable', 'array', 'max:20'],
+            'subtasks.*.title' => ['required', 'string', 'max:255'],
+            'subtasks.*.side' => ['nullable', Rule::enum(SubtaskSide::class)],
+            'subtasks.*.due_date' => ['nullable', 'date'],
         ];
     }
 
@@ -127,6 +147,11 @@ class StoreTicketRequest extends FormRequest
             'assigned_frontend_id' => 'مبرمج فرونت',
             'assigned_backend_id' => 'مبرمج باك',
             'tester_id' => 'تيستر',
+            'devops_id' => 'ديف أوبس',
+            'subtasks' => 'الصب تاسكس',
+            'subtasks.*.title' => 'عنوان الصب تاسك',
+            'subtasks.*.side' => 'جهة الصب تاسك',
+            'subtasks.*.due_date' => 'تاريخ استحقاق الصب تاسك',
         ];
     }
 }

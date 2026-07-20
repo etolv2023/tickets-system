@@ -1,0 +1,252 @@
+/* Colour tokens — the ramp, the surfaces, the semantic hues. Split out of
+   tokens.css when that file passed the 300-line rule (CLAUDE.md § 3).
+
+   ---- The ramp ----
+
+   A 13-step COOL neutral ramp (--n-0 … --n-12) is the spine. Every surface,
+   border and text colour is a named position on that ramp rather than a loose
+   hex, which means "one step lighter" is a real, repeatable move.
+
+   ★ Redesign (2026-07-19): the warm paper ramp became this cool one — every
+   step carries a faint blue tint (hue family ≈ 215°) — and the interactive
+   accent moved from indigo to a calm blue. The rule that pays for the whole
+   change: ANYTHING BLUE IS INTERACTIVE. No status, priority, type or label
+   may be blue; their rows were migrated to teal and 'blue' left the admin
+   palette (Label::COLORS). A blue pixel is a promise that touching it does
+   something. (The --c-blue tokens below survive only as a safety net for
+   unmigrated rows.)
+
+   Each semantic hue gets three steps:
+       --c-<name>-bg     the tint it sits on
+       --c-<name>-line   its border — derived, never hand-authored
+       --c-<name>        the ink
+
+   Every ink here clears WCAG AA (4.5:1) on its own tint, on a card and on the
+   page, in both themes — measured with the WCAG luminance formula, not
+   eyeballed. Worst light pair: teal ink on the page, 4.57:1. The interaction
+   blue was darkened one step (#35659c → #336299) during that audit because it
+   sat at 4.48:1 on the nav rail. */
+
+:root {
+    /* Tells the browser which way this theme runs. Without it the OS-drawn
+       parts of a control — the <select> popup list, scrollbars, the date
+       picker, autofill — stay in light mode no matter what the tokens say. */
+    color-scheme: light;
+
+    /* ---- Cool neutral ramp — the spine of the whole system ----
+       0 is the lightest, 12 the darkest, in the LIGHT theme; the dark theme
+       redefines all thirteen rather than inverting the scale, so a component
+       that asks for --n-1 always means "the surface a card sits on". */
+    --n-0: #ffffff;
+    --n-1: #fafbfc;
+    --n-2: #f1f4f7;
+    --n-3: #e7ebf1;
+    --n-4: #d9dfe7;
+    --n-5: #ccd3dd;
+    --n-6: #bac2ce;
+    --n-7: #a4adbb;
+    --n-8: #87909f;
+    --n-9: #5b6370;
+    --n-10: #454e5b;
+    --n-11: #2a313b;
+    --n-12: #161b23;
+
+    /* ---- Semantic hues — the only colours allowed to carry meaning ----
+       The ink and the tint are hand-tuned per theme; a mechanical tint of a
+       muted hue goes muddy on a tinted background, so these two are not
+       derived. Teal took over blue's old jobs (جاري العمل، تحت الاختبار،
+       متوسط): it is 40° away from the interaction blue where cyan is only
+       15°, which at badge size — and for red-green colour blindness — is the
+       difference between a distinct hue and a synonym. */
+    --c-red: #b23f37;
+    --c-red-bg: #fbecea;
+    --c-amber: #8d5f09;
+    --c-amber-bg: #f8f0dd;
+    --c-blue: #3467a0;
+    --c-blue-bg: #e8eef7;
+    --c-green: #327349;
+    --c-green-bg: #e9f3ec;
+    --c-slate: #556170;
+    --c-slate-bg: #ecf0f4;
+    --c-rose: #b03d63;
+    --c-rose-bg: #fceaf0;
+    --c-orange: #a4511a;
+    --c-orange-bg: #faeee3;
+    --c-yellow: #7a680a;
+    --c-yellow-bg: #f7f3da;
+    --c-lime: #59711a;
+    --c-lime-bg: #eff4de;
+    --c-teal: #17766b;
+    --c-teal-bg: #e2f2ef;
+    --c-cyan: #29708f;
+    --c-cyan-bg: #e5f1f6;
+    --c-indigo: #4f5ab3;
+    --c-indigo-bg: #ebecfa;
+    --c-violet: #7a4fb0;
+    --c-violet-bg: #f2ebfa;
+    --c-plum: #94477c;
+    --c-plum-bg: #f9e9f3;
+    --c-brown: #7a5a40;
+    --c-brown-bg: #f5efe8;
+
+    /* ---- The third step: a border tint for every hue ----
+       Mixed rather than authored. Both inputs are theme-tuned already, so this
+       lands correctly in dark mode without a single extra declaration. It is
+       what lets a tinted panel have an edge instead of bleeding into the page.
+       24% rather than the old 30%: the cool tints are lighter than the warm
+       ones were, and the heavier mix read as a drawn outline. */
+    --c-red-line: color-mix(in srgb, var(--c-red) 24%, var(--c-red-bg));
+    --c-amber-line: color-mix(in srgb, var(--c-amber) 24%, var(--c-amber-bg));
+    --c-blue-line: color-mix(in srgb, var(--c-blue) 24%, var(--c-blue-bg));
+    --c-green-line: color-mix(in srgb, var(--c-green) 24%, var(--c-green-bg));
+    --c-slate-line: color-mix(in srgb, var(--c-slate) 24%, var(--c-slate-bg));
+    --c-rose-line: color-mix(in srgb, var(--c-rose) 24%, var(--c-rose-bg));
+    --c-orange-line: color-mix(in srgb, var(--c-orange) 24%, var(--c-orange-bg));
+    --c-yellow-line: color-mix(in srgb, var(--c-yellow) 24%, var(--c-yellow-bg));
+    --c-lime-line: color-mix(in srgb, var(--c-lime) 24%, var(--c-lime-bg));
+    --c-teal-line: color-mix(in srgb, var(--c-teal) 24%, var(--c-teal-bg));
+    --c-cyan-line: color-mix(in srgb, var(--c-cyan) 24%, var(--c-cyan-bg));
+    --c-indigo-line: color-mix(in srgb, var(--c-indigo) 24%, var(--c-indigo-bg));
+    --c-violet-line: color-mix(in srgb, var(--c-violet) 24%, var(--c-violet-bg));
+    --c-plum-line: color-mix(in srgb, var(--c-plum) 24%, var(--c-plum-bg));
+    --c-brown-line: color-mix(in srgb, var(--c-brown) 24%, var(--c-brown-bg));
+
+    /* ---- Semantic roles — aliases onto the hues above ----
+       Roles are what components reference. The hue is an implementation
+       detail, so re-pointing a role never touches a component file.
+       ★ Blue left semantics: --c-medium and --c-progress moved to teal, and
+       --c-feature to violet (matching what the DB rows already render). */
+    /* Priority */
+    --c-urgent: var(--c-red);
+    --c-urgent-bg: var(--c-red-bg);
+    --c-urgent-line: var(--c-red-line);
+    --c-high: var(--c-amber);
+    --c-high-bg: var(--c-amber-bg);
+    --c-high-line: var(--c-amber-line);
+    --c-medium: var(--c-teal);
+    --c-medium-bg: var(--c-teal-bg);
+    --c-medium-line: var(--c-teal-line);
+    --c-low: var(--c-slate);
+    --c-low-bg: var(--c-slate-bg);
+    --c-low-line: var(--c-slate-line);
+    /* Status */
+    --c-resolved: var(--c-green);
+    --c-resolved-bg: var(--c-green-bg);
+    --c-resolved-line: var(--c-green-line);
+    --c-progress: var(--c-teal);
+    --c-progress-bg: var(--c-teal-bg);
+    --c-progress-line: var(--c-teal-line);
+    --c-pending: var(--c-amber);
+    --c-pending-bg: var(--c-amber-bg);
+    --c-pending-line: var(--c-amber-line);
+    --c-assigned: var(--c-slate);
+    --c-assigned-bg: var(--c-slate-bg);
+    --c-assigned-line: var(--c-slate-line);
+    --c-blocked: var(--c-red);
+    --c-blocked-bg: var(--c-red-bg);
+    --c-blocked-line: var(--c-red-line);
+    /* Type */
+    --c-bug: var(--c-red);
+    --c-bug-bg: var(--c-red-bg);
+    --c-bug-line: var(--c-red-line);
+    --c-inquiry: var(--c-slate);
+    --c-inquiry-bg: var(--c-slate-bg);
+    --c-inquiry-line: var(--c-slate-line);
+    --c-feature: var(--c-violet);
+    --c-feature-bg: var(--c-violet-bg);
+    --c-feature-line: var(--c-violet-line);
+    --c-module: var(--c-green);
+    --c-module-bg: var(--c-green-bg);
+    --c-module-line: var(--c-green-line);
+
+    /* ---- Surfaces — positions on the ramp, not loose values ----
+       The stack is rail → page → card: the rail (--n-4) is RECESSED behind
+       the page the way a gutter sits behind a column, the page is --n-3, and
+       a card (--n-1) is genuinely lighter than its ground, which is what
+       makes it read as sitting on top.
+
+       ★ The cool planes sit slightly closer together than the warm ones did
+       (card/page 1.16:1, page/rail 1.12:1) because the redesigned cards carry
+       a real two-layer shadow — luminance no longer does the separating alone.
+       Every text step still clears AA on all four working surfaces. */
+    --bg: var(--n-3);
+    --surface: var(--n-1);
+    --surface-2: var(--n-2);
+    --surface-3: var(--n-3);
+    /* One step in front of a card — a popover, a dropdown menu, a tooltip.
+       These sit above the card layer, so they get the one pure white. */
+    --surface-raised: var(--n-0);
+    --nav-bg: var(--n-4);
+    /* Hover inside the rail has to move against --nav-bg, not against --bg. */
+    --nav-hover: var(--n-5);
+    --hover: var(--n-3);
+    --active: var(--n-4);
+    --chip: var(--n-3);
+
+    /* A field is a well: one step behind the surface around it, so it reads as
+       something you put things INTO. Focus then moves it one step forward.
+
+       These are their own tokens rather than --surface-2 / --surface because
+       "forward" is a different direction in each theme — on paper it means
+       lighter, on a dark ground it also means lighter, and --surface is DARKER
+       than --surface-2 in dark mode. Naming the intent instead of the plane is
+       what keeps the component file free of a single theme-aware rule. */
+    --field-bg: var(--n-2);
+    --field-bg-focus: var(--n-0);
+
+    /* ---- Text — three levels, each a ramp position ----
+       Measured on the cool ramp: --text 14.4-16.7:1, --text-muted 6.3-8.1:1,
+       --text-subtle 4.5-5.9:1 across n-1…n-4. Subtle text is guaranteed on
+       those four surfaces only; n-5 is a transient hover wash that never
+       carries subtle text. */
+    --text: var(--n-12);
+    --text-muted: var(--n-10);
+    --text-subtle: var(--n-9);
+    --text-inverse: #ffffff;
+
+    /* ---- Borders — hairlines carry the structure; shadows are for overlays ----
+       --border outlines a surface, --border-subtle divides rows inside one.
+       --border-strong composites to a true 3:1 edge against the card — it is
+       the token for any edge that is the SOLE indicator of a boundary (a
+       hover edge, a focused combobox). The ink is the ramp's darkest cool
+       hue, not black: a black hairline on a blue-grey ground reads warm. */
+    --border: rgb(23 32 48 / 0.14);
+    --border-subtle: rgb(23 32 48 / 0.08);
+    --border-strong: rgb(23 32 48 / 0.5);
+
+    /* ---- Always-dark surfaces: the lightbox backdrop, a terminal log.
+       These are dark in both themes by design, so they are NOT redefined
+       in tokens-dark.css — a migration log reads as a console either way. ---- */
+    --inverse-surface: #0f1115;
+    --inverse-text: #e6e9ee;
+    --inverse-text-muted: #98a1b0;
+    --overlay: rgb(9 12 18 / 0.5);
+
+    /* Ink on a solid semantic fill (a red danger button, the bell's count).
+       White in both themes on purpose: the fill under it is a saturated hue,
+       not a surface, so it does not follow the light/dark flip. Components
+       whose fill is a THEME-TUNED hue ink (badge--solid, the bell count) use
+       var(--surface) instead — the dark theme's pastel inks are too light to
+       carry white. */
+    --on-solid: #ffffff;
+    /* Mixed in to darken a solid fill on hover. Not a colour choice — an
+       operation — but it belongs here rather than inline in a component. */
+    --shade: #000000;
+
+    /* ---- Interactive: the ONE blue ----
+       ★ Redesign (2026-07-19): the accent moved from indigo to a calm blue,
+       and blue simultaneously left the semantic palette — so "is it blue?"
+       now has exactly one answer: it is interactive (or the brand speaking).
+       A button, a link, the nav-active row, an unread marker, a focus ring:
+       all this hue. A status, priority, type or label: never.
+       --action-bg is its own hex rather than an alias since indigo no longer
+       owns the accent; --action-line is derived like every hue line. */
+    --action: #336299;
+    --action-hover: #2d5787;
+    --action-text: #ffffff;
+    --action-bg: #e7eef6;
+    --action-line: color-mix(in srgb, var(--action) 24%, var(--action-bg));
+    /* The focus ring is an accessibility affordance, not decoration — and it
+       is interactive feedback, so it speaks the interaction hue. */
+    --focus: var(--action);
+}

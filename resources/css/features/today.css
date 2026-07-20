@@ -59,8 +59,10 @@ a.stat-tile:hover {
     --tile-color: var(--c-amber);
 }
 
-.stat-tile--blue {
-    --tile-color: var(--c-blue);
+/* Teal, not blue: a count of due work is a status statement, and blue is
+   reserved for controls (2026-07-19). */
+.stat-tile--teal {
+    --tile-color: var(--c-teal);
 }
 
 .stat-tile--green {

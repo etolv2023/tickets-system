@@ -35,7 +35,19 @@ class PointRuleSeeder extends Seeder
         ['feature', 'backend', ['support' => 1, 'backend' => 2, 'tester' => 0.5]],
         ['feature', 'both', ['support' => 1, 'frontend' => 2, 'backend' => 2, 'tester' => 0.5]],
 
-        ['new_module', 'any', ['support' => 1, 'frontend' => 3, 'backend' => 3, 'tester' => 1]],
+        ['new_module', 'any', ['support' => 1, 'frontend' => 3, 'backend' => 3, 'tester' => 1, 'devops' => 2]],
+
+        // DevOps sits on 'any' rather than getting a row per scope: scope names
+        // which DEVELOPMENT sides a ticket needs ('both' literally means
+        // frontend+backend), so it says nothing about deployment work. The
+        // lookup falls back from (type, scope, side) to (type, 'any', side),
+        // which is exactly the shape this needs.
+        //
+        // ★ These three numbers are a starting point, not a decision. Tune them
+        // from /admin/point-rules — firstOrCreate means re-seeding will never
+        // overwrite what you set there.
+        ['bug', 'any', ['devops' => 1]],
+        ['feature', 'any', ['devops' => 1.5]],
     ];
 
     public function run(): void

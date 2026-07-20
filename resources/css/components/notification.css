@@ -78,9 +78,10 @@
 }
 
 /* Unread carries a tinted ground and a marker, not just a bolder font: a
-   weight difference alone is invisible in a long list. */
+   weight difference alone is invisible in a long list. The tint is the
+   interaction hue — unread means "this one still wants your click". */
 .notif--unread {
-    background-color: color-mix(in srgb, var(--c-blue) 4%, var(--surface));
+    background-color: color-mix(in srgb, var(--action) 4%, var(--surface));
 }
 
 .notif__icon {
@@ -97,6 +98,9 @@
 
 .notif__icon--red { background-color: var(--c-red-bg); color: var(--c-red); }
 .notif__icon--amber { background-color: var(--c-amber-bg); color: var(--c-amber); }
+/* Assignments and mentions moved blue → cyan with the redesign (the emitter
+   is NotificationEvent::variant()); --blue stays as a safety net only. */
+.notif__icon--cyan { background-color: var(--c-cyan-bg); color: var(--c-cyan); }
 .notif__icon--blue { background-color: var(--c-blue-bg); color: var(--c-blue); }
 .notif__icon--green { background-color: var(--c-green-bg); color: var(--c-green); }
 .notif__icon--slate { background-color: var(--c-slate-bg); color: var(--c-slate); }
@@ -121,14 +125,15 @@
     color: var(--text-subtle);
 }
 
+/* "جديد" is the unread marker — interaction language, like the row tint. */
 .notif__new {
     padding-block: 1px;
     padding-inline: var(--space-2);
-    background-color: var(--c-blue-bg);
+    background-color: var(--action-bg);
     border-radius: var(--radius-full);
     font-size: var(--text-2xs);
     font-weight: var(--weight-heavy);
-    color: var(--c-blue);
+    color: var(--action);
 }
 
 .notif__text {
@@ -146,4 +151,33 @@
     gap: var(--space-2);
     font-size: var(--text-2xs);
     color: var(--text-subtle);
+}
+
+/* The browser-permission prompt. A real surface in the page flow, not a ghost
+   button in the header — the first version read as body text and was missed. */
+.notify-prompt {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-block-end: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    /* The prompt exists to be acted on — its whole body is a call to action,
+       so it speaks the interaction hue. */
+    background-color: var(--action-bg);
+    border: 1px solid var(--action-line);
+    border-radius: var(--radius-lg);
+}
+
+.notify-prompt__title {
+    font-weight: var(--weight-bold);
+    color: var(--action);
+}
+
+.notify-prompt__hint {
+    margin-block-start: var(--space-1);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    line-height: var(--leading-normal);
 }

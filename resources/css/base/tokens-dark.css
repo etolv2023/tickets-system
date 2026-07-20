@@ -1,0 +1,200 @@
+/* Dark-theme overrides — the same token names, redefined.
+
+   Two blocks, deliberately duplicated: the @media one follows the OS when the
+   user has not chosen, and the [data-theme] one wins when they have. Keeping
+   them identical is the point — a value that drifts between them shows up as a
+   theme that changes when you toggle it and back again. QA check:
+   extract both blocks and diff them; the diff must be empty.
+
+   The ramp is NOT an inversion. --n-1 is redefined lighter than --n-2 and
+   --n-3 on purpose: --n-1 always means "the surface a card sits on", so a
+   component asking for it gets the right plane in either theme.
+
+   ★ Redesign (2026-07-19): cool ramp (≈ 215°), lifted off pure black — the
+   rail is #0d0f13 and the page #16181d, so every plane has real room under
+   it. Hue inks are pastels tuned for AA on their own tints AND on the card
+   (worst pair 5.7:1); solid fills carry var(--surface) ink, not white.
+
+   Nothing here is a component rule. A [data-theme='dark'] selector in a
+   component file means a token was missing (CLAUDE.md § 6). */
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --n-0: #0d0f13;
+    --n-1: #262a31;
+    --n-2: #1d2026;
+    --n-3: #16181d;
+    --n-4: #2d323a;
+    --n-5: #363c45;
+    --n-6: #414855;
+    --n-7: #545c68;
+    --n-8: #717a89;
+    --n-9: #9fa8b7;
+    --n-10: #c1c8d2;
+    --n-11: #d8dce3;
+    --n-12: #e8ebf0;
+
+    --c-red: #e88b81;
+    --c-red-bg: #3a201e;
+    --c-amber: #d9ad5a;
+    --c-amber-bg: #2f2917;
+    --c-blue: #85aede;
+    --c-blue-bg: #1b2839;
+    --c-green: #74bd8b;
+    --c-green-bg: #17291e;
+    --c-slate: #a2aab6;
+    --c-slate-bg: #262a30;
+    --c-rose: #e289a0;
+    --c-rose-bg: #381d26;
+    --c-orange: #de9c66;
+    --c-orange-bg: #33251a;
+    --c-yellow: #ccb45c;
+    --c-yellow-bg: #2c2a18;
+    --c-lime: #a8c072;
+    --c-lime-bg: #232b18;
+    --c-teal: #5cc2b2;
+    --c-teal-bg: #122b28;
+    --c-cyan: #6fb7d4;
+    --c-cyan-bg: #142a33;
+    --c-indigo: #99a3e6;
+    --c-indigo-bg: #20233c;
+    --c-violet: #b596e2;
+    --c-violet-bg: #29203b;
+    --c-plum: #d093bb;
+    --c-plum-bg: #33202e;
+    --c-brown: #c0a188;
+    --c-brown-bg: #2e2620;
+
+    /* On a dark ground the card is the LIGHTER surface, so --surface reaches
+       up the ramp while --bg stays at its foot — the same relationship as the
+       light theme, read in the other direction. */
+    --bg: var(--n-3);
+    --surface: var(--n-1);
+    --surface-2: var(--n-4);
+    --surface-3: var(--n-5);
+    --surface-raised: var(--n-4);
+    --nav-bg: var(--n-0);
+    --nav-hover: var(--n-2);
+    --hover: var(--n-4);
+    --active: var(--n-5);
+    --chip: var(--n-4);
+
+    --field-bg: var(--n-4);
+    --field-bg-focus: var(--n-5);
+
+    /* Measured on the cool dark ramp: --text 9.3-14.9:1, --text-muted
+       6.6-10.5:1, --text-subtle 4.6-7.4:1 across n-1/n-3/n-4/n-5. */
+    --text: var(--n-12);
+    --text-muted: var(--n-10);
+    --text-subtle: var(--n-9);
+
+    /* Lighter than the light theme's borders: a faint hairline on a dark
+       ground carries far less than the same one on paper. The ink is the
+       ramp's palest cool tint, not white — pure white flecks sparkle. */
+    --border: rgb(226 234 245 / 0.14);
+    --border-subtle: rgb(226 234 245 / 0.09);
+    --border-strong: rgb(226 234 245 / 0.38);
+
+    --action: #6ba1e0;
+    --action-hover: #82b1e8;
+    --action-text: #0f1523;
+    --action-bg: #1d2f47;
+
+    --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.25);
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.28), 0 2px 8px rgb(0 0 0 / 0.22);
+    --shadow-md: 0 2px 4px rgb(0 0 0 / 0.32), 0 10px 28px rgb(0 0 0 / 0.42);
+    --shadow-lg: 0 4px 12px rgb(0 0 0 / 0.45), 0 28px 64px -16px rgb(0 0 0 / 0.65);
+    }
+}
+
+/* Second half — the explicit toggle. Identical to the block above by design. */
+:root[data-theme='dark'] {
+    color-scheme: dark;
+
+    --n-0: #0d0f13;
+    --n-1: #262a31;
+    --n-2: #1d2026;
+    --n-3: #16181d;
+    --n-4: #2d323a;
+    --n-5: #363c45;
+    --n-6: #414855;
+    --n-7: #545c68;
+    --n-8: #717a89;
+    --n-9: #9fa8b7;
+    --n-10: #c1c8d2;
+    --n-11: #d8dce3;
+    --n-12: #e8ebf0;
+
+    --c-red: #e88b81;
+    --c-red-bg: #3a201e;
+    --c-amber: #d9ad5a;
+    --c-amber-bg: #2f2917;
+    --c-blue: #85aede;
+    --c-blue-bg: #1b2839;
+    --c-green: #74bd8b;
+    --c-green-bg: #17291e;
+    --c-slate: #a2aab6;
+    --c-slate-bg: #262a30;
+    --c-rose: #e289a0;
+    --c-rose-bg: #381d26;
+    --c-orange: #de9c66;
+    --c-orange-bg: #33251a;
+    --c-yellow: #ccb45c;
+    --c-yellow-bg: #2c2a18;
+    --c-lime: #a8c072;
+    --c-lime-bg: #232b18;
+    --c-teal: #5cc2b2;
+    --c-teal-bg: #122b28;
+    --c-cyan: #6fb7d4;
+    --c-cyan-bg: #142a33;
+    --c-indigo: #99a3e6;
+    --c-indigo-bg: #20233c;
+    --c-violet: #b596e2;
+    --c-violet-bg: #29203b;
+    --c-plum: #d093bb;
+    --c-plum-bg: #33202e;
+    --c-brown: #c0a188;
+    --c-brown-bg: #2e2620;
+
+    /* On a dark ground the card is the LIGHTER surface, so --surface reaches
+       up the ramp while --bg stays at its foot — the same relationship as the
+       light theme, read in the other direction. */
+    --bg: var(--n-3);
+    --surface: var(--n-1);
+    --surface-2: var(--n-4);
+    --surface-3: var(--n-5);
+    --surface-raised: var(--n-4);
+    --nav-bg: var(--n-0);
+    --nav-hover: var(--n-2);
+    --hover: var(--n-4);
+    --active: var(--n-5);
+    --chip: var(--n-4);
+
+    --field-bg: var(--n-4);
+    --field-bg-focus: var(--n-5);
+
+    /* Measured on the cool dark ramp: --text 9.3-14.9:1, --text-muted
+       6.6-10.5:1, --text-subtle 4.6-7.4:1 across n-1/n-3/n-4/n-5. */
+    --text: var(--n-12);
+    --text-muted: var(--n-10);
+    --text-subtle: var(--n-9);
+
+    /* Lighter than the light theme's borders: a faint hairline on a dark
+       ground carries far less than the same one on paper. The ink is the
+       ramp's palest cool tint, not white — pure white flecks sparkle. */
+    --border: rgb(226 234 245 / 0.14);
+    --border-subtle: rgb(226 234 245 / 0.09);
+    --border-strong: rgb(226 234 245 / 0.38);
+
+    --action: #6ba1e0;
+    --action-hover: #82b1e8;
+    --action-text: #0f1523;
+    --action-bg: #1d2f47;
+
+    --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.25);
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.28), 0 2px 8px rgb(0 0 0 / 0.22);
+    --shadow-md: 0 2px 4px rgb(0 0 0 / 0.32), 0 10px 28px rgb(0 0 0 / 0.42);
+    --shadow-lg: 0 4px 12px rgb(0 0 0 / 0.45), 0 28px 64px -16px rgb(0 0 0 / 0.65);
+}
