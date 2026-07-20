@@ -1,15 +1,14 @@
 @props([
     'name' => 'attachments',
-    'max' => 10,
     /* The portal allows a different set from the staff app — video only when
        the virus scanner is actually running — so both the accept list and the
        line describing it are passed in rather than hardcoded here. */
-    'accept' => 'image/jpeg,image/png,image/gif,image/webp,application/pdf',
+    'accept' => 'image/jpeg,image/png,image/gif,image/webp,application/pdf,video/mp4,video/webm,video/quicktime',
     'hint' => null,
 ])
 
 <div
-    x-data="uploader({ max: {{ $max }} })"
+    x-data="uploader()"
     class="uploader"
     @dragover.prevent="dragging = true"
     @dragleave.prevent="dragging = false"
@@ -21,7 +20,7 @@
             <path d="M3 13a1 1 0 011 1v2h12v-2a1 1 0 112 0v3a1 1 0 01-1 1H3a1 1 0 01-1-1v-3a1 1 0 011-1z" />
         </svg>
         <span>اسحب الملفات هنا، أو الصق صورة من الكليب بورد، أو اضغط للاختيار</span>
-        <span class="uploader__hint">{{ $hint ?? 'صور أو PDF · 5 ميجا للملف · ' . $max . ' ملفات كحد أقصى' }}</span>
+        <span class="uploader__hint">{{ $hint ?? 'صور أو PDF · 5 ميجا للملف · فيديو حتى 200 ميجا' }}</span>
 
         <input
             type="file"

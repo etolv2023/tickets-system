@@ -64,10 +64,16 @@ class StoreTicketRequest extends FormRequest
             'scope' => ['required', Rule::enum(TicketScope::class)],
             'priority' => ['required', Rule::exists('priorities', 'key')],
             'module' => ['nullable', 'string', 'max:100'],
-            'attachments' => ['nullable', 'array', 'max:' . AttachmentService::MAX_PER_TICKET],
+            'attachments' => ['nullable', 'array'],
             // The real type is re-checked with finfo in AttachmentService;
-            // this only keeps the obvious junk out early.
-            'attachments.*' => ['file', 'mimes:jpg,jpeg,png,gif,webp,pdf', 'max:5120'],
+            // this only keeps the obvious junk out early. The per-type size
+            // cap (5MB image/PDF, 200MB video) is enforced there too — this
+            // is just the outer bound so an oversized file fails fast.
+            'attachments.*' => [
+                'file',
+                'mimes:jpg,jpeg,png,gif,webp,pdf,mp4,webm,mov',
+                'max:' . intdiv(AttachmentService::MAX_VIDEO_BYTES, 1024),
+            ],
 
             // F06.3: the same distribution block as the ticket page, offered
             // at creation. Ignored server-side for a feature/module ticket

@@ -7,7 +7,7 @@
         <x-editor name="body" placeholder="اكتب تعليق. تقدر تلصق صور." />
     </div>
 
-    <x-uploader name="attachments" :max="\App\Services\AttachmentService::MAX_PER_TICKET" />
+    <x-uploader name="attachments" />
 
     <div class="row row--between row--wrap">
         @can('commentInternally', $ticket)

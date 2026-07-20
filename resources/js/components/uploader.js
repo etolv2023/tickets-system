@@ -4,7 +4,7 @@
  * Client-side checks here are courtesy, not security: AttachmentService re-reads
  * every byte with finfo and re-encodes every image on the server.
  */
-export default function uploader({ max = 10, maxBytes = 5 * 1024 * 1024 } = {}) {
+export default function uploader({ maxBytes = 5 * 1024 * 1024, maxVideoBytes = 200 * 1024 * 1024 } = {}) {
     return {
         files: [],
         dragging: false,
@@ -39,13 +39,11 @@ export default function uploader({ max = 10, maxBytes = 5 * 1024 * 1024 } = {}) 
             this.error = '';
 
             for (const file of incoming) {
-                if (this.files.length >= max) {
-                    this.error = `الحد ${max} ملفات للتذكرة.`;
-                    break;
-                }
+                const isVideo = file.type.startsWith('video/');
+                const limit = isVideo ? maxVideoBytes : maxBytes;
 
-                if (file.size > maxBytes) {
-                    this.error = `«${file.name}» أكبر من 5 ميجا.`;
+                if (file.size > limit) {
+                    this.error = `«${file.name}» أكبر من ${isVideo ? 200 : 5} ميجا.`;
                     continue;
                 }
 

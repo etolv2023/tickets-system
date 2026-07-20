@@ -17,8 +17,12 @@ class StoreCommentRequest extends FormRequest
         return [
             'body' => ['required', 'string', 'max:200000'],
             'is_internal' => ['boolean'],
-            'attachments' => ['nullable', 'array', 'max:' . AttachmentService::MAX_PER_TICKET],
-            'attachments.*' => ['file', 'mimes:jpg,jpeg,png,gif,webp,pdf', 'max:5120'],
+            'attachments' => ['nullable', 'array'],
+            'attachments.*' => [
+                'file',
+                'mimes:jpg,jpeg,png,gif,webp,pdf,mp4,webm,mov',
+                'max:' . intdiv(AttachmentService::MAX_VIDEO_BYTES, 1024),
+            ],
         ];
     }
 

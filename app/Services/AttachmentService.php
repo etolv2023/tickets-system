@@ -35,18 +35,22 @@ use finfo;
  */
 class AttachmentService
 {
-    /** F04.2: jpg, jpeg, png, gif, webp, pdf — and nothing else. */
+    /** F04.2: jpg, jpeg, png, gif, webp, pdf, mp4, webm, mov — and nothing else. */
     private const ALLOWED = [
         'image/jpeg' => 'jpg',
         'image/png' => 'png',
         'image/gif' => 'gif',
         'image/webp' => 'webp',
         'application/pdf' => 'pdf',
+        'video/mp4' => 'mp4',
+        'video/webm' => 'webm',
+        'video/quicktime' => 'mov',
     ];
 
     public const MAX_BYTES = 5 * 1024 * 1024;
 
-    public const MAX_PER_TICKET = 10;
+    /** Video is stored as sent, not re-encoded, so it gets its own — much larger — cap. */
+    public const MAX_VIDEO_BYTES = 200 * 1024 * 1024;
 
     private const THUMB_WIDTH = 320;
 
@@ -66,16 +70,6 @@ class AttachmentService
      */
     public function attachMany(Ticket $ticket, array $files, int $userId, ?TicketComment $comment = null): array
     {
-        $existing = $ticket->attachments()->count();
-
-        if ($existing + count($files) > self::MAX_PER_TICKET) {
-            $room = max(0, self::MAX_PER_TICKET - $existing);
-
-            throw new RuntimeException(
-                'الحد ' . self::MAX_PER_TICKET . " مرفق للتذكرة. فاضل مكان لـ {$room} بس."
-            );
-        }
-
         return array_map(
             fn (UploadedFile $file) => $this->attach($ticket, $file, $userId, $comment),
             array_values($files)
@@ -185,16 +179,20 @@ class AttachmentService
     /** @return string the real mime type */
     private function assertAllowed(UploadedFile $file): string
     {
-        if ($file->getSize() > self::MAX_BYTES) {
-            throw new RuntimeException('الملف أكبر من 5 ميجا.');
-        }
-
         $mime = $this->sniff($file);
 
         if (! array_key_exists($mime, self::ALLOWED)) {
             throw new RuntimeException(
-                "«{$file->getClientOriginalName()}» نوعه الحقيقي {$mime} — مرفوض. المسموح: صور أو PDF."
+                "«{$file->getClientOriginalName()}» نوعه الحقيقي {$mime} — مرفوض. المسموح: صور أو PDF أو فيديو."
             );
+        }
+
+        $limit = str_starts_with($mime, 'video/') ? self::MAX_VIDEO_BYTES : self::MAX_BYTES;
+
+        if ($file->getSize() > $limit) {
+            $mb = (int) ($limit / 1024 / 1024);
+
+            throw new RuntimeException("«{$file->getClientOriginalName()}» أكبر من {$mb} ميجا.");
         }
 
         $this->assertDecodable($file, $mime);
