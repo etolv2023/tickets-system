@@ -40,9 +40,10 @@ class TicketPolicy
         return $user->hasPermission('tickets.create');
     }
 
+    /** A resolved/closed ticket is frozen — only reopen() moves it from here. */
     public function update(User $user, Ticket $ticket): bool
     {
-        return $user->hasPermission('tickets.edit');
+        return $user->hasPermission('tickets.edit') && ! $ticket->isLocked();
     }
 
     public function delete(User $user, Ticket $ticket): bool
@@ -53,12 +54,12 @@ class TicketPolicy
     /** Anyone who can see the ticket and is allowed to comment. F05 */
     public function comment(User $user, Ticket $ticket): bool
     {
-        return $user->hasPermission('comments.create') && $this->view($user, $ticket);
+        return $user->hasPermission('comments.create') && $this->view($user, $ticket) && ! $ticket->isLocked();
     }
 
     public function commentInternally(User $user, Ticket $ticket): bool
     {
-        return $user->hasPermission('comments.internal') && $this->view($user, $ticket);
+        return $user->hasPermission('comments.internal') && $this->view($user, $ticket) && ! $ticket->isLocked();
     }
 
     /** Attachments inherit the ticket's visibility — that's the whole point. F04.2 */
@@ -83,13 +84,17 @@ class TicketPolicy
             return Response::deny('الفيتشر لازم توافق عليه الأول قبل ما يتوزع.');
         }
 
+        if ($ticket->isLocked()) {
+            return Response::deny('التذكرة مقفولة. لازم ترجّعها «مرتجعة» الأول.');
+        }
+
         return Response::allow();
     }
 
     /** F07: only the person the side is assigned to may start or finish it. */
     public function manageWorkLog(User $user, Ticket $ticket): bool
     {
-        return $user->hasPermission('worklog.manage') && $this->isAssigned($user, $ticket);
+        return $user->hasPermission('worklog.manage') && $this->isAssigned($user, $ticket) && ! $ticket->isLocked();
     }
 
     public function approve(User $user, Ticket $ticket): bool

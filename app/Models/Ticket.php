@@ -286,6 +286,17 @@ class Ticket extends Model
     }
 
     /**
+     * A resolved/closed ticket is frozen: the only move left on it is the one
+     * that reopens it. `rejected` is deliberately excluded — it's also
+     * `is_open = false`, but it was never worked, so there is nothing to
+     * freeze.
+     */
+    public function isLocked(): bool
+    {
+        return in_array($this->status->value, ['resolved', 'closed'], true);
+    }
+
+    /**
      * One plain-text line of the description, for a list card that needs to say
      * what the ticket is about without opening it.
      *

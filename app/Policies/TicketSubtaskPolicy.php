@@ -15,7 +15,8 @@ class TicketSubtaskPolicy
     public function create(User $user, \App\Models\Ticket $ticket): bool
     {
         return $user->hasPermission('subtasks.manage')
-            && $user->can('view', $ticket);
+            && $user->can('view', $ticket)
+            && ! $ticket->isLocked();
     }
 
     /**
@@ -25,8 +26,11 @@ class TicketSubtaskPolicy
      */
     public function update(User $user, TicketSubtask $subtask, ?\App\Models\Ticket $ticket = null): bool
     {
+        $ticket ??= $subtask->ticket;
+
         return $user->hasPermission('subtasks.manage')
-            && $user->can('view', $ticket ?? $subtask->ticket);
+            && $user->can('view', $ticket)
+            && ! $ticket->isLocked();
     }
 
     public function delete(User $user, TicketSubtask $subtask, ?\App\Models\Ticket $ticket = null): bool
