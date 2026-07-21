@@ -329,6 +329,20 @@ class TicketWorkflowService
         }
 
         DB::transaction(function () use ($log, $actorId) {
+            // The log is in_progress, so the ticket is too — reconcile if a
+            // manual status move or a reassignment left it behind at «موزعة»
+            // (or «مرتجعة») while work was actually running. Without this, the
+            // dev_done cascade below has no valid path (assigned → dev_done
+            // doesn't exist) and «خلصت» throws «مينفعش تنقل … لـ تم التطوير»,
+            // stranding the ticket. Bringing it to in_progress first — the state
+            // its own work log already implies — un-sticks it and heals the
+            // desync (2026-07-21). start() does the same for the pending → begin
+            // direction; this is its finish-side twin.
+            $ticket = $log->ticket;
+            if (in_array($ticket->status, [TicketStatusValue::for('assigned'), TicketStatusValue::for('reopened')], true)) {
+                $this->transition($ticket, TicketStatusValue::for('in_progress'), $actorId, "{$log->side->label()}: استئناف الشغل");
+            }
+
             $finishedAt = now();
 
             $log->update([
@@ -417,7 +431,15 @@ class TicketWorkflowService
 
         $unfinished = $ticket->workLogs()
             ->where('status', '!=', 'done')
-            ->get(['side']);
+            ->get(['side'])
+            // Only a side the ticket is STILL assigned to can block it. When a
+            // ticket is moved from one side to another (backend → frontend), the
+            // old side's work log is kept for history but its assignee is
+            // cleared — it is no longer this ticket's commitment and must not
+            // block the resolve forever. Without this, a reassigned ticket got
+            // stuck on an orphaned side that nobody is working any more
+            // (2026-07-21).
+            ->filter(fn ($log) => $ticket->{$log->side->assigneeColumn()} !== null);
 
         if ($unfinished->isEmpty()) {
             return null;
@@ -525,15 +547,29 @@ class TicketWorkflowService
     /** F15 */
     public function approve(Ticket $ticket, int $adminId): Ticket
     {
+        $from = $ticket->status;
+
+        // Approval also advances the status OUT of pending_approval (2026-07-21).
+        // It used to only flip approval_status and leave the status where it was,
+        // so an approved-but-unassigned ticket kept the «بانتظار الموافقة» badge —
+        // it read as still-pending, was gone from the approvals queue (correctly,
+        // it's approved), and wasn't assigned to anyone: an invisible limbo. It
+        // lands on 'new' — approved, ready to be assigned, exactly like a
+        // non-approval ticket before assignment. assign() then takes new →
+        // assigned as usual.
+        $advancing = $from->value === 'pending_approval';
+        $to = $advancing ? TicketStatusValue::for('new') : $from;
+
         $ticket->update([
             'approval_status' => 'approved',
             'approved_by' => $adminId,
             'approved_at' => now(),
+            'status' => $to,
         ]);
 
         $ticket->statusHistory()->create([
-            'from_status' => $ticket->status->value,
-            'to_status' => $ticket->status->value,
+            'from_status' => $from->value,
+            'to_status' => $to->value,
             'user_id' => $adminId,
             'note' => 'تمت الموافقة',
         ]);

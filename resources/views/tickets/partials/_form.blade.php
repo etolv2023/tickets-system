@@ -71,21 +71,31 @@
     <div class="ticket-form__col">
     <x-card title="التصنيف">
         <div class="form-grid">
+            {{-- ★★★★★ (2026-07-21): type and scope are now a deliberate choice,
+                 not a silent «غير محدد» default. A disabled empty placeholder +
+                 required means the form can't submit until a real one is picked —
+                 which is what stopped features being created as «غير محدد» (so
+                 they skipped approval) and tickets being left scope-less. On an
+                 edit the ticket's own value is pre-selected, so nothing changes
+                 there. --}}
             <x-field name="type" label="النوع" required
                      hint="الفيتشر والموديول الجديد بيستنوا موافقة الأدمن قبل التوزيع.">
                 <select id="type" name="type" required @class(['select', 'select--invalid' => $errors->has('type')])>
+                    <option value="" disabled @selected(blank(old('type', $ticket?->type?->value)))>— اختر النوع —</option>
                     @foreach ($types as $value => $label)
-                        <option value="{{ $value }}" @selected(old('type', $ticket?->type?->value ?? 'undefined') === $value)>
+                        <option value="{{ $value }}" @selected(old('type', $ticket?->type?->value) === $value)>
                             {{ $label }}
                         </option>
                     @endforeach
                 </select>
             </x-field>
 
-            <x-field name="scope" label="النطاق" required>
+            <x-field name="scope" label="النطاق" required
+                     hint="لازم تختار نطاق — هو اللي بيحدد توزيع النقاط من المصفوفة.">
                 <select id="scope" name="scope" required @class(['select', 'select--invalid' => $errors->has('scope')])>
+                    <option value="" disabled @selected(blank(old('scope', $ticket?->scope?->value)))>— اختر النطاق —</option>
                     @foreach ($scopes as $value => $label)
-                        <option value="{{ $value }}" @selected(old('scope', $ticket?->scope?->value ?? 'undefined') === $value)>
+                        <option value="{{ $value }}" @selected(old('scope', $ticket?->scope?->value) === $value)>
                             {{ $label }}
                         </option>
                     @endforeach
