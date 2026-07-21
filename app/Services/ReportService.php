@@ -193,11 +193,26 @@ class ReportService
         ];
     }
 
-    public function leaderboard(string $period): Collection
+    /**
+     * F19.2 — the month's ranking.
+     *
+     * @param  array{person?: int|string|null, assignee?: int|string|null}  $filters
+     *         person: only this user's own rows. assignee: only rows whose
+     *         ticket has this user on one of its assignment columns — a
+     *         manager asking "what did the team on ticket X earn", not "what
+     *         did this one person earn" (that's `person`).
+     */
+    public function leaderboard(string $period, array $filters = []): Collection
     {
         return PointTransaction::query()
             ->selectRaw('user_id, SUM(points) total, COUNT(*) awards')
             ->forPeriod($period)
+            ->when($filters['person'] ?? null, fn ($q, $v) => $q->where('user_id', $v))
+            ->when($filters['assignee'] ?? null, fn ($q, $v) => $q->whereHas('ticket', fn ($t) => $t
+                ->where('assigned_frontend_id', $v)
+                ->orWhere('assigned_backend_id', $v)
+                ->orWhere('devops_id', $v)
+                ->orWhere('tester_id', $v)))
             ->groupBy('user_id')
             ->orderByDesc('total')
             ->with('user:id,name,avatar_path,is_active,role_id')

@@ -49,7 +49,7 @@ class TicketController extends Controller
                 'assigned_frontend_id', 'assigned_backend_id', 'tester_id', 'devops_id', 'created_by',
                 'subtasks_total', 'subtasks_done',
             ])
-            ->with(['company:id,name,code', 'requester:id,name', 'frontend:id,name,avatar_path,is_active', 'backend:id,name,avatar_path,is_active', 'devops:id,name,avatar_path,is_active'])
+            ->with(['company:id,name,code', 'requester:id,name', 'creator:id,name', 'frontend:id,name,avatar_path,is_active', 'backend:id,name,avatar_path,is_active', 'devops:id,name,avatar_path,is_active', 'labels:id,name,color'])
             ->visibleTo($request->user())
             ->filter($filters)
             ->defaultOrder()
@@ -63,6 +63,9 @@ class TicketController extends Controller
             // The rest arrive from /lookup as the user types.
             'selectedCompany' => filled($filters['company'] ?? null)
                 ? Company::whereKey($filters['company'])->value('name')
+                : null,
+            'selectedAssignee' => filled($filters['assignee'] ?? null)
+                ? User::whereKey($filters['assignee'])->value('name')
                 : null,
         ]);
     }

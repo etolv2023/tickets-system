@@ -8,7 +8,8 @@
 @endphp
 
 @section('content')
-    <div class="page">
+    {{-- ★★★★ (2026-07-21): paired report-card grids, same case as /reports. --}}
+    <div class="page page--wide">
         <div class="page__head">
             <div>
                 <h1 class="page-title">تقرير النقاط</h1>

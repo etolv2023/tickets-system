@@ -8,7 +8,8 @@
 @endpush
 
 @section('content')
-    <div class="page">
+    {{-- ★★★★ (2026-07-21): a month/timeline grid, same case as the board. --}}
+    <div class="page page--wide">
         <div class="page__head">
             <div>
                 <h1 class="page-title">{{ $title }}</h1>

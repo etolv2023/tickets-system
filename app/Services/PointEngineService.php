@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\PointSide;
+use App\Enums\SubtaskSide;
 use App\Enums\SubtaskStatus;
 use App\Models\PointTransaction;
 use App\Models\Ticket;
@@ -12,7 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Awards points on the FIRST entry into resolved — once, ever (F18).
+ * Awards points to each Done subtask exactly once, ever (F18).
  *
  * Every point traces to exactly one Done subtask. There is no ticket-level
  * matrix consulted here and no even split among several earners on a side —
@@ -26,9 +28,15 @@ use Illuminate\Support\Facades\Schema;
  * These rows become money in a bonus run, so the guards are layered rather than
  * trusted one at a time:
  *
- *   1. points_awarded_at — the cheap check, and the one that expresses intent.
+ *   1. whereDoesntHave('pointTransaction') — only subtasks never paid before
+ *      are even considered. This is per-SUBTASK, not per-ticket (2026-07-21
+ *      fix): a ticket can be resolved, reopened, and resolved again — e.g. a
+ *      devops subtask added after the first resolve — and the subtasks that
+ *      earned points the first time are skipped while the new one still gets
+ *      paid. points_awarded_at on the ticket is now just a "first paid at"
+ *      timestamp for reporting, not a gate.
  *   2. The whole award runs in one transaction, with the ticket row locked, so
- *      two concurrent resolves can't both pass guard 1.
+ *      two concurrent resolves can't both select the same eligible subtask.
  *   3. UNIQUE(subtask_id) — the last line. A subtask can only ever be paid
  *      once; if a race ever beat 1 and 2, the database refuses the duplicate.
  *
@@ -42,17 +50,24 @@ use Illuminate\Support\Facades\Schema;
  *     never an exception. Manual corrections (PointCorrectionService) are the
  *     only path for anything the automatic award doesn't cover.
  *   - Logged time has no bearing on any of this (PLAN.md § 5).
+ *   - Exception: devops has no starter subtask on assignment (F06.3 only
+ *     covers WorkSide::Frontend/Backend), so awardDevopsParticipation() below
+ *     pays a flat participation credit when devops is assigned with no
+ *     subtask to show for it — see its docblock.
  */
 class PointEngineService
 {
+    /**
+     * Flat, one-time credit for a devops person assigned to a ticket
+     * (devops_id) who never got a dedicated subtask — a fixed amount, not
+     * looked up per ticket type, because it is a participation credit for
+     * untracked work, not a matrix rate for tracked work (2026-07-21).
+     */
+    private const DEVOPS_PARTICIPATION_POINTS = 0.5;
+
     public function award(Ticket $ticket): void
     {
-        // Guard 1: already paid. Reopening and resolving again earns nothing.
-        if ($ticket->points_awarded_at !== null) {
-            return;
-        }
-
-        // Guard 2: an unapproved or rejected feature earns nobody anything. F15
+        // Guard: an unapproved or rejected feature earns nobody anything. F15
         if ($ticket->type->needsApproval() && $ticket->approval_status !== 'approved') {
             return;
         }
@@ -62,11 +77,11 @@ class PointEngineService
         }
 
         DB::transaction(function () use ($ticket) {
-            // Lock the ticket for the length of the award. A second resolve
-            // arriving now waits here, then sees points_awarded_at set.
+            // Lock the ticket for the length of the award, so two concurrent
+            // resolves can't both select the same eligible subtask.
             $locked = Ticket::whereKey($ticket->id)->lockForUpdate()->first();
 
-            if ($locked === null || $locked->points_awarded_at !== null) {
+            if ($locked === null) {
                 return;
             }
 
@@ -78,18 +93,25 @@ class PointEngineService
                 ->where('status', SubtaskStatus::Done->value)
                 ->whereNotNull('assignee_id')
                 ->where('points', '>', 0)
+                ->whereDoesntHave('pointTransaction')
                 ->get();
 
             foreach ($subtasks as $subtask) {
                 $this->awardSubtask($locked, $subtask, $period);
             }
 
-            $locked->forceFill(['points_awarded_at' => now()])->saveQuietly();
-            $ticket->forceFill(['points_awarded_at' => $locked->points_awarded_at])->syncOriginal();
+            $this->awardDevopsParticipation($locked, $period);
+
+            // Set once, on the first payout only — a historical marker, not a gate.
+            if ($locked->points_awarded_at === null) {
+                $locked->forceFill(['points_awarded_at' => now()])->saveQuietly();
+                $ticket->forceFill(['points_awarded_at' => $locked->points_awarded_at])->syncOriginal();
+            }
         });
     }
 
-    private function awardSubtask(Ticket $ticket, TicketSubtask $subtask, string $period): void
+    /** Public so the points:backfill command can reuse the exact same award logic. */
+    public function awardSubtask(Ticket $ticket, TicketSubtask $subtask, string $period): void
     {
         $side = $subtask->side->toPointSide();
 
@@ -119,5 +141,61 @@ class PointEngineService
                 'user' => $subtask->assignee_id,
             ]);
         }
+    }
+
+    /**
+     * F18 addition (2026-07-21): devops is assignable at the ticket level
+     * (devops_id) without ever getting a subtask — unlike frontend/backend,
+     * which always get a starter subtask the moment they're assigned
+     * (TicketWorkflowService::assign() only auto-creates one for WorkSide
+     * cases, and devops isn't one). Without this, real but untracked devops
+     * work — a config tweak, a quick server check — earned nothing, ever.
+     *
+     * Either this flat credit OR per-subtask points, never both: the moment a
+     * devops subtask exists for this person on this ticket, their work is
+     * tracked and paid through the normal subtask loop above instead. Paid
+     * once per ticket, ever — not backed by a unique index (no natural
+     * column to key one on with subtask_id null), so the ticket lock this
+     * runs under is the only guard against a concurrent double-pay, same
+     * threat model as guard 2 in the class docblock.
+     */
+    public function awardDevopsParticipation(Ticket $ticket, string $period): void
+    {
+        if ($ticket->devops_id === null) {
+            return;
+        }
+
+        $alreadyPaidFlat = PointTransaction::where('ticket_id', $ticket->id)
+            ->where('user_id', $ticket->devops_id)
+            ->where('side', PointSide::Devops->value)
+            ->whereNull('subtask_id')
+            ->exists();
+
+        if ($alreadyPaidFlat) {
+            return;
+        }
+
+        $hasTrackedSubtask = TicketSubtask::query()
+            ->where('ticket_id', $ticket->id)
+            ->whereNull('deleted_at')
+            ->where('side', SubtaskSide::Devops->value)
+            ->where('assignee_id', $ticket->devops_id)
+            ->exists();
+
+        if ($hasTrackedSubtask) {
+            return;
+        }
+
+        PointTransaction::create([
+            'user_id' => $ticket->devops_id,
+            'ticket_id' => $ticket->id,
+            'subtask_id' => null,
+            'side' => PointSide::Devops->value,
+            'points' => self::DEVOPS_PARTICIPATION_POINTS,
+            'type' => 'award',
+            'rule_id' => null,
+            'period' => $period,
+            'reason' => "{$ticket->type->label()} — مشاركة ديف أوبس من غير صب تاسك مخصص",
+        ]);
     }
 }

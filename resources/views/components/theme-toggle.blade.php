@@ -11,9 +11,9 @@
     system with no way to change the theme.
 --}}
 
-<button type="button" {{ $attributes->class('topbar__btn topbar__theme') }} x-data
+<button type="button" {{ $attributes->class('topbar__btn topbar__theme tooltip--end tooltip--below') }} x-data
         @click="$store.theme.toggle()"
-        aria-label="تبديل المظهر" title="تبديل المظهر">
+        aria-label="تبديل المظهر" data-tooltip="تبديل المظهر">
     <x-icon name="moon" class="topbar__theme-light" />
     <x-icon name="sun" class="topbar__theme-dark" />
 </button>

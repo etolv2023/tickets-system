@@ -1,5 +1,11 @@
 /* Sits on --surface, one step above the column's --surface-2, so it reads as
-   an object placed on the column rather than a hole cut in it. */
+   an object placed on the column rather than a hole cut in it.
+
+   ★★★★ Redesign (2026-07-20): a flat bordered box with no shadow at all was
+   the one card shape in the app that didn't speak the card.css language
+   (border + --shadow-xs, "a whisper under the border" — tokens.css). Brought
+   in line: the same whisper at rest, lifting to --shadow-sm on hover like
+   the nav-active row does, so a card you're about to drag visibly answers. */
 .tcard {
     position: relative;
     display: flex;
@@ -9,12 +15,14 @@
     padding-inline-start: calc(var(--stripe-width) + var(--space-3));
     background-color: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    transition: border-color var(--transition);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xs);
+    transition: border-color var(--transition), box-shadow var(--transition);
 }
 
 .tcard:hover {
     border-color: var(--border-strong);
+    box-shadow: var(--shadow-sm);
 }
 
 /* Reversed so the type badge leads and the id trails, matching every other
@@ -35,9 +43,11 @@
     unicode-bidi: isolate;
 }
 
-/* The line people actually scan. It was 12px on a 132px card. */
+/* The line people actually scan. ★★★★ one more step up (2026-07-20): still
+   the smallest title in the app, but a card this size can carry --text-md
+   now that the base scale itself grew. */
 .tcard__title {
-    font-size: var(--text-sm);
+    font-size: var(--text-md);
     font-weight: var(--weight-bold);
     line-height: var(--leading-normal);
     display: -webkit-box;

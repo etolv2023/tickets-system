@@ -80,9 +80,16 @@
     flex-wrap: wrap;
 }
 
+/* ★★★★ Fix (2026-07-21): no wrap meant a page__head with three buttons
+   (admin/companies: contacts, import, new) was the one combination narrow
+   enough to overflow a phone — .page__head itself already wraps, but this
+   row of buttons didn't, so it forced the width instead of dropping to a
+   second line. Same underlying bug as .pagination__list and
+   .timesheet__nav, all found in the same final mobile sweep. */
 .page__actions {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: var(--space-2);
 }
 

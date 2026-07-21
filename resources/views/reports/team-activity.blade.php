@@ -3,7 +3,8 @@
 @section('title', 'تقرير التيم التفصيلي')
 
 @section('content')
-    <div class="page">
+    {{-- ★★★★ (2026-07-21): raw-row filterable tables, same case as the ticket list. --}}
+    <div class="page page--wide">
         <div class="page__head">
             <div>
                 <h1 class="page-title">تقرير التيم التفصيلي</h1>

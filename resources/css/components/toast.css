@@ -1,0 +1,73 @@
+/* Toast — transient confirmations for interactions that never reload the
+   page (a drag-reorder that failed to save, an inline AJAX refusal). A
+   full-page action still flashes through the inline `x-alert` already at the
+   top of every screen — this is additive for the actions that have nothing
+   else, not a replacement for that. --z-toast (tokens.css) was reserved for
+   this from the start and had gone unused until now. */
+
+.toast-host {
+    position: fixed;
+    inset-block-end: var(--space-5);
+    inset-inline-end: var(--space-5);
+    z-index: var(--z-toast);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    width: min(22rem, calc(100vw - var(--space-5) * 2));
+    pointer-events: none;
+}
+
+.toast {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-inline-start: 3px solid var(--toast-color, var(--text-subtle));
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+    color: var(--text);
+    pointer-events: auto;
+}
+
+.toast--success {
+    --toast-color: var(--c-green);
+}
+
+.toast--error {
+    --toast-color: var(--c-red);
+}
+
+.toast--info {
+    --toast-color: var(--c-cyan);
+}
+
+.toast__body {
+    flex: 1;
+}
+
+.toast__close {
+    flex-shrink: 0;
+    margin-block-start: 1px;
+    background: none;
+    border: 0;
+    padding: 0;
+    color: var(--text-subtle);
+    cursor: pointer;
+    transition: color var(--transition);
+}
+
+.toast__close:hover {
+    color: var(--text);
+}
+
+@media (max-width: 60rem) {
+    .toast-host {
+        inset-inline: var(--space-4);
+        inset-block-end: var(--space-4);
+        width: auto;
+    }
+}

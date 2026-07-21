@@ -18,6 +18,13 @@
        pushed the whole document sideways instead of just the sheet. */
     overflow-x: auto;
     overflow-y: hidden;
+    /* ★★★★ Fix (2026-07-21): .sheet is a flex item (.page is a column flex
+       container) and a flex item's default min-width is auto, not 0 — so
+       the browser honoured .sheet__row's own 44rem min-width by growing
+       .sheet itself instead of ever reaching its own overflow-x. The comment
+       above already describes the INTENDED behaviour; this is the property
+       that actually turns it on. */
+    min-width: 0;
 }
 
 .sheet__row {
@@ -118,10 +125,15 @@
     color: var(--c-urgent);
 }
 
+/* ★★★★ Fix (2026-07-21): three buttons wide enough on their own ("←
+   الأسبوع الي فات") that a phone-width row never fit all three without
+   wrapping — this is what was actually forcing the page wider, not .sheet
+   (which already contained its own overflow correctly). */
 .timesheet__nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
     gap: var(--space-3);
 }
 

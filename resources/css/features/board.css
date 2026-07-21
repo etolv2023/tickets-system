@@ -53,10 +53,19 @@
     color: var(--text-subtle);
 }
 
+/* ★★★★ Fix (2026-07-20): no bound at all here — a column at the server's own
+   100-card cap (BoardController::COLUMN_LIMIT) rendered every one of them at
+   full height, so one busy column towered over three quiet ones and the
+   whole board read as unbalanced rather than organised. Same fix as the
+   ticket table (table.css): bound the height, let the column scroll
+   internally. SortableJS drags and auto-scrolls inside a scrolling container
+   natively — nothing in board.js had to change. */
 .board__list {
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
+    max-height: 28rem;
+    overflow-y: auto;
 }
 
 /* Empty is a dashed outline, never a filled grey block. */

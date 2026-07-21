@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TicketSubtask extends Model
@@ -54,6 +55,12 @@ class TicketSubtask extends Model
     public function timeEntries(): HasMany
     {
         return $this->hasMany(TimeEntry::class, 'subtask_id');
+    }
+
+    /** F18: the one point_transactions row this subtask has ever been paid, if any. */
+    public function pointTransaction(): HasOne
+    {
+        return $this->hasOne(PointTransaction::class, 'subtask_id');
     }
 
     /** F13: late means due before today and still not done. */

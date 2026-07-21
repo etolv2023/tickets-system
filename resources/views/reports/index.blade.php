@@ -3,7 +3,8 @@
 @section('title', 'التقارير')
 
 @section('content')
-    <div class="page">
+    {{-- ★★★★ (2026-07-21): paired report-card grids, same case as the dashboard. --}}
+    <div class="page page--wide">
         <div class="page__head">
             <div>
                 <h1 class="page-title">التقارير</h1>

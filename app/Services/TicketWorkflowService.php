@@ -64,6 +64,19 @@ class TicketWorkflowService
             return $ticket;
         }
 
+        // F15 invariant (2026-07-21): while a feature/module is awaiting its
+        // approval decision, its status is frozen. Nothing moves it but the
+        // decision itself — approve() sets approval_status without transitioning,
+        // and reject() sets it to 'rejected' BEFORE calling us, so both read a
+        // non-'pending' status here and pass. Any other caller (the manual panel,
+        // a board move, future code) is refused, so an unapproved ticket can
+        // never be flipped out of the approvals queue into an un-assignable limbo.
+        if ($ticket->type->needsApproval() && $ticket->approval_status === 'pending') {
+            throw new DomainException(
+                'التذكرة لسه مستنية موافقة — لازم تتوافق أو تترفض الأول قبل ما تتغير حالتها.'
+            );
+        }
+
         if (! in_array($to->value, TicketStatusDefinition::transitionMap()[$from->value] ?? [], true)) {
             throw new DomainException(
                 "مينفعش تنقل التذكرة من «{$from->label()}» لـ «{$to->label()}»."
@@ -71,6 +84,10 @@ class TicketWorkflowService
         }
 
         if (($blocker = $this->subtaskBlocker($ticket, $to)) !== null) {
+            throw new DomainException($blocker);
+        }
+
+        if (($blocker = $this->unfinishedSideBlocker($ticket, $to)) !== null) {
             throw new DomainException($blocker);
         }
 
@@ -380,6 +397,37 @@ class TicketWorkflowService
      * "does this block THIS side's خلصت"; at ticket level the question is "is
      * the work done", and a qa or support subtask is work.
      */
+    /**
+     * F07 at the transition choke point (2026-07-21): a ticket a developer is
+     * still working can't be forced to a final stage. finish()'s allSidesDone
+     * already gates the «خلصت» button, but the manual «غيّر الحالة» panel and a
+     * board drop reach resolved/closed through transition() directly, and
+     * subtaskBlocker only guards OPEN SUBTASKS — which are optional, so a ticket
+     * with none had no work-side gate at all and could be resolved mid-work.
+     * That entered resolved and fired award() on unfinished work — money. This
+     * closes it: every work log that exists must be 'done'. A ticket with no
+     * work logs (support-only, never assigned to a dev) has nothing to finish
+     * and passes untouched, so support tickets still resolve normally.
+     */
+    private function unfinishedSideBlocker(Ticket $ticket, TicketStatusValue $to): ?string
+    {
+        if (! in_array($to->value, self::SUBTASK_GATED, true)) {
+            return null;
+        }
+
+        $unfinished = $ticket->workLogs()
+            ->where('status', '!=', 'done')
+            ->get(['side']);
+
+        if ($unfinished->isEmpty()) {
+            return null;
+        }
+
+        $sides = $unfinished->map(fn ($log) => $log->side->label())->implode(' و');
+
+        return "لسه فيه شغل مخلّصش على التذكرة ({$sides}). لازم كل جهة تضغط «خلصت» قبل ما تحوّلها لـ «{$to->label()}».";
+    }
+
     private function subtaskBlocker(Ticket $ticket, TicketStatusValue $to): ?string
     {
         if (! in_array($to->value, self::SUBTASK_GATED, true)) {

@@ -3,7 +3,8 @@
 @section('title', 'طابور التيست')
 
 @section('content')
-    <div class="page">
+    {{-- ★★★★ (2026-07-21): a ticket table, same case as /tickets. --}}
+    <div class="page page--wide">
         <div class="page__head">
             <div>
                 <h1 class="page-title">طابور التيست</h1>

@@ -1,10 +1,53 @@
-/* "اليوم" — the home screen. NOT a dashboard: no charts, no totals row.
-   It answers four questions and nothing else (CLAUDE.md § 6, F22.1).
+/* "اليوم" — the home screen (F22.1). ★★★★★ (2026-07-21) redesign: "الشريط الحي"
+   / Live Spine. Three zones with a real reading order:
 
-   The tiles at the top are not vanity metrics: each one counts the rows of the
-   list beneath it, so the number is an index into work, not a score. */
+     1. A header band (.today__hero) that fuses the greeting with a live
+        pulse-strip of the four action counts — small chips that tint their hue
+        only when count > 0, deliberately a DIFFERENT visual species from the
+        large monthly KPI tiles so the two number groups can never read as the
+        same row twice.
+     2. The four action questions as a masonry (.today { columns }) so a short or
+        cleared section packs tight instead of leaving a canyon beside a tall
+        list. Every empty state is a one-line .today__clear strip — the
+        structural cure for "كروت كبيرة مليانة هوا" (CLAUDE.md § 6).
+     3. A labelled overview zone: a divider band, the large KPI scoreboard, then
+        a widget masonry with bar meters. Gated widgets that a role can't see
+        just don't emit and the rest repack — no full-width empty box.
 
-/* ---- Welcome line ---- */
+   All hue from tokens; logical properties only; meters are bars (allowed), not
+   charts; hue lives on edges/glyphs, never a full card wash. */
+
+/* ---- Zone 1: header band ---- */
+
+.today__hero {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+    padding-block: var(--space-4);
+    padding-inline: var(--space-5);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xs);
+}
+
+/* The one chrome accent on the page — the brand/interaction hue, never a
+   semantic one (CLAUDE.md § 6: chrome is --action, badges are semantic). */
+.today__hero-mark {
+    flex: none;
+    display: grid;
+    place-items: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    border-radius: var(--radius);
+    background-color: var(--action-bg);
+    color: var(--action);
+}
+
+.today__hero-text {
+    min-width: 0;
+}
 
 .today__greeting {
     font-size: var(--text-xl);
@@ -19,84 +62,110 @@
     font-variant-numeric: tabular-nums;
 }
 
-/* ---- Stat tiles ---- */
-
-/* Four tiles when you can approve, three when you can't — auto-columns keeps
-   the row full either way rather than leaving a hole where a tile would be. */
-.today-stats {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: 1fr;
-    gap: var(--space-3);
+/* Pushed to the far inline-end; wraps below the greeting on a narrow screen
+   (flex-wrap, never overflow-x) so it can never push the page width. */
+.pulse-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-inline-start: auto;
 }
 
-/* The semantic hue lives on the inline-START edge only — a 3px rule, not a
-   fill. Same edge as the priority stripe (priority-stripe.css), so every
-   coloured bar in the system lands on the same side of its box. A tinted card
-   would put four competing colours on the screen at once. */
-.stat-tile {
-    --tile-color: var(--c-slate);
-    display: block;
-    background-color: var(--surface);
+/* A live count chip — small pill, --text-lg mono figure, pill radius. Calm on
+   --surface-2 at zero; tints its hue (ink + wash + line) the moment count > 0,
+   so a quiet day reads quiet and a hot one lands the eye on heat. Anchor-scrolls
+   to its own section below. NOT sized/bordered like a .stat-tile — that
+   difference is what keeps the two number groups from reading as one row. */
+.pulse-chip {
+    --pulse-color: var(--c-slate);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding-block: var(--space-2);
+    padding-inline: var(--space-3);
     border: 1px solid var(--border);
-    border-inline-start: 3px solid var(--tile-color);
-    border-radius: var(--radius-lg);
-    padding-block: var(--space-4);
-    padding-inline: var(--space-4);
-    color: inherit;
-    transition: background-color var(--transition);
-}
-
-a.stat-tile:hover {
+    border-radius: var(--radius-full);
     background-color: var(--surface-2);
+    color: inherit;
+    transition: background-color var(--transition), border-color var(--transition);
 }
 
-.stat-tile--red {
-    --tile-color: var(--c-red);
+.pulse-chip:hover {
+    background-color: var(--hover);
+    border-color: var(--border-strong);
 }
 
-.stat-tile--amber {
-    --tile-color: var(--c-amber);
+.pulse-chip__icon {
+    inline-size: 1rem;
+    block-size: 1rem;
+    color: var(--text-subtle);
 }
 
-/* Teal, not blue: a count of due work is a status statement, and blue is
-   reserved for controls (2026-07-19). */
-.stat-tile--teal {
-    --tile-color: var(--c-teal);
-}
-
-.stat-tile--green {
-    --tile-color: var(--c-green);
-}
-
-.stat-tile__figure {
+.pulse-chip__figure {
     font-family: var(--font-mono);
-    font-size: var(--text-3xl);
-    font-weight: var(--weight-black);
-    line-height: 1.1;
     font-variant-numeric: tabular-nums;
+    font-size: var(--text-lg);
+    font-weight: var(--weight-heavy);
+    line-height: 1;
 }
 
-.stat-tile__caption {
-    margin-block-start: 3px;
-    font-size: var(--text-sm);
+.pulse-chip__label {
+    font-size: var(--text-xs);
     color: var(--text-muted);
 }
 
-/* ---- The two-column list grid ---- */
+.pulse-chip--active {
+    background-color: var(--pulse-bg);
+    border-color: var(--pulse-line);
+}
 
-/* The wide column carries the list you act on first; the narrow one is the
-   checklist beside it. Sections past the second wrap into the same rhythm. */
+.pulse-chip--active .pulse-chip__figure,
+.pulse-chip--active .pulse-chip__icon {
+    color: var(--pulse-color);
+}
+
+.pulse-chip--red {
+    --pulse-color: var(--c-red);
+    --pulse-bg: var(--c-red-bg);
+    --pulse-line: var(--c-red-line);
+}
+
+.pulse-chip--amber {
+    --pulse-color: var(--c-amber);
+    --pulse-bg: var(--c-amber-bg);
+    --pulse-line: var(--c-amber-line);
+}
+
+.pulse-chip--teal {
+    --pulse-color: var(--c-teal);
+    --pulse-bg: var(--c-teal-bg);
+    --pulse-line: var(--c-teal-line);
+}
+
+.pulse-chip--green {
+    --pulse-color: var(--c-green);
+    --pulse-bg: var(--c-green-bg);
+    --pulse-line: var(--c-green-line);
+}
+
+/* ---- Zone 2: action questions (masonry) ---- */
+
+/* CSS multi-column masonry: sections flow top-to-bottom in the first column
+   (onFire is emitted first → lands top of the reading-order column), then the
+   next. A one-row or cleared section packs directly under its neighbour rather
+   than leaving an empty track beside a tall list — the definitive kill of the
+   old fixed 1.6fr/1fr canyon. */
 .today {
-    display: grid;
-    grid-template-columns: 1.6fr 1fr;
-    gap: var(--space-4);
-    align-items: start;
+    columns: 2;
+    column-gap: var(--space-4);
+    margin-block-start: var(--space-5);
 }
 
 .today__section {
     display: flex;
     flex-direction: column;
+    break-inside: avoid;
+    margin-block-end: var(--space-4);
 }
 
 /* The section heading carries the question, not a metric. */
@@ -121,9 +190,47 @@ a.stat-tile:hover {
     white-space: nowrap;
 }
 
-/* Positioned so the absolute priority stripe anchors to the row rather than
-   the card behind it. Rows are divided by the faint inner line, drawn on the
-   leading edge so the last row sits flush against the card's own border. */
+/* The section's row count, echoing its header pulse-chip's hue so a chip and
+   its section read as the same thing. Calm slate by default; tints when the
+   section owns a hue. */
+.today__count {
+    --count-color: var(--c-slate);
+    --count-bg: var(--chip);
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-heavy);
+    color: var(--count-color);
+    background-color: var(--count-bg);
+    border-radius: var(--radius-full);
+    padding-block: 1px;
+    padding-inline: var(--space-2);
+    min-inline-size: 1.5rem;
+    text-align: center;
+}
+
+.today__count--red {
+    --count-color: var(--c-red);
+    --count-bg: var(--c-red-bg);
+}
+
+.today__count--amber {
+    --count-color: var(--c-amber);
+    --count-bg: var(--c-amber-bg);
+}
+
+.today__count--teal {
+    --count-color: var(--c-teal);
+    --count-bg: var(--c-teal-bg);
+}
+
+.today__count--green {
+    --count-color: var(--c-green);
+    --count-bg: var(--c-green-bg);
+}
+
+/* A work row. The absolute priority stripe anchors to the row; rows are divided
+   by the faint inner line on the leading edge so the last row sits flush. */
 .today__row {
     position: relative;
     display: flex;
@@ -136,8 +243,6 @@ a.stat-tile:hover {
     transition: background-color var(--transition);
 }
 
-/* The card header already draws a hairline; a second one under it would read
-   as a double rule. */
 .today__row:first-child {
     border-block-start: 0;
 }
@@ -169,13 +274,291 @@ a.stat-tile:hover {
     white-space: nowrap;
 }
 
+/* The anti-air device. An empty list/widget renders exactly one row-height line
+   — a green check-circle glyph + a muted reassurance — instead of a padded
+   centered void. A cleared section is now the height of a section holding one
+   row, so a big card full of air is impossible by construction. */
+.today__clear {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding-block: var(--space-3);
+    padding-inline: var(--space-4);
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+}
+
+.today__clear-glyph {
+    flex: none;
+    color: var(--c-green);
+}
+
+/* Anchor targets sit below the sticky topbar when a pulse-chip scrolls to them. */
+.today__section {
+    scroll-margin-block-start: calc(var(--topbar-height) + var(--space-4));
+}
+
+/* ---- Zone 3: overview ---- */
+
+.zone-head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    margin-block-start: var(--space-6);
+    margin-block-end: var(--space-4);
+    padding-block-end: var(--space-2);
+    border-block-end: 1px solid var(--border);
+}
+
+.zone-head__title {
+    font-size: var(--text-lg);
+    font-weight: var(--weight-heavy);
+}
+
+.zone-head__meta {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    background-color: var(--chip);
+    border-radius: var(--radius-full);
+    padding-block: 2px;
+    padding-inline: var(--space-2);
+}
+
+/* The KPI scoreboard. Four equal tiles; drops to two columns on a laptop. */
+.today-stats {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: var(--space-3);
+}
+
+/* Hue on the 3px inline-start edge and the head glyph only — a tinted card
+   would put four competing colours on the screen at once. */
+.stat-tile {
+    --tile-color: var(--c-slate);
+    display: block;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-inline-start: 3px solid var(--tile-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xs);
+    padding-block: var(--space-4);
+    padding-inline: var(--space-4);
+    color: inherit;
+    transition: background-color var(--transition);
+}
+
+a.stat-tile:hover {
+    background-color: var(--surface-2);
+}
+
+.stat-tile--red {
+    --tile-color: var(--c-red);
+}
+
+.stat-tile--amber {
+    --tile-color: var(--c-amber);
+}
+
+/* Teal, not blue: a count of work is a status statement, and blue is reserved
+   for controls. */
+.stat-tile--teal {
+    --tile-color: var(--c-teal);
+}
+
+.stat-tile--green {
+    --tile-color: var(--c-green);
+}
+
+.stat-tile--slate {
+    --tile-color: var(--c-slate);
+}
+
+.stat-tile__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-block-end: var(--space-2);
+}
+
+.stat-tile__glyph {
+    flex: none;
+    inline-size: 1rem;
+    block-size: 1rem;
+    color: var(--tile-color);
+}
+
+.stat-tile__caption {
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+}
+
+.stat-tile__figure {
+    font-family: var(--font-mono);
+    font-size: var(--text-3xl);
+    font-weight: var(--weight-black);
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+}
+
+.stat-tile__unit {
+    margin-inline-start: 2px;
+    font-size: var(--text-md);
+    font-weight: var(--weight-bold);
+    color: var(--text-muted);
+}
+
+/* The widget masonry — same packing discipline as the action zone, so a gated
+   card that doesn't emit leaves no hole and varied-height widgets pack tight. */
+.overview-grid {
+    columns: 2;
+    column-gap: var(--space-4);
+}
+
+.overview-grid > * {
+    break-inside: avoid;
+    margin-block-end: var(--space-4);
+}
+
+/* ---- Bar meters (allowed; not charts) ---- */
+
+.meter {
+    --meter-color: var(--c-slate);
+    height: 8px;
+    min-inline-size: 4rem;
+    border-radius: var(--radius-full);
+    background-color: var(--surface-3);
+    overflow: hidden;
+}
+
+.meter__fill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    background-color: var(--meter-color);
+    /* --value is the one dynamic inline value allowed (CLAUDE.md § 3). */
+    width: var(--value, 0%);
+    transition: width var(--transition);
+}
+
+.meter--green {
+    --meter-color: var(--c-green);
+}
+
+.meter--urgent {
+    --meter-color: var(--c-urgent);
+}
+
+.meter--high {
+    --meter-color: var(--c-high);
+}
+
+.meter--medium {
+    --meter-color: var(--c-medium);
+}
+
+.meter--low {
+    --meter-color: var(--c-low);
+}
+
+.meter--slate {
+    --meter-color: var(--c-slate);
+}
+
+/* An SLA breach-by-priority row: badge, hue-filled bar, mono count. */
+.meter-row {
+    display: grid;
+    grid-template-columns: 7rem 1fr auto;
+    align-items: center;
+    gap: var(--space-3);
+    padding-block: var(--space-3);
+    padding-inline: var(--space-4);
+    border-block-start: 1px solid var(--border-subtle);
+}
+
+.meter-row:first-child {
+    border-block-start: 0;
+}
+
+.meter__num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+}
+
+/* ---- Activity feed ---- */
+
+.activity-feed {
+    display: flex;
+    flex-direction: column;
+}
+
+.activity-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding-block: var(--space-3);
+    padding-inline: var(--space-4);
+    border-block-start: 1px solid var(--border-subtle);
+    font-size: var(--text-sm);
+}
+
+.activity-row:first-child {
+    border-block-start: 0;
+}
+
+.activity-row__glyph {
+    flex: none;
+    inline-size: 1rem;
+    block-size: 1rem;
+    color: var(--text-subtle);
+}
+
+.activity-row__actor {
+    font-weight: var(--weight-medium);
+    white-space: nowrap;
+}
+
+.activity-row__verb {
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.activity-row__subject {
+    color: var(--text-subtle);
+    white-space: nowrap;
+}
+
+.activity-row__time {
+    margin-inline-start: auto;
+    flex: none;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--text-xs);
+    color: var(--text-subtle);
+    white-space: nowrap;
+}
+
+/* ---- Responsive ---- */
+
 @media (max-width: 72rem) {
     .today-stats {
         grid-auto-flow: row;
         grid-template-columns: repeat(2, 1fr);
     }
+}
 
-    .today {
-        grid-template-columns: 1fr;
+@media (max-width: 60rem) {
+    .today,
+    .overview-grid {
+        columns: 1;
+    }
+
+    .pulse-strip {
+        margin-inline-start: 0;
     }
 }

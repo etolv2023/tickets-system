@@ -67,11 +67,19 @@ class ReportController extends Controller
         abort_unless($request->user()->hasPermission('points.view.all'), 403);
 
         $period = $this->period($request);
+        $filters = $request->only(['person', 'assignee']);
 
         return view('reports.leaderboard', [
             'period' => $period,
             'months' => $this->months(),
-            'rows' => $this->reports->leaderboard($period),
+            'filters' => $filters,
+            'rows' => $this->reports->leaderboard($period, $filters),
+            'selectedPerson' => filled($filters['person'] ?? null)
+                ? User::whereKey($filters['person'])->value('name')
+                : null,
+            'selectedAssignee' => filled($filters['assignee'] ?? null)
+                ? User::whereKey($filters['assignee'])->value('name')
+                : null,
         ]);
     }
 
@@ -150,22 +158,37 @@ class ReportController extends Controller
         ]);
     }
 
-    /** "نقاطي" — everyone can see their own. F18 */
+    /**
+     * "نقاطي" — everyone can see their own. F18
+     *
+     * Defaults to the current month, same as every other points screen. A
+     * separate ?period=all mode (a plain link, not a value in the shared
+     * month picker) skips forPeriod() entirely and sums the whole ledger —
+     * $period itself still resolves to the current month via period()'s own
+     * fallback, so the picker keeps showing a real, selected month even
+     * while "all" is active.
+     */
     public function myPoints(Request $request): View
     {
         abort_unless($request->user()->hasPermission('points.view.own'), 403);
 
         $period = $this->period($request);
+        $isAll = $request->query('period') === 'all';
+
+        $transactions = $request->user()->pointTransactions()
+            ->with('ticket:id,ticket_number,title,type', 'subtask:id,title')
+            ->when(! $isAll, fn ($q) => $q->forPeriod($period))
+            ->orderByDesc('created_at')
+            ->get();
 
         return view('reports.my-points', [
             'period' => $period,
+            'isAll' => $isAll,
             'months' => $this->months(),
-            'total' => $request->user()->pointsFor($period),
-            'transactions' => $request->user()->pointTransactions()
-                ->with('ticket:id,ticket_number,title,type', 'subtask:id,title')
-                ->forPeriod($period)
-                ->orderByDesc('created_at')
-                ->get(),
+            'total' => $isAll
+                ? (float) $request->user()->pointTransactions()->sum('points')
+                : $request->user()->pointsFor($period),
+            'transactions' => $transactions,
         ]);
     }
 
