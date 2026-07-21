@@ -21,7 +21,9 @@
 @can('tickets.view.all')
     <a href="{{ route('board.team') }}" class="nav__link" title="بورد التيم"
        @if (request()->routeIs('board.team')) aria-current="page" @endif>
-        <x-icon name="board" class="nav__icon" />
+        {{-- grid, not board — بوردي و«بورد التيم» جنب بعض هنا، ونفس الأيقونة
+             لاتنين رابط متجاورين كانت بتخليهم يتقروا كصورة واحدة. --}}
+        <x-icon name="grid" class="nav__icon" />
         <span class="nav__label">بورد التيم</span>
     </a>
 @endcan

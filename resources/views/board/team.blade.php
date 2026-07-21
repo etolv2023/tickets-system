@@ -9,7 +9,9 @@
 @endpush
 
 @section('content')
-    <div class="page">
+    {{-- ★★★★ (2026-07-20): a board is a grid, not prose — layout.css calls
+         this out by name as the case .page--wide exists for. --}}
+    <div class="page page--wide">
         <div class="page__head">
             <div>
                 <h1 class="page-title">بورد التيم</h1>

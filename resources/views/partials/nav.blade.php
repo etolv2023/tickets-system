@@ -78,7 +78,7 @@
 
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit" class="nav__logout" title="خروج" aria-label="خروج">
+                <button type="submit" class="nav__logout" data-tooltip="خروج" aria-label="خروج">
                     <x-icon name="logout" />
                 </button>
             </form>

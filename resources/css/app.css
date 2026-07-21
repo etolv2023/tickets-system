@@ -38,6 +38,8 @@
 @import './components/notification.css';
 @import './components/blank.css';
 @import './components/legend.css';
+@import './components/toast.css';
+@import './components/tooltip.css';
 
 @import './features/auth.css';
 @import './features/install.css';

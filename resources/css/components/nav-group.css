@@ -6,7 +6,7 @@
    column read as a table of contents; the gap alone does the same job without
    adding six more lines to a screen that already has plenty. */
 .nav-group + .nav-group {
-    margin-block-start: var(--space-4);
+    margin-block-start: var(--space-5);
 }
 
 .nav-group__head {
@@ -82,7 +82,7 @@
 .nav-group__body {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--space-1);
 }
 
 /* On the collapsed rail there are no headings to fold — the icons are the

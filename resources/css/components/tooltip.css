@@ -1,0 +1,89 @@
+/* Tooltip — a styled, immediate hint for a control whose only label is an
+   icon. Pure CSS: no JS, shown on hover AND :focus-visible so a keyboard user
+   gets the same information a mouse user does, not just the slower native
+   `title` popup this sits alongside.
+
+   The two modifiers below are independent axes (composed with the plain CSS
+   custom properties --tooltip-x/--tooltip-y, not two competing rule sets),
+   because the topbar's controls needed BOTH at once:
+
+   ★★★★ Fix (2026-07-21) — `.tooltip--end`: centred-by-default silently broke
+   document scrollWidth on every single page, not just the ones with a visible
+   scrollbar. The bell is the last control in the topbar, close to the
+   inline-end edge, and a centred tooltip put roughly half its width there,
+   PAST the edge. `visibility: hidden` still lays the box out; it just
+   doesn't paint it, so an invisible strip of real scrollable width was on
+   every screen in the app. This pins the tooltip's own inline-end edge to
+   the trigger's, so it only ever grows toward inline-start (into the page).
+
+   ★★★★ Fix (2026-07-21) — `.tooltip--below`: the default shows the tooltip
+   ABOVE the trigger, which is where a tooltip conventionally goes — except
+   the topbar sits flush against the top of the viewport, so "above" had
+   nothing to render into and the tooltip was clipped off-screen, invisible,
+   on exactly the controls a person is most likely to hover. This flips the
+   block axis to show below instead. */
+
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    --tooltip-x: -50%;
+    --tooltip-y: 2px;
+    inset-block-end: calc(100% + var(--space-2));
+    inset-inline-start: 50%;
+    translate: var(--tooltip-x) var(--tooltip-y);
+    padding: var(--space-1) var(--space-2);
+    background-color: var(--inverse-surface);
+    color: var(--inverse-text);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-medium);
+    line-height: 1.4;
+    white-space: nowrap;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity var(--transition), translate var(--transition), visibility var(--transition);
+    z-index: var(--z-dropdown);
+}
+
+[data-tooltip]:hover::after,
+[data-tooltip]:focus-visible::after {
+    opacity: 1;
+    visibility: visible;
+    translate: var(--tooltip-x) 0;
+}
+
+/* For a trigger that already sits at the inline-end edge (the topbar's last
+   couple of controls) — grows only toward inline-start, never past the edge
+   it started at. */
+.tooltip--end::after {
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+    --tooltip-x: 0;
+}
+
+/* For a trigger with nothing above it (the topbar itself) — shows below. */
+.tooltip--below::after {
+    inset-block-end: auto;
+    inset-block-start: calc(100% + var(--space-2));
+    --tooltip-y: -2px;
+}
+
+/* Nothing to hover on a touch screen, and a stuck tooltip after a tap is
+   worse than none — the tap target's own aria-label still carries the name. */
+@media (hover: none) {
+    [data-tooltip]::after {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-tooltip]::after {
+        transition: none;
+    }
+}

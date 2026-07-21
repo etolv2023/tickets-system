@@ -43,10 +43,21 @@
                  :value="$subtask?->estimated_hours" step="0.25" min="0" max="999"
                  :id="$prefix . 'estimate'" />
 
-        <x-field name="points" label="النقاط" type="number"
-                 :value="$subtask?->points" step="0.5" min="0" max="999"
-                 :id="$prefix . 'points'"
-                 hint="{{ $subtask ? '' : 'سيبها فاضية لتاخد قيمة مصفوفة النقاط الافتراضية.' }}" />
+        @can('updatePoints', \App\Models\TicketSubtask::class)
+            <x-field name="points" label="النقاط" type="number"
+                     :value="$subtask?->points" step="0.5" min="0" max="999"
+                     :id="$prefix . 'points'"
+                     hint="{{ $subtask ? '' : 'سيبها فاضية لتاخد قيمة مصفوفة النقاط الافتراضية.' }}" />
+        @else
+            {{-- النقاط بتتحدد من مصفوفة النقاط بس، والأدمن (points.rules.manage)
+                 هو الوحيد اللي يقدر يعدّلها — قراءة بس هنا، نفس نمط
+                 input--locked المستخدم للحقول اللي النظام بيملاها مش اليوزر. --}}
+            <div class="field">
+                <label class="field__label" for="{{ $prefix }}points">النقاط</label>
+                <input type="text" id="{{ $prefix }}points" class="input input--locked" disabled
+                       value="{{ $subtask ? rtrim(rtrim((string) $subtask->points, '0'), '.') . ' نقطة' : '—' }}">
+            </div>
+        @endcan
     </div>
 
     {{-- One date, not two. The estimate is in hours, so a start-to-due span of

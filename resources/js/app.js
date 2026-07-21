@@ -119,6 +119,32 @@ window.matchMedia('(max-width: 60rem)').addEventListener('change', (event) => {
     }
 });
 
+// Toast — transient confirmations for interactions that never reload the
+// page. A full-page action still flashes through the inline `x-alert`
+// already on every screen; this is additive for the actions that have
+// nothing else, not a replacement for that.
+Alpine.store('toast', {
+    items: [],
+    seq: 0,
+
+    push(message, variant = 'info') {
+        const id = ++this.seq;
+        this.items.push({ id, message, variant });
+        setTimeout(() => this.dismiss(id), 5000);
+    },
+
+    dismiss(id) {
+        this.items = this.items.filter((item) => item.id !== id);
+    },
+});
+
+// subtasks.js dispatches this on a failed drag-reorder save — the order on
+// screen is already wrong by then (the drag already happened), so this is
+// the one and only place that gets to say so. It used to go nowhere.
+document.addEventListener('reorder-failed', () => {
+    Alpine.store('toast').push('الترتيب الجديد ماتسجّلش. حدّث الصفحة وجرّب تاني.', 'error');
+});
+
 // Copy-to-clipboard for a single value, with a two-second "copied" state.
 // navigator.clipboard needs a secure context; over plain http on a LAN address
 // it is undefined, so fall back to the old selection trick rather than fail

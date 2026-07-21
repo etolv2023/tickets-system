@@ -28,15 +28,29 @@ class PointRuleController extends Controller
             ),
             // The combinations F18's matrix actually defines. Anything not here
             // has no rule by design, and the engine awards zero for it.
+            //
+            // ★★★★ Fix (2026-07-21): bug/any and feature/any were missing —
+            // both already had a real devops rule in point_rules (seeded
+            // alongside new_module/any), but with no row rendering them here
+            // an admin could never see or edit them from this screen.
             'rows' => [
                 ['type' => TicketType::Inquiry, 'scope' => 'any'],
                 ['type' => TicketType::Bug, 'scope' => 'frontend'],
                 ['type' => TicketType::Bug, 'scope' => 'backend'],
                 ['type' => TicketType::Bug, 'scope' => 'both'],
+                ['type' => TicketType::Bug, 'scope' => 'any'],
                 ['type' => TicketType::Feature, 'scope' => 'frontend'],
                 ['type' => TicketType::Feature, 'scope' => 'backend'],
                 ['type' => TicketType::Feature, 'scope' => 'both'],
+                ['type' => TicketType::Feature, 'scope' => 'any'],
                 ['type' => TicketType::NewModule, 'scope' => 'any'],
+
+                // ★ DevOps scope (2026-07-21) — a row per type so the admin can
+                // set the point distribution for a purely-devops ticket.
+                ['type' => TicketType::Inquiry, 'scope' => 'devops'],
+                ['type' => TicketType::Bug, 'scope' => 'devops'],
+                ['type' => TicketType::Feature, 'scope' => 'devops'],
+                ['type' => TicketType::NewModule, 'scope' => 'devops'],
             ],
             'sides' => PointSide::cases(),
             'scopeLabels' => [
@@ -44,6 +58,7 @@ class PointRuleController extends Controller
                 'frontend' => 'فرونت',
                 'backend' => 'باك',
                 'both' => 'فرونت وباك',
+                'devops' => 'ديف أوبس',
             ],
             'users' => User::active()->orderBy('name')->get(['id', 'name']),
             'corrections' => PointTransaction::query()
@@ -116,7 +131,7 @@ class PointRuleController extends Controller
 
         $data = $request->validate([
             'ticket_type' => ['required', 'string'],
-            'scope' => ['required', 'in:any,frontend,backend,both'],
+            'scope' => ['required', 'in:any,frontend,backend,both,devops'],
             'side' => ['required', 'string'],
             'points' => ['required', 'numeric', 'min:0', 'max:999'],
             'is_active' => ['required', 'boolean'],

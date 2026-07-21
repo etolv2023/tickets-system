@@ -47,6 +47,16 @@
                     placeholder="كل الشركات" />
     </div>
 
+    {{-- Ticket::scopeFilter() already matched this against every assignment
+         column (frontend/backend/tester/devops) — only the control to reach
+         it from this screen was missing (2026-07-21). --}}
+    <div class="filters__combobox">
+        <x-combobox name="assignee" resource="users"
+                    :value="$filters['assignee'] ?? null"
+                    :selected="$selectedAssignee"
+                    placeholder="كل المسؤولين" />
+    </div>
+
     <div class="filters__group">
         <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" class="input" aria-label="من تاريخ">
         <span class="u-subtle">→</span>

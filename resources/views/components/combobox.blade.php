@@ -62,7 +62,7 @@
                @keydown.escape="close()">
 
         <button type="button" class="combobox__clear" x-show="value" x-cloak
-                @click="clear()" aria-label="امسح الاختيار">
+                @click="clear()" aria-label="امسح الاختيار" data-tooltip="امسح الاختيار">
             <x-icon name="close" size="0.85em" />
         </button>
 

@@ -3,7 +3,9 @@
 @section('title', 'مصفوفة النقاط')
 
 @section('content')
-    <div class="page">
+    {{-- ★★★★ (2026-07-21): a single wide matrix table — layout.css's own
+         "a single wide table" case for .page--wide. --}}
+    <div class="page page--wide">
         <div class="page__head">
             <div>
                 <h1 class="page-title">مصفوفة النقاط</h1>

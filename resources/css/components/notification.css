@@ -153,31 +153,45 @@
     color: var(--text-subtle);
 }
 
-/* The browser-permission prompt. A real surface in the page flow, not a ghost
-   button in the header — the first version read as body text and was missed. */
-.notify-prompt {
+/* ★★★★★ (2026-07-21): the browser-permission banner — chrome now, not page
+   content. It used to be a rounded card living inside /notifications' own
+   content column (.notify-prompt); it's now a full-width strip in the app
+   shell itself (layouts/app.blade.php, right under the topbar), so it follows
+   you to every screen instead of the one page nobody thought to visit. Same
+   action-hue treatment topbar's sticky plane sits on, edge to edge rather
+   than margined and rounded — it reads as shell, the way the topbar above it
+   does, not as one more card competing with the page's own content. */
+.notify-banner {
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: var(--space-3);
-    margin-block-end: var(--space-4);
-    padding: var(--space-3) var(--space-4);
-    /* The prompt exists to be acted on — its whole body is a call to action,
-       so it speaks the interaction hue. */
+    padding-block: var(--space-3);
+    padding-inline: var(--space-5);
     background-color: var(--action-bg);
-    border: 1px solid var(--action-line);
-    border-radius: var(--radius-lg);
+    border-block-end: 1px solid var(--action-line);
 }
 
-.notify-prompt__title {
+.notify-banner__text {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.notify-banner__title {
     font-weight: var(--weight-bold);
     color: var(--action);
 }
 
-.notify-prompt__hint {
-    margin-block-start: var(--space-1);
+.notify-banner__hint {
     font-size: var(--text-sm);
     color: var(--text-muted);
-    line-height: var(--leading-normal);
+}
+
+@media (max-width: 60rem) {
+    .notify-banner {
+        padding-inline: var(--space-4);
+    }
 }

@@ -38,7 +38,10 @@
 .select,
 .textarea {
     width: 100%;
-    padding-block: var(--space-2);
+    /* ★★ Redesign (2026-07-20): --space-2 (8px) read tight once the type
+       scale grew — same 0.625rem exception as the nav link (nav.css), a
+       comfortable click target that isn't a full --space-3 step up. */
+    padding-block: 0.625rem;
     padding-inline: var(--space-3);
     background-color: var(--field-bg);
     border: 1px solid var(--border);
@@ -121,12 +124,20 @@
 
    The POPUP list this control opens is drawn by the OS, not by us. It renders
    dark now because :root declares color-scheme (tokens.css) — that, not
-   anything here, was what made the open dropdown look broken in dark mode. */
+   anything here, was what made the open dropdown look broken in dark mode.
+
+   ★★ Fix (2026-07-20): background-position has no logical inline-start/end
+   keyword, so it has to be spelled out physically — and it was spelled out
+   as the wrong physical side. The padding below already reserves the big gap
+   (--space-6) on inline-start, which in this app's one and only direction
+   (dir="rtl", hardcoded everywhere — see nav-drawer.css) IS physical right;
+   the icon was drawing at physical LEFT, into the small --space-3 gap, close
+   enough to the text boundary to crowd a long option label. One word fix. */
 .select {
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%237c8594' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: left var(--space-3) center;
+    background-position: right var(--space-3) center;
     background-size: 1rem;
     padding-inline-end: var(--space-3);
     padding-inline-start: var(--space-6);
@@ -167,7 +178,7 @@
 
 .form-grid {
     display: grid;
-    gap: var(--space-4);
+    gap: var(--space-5);
     grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
 }
 

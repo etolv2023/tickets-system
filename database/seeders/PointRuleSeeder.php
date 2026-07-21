@@ -48,6 +48,16 @@ class PointRuleSeeder extends Seeder
         // overwrite what you set there.
         ['bug', 'any', ['devops' => 1]],
         ['feature', 'any', ['devops' => 1.5]],
+
+        // ★ DevOps scope (2026-07-21) — a ticket that is entirely devops work.
+        // Seeded as a copy of each type's 'any' row (the agreed starting point);
+        // the admin tunes them from /admin/point-rules. firstOrCreate means a
+        // re-seed never overwrites those edits. The migration copies the same
+        // rows for an already-populated production database.
+        ['inquiry', 'devops', ['support' => 1]],
+        ['bug', 'devops', ['devops' => 1]],
+        ['feature', 'devops', ['devops' => 1.5]],
+        ['new_module', 'devops', ['support' => 1, 'frontend' => 3, 'backend' => 3, 'tester' => 1, 'devops' => 2]],
     ];
 
     public function run(): void

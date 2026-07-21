@@ -88,6 +88,13 @@ a {
     color: var(--text-subtle);
 }
 
+/* A single glyph marking an achievement/points screen — same amber the
+   leaderboard podium already reserves for "this is the thing that's special
+   here", not a general-purpose icon tint. */
+.u-icon-accent {
+    color: var(--c-amber);
+}
+
 .u-label {
     display: block;
     font-size: var(--text-sm);

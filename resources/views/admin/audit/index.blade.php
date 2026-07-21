@@ -3,7 +3,8 @@
 @section('title', 'سجل التدقيق')
 
 @section('content')
-    <div class="page">
+    {{-- ★★★★ (2026-07-21): a single wide table (time/who/action/subject/diff/IP). --}}
+    <div class="page page--wide">
         <div class="page__head">
             <div>
                 <h1 class="page-title">سجل التدقيق</h1>

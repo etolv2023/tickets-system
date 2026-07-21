@@ -37,4 +37,15 @@ class TicketSubtaskPolicy
     {
         return $this->update($user, $subtask, $ticket);
     }
+
+    /**
+     * Whether the subtask's points value is editable, separate from update()
+     * above: everyone with subtasks.manage can plan and reassign a subtask,
+     * but points feed real bonus money, so only whoever owns the matrix
+     * (points.rules.manage) can override the default it assigned (2026-07-21).
+     */
+    public function updatePoints(User $user): bool
+    {
+        return $user->hasPermission('points.rules.manage');
+    }
 }

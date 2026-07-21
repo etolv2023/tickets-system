@@ -74,11 +74,27 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     text-align: center;
+    transition: transform var(--transition), border-color var(--transition);
 }
 
+.podium__place:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-strong);
+}
+
+/* ★★★★★ (2026-07-21): a flat tint, not a gradient — the same color-mix wash
+   .alert already uses for "this needs your attention", borrowed here for
+   "this is the thing that's special". Still a border + background, never a
+   shadow (CLAUDE.md § 6 reserves shadow for modals). */
 .podium__place--first {
     padding-block: var(--space-5);
+    background-color: color-mix(in srgb, var(--c-high) 6%, var(--surface));
     border: 2px solid var(--c-high);
+}
+
+.podium__place--first:hover {
+    transform: translateY(-3px);
+    border-color: var(--c-high);
 }
 
 .podium__rank {
@@ -87,9 +103,10 @@
     color: var(--text-subtle);
 }
 
-.podium__place--first .podium__rank {
+.podium__trophy {
+    width: 1.75rem;
+    height: 1.75rem;
     color: var(--c-high);
-    font-weight: var(--weight-heavy);
 }
 
 .podium__name {
@@ -106,6 +123,7 @@
 
 .podium__place--first .podium__points {
     font-size: var(--text-3xl);
+    color: var(--c-high);
 }
 
 .podium__meta {
@@ -129,10 +147,17 @@
     padding-block: var(--space-3);
     padding-inline: var(--space-4);
     border-block-end: 1px solid var(--border);
+    transition: background-color var(--transition);
 }
 
 .points-row:last-child {
     border-block-end: 0;
+}
+
+/* A named row (rank 5+) still leads to the employee profile when the viewer
+   can see it — the same hover cue as any other clickable table row. */
+.points-row:has(.points-row__name a):hover {
+    background-color: var(--hover);
 }
 
 /* Rank is data, not decoration — the top three are not gold/silver/bronze. */

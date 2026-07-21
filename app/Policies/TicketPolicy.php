@@ -133,6 +133,18 @@ class TicketPolicy
     /** F06: manual status changes (with an optional "waiting on" recipient) piggyback on general edit rights. */
     public function changeStatus(User $user, Ticket $ticket): bool
     {
+        // F15 (2026-07-21): a feature/module awaiting approval is frozen. Moving
+        // its status — the tickets-list picker offered pending_approval→assigned,
+        // and the "غيّر الحالة" panel the same — flipped it out of the approvals
+        // queue while approval_status stayed 'pending', so assign() then refused
+        // it (F15) and it could no longer be approved: stranded, un-assignable.
+        // The approve/reject decision owns its movement; until then its status
+        // does not change. This renders the picker as a read-only badge and hides
+        // the panel; transition() enforces the same invariant server-side.
+        if ($ticket->type->needsApproval() && $ticket->approval_status === 'pending') {
+            return false;
+        }
+
         return $user->hasPermission('tickets.edit') && $this->view($user, $ticket);
     }
 

@@ -55,10 +55,14 @@
         <div class="shell__main">
             @include('partials.topbar')
 
+            <x-notify-banner />
+
             <main class="shell__body">
                 @yield('content')
             </main>
         </div>
     </div>
+
+    <x-toast-host />
 </body>
 </html>

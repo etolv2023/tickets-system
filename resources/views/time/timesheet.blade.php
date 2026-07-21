@@ -3,7 +3,9 @@
 @section('title', 'ورقة وقتي')
 
 @section('content')
-    <div class="page">
+    {{-- ★★★★ (2026-07-21): the timesheet is ticket × 7 days — explicitly the
+         wide-table case CLAUDE.md's mobile section calls out by name. --}}
+    <div class="page page--wide">
         <div class="page__head">
             <div>
                 <h1 class="page-title">ورقة وقتي</h1>

@@ -89,7 +89,7 @@
 .nav__list {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--space-1);
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
@@ -135,7 +135,12 @@
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    padding-block: var(--space-2);
+    /* ★★ Redesign (2026-07-20): a touch taller than --space-2 (8px) gave —
+       10px keeps the rail dense but stops the taller type scale from
+       crowding link against link. Not on the space scale on purpose: the
+       next step up, --space-3, read distinctly looser than the rest of the
+       rail. */
+    padding-block: 0.625rem;
     /* The inline-start padding clears the active marker bar so the label sits
        in the same place whether or not the row is current. */
     padding-inline: var(--space-3) var(--space-2);
@@ -164,7 +169,11 @@
    "special", the bar says "you are here" even in greyscale. */
 .nav__link[aria-current='page'] {
     position: relative;
-    background-color: var(--action-bg);
+    /* ★★ A soft two-stop lean on the same fill rather than a flat wash — the
+       rail's one hue gets a hint of depth instead of a second decoration.
+       Still --action-bg at the bottom stop, so it never reads as a new
+       colour, just a gentler edge on the one that was already there. */
+    background: linear-gradient(180deg, color-mix(in srgb, var(--action) 8%, var(--action-bg)), var(--action-bg));
     color: var(--action);
     font-weight: var(--weight-bold);
     box-shadow: var(--shadow-xs);
@@ -286,7 +295,8 @@
 }
 
 /* Sections vanish with the labels, so the groups need their own separator to
-   stay legible as groups. */
+   stay legible as groups — bigger than the expanded rail's own --space-1, or
+   the whole point of the wider gap disappears. */
 :root[data-sidebar='collapsed'] .nav__list {
-    gap: 3px;
+    gap: var(--space-2);
 }

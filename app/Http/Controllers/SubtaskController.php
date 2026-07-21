@@ -21,7 +21,16 @@ class SubtaskController extends Controller
 
     public function store(SubtaskRequest $request, Ticket $ticket): RedirectResponse
     {
-        $subtask = $this->subtasks->create($ticket, $request->validated(), $request->user()->id);
+        $data = $request->validated();
+
+        // points feeds real bonus money — only points.rules.manage overrides
+        // the matrix default. Anyone else's value is silently ignored, not
+        // rejected, so the form still saves with the default it already shows.
+        if (! $request->user()->can('updatePoints', TicketSubtask::class)) {
+            unset($data['points']);
+        }
+
+        $subtask = $this->subtasks->create($ticket, $data, $request->user()->id);
 
         $this->notifications->notifyUser(
             $subtask->assignee_id,
@@ -40,7 +49,13 @@ class SubtaskController extends Controller
 
         $before = $subtask->assignee_id;
 
-        $this->subtasks->update($subtask, $request->validated());
+        $data = $request->validated();
+
+        if (! $request->user()->can('updatePoints', TicketSubtask::class)) {
+            unset($data['points']);
+        }
+
+        $this->subtasks->update($subtask, $data);
 
         if ($subtask->assignee_id !== null && $subtask->assignee_id !== $before) {
             $this->notifications->notifyUser(

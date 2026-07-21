@@ -8,6 +8,7 @@ enum TicketScope: string
     case Frontend = 'frontend';
     case Backend = 'backend';
     case Both = 'both';
+    case Devops = 'devops';
     case Inquiry = 'inquiry';
     case Undefined = 'undefined';
 
@@ -17,6 +18,10 @@ enum TicketScope: string
             self::Frontend => 'فرونت',
             self::Backend => 'باك',
             self::Both => 'فرونت وباك',
+            // A ticket whose work is entirely devops (infra/deploy) — not
+            // frontend or backend. It drives the points matrix like any other
+            // scope: subtask points come from (type, 'devops', side). F18/2026-07-21.
+            self::Devops => 'ديف أوبس',
             self::Inquiry => 'استفسار',
             self::Undefined => 'غير محدد',
         };

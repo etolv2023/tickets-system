@@ -36,6 +36,13 @@
     white-space: nowrap;
 }
 
+/* F11 labels, stacked under the title. gap over margin between chips so
+   wrapping to a second line doesn't leave a ragged first gap. */
+.tickets__labels {
+    margin-block-start: var(--space-1);
+    gap: var(--space-1);
+}
+
 /* Stacked under the title in the report and queue tables, which pack the
    number, title and company into one cell. */
 .tickets__company {
