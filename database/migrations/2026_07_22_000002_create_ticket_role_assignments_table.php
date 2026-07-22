@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\Schema;
 /**
  * One row per (ticket, role) — who holds that role on this ticket, for every
  * role beyond the four with dedicated columns (frontend/backend/tester/devops).
- * A new custom role never needs a migration to become assignable: granting it
- * the `tickets.assignable_as_role` permission is enough, not a new column here.
+ * A new custom role never needs a migration to become assignable: flipping
+ * Role::assignable_on_tickets is enough, not a new column here.
  */
 return new class extends Migration
 {

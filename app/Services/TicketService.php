@@ -52,7 +52,6 @@ class TicketService
                 'title' => $data['title'],
                 'description' => $this->clean($data['description'] ?? null),
                 'type' => $type,
-                'scope' => $data['scope'],
                 'priority' => $priority,
                 'module' => $data['module'] ?? null,
                 // A feature can't be worked on before an admin says yes. F15
@@ -85,7 +84,6 @@ class TicketService
             'title' => $data['title'],
             'description' => $this->clean($data['description'] ?? null),
             'type' => $data['type'],
-            'scope' => $data['scope'],
             'priority' => $priority,
             'module' => $data['module'] ?? null,
         ];

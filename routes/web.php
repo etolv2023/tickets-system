@@ -226,8 +226,6 @@ Route::middleware('auth')->group(function () {
         // F18 — the points matrix. points.rules.manage is admin-only.
         Route::middleware('permission:points.rules.manage')->group(function () {
             Route::get('point-rules', [PointRuleController::class, 'index'])->name('point-rules.index');
-            Route::put('point-rules', [PointRuleController::class, 'update'])->name('point-rules.update');
-            Route::put('point-rules/role', [PointRuleController::class, 'updateRole'])->name('point-rules.update-role');
             Route::post('point-rules/corrections', [PointRuleController::class, 'storeCorrection'])
                 ->name('point-rules.corrections.store');
         });

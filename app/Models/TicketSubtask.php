@@ -17,7 +17,7 @@ class TicketSubtask extends Model
 
     protected $fillable = [
         'ticket_id', 'title', 'description', 'assignee_id', 'side', 'role_id', 'status',
-        'start_date', 'due_date', 'estimated_hours', 'points', 'rule_id', 'blocked_reason',
+        'start_date', 'due_date', 'estimated_hours', 'points', 'blocked_reason',
         'position', 'created_by', 'started_at', 'completed_at',
     ];
 
@@ -44,12 +44,6 @@ class TicketSubtask extends Model
     public function assignee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assignee_id');
-    }
-
-    /** F18: the point_rules row that supplied this subtask's default points, if any. */
-    public function rule(): BelongsTo
-    {
-        return $this->belongsTo(PointRule::class, 'rule_id');
     }
 
     /** F06 role-assignment extension: set when this subtask earns for a role beyond the fixed `side` sides. */

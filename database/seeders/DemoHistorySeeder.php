@@ -6,7 +6,6 @@ use App\Casts\PriorityValue;
 use App\Casts\TicketStatusValue;
 use App\Enums\SubtaskSide;
 use App\Enums\SubtaskStatus;
-use App\Enums\TicketScope;
 use App\Enums\TicketType;
 use App\Enums\WorkSide;
 use App\Models\Company;
@@ -46,7 +45,7 @@ use Illuminate\Support\Facades\DB;
  *
  * The full earning cycle, visible end to end on any closed ticket:
  *
- *   subtask created  → points prefilled from the matrix for (type, scope, side)
+ *   subtask created  → points prefilled with the flat default (SubtaskService)
  *   subtask done     → it now has an earner and a value
  *   ticket resolved  → PointEngineService pays every Done subtask, once, and
  *                      stamps points_awarded_at so a reopen can never pay twice
@@ -145,7 +144,6 @@ class DemoHistorySeeder extends Seeder
         $reportedAt = $this->reportedAt($monthsBack, $index, $count);
         $priority = PriorityValue::for($item['priority']);
         $type = TicketType::from($item['type']);
-        $scope = TicketScope::from($item['scope']);
 
         $ticket = Ticket::create([
             'ticket_number' => $this->numbers->next((int) $reportedAt->format('Y')),
@@ -159,7 +157,6 @@ class DemoHistorySeeder extends Seeder
             'title' => $item['title'],
             'description' => '<p>' . e($item['detail']) . '</p>',
             'type' => $type,
-            'scope' => $scope,
             'priority' => $priority,
             'status' => TicketStatusValue::for('new'),
             'module' => $item['module'],
@@ -193,7 +190,10 @@ class DemoHistorySeeder extends Seeder
             return;
         }
 
-        $crew = $this->assign($ticket, $scope, $reportedAt, $internal);
+        // A demo-only planning hint (frontend/backend/both/inquiry) that decides
+        // who gets seeded onto the ticket. Not a ticket column any more — just
+        // shapes the fake crew so the reports show a realistic mix.
+        $crew = $this->assign($ticket, $item['scope'], $reportedAt, $internal);
         $plan = $this->planSubtasks($ticket, $item, $crew, $reportedAt, $stage);
 
         $this->logWork($ticket, $stage, $reportedAt);
@@ -232,7 +232,7 @@ class DemoHistorySeeder extends Seeder
      *
      * @return array<string, User>
      */
-    private function assign(Ticket $ticket, TicketScope $scope, CarbonImmutable $reportedAt, bool $internal): array
+    private function assign(Ticket $ticket, string $scopeHint, CarbonImmutable $reportedAt, bool $internal): array
     {
         $frontend = $this->cursor % 3 === 0 ? $this->people['fullstack'] : $this->people['frontend'];
 
@@ -245,11 +245,11 @@ class DemoHistorySeeder extends Seeder
             'qa' => $this->people['tester'],
         ];
 
-        if (in_array($scope, [TicketScope::Frontend, TicketScope::Both], true)) {
+        if (in_array($scopeHint, ['frontend', 'both'], true)) {
             $crew['frontend'] = $frontend;
         }
 
-        if (in_array($scope, [TicketScope::Backend, TicketScope::Both], true)) {
+        if (in_array($scopeHint, ['backend', 'both'], true)) {
             $crew['backend'] = $this->people['backend'];
         }
 
@@ -258,7 +258,7 @@ class DemoHistorySeeder extends Seeder
         $ticket->forceFill([
             'assigned_frontend_id' => $crew['frontend']->id ?? null,
             'assigned_backend_id' => $crew['backend']->id ?? null,
-            'tester_id' => $scope === TicketScope::Inquiry ? null : $crew['qa']->id,
+            'tester_id' => $scopeHint === 'inquiry' ? null : $crew['qa']->id,
             'status' => TicketStatusValue::for('assigned'),
         ])->save();
 
@@ -277,10 +277,9 @@ class DemoHistorySeeder extends Seeder
     /**
      * The subtasks, and the hours actually burned on them.
      *
-     * Points are never passed in: SubtaskService fills them from the matrix for
-     * this ticket's (type, scope) and this subtask's side, which is exactly what
-     * the create form does. That is what makes the points report on this data
-     * trustworthy rather than decorative.
+     * Points are never passed in: SubtaskService fills them with the flat
+     * default, which is exactly what the create form does. That is what makes
+     * the points report on this data trustworthy rather than decorative.
      *
      * @param  array<string, mixed>  $item
      * @param  array<string, User>  $crew

@@ -18,9 +18,9 @@ use Illuminate\Support\Facades\Schema;
  *
  * Every point traces to exactly one Done subtask. There is no ticket-level
  * matrix consulted here and no even split among several earners on a side —
- * each subtask carries its own points (SubtaskService sets a default from
- * point_rules, freely editable from then on), and whoever finished it takes
- * exactly that. A ticket resolved with nothing Done on a side pays nobody on
+ * each subtask carries its own points (a flat default from SubtaskService,
+ * freely editable from then on), and whoever finished it takes exactly that.
+ * A ticket resolved with nothing Done on a side pays nobody on
  * that side; there is deliberately no fallback to a named assignee, because a
  * side that was ever worked on always has a starter subtask (F06.3) and F07
  * refuses to finish a side while any of its subtasks are still open.
@@ -151,7 +151,6 @@ class PointEngineService
                 'subtask_id' => $subtask->id,
                 'points' => $subtask->points,
                 'type' => 'award',
-                'rule_id' => $subtask->rule_id,
                 'period' => $period,
             ] + $earner);
         } catch (UniqueConstraintViolationException) {
@@ -215,7 +214,6 @@ class PointEngineService
             'side' => PointSide::Devops->value,
             'points' => self::DEVOPS_PARTICIPATION_POINTS,
             'type' => 'award',
-            'rule_id' => null,
             'period' => $period,
             'reason' => "{$ticket->type->label()} — مشاركة ديف أوبس من غير صب تاسك مخصص",
         ]);

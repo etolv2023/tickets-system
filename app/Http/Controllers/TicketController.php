@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\TicketScope;
 use App\Enums\TicketType;
 use App\Http\Requests\Tickets\StoreTicketRequest;
 use App\Http\Requests\Tickets\UpdateTicketRequest;
@@ -38,13 +37,13 @@ class TicketController extends Controller
     {
         $this->authorize('viewAny', Ticket::class);
 
-        $filters = $request->only('q', 'status', 'type', 'scope', 'priority', 'company', 'assignee', 'from', 'to');
+        $filters = $request->only('q', 'status', 'type', 'priority', 'company', 'assignee', 'from', 'to');
 
         $tickets = Ticket::query()
             // Never select description here: it's LONGTEXT and this page shows
             // 25 rows of it that nobody reads (CLAUDE.md § 4.3).
             ->select([
-                'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'scope', 'priority',
+                'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'priority',
                 'status', 'reported_at', 'sla_due_at', 'resolved_at', 'updated_at',
                 'assigned_frontend_id', 'assigned_backend_id', 'tester_id', 'devops_id', 'created_by',
                 'subtasks_total', 'subtasks_done',
@@ -224,7 +223,7 @@ class TicketController extends Controller
 
     public function update(UpdateTicketRequest $request, Ticket $ticket, ActivityLogger $logger): RedirectResponse
     {
-        $before = $ticket->only('title', 'type', 'scope', 'priority', 'module');
+        $before = $ticket->only('title', 'type', 'priority', 'module');
 
         $this->tickets->update($ticket, $request->validated());
 
@@ -232,7 +231,7 @@ class TicketController extends Controller
             action: 'ticket.updated',
             userId: $request->user()->id,
             subject: $ticket,
-            changes: ['from' => $before, 'to' => $ticket->only('title', 'type', 'scope', 'priority', 'module')],
+            changes: ['from' => $before, 'to' => $ticket->only('title', 'type', 'priority', 'module')],
             ip: $request->ip(),
             userAgent: $request->userAgent(),
         );
@@ -284,7 +283,6 @@ class TicketController extends Controller
         // the database are now zero of both.
         return [
             'types' => TicketType::options(),
-            'scopes' => TicketScope::options(),
             'priorities' => PriorityDefinition::map(),
             // F06 role-assignment extension: the create form's inline subtask
             // repeater offers the same optional "الرول" select.

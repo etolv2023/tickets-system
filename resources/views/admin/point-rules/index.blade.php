@@ -1,112 +1,16 @@
 @extends('layouts.app')
 
-@section('title', 'مصفوفة النقاط')
+@section('title', 'تصحيحات النقاط')
 
 @section('content')
-    {{-- ★★★★ (2026-07-21): a single wide matrix table — layout.css's own
-         "a single wide table" case for .page--wide. --}}
-    <div class="page page--wide">
+    <div class="page">
         <div class="page__head">
             <div>
-                <h1 class="page-title">مصفوفة النقاط</h1>
+                <h1 class="page-title">تصحيحات النقاط</h1>
                 <p class="page-subtitle">
-                    النقاط بتتصرف مرة واحدة أول ما التذكرة تتحل.
+                    كل صب تاسك بيتصرف بنقاطه هو — تتعدّل من جوه الصب تاسك نفسه. الشاشة دي للتصحيح اليدوي بس.
                 </p>
             </div>
-        </div>
-
-        {{-- The one thing an admin must understand before touching this. F18 --}}
-        <x-alert>
-            <strong>التعديل هنا مبيأثرش بأثر رجعي.</strong>
-            التذاكر الي اتحلت خلاص بتحتفظ بنقاطها زي ما هي — التغيير بيسري على الي هيتحل من دلوقتي بس.
-            <br>
-            الخانة الفاضية معناها إن الجهة دي مبتاخدش نقط على التركيبة دي.
-        </x-alert>
-
-        <div x-data="pointMatrix()">
-            <p class="field__error" x-show="error" x-text="error" x-cloak></p>
-            <p class="u-subtle" x-show="saved" x-text="saved" x-cloak></p>
-
-            <x-card flush>
-                <div class="table-wrap">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>النوع</th>
-                                <th>النطاق</th>
-                                @foreach ($sides as $side)
-                                    <th class="matrix__role-head">{{ $side->label() }}</th>
-                                @endforeach
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($rows as $row)
-                                <tr>
-                                    <td>
-                                        <x-badge :variant="$row['type']->variant()">{{ $row['type']->label() }}</x-badge>
-                                    </td>
-                                    <td>{{ $scopeLabels[$row['scope']] }}</td>
-
-                                    @foreach ($sides as $side)
-                                        @php
-                                            $key = "{$row['type']->value}|{$row['scope']}|{$side->value}";
-                                            $rule = $rules[$key] ?? null;
-                                        @endphp
-                                        <td class="matrix__cell">
-                                            @include('admin.point-rules.partials._cell', [
-                                                'rule' => $rule,
-                                                'type' => $row['type']->value,
-                                                'scope' => $row['scope'],
-                                                'side' => $side->value,
-                                            ])
-                                        </td>
-                                    @endforeach
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </x-card>
-
-            {{-- F06 role-assignment extension: every role opted into ticket
-                 assignment earns the same way frontend/backend do — a Done
-                 subtask tagged to the role pays it, per (ticket type, role). --}}
-            @if ($roles->isNotEmpty())
-                <x-card title="نقاط الأدوار الإضافية" :meta="'أي رول «تظهر في التوزيع» من إدارة الأدوار'">
-                    <div class="table-wrap">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>النوع</th>
-                                    @foreach ($roles as $role)
-                                        <th class="matrix__role-head">{{ $role->name_ar }}</th>
-                                    @endforeach
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($roleTypes as $type)
-                                    <tr>
-                                        <td>
-                                            <x-badge :variant="$type->variant()">{{ $type->label() }}</x-badge>
-                                        </td>
-
-                                        @foreach ($roles as $role)
-                                            @php $rule = $roleRules["{$type->value}|{$role->id}"] ?? null; @endphp
-                                            <td class="matrix__cell">
-                                                @include('admin.point-rules.partials._role-cell', [
-                                                    'rule' => $rule,
-                                                    'type' => $type->value,
-                                                    'roleId' => $role->id,
-                                                ])
-                                            </td>
-                                        @endforeach
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </x-card>
-            @endif
         </div>
 
         {{-- F18: a manual correction — a new row, never an edit to what's already

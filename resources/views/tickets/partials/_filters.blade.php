@@ -32,13 +32,6 @@
         @endforeach
     </select>
 
-    <select name="scope" class="select filters__select">
-        <option value="">كل النطاقات</option>
-        @foreach (\App\Enums\TicketScope::options() as $value => $label)
-            <option value="{{ $value }}" @selected(($filters['scope'] ?? '') === $value)>{{ $label }}</option>
-        @endforeach
-    </select>
-
     {{-- Looked up server-side: this list grows with the customer table. --}}
     <div class="filters__combobox">
         <x-combobox name="company" resource="companies"

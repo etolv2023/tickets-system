@@ -8,8 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * Who holds a given role on a given ticket — the generic counterpart of
  * assigned_frontend_id/assigned_backend_id/tester_id/devops_id for every role
- * an admin has granted the `tickets.assignable_as_role` permission to
- * (Role::isAssignableOnTickets()).
+ * an admin has opted into the assignment panel (Role::isAssignableOnTickets()).
  */
 class TicketRoleAssignment extends Model
 {

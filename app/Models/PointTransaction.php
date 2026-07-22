@@ -17,7 +17,7 @@ class PointTransaction extends Model
 
     protected $fillable = [
         'user_id', 'ticket_id', 'subtask_id', 'side', 'role_id', 'points', 'type',
-        'created_by', 'rule_id', 'period', 'reason',
+        'created_by', 'period', 'reason',
     ];
 
     protected function casts(): array
@@ -61,11 +61,6 @@ class PointTransaction extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
-    }
-
-    public function rule(): BelongsTo
-    {
-        return $this->belongsTo(PointRule::class, 'rule_id');
     }
 
     /** Set only for a role-based award (F18 role extension) — null for a subtask-based one. */

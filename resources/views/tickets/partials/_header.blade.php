@@ -5,7 +5,6 @@
         <div class="ticket__badges">
             <x-badge :variant="$ticket->type->variant()" :icon="$ticket->type->icon()">{{ $ticket->type->label() }}</x-badge>
             <x-badge :variant="$ticket->status->variant()">{{ $ticket->status->label() }}</x-badge>
-            <x-badge variant="neutral">{{ $ticket->scope->label() }}</x-badge>
             @if ($ticket->module)
                 <x-badge variant="neutral">{{ $ticket->module }}</x-badge>
             @endif
