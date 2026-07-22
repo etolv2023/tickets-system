@@ -16,6 +16,8 @@ class Role extends Model
 
     public const ID_MAP_KEY = 'roles.id.map';
 
+    public const ASSIGNABLE_CACHE_KEY = 'roles.assignable_on_tickets';
+
     protected $fillable = ['key', 'name_ar', 'is_system'];
 
     protected function casts(): array
@@ -30,11 +32,13 @@ class Role extends Model
         static::saved(function () {
             Cache::forget(self::CACHE_KEY);
             Cache::forget(self::ID_MAP_KEY);
+            Cache::forget(self::ASSIGNABLE_CACHE_KEY);
         });
 
         static::deleted(function () {
             Cache::forget(self::CACHE_KEY);
             Cache::forget(self::ID_MAP_KEY);
+            Cache::forget(self::ASSIGNABLE_CACHE_KEY);
         });
     }
 
@@ -55,6 +59,7 @@ class Role extends Model
         $this->permissions()->sync($permissionIds);
 
         Cache::forget(self::CACHE_KEY);
+        Cache::forget(self::ASSIGNABLE_CACHE_KEY);
     }
 
     public function users(): HasMany
@@ -98,8 +103,34 @@ class Role extends Model
         return static::idMap()[$key] ?? null;
     }
 
-    public function scopeDeletable($query)
+    /**
+     * F06 role-assignment extension: the roles the ticket panel offers a
+     * dropdown for — driven by the `tickets.assignable_as_role` permission,
+     * exactly like every other role-gated behaviour (RolePolicy::delete()
+     * already keys off users_count the same way; this is the same style of
+     * check for the assign panel).
+     */
+    public function scopeAssignableOnTickets($query)
     {
-        return $query->where('is_system', false);
+        return $query->whereHas('permissions', fn ($q) => $q->where('key', 'tickets.assignable_as_role'));
+    }
+
+    public function isAssignableOnTickets(): bool
+    {
+        return in_array('tickets.assignable_as_role', self::permissionMap()[$this->id] ?? [], true);
+    }
+
+    /**
+     * Cached, read-only list of assignable-on-tickets roles — the subtask
+     * form renders one per row, so this must not cost a query per row.
+     *
+     * @return \Illuminate\Support\Collection<int, self>
+     */
+    public static function assignableList()
+    {
+        return Cache::rememberForever(
+            self::ASSIGNABLE_CACHE_KEY,
+            fn () => static::assignableOnTickets()->orderBy('name_ar')->get(['id', 'name_ar'])
+        );
     }
 }

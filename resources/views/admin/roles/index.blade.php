@@ -42,6 +42,9 @@
                                     @if ($role->is_system)
                                         <x-badge variant="neutral">أساسي</x-badge>
                                     @endif
+                                    @if ($role->isAssignableOnTickets())
+                                        <x-badge variant="neutral">في التوزيع</x-badge>
+                                    @endif
                                 </td>
                                 <td class="u-mono u-ltr">{{ $role->key }}</td>
                                 <td class="u-nums">{{ $role->permissions_count }}</td>
@@ -50,9 +53,16 @@
                                     <div class="row">
                                         <x-button variant="ghost" size="sm" :href="route('admin.roles.edit', $role)">تعديل</x-button>
 
-                                        @if ($role->is_system)
-                                            <span class="settings__locked">مينفعش يتحذف</span>
-                                        @elseif ($role->users_count > 0)
+                                        {{-- ★ (2026-07-22) Duplicating starts a new, ordinary role from the
+                                             same permissions — the copy is never itself a system role, so
+                                             it's a quick way to get a variant of "مدير النظام" or "تيستر"
+                                             without retyping every checkbox. --}}
+                                        <form method="POST" action="{{ route('admin.roles.duplicate', $role) }}">
+                                            @csrf
+                                            <x-button variant="ghost" size="sm">نسخ</x-button>
+                                        </form>
+
+                                        @if ($role->users_count > 0)
                                             <span class="settings__locked">عليه مستخدمين</span>
                                         @else
                                             <form

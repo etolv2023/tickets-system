@@ -135,6 +135,13 @@
             <span class="facts__label">ديف أوبس</span>
             <span class="facts__value">{{ $ticket->devops?->name ?? '—' }}</span>
         </div>
+        {{-- F06 role-assignment extension --}}
+        @foreach ($ticket->roleAssignments as $assignment)
+            <div class="facts__row">
+                <span class="facts__label">{{ $assignment->role->name_ar }}</span>
+                <span class="facts__value">{{ $assignment->user->name }}</span>
+            </div>
+        @endforeach
     </div>
 
     {{-- Assignment, the start/finish buttons and the state machine arrive in

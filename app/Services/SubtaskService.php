@@ -27,13 +27,20 @@ class SubtaskService
             $side = $data['side'] ?? SubtaskSide::Other;
             $side = $side instanceof SubtaskSide ? $side : SubtaskSide::from($side);
 
+            // F06 role-assignment extension: a subtask tied to a role earns
+            // from the role matrix instead of the side matrix — the two are
+            // mutually exclusive, never both consulted for the same subtask.
+            $defaults = isset($data['role_id']) && $data['role_id'] !== null && $data['role_id'] !== ''
+                ? $this->defaultRolePoints($ticket, (int) $data['role_id'])
+                : $this->defaultPoints($ticket, $side);
+
             // F18: the subtask carries its own points from the moment it's
             // created, prefilled from the matrix — but a caller sending an
             // explicit value (the create/edit form) always wins.
             if (! isset($data['points']) || $data['points'] === '' || $data['points'] === null) {
-                [$data['points'], $data['rule_id']] = $this->defaultPoints($ticket, $side);
+                [$data['points'], $data['rule_id']] = $defaults;
             } else {
-                [, $data['rule_id']] = $this->defaultPoints($ticket, $side);
+                [, $data['rule_id']] = $defaults;
             }
 
             $subtask = $ticket->subtasks()->create($data + [
@@ -72,6 +79,25 @@ class SubtaskService
         $rule = $rules["{$type}|{$ticket->scope->value}|{$pointSide->value}"]
             ?? $rules["{$type}|any|{$pointSide->value}"]
             ?? null;
+
+        if ($rule === null || ! $rule->is_active) {
+            return [0.0, null];
+        }
+
+        return [(float) $rule->points, $rule->id];
+    }
+
+    /**
+     * F06 role-assignment extension: the matrix value for this ticket's type
+     * and this subtask's role — no scope involved, one rule per (type, role).
+     * Same zero-and-no-rule fallback as defaultPoints() for a gap or an
+     * inactive row.
+     *
+     * @return array{0: float, 1: int|null}
+     */
+    private function defaultRolePoints(Ticket $ticket, int $roleId): array
+    {
+        $rule = PointRule::roleMap()["{$ticket->type->value}|{$roleId}"] ?? null;
 
         if ($rule === null || ! $rule->is_active) {
             return [0.0, null];

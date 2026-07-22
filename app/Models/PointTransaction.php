@@ -16,7 +16,7 @@ class PointTransaction extends Model
     public const UPDATED_AT = null;
 
     protected $fillable = [
-        'user_id', 'ticket_id', 'subtask_id', 'side', 'points', 'type',
+        'user_id', 'ticket_id', 'subtask_id', 'side', 'role_id', 'points', 'type',
         'created_by', 'rule_id', 'period', 'reason',
     ];
 
@@ -66,6 +66,12 @@ class PointTransaction extends Model
     public function rule(): BelongsTo
     {
         return $this->belongsTo(PointRule::class, 'rule_id');
+    }
+
+    /** Set only for a role-based award (F18 role extension) — null for a subtask-based one. */
+    public function role(): BelongsTo
+    {
+        return $this->belongsTo(Role::class);
     }
 
     public function correctedBy(): BelongsTo

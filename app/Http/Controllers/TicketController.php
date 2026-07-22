@@ -134,12 +134,13 @@ class TicketController extends Controller
         }
 
         $assignees = $request->only('assigned_frontend_id', 'assigned_backend_id', 'tester_id', 'devops_id');
+        $roleAssignments = array_filter($request->input('role_assignments', []), fn ($v) => filled($v));
 
-        if (collect($assignees)->filter()->isEmpty()) {
+        if (collect($assignees)->filter()->isEmpty() && $roleAssignments === []) {
             return;
         }
 
-        $this->workflow->assign($ticket, $assignees, $request->user()->id);
+        $this->workflow->assign($ticket, $assignees, $request->user()->id, $roleAssignments);
     }
 
     /**
@@ -155,8 +156,9 @@ class TicketController extends Controller
      */
     public function show(Ticket $ticket): View
     {
-        $this->authorize('view', $ticket);
-
+        // Loaded before authorize(): TicketPolicy::isAssigned() reads
+        // roleAssignments (F06 role-assignment extension), and it only
+        // consults the relation when it's already eager-loaded.
         $ticket->load([
             'company:id,name,code',
             'contact:id,name,erp_employee_id,email,phone',
@@ -165,14 +167,20 @@ class TicketController extends Controller
             'bodyAttachments',
             'workLogs',
             'statusHistory',
-            'subtasks',
+            // F06 role-assignment extension: a subtask's badge shows the role
+            // name instead of "أخرى" when it's tagged to one.
+            'subtasks.role:id,name_ar',
             'labels',
             'watchers:id',
+            'roleAssignments.role:id,name_ar',
+            'roleAssignments.user:id,name',
             // Both directions in one query each; the related-ticket columns are
             // shared, so a single constrained load covers the pair (F10).
             'outgoingLinks.toTicket:id,ticket_number,title,status,priority',
             'incomingLinks.fromTicket:id,ticket_number,title,status,priority',
         ]);
+
+        $this->authorize('view', $ticket);
 
         $comments = $ticket->comments()
             ->with('attachments')
@@ -278,6 +286,9 @@ class TicketController extends Controller
             'types' => TicketType::options(),
             'scopes' => TicketScope::options(),
             'priorities' => PriorityDefinition::map(),
+            // F06 role-assignment extension: the create form's inline subtask
+            // repeater offers the same optional "الرول" select.
+            'assignableRoles' => Role::assignableList(),
         ];
     }
 
@@ -393,12 +404,17 @@ class TicketController extends Controller
             return [
                 'assignable' => null,
                 'assignableAll' => collect(),
+                'assignableRoles' => collect(),
                 'labels' => $canLabel ? Label::orderBy('name')->get(['id', 'name', 'color']) : collect(),
             ];
         }
 
         return [
             'assignable' => $canAssign ? $this->assignableUsers() : null,
+            // F06 role-assignment extension: the subtask form's optional
+            // "الرول" select — cached, so every row in the loop reuses the
+            // same collection instead of a query each (CLAUDE.md § 4).
+            'assignableRoles' => $canPlan ? Role::assignableList() : collect(),
             // A subtask may go to anyone — F08 puts no skills constraint on it.
             'assignableAll' => $canPlan ? User::active()->without('role')->orderBy('name')->get() : collect(),
             'labels' => $canLabel ? Label::orderBy('name')->get(['id', 'name', 'color']) : collect(),
@@ -426,10 +442,19 @@ class TicketController extends Controller
         $testerRoleId = Role::idByKey('tester');
         $devopsRoleId = Role::idByKey('devops');
 
+        // F06 role-assignment extension: every other role an admin opted into
+        // the panel gets its own dropdown, candidates being whoever holds that
+        // role — same "by role" pattern as testers/devops just above.
+        $extraRoles = Role::query()->assignableOnTickets()->orderBy('name_ar')->get();
+
         return [
             'frontend' => $users->filter(fn (User $u) => $u->skills->coversFrontend())->values(),
             'backend' => $users->filter(fn (User $u) => $u->skills->coversBackend())->values(),
             'testers' => $users->filter(fn (User $u) => $u->role_id === $testerRoleId)->values(),
+            'roles' => $extraRoles->map(fn (Role $role) => [
+                'role' => $role,
+                'candidates' => $users->filter(fn (User $u) => $u->role_id === $role->id)->values(),
+            ]),
             // By role, like testers. Developers are filtered by skills because
             // "both" exists there; devops has no such value to filter on.
             'devops' => $users->filter(fn (User $u) => $u->role_id === $devopsRoleId)->values(),

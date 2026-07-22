@@ -31,6 +31,23 @@
             </select>
         </x-field>
 
+        @if (($assignableRoles ?? collect())->isNotEmpty())
+            {{-- F06 role-assignment extension: tag the subtask to a role
+                 instead of a fixed side, so completing it pays that role
+                 (F18) exactly like frontend/backend do. --}}
+            <x-field name="role_id" label="الرول (اختياري)" :id="$prefix . 'role'"
+                     hint="لو مختار، النقاط بتتحسب على الرول ده مش على الجهة.">
+                <select id="{{ $prefix }}role" name="role_id" class="select">
+                    <option value="">— بدون —</option>
+                    @foreach ($assignableRoles as $role)
+                        <option value="{{ $role->id }}" @selected((int) old('role_id', $subtask?->role_id) === $role->id)>
+                            {{ $role->name_ar }}
+                        </option>
+                    @endforeach
+                </select>
+            </x-field>
+        @endif
+
         <x-field name="status" label="الحالة" :id="$prefix . 'status'">
             <select id="{{ $prefix }}status" name="status" class="select" required x-model="status">
                 @foreach (\App\Enums\SubtaskStatus::options() as $value => $label)

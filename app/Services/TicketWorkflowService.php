@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Casts\TicketStatusValue;
 use App\Enums\SubtaskStatus;
 use App\Enums\WorkSide;
+use App\Models\Role;
 use App\Models\Ticket;
+use App\Models\TicketRoleAssignment;
 use App\Models\TicketStatusDefinition;
 use App\Models\TicketWorkLog;
 use DomainException;
@@ -215,8 +217,9 @@ class TicketWorkflowService
      * The log is what "start" and "finish" later act on (F06).
      *
      * @param  array{assigned_frontend_id?: int|null, assigned_backend_id?: int|null, tester_id?: int|null}  $assignees
+     * @param  array<int, int|null>  $roleAssignments  role_id => user_id (F06 role-assignment extension)
      */
-    public function assign(Ticket $ticket, array $assignees, int $actorId): Ticket
+    public function assign(Ticket $ticket, array $assignees, int $actorId, array $roleAssignments = []): Ticket
     {
         // A feature can't be worked on before it's approved — the Policy blocks
         // the button, and this blocks everything else. F15
@@ -226,7 +229,7 @@ class TicketWorkflowService
 
         $before = $ticket->only('assigned_frontend_id', 'assigned_backend_id', 'tester_id');
 
-        return DB::transaction(function () use ($ticket, $assignees, $actorId, $before) {
+        return DB::transaction(function () use ($ticket, $assignees, $actorId, $before, $roleAssignments) {
             $ticket->fill($assignees)->save();
 
             if ($ticket->tester_id !== null && $ticket->tester_id !== $before['tester_id']) {
@@ -288,12 +291,79 @@ class TicketWorkflowService
                 }
             }
 
+            $this->assignRoles($ticket, $roleAssignments, $actorId);
+
             if ($ticket->status === TicketStatusValue::for('new') || $ticket->status === TicketStatusValue::for('pending_approval')) {
                 $this->transition($ticket, TicketStatusValue::for('assigned'), $actorId, 'تم التوزيع');
             }
 
             return $ticket->refresh();
         });
+    }
+
+    /**
+     * F06 role-assignment extension: the generic counterpart of the
+     * frontend/backend/tester/devops block above, for every role an admin has
+     * granted `tickets.assignable_as_role` (Role::isAssignableOnTickets()).
+     * Same shape as a fixed side: notify only a newly-assigned person, and give a
+     * role its first assignment a starter subtask exactly like F06.3 — so
+     * completing it earns points the same way a developer's does (F18).
+     *
+     * @param  array<int, int|null>  $roleAssignments  role_id => user_id
+     */
+    private function assignRoles(Ticket $ticket, array $roleAssignments, int $actorId): void
+    {
+        if ($roleAssignments === []) {
+            return;
+        }
+
+        $roles = Role::query()->assignableOnTickets()->whereIn('id', array_keys($roleAssignments))->get()->keyBy('id');
+        $existing = $ticket->roleAssignments()->get()->keyBy('role_id');
+
+        foreach ($roleAssignments as $roleId => $userId) {
+            $role = $roles->get($roleId);
+
+            // Ignore an id that isn't (or is no longer) opted into assignment —
+            // never silently assign a role nobody enabled here.
+            if ($role === null) {
+                continue;
+            }
+
+            $before = $existing->get($roleId);
+
+            if ($userId === null) {
+                $before?->delete();
+
+                continue;
+            }
+
+            if ($before !== null && $before->user_id === $userId) {
+                continue;
+            }
+
+            TicketRoleAssignment::updateOrCreate(
+                ['ticket_id' => $ticket->id, 'role_id' => $roleId],
+                ['user_id' => $userId]
+            );
+
+            $this->notifications->notifyUser(
+                $userId,
+                $ticket,
+                'ticket.assigned',
+                "اتعملك أساين على {$ticket->ticket_number} كـ{$role->name_ar}: {$ticket->title}",
+                $actorId,
+            );
+
+            // First assignment for this role only — a hand-off to someone else
+            // never repeats it, same rule as F06.3.
+            if ($before === null && ! $ticket->subtasks()->where('role_id', $roleId)->exists()) {
+                $this->subtasks->create($ticket, [
+                    'title' => $ticket->title,
+                    'assignee_id' => $userId,
+                    'role_id' => $roleId,
+                ], $actorId);
+            }
+        }
     }
 
     /** "بدأت" — the first side to start drags the ticket to in_progress. F07 */

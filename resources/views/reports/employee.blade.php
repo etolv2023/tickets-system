@@ -47,7 +47,7 @@
                 <div class="facts card__body">
                     @forelse ($data['points'] as $row)
                         <div class="facts__row">
-                            <span class="facts__label">{{ $row->side->label() }}</span>
+                            <span class="facts__label">{{ $row->side?->label() ?? $row->role?->name_ar ?? '—' }}</span>
                             <span class="facts__value facts__value--num">
                                 {{ rtrim(rtrim(number_format($row->total, 2), '0'), '.') }}
                             </span>

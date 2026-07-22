@@ -150,11 +150,19 @@ class TicketPolicy
 
     private function isAssigned(User $user, Ticket $ticket): bool
     {
-        return in_array($user->id, [
+        if (in_array($user->id, [
             $ticket->assigned_frontend_id,
             $ticket->assigned_backend_id,
             $ticket->tester_id,
             $ticket->devops_id,
-        ], true);
+        ], true)) {
+            return true;
+        }
+
+        // F06 role-assignment extension. Only checked when eager-loaded — same
+        // guard as Ticket::isBlocked(), so a list/board render that never
+        // loaded this relation doesn't trip preventLazyLoading over it.
+        return $ticket->relationLoaded('roleAssignments')
+            && $ticket->roleAssignments->contains('user_id', $user->id);
     }
 }

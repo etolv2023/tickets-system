@@ -168,6 +168,12 @@ class Ticket extends Model
         return $this->hasMany(PointTransaction::class);
     }
 
+    /** F06 role-assignment extension — who holds which extra role on this ticket. */
+    public function roleAssignments(): HasMany
+    {
+        return $this->hasMany(TicketRoleAssignment::class);
+    }
+
     public function labels(): BelongsToMany
     {
         // Table named explicitly: Laravel's convention would be label_ticket

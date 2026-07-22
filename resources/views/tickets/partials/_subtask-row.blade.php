@@ -34,7 +34,9 @@
                     <x-badge :variant="$subtask->status->variant()">{{ $subtask->status->label() }}</x-badge>
                 @endcan
 
-                <x-badge variant="neutral">{{ $subtask->side->label() }}</x-badge>
+                {{-- F06 role-assignment extension: a role-tagged subtask shows
+                     the role name instead of the underlying "أخرى" side. --}}
+                <x-badge variant="neutral">{{ $subtask->role?->name_ar ?? $subtask->side->label() }}</x-badge>
 
                 @if ($subtask->assignee)
                     <span class="row">

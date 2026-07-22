@@ -101,7 +101,7 @@
                                         {{ $row->subtask->title ?? '—' }}
                                     @endif
                                 </td>
-                                <td>{{ $row->side->label() }}</td>
+                                <td>{{ $row->side?->label() ?? $row->role?->name_ar ?? '—' }}</td>
                                 <td class="u-subtle">{{ $row->reason }}</td>
                                 <td class="table__cell--num">{{ rtrim(rtrim($row->points, '0'), '.') }}</td>
                             </tr>

@@ -16,7 +16,7 @@ class TicketSubtask extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'ticket_id', 'title', 'description', 'assignee_id', 'side', 'status',
+        'ticket_id', 'title', 'description', 'assignee_id', 'side', 'role_id', 'status',
         'start_date', 'due_date', 'estimated_hours', 'points', 'rule_id', 'blocked_reason',
         'position', 'created_by', 'started_at', 'completed_at',
     ];
@@ -50,6 +50,12 @@ class TicketSubtask extends Model
     public function rule(): BelongsTo
     {
         return $this->belongsTo(PointRule::class, 'rule_id');
+    }
+
+    /** F06 role-assignment extension: set when this subtask earns for a role beyond the fixed `side` sides. */
+    public function role(): BelongsTo
+    {
+        return $this->belongsTo(Role::class);
     }
 
     public function timeEntries(): HasMany

@@ -67,6 +67,46 @@
                     </table>
                 </div>
             </x-card>
+
+            {{-- F06 role-assignment extension: every role opted into ticket
+                 assignment earns the same way frontend/backend do — a Done
+                 subtask tagged to the role pays it, per (ticket type, role). --}}
+            @if ($roles->isNotEmpty())
+                <x-card title="نقاط الأدوار الإضافية" :meta="'أي رول «تظهر في التوزيع» من إدارة الأدوار'">
+                    <div class="table-wrap">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>النوع</th>
+                                    @foreach ($roles as $role)
+                                        <th class="matrix__role-head">{{ $role->name_ar }}</th>
+                                    @endforeach
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($roleTypes as $type)
+                                    <tr>
+                                        <td>
+                                            <x-badge :variant="$type->variant()">{{ $type->label() }}</x-badge>
+                                        </td>
+
+                                        @foreach ($roles as $role)
+                                            @php $rule = $roleRules["{$type->value}|{$role->id}"] ?? null; @endphp
+                                            <td class="matrix__cell">
+                                                @include('admin.point-rules.partials._role-cell', [
+                                                    'rule' => $rule,
+                                                    'type' => $type->value,
+                                                    'roleId' => $role->id,
+                                                ])
+                                            </td>
+                                        @endforeach
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </x-card>
+            @endif
         </div>
 
         {{-- F18: a manual correction — a new row, never an edit to what's already

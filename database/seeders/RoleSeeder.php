@@ -25,6 +25,9 @@ class RoleSeeder extends Seeder
                 'tickets.view.all', 'tickets.view.assigned', 'tickets.view.own',
                 'tickets.create', 'tickets.edit', 'tickets.assign', 'tickets.resolve',
                 'tickets.reopen', 'tickets.close', 'tickets.notify_client',
+                // F06 role-assignment extension: manager gets a dropdown in
+                // the assignment panel out of the box.
+                'tickets.assignable_as_role',
                 'comments.create', 'comments.internal',
                 'subtasks.manage', 'time.log', 'links.manage',
                 'ratings.give', 'ratings.view.all',
@@ -38,6 +41,9 @@ class RoleSeeder extends Seeder
                 'tickets.view.all', 'tickets.view.assigned', 'tickets.view.own',
                 'tickets.create', 'tickets.edit', 'tickets.resolve', 'tickets.close',
                 'tickets.notify_client',
+                // F06 role-assignment extension: support gets a dropdown in
+                // the assignment panel out of the box.
+                'tickets.assignable_as_role',
                 'comments.create', 'comments.internal',
                 'subtasks.manage', 'time.log', 'links.manage',
                 'points.view.own',

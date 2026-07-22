@@ -119,6 +119,9 @@ class ReportController extends Controller
                 'ticket.requester:id,name',
                 'subtask:id,title,side',
                 'creator:id,name',
+                // F06 role-assignment extension: a role-based row's side is
+                // null — this is what the blade falls back to instead.
+                'role:id,name_ar',
             ])
             ->when($filters['person'] ?? null, fn ($q, $v) => $q->where('user_id', $v))
             ->when($filters['period'] ?? null, fn ($q, $v) => $q->forPeriod($v))
@@ -176,7 +179,9 @@ class ReportController extends Controller
         $isAll = $request->query('period') === 'all';
 
         $transactions = $request->user()->pointTransactions()
-            ->with('ticket:id,ticket_number,title,type', 'subtask:id,title')
+            // F06 role-assignment extension: a role-based row's side is null —
+            // this is what the blade falls back to instead.
+            ->with('ticket:id,ticket_number,title,type', 'subtask:id,title', 'role:id,name_ar')
             ->when(! $isAll, fn ($q) => $q->forPeriod($period))
             ->orderByDesc('created_at')
             ->get();

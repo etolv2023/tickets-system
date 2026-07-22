@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Tickets;
 
 use App\Enums\UserSkill;
+use App\Models\Role;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -41,7 +42,33 @@ class AssignTicketRequest extends FormRequest
                 'nullable', 'integer',
                 Rule::exists('users', 'id')->where('is_active', true),
             ],
+            // F06 role-assignment extension: one entry per assignable role,
+            // keyed by role id. Only a role the admin actually opted in may be
+            // assigned this way, and only an active user.
+            'role_assignments' => ['nullable', 'array'],
+            'role_assignments.*' => [
+                'nullable', 'integer',
+                Rule::exists('users', 'id')->where('is_active', true),
+            ],
         ];
+    }
+
+    /**
+     * Every key of role_assignments must itself be an id of a role opted into
+     * ticket assignment — validated here rather than as a rule key, since
+     * Laravel validates array values, not the keys used to look them up.
+     */
+    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    {
+        $validator->after(function ($validator) {
+            $roleIds = Role::query()->assignableOnTickets()->pluck('id')->all();
+
+            foreach (array_keys($this->input('role_assignments', [])) as $roleId) {
+                if (! in_array((int) $roleId, $roleIds, true)) {
+                    $validator->errors()->add('role_assignments', 'رول مش متاح للتوزيع.');
+                }
+            }
+        });
     }
 
     public function attributes(): array
