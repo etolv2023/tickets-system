@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Enums\SubtaskSide;
-use App\Enums\SubtaskStatus;
 use App\Models\Company;
 use App\Models\Ticket;
 use App\Models\TicketComment;
@@ -116,13 +115,13 @@ class DemoFeatureWalkthroughSeeder extends Seeder
                 'start_date' => $row['start'],
                 'due_date' => $row['due'],
                 'estimated_hours' => $row['estimate'],
-                'started_at' => $row['status'] === SubtaskStatus::Todo ? null : $row['start'],
+                'started_at' => $row['status'] === 'todo' ? null : $row['start'],
                 // Work still to do belongs in the future; work already finished
                 // does not. The plan is anchored to this week's Saturday, so on
                 // the first days of the week a "done" row's due date lands ahead
                 // of the clock and the ticket claims it was finished next
                 // Tuesday.
-                'completed_at' => $row['status'] === SubtaskStatus::Done ? $this->past($row['due']) : null,
+                'completed_at' => $row['status'] === 'done' ? $this->past($row['due']) : null,
                 'blocked_reason' => $row['blocked'] ?? null,
             ], $admin->id);
 
@@ -159,62 +158,62 @@ class DemoFeatureWalkthroughSeeder extends Seeder
         return [
             // ---- Week one: done and paid for in hours ----
             ['title' => 'تحليل الفروق بين رصيد الكاشير ورصيد المخزون', 'side' => SubtaskSide::Backend,
-             'status' => SubtaskStatus::Done, 'assignee' => $be->id,
+             'status' => 'done', 'assignee' => $be->id,
              'start' => $d(-6), 'due' => $d(-4), 'estimate' => 6, 'spent' => 5.5],
 
             ['title' => 'تصميم سكيما جدول الحركات اللحظية', 'side' => SubtaskSide::Backend,
-             'status' => SubtaskStatus::Done, 'assignee' => $be->id,
+             'status' => 'done', 'assignee' => $be->id,
              'start' => $d(-4), 'due' => $d(-2), 'estimate' => 8, 'spent' => 9],
 
             ['title' => 'واير فريم شاشة الكاشير', 'side' => SubtaskSide::Frontend,
-             'status' => SubtaskStatus::Done, 'assignee' => $fe->id,
+             'status' => 'done', 'assignee' => $fe->id,
              'start' => $d(-5), 'due' => $d(-3), 'estimate' => 5, 'spent' => 4],
 
             ['title' => 'مراجعة الواير فريم مع العميل', 'side' => SubtaskSide::Qa,
-             'status' => SubtaskStatus::Done, 'assignee' => $qa->id,
+             'status' => 'done', 'assignee' => $qa->id,
              'start' => $d(-3), 'due' => $d(-2), 'estimate' => 2, 'spent' => 2],
 
             // ---- Week two: the live edge ----
             ['title' => 'API خصم المخزون لحظة البيع', 'side' => SubtaskSide::Backend,
-             'status' => SubtaskStatus::Done, 'assignee' => $be->id,
+             'status' => 'done', 'assignee' => $be->id,
              'start' => $d(0), 'due' => $d(2), 'estimate' => 10, 'spent' => 13.5],
 
             ['title' => 'قفل متزامن يمنع البيع المزدوج بين الفروع', 'side' => SubtaskSide::Backend,
-             'status' => SubtaskStatus::InProgress, 'assignee' => $be->id,
+             'status' => 'in_progress', 'assignee' => $be->id,
              'start' => $d(2), 'due' => $d(5), 'estimate' => 12, 'spent' => 7],
 
             ['title' => 'شاشة الكاشير — الشبكة والبحث السريع', 'side' => SubtaskSide::Frontend,
-             'status' => SubtaskStatus::Done, 'assignee' => $fe->id,
+             'status' => 'done', 'assignee' => $fe->id,
              'start' => $d(0), 'due' => $d(3), 'estimate' => 9, 'spent' => 8.5],
 
             ['title' => 'شاشة الكاشير — سلة البيع والدفع', 'side' => SubtaskSide::Frontend,
-             'status' => SubtaskStatus::InProgress, 'assignee' => $fe->id,
+             'status' => 'in_progress', 'assignee' => $fe->id,
              'start' => $d(3), 'due' => $d(6), 'estimate' => 11, 'spent' => 4],
 
             ['title' => 'اختبار سيناريو البيع المتزامن من فرعين', 'side' => SubtaskSide::Qa,
-             'status' => SubtaskStatus::Blocked, 'assignee' => $qa->id,
+             'status' => 'blocked', 'assignee' => $qa->id,
              'start' => $d(5), 'due' => $d(7), 'estimate' => 4, 'spent' => 0,
              'blocked' => 'مستني القفل المتزامن يخلص الأول'],
 
             // ---- Week three: planned, nothing started ----
             ['title' => 'الفاتورة الضريبية — القالب والأرقام', 'side' => SubtaskSide::Backend,
-             'status' => SubtaskStatus::Todo, 'assignee' => $be->id,
+             'status' => 'todo', 'assignee' => $be->id,
              'start' => $d(7), 'due' => $d(9), 'estimate' => 7],
 
             ['title' => 'طباعة الفاتورة على طابعة حرارية', 'side' => SubtaskSide::Frontend,
-             'status' => SubtaskStatus::Todo, 'assignee' => $fe->id,
+             'status' => 'todo', 'assignee' => $fe->id,
              'start' => $d(9), 'due' => $d(11), 'estimate' => 6],
 
             ['title' => 'المرتجعات — إرجاع الصنف للمخزون', 'side' => SubtaskSide::Backend,
-             'status' => SubtaskStatus::Todo, 'assignee' => $be->id,
+             'status' => 'todo', 'assignee' => $be->id,
              'start' => $d(10), 'due' => $d(12), 'estimate' => 8],
 
             ['title' => 'شاشة المرتجعات', 'side' => SubtaskSide::Frontend,
-             'status' => SubtaskStatus::Todo, 'assignee' => $fe->id,
+             'status' => 'todo', 'assignee' => $fe->id,
              'start' => $d(12), 'due' => $d(14), 'estimate' => 6],
 
             ['title' => 'جولة اختبار كاملة قبل التسليم', 'side' => SubtaskSide::Qa,
-             'status' => SubtaskStatus::Todo, 'assignee' => $qa->id,
+             'status' => 'todo', 'assignee' => $qa->id,
              'start' => $d(14), 'due' => $d(16), 'estimate' => 6],
         ];
     }

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\LinkType;
+use App\Casts\LinkTypeCast;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -14,7 +14,7 @@ class TicketLink extends Model
 
     protected function casts(): array
     {
-        return ['type' => LinkType::class, 'created_at' => 'datetime'];
+        return ['type' => LinkTypeCast::class, 'created_at' => 'datetime'];
     }
 
     public function fromTicket(): BelongsTo

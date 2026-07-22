@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Casts\PriorityValue;
 use App\Casts\TicketStatusValue;
 use App\Enums\SubtaskSide;
-use App\Enums\SubtaskStatus;
 use App\Casts\TicketTypeValue;
 use App\Models\Company;
 use App\Models\Rating;
@@ -327,7 +326,7 @@ class DemoHistorySeeder extends Seeder
             // Work still to do belongs in the future — that is what fills the
             // calendar. Work already DONE does not: a subtask finished next
             // Tuesday, with hours logged against next Tuesday, is nonsense.
-            if ($status === SubtaskStatus::Done && $dueAt->isFuture()) {
+            if ($status === 'done' && $dueAt->isFuture()) {
                 $dueAt = CarbonImmutable::today();
             }
 
@@ -340,15 +339,15 @@ class DemoHistorySeeder extends Seeder
                 'assignee_id' => $owner->id,
                 'due_date' => $due,
                 'estimated_hours' => $hours,
-                'started_at' => $status === SubtaskStatus::Todo ? null : $reportedAt->addDays($day),
-                'completed_at' => $status === SubtaskStatus::Done ? CarbonImmutable::parse($due)->setTime(16, 0) : null,
-                'blocked_reason' => $status === SubtaskStatus::Blocked ? 'مستني رد العميل على البيانات الناقصة' : null,
+                'started_at' => $status === 'todo' ? null : $reportedAt->addDays($day),
+                'completed_at' => $status === 'done' ? CarbonImmutable::parse($due)->setTime(16, 0) : null,
+                'blocked_reason' => $status === 'blocked' ? 'مستني رد العميل على البيانات الناقصة' : null,
             ], $this->people['support']->id);
 
             // Hours land on the day the work finished, give or take — which is
             // what puts figures in the week /my-timesheet is showing.
-            if ($status !== SubtaskStatus::Todo) {
-                $spent = $status === SubtaskStatus::Done
+            if ($status !== 'todo') {
+                $spent = $status === 'done'
                     ? round($hours * mt_rand(80, 135) / 100, 1)
                     : round($hours * mt_rand(25, 60) / 100, 1);
 
@@ -364,11 +363,11 @@ class DemoHistorySeeder extends Seeder
                 }
             }
 
-            if ($status === SubtaskStatus::Done) {
+            if ($status === 'done') {
                 $rows[] = ['user' => $owner, 'side' => $side, 'points' => (float) $subtask->points];
             }
 
-            if ($status === SubtaskStatus::Blocked) {
+            if ($status === 'blocked') {
                 $this->at($reportedAt->addDays($day), fn () => $this->notify->dispatch(
                     $ticket,
                     NotificationEvent::SubtaskBlocked,
@@ -383,9 +382,9 @@ class DemoHistorySeeder extends Seeder
     }
 
     /** What someone would actually type in the note box — including nothing. */
-    private function note(SubtaskStatus $status, float $spent, float $estimate): ?string
+    private function note(string $status, float $spent, float $estimate): ?string
     {
-        if ($status !== SubtaskStatus::Done) {
+        if ($status !== 'done') {
             return 'شغل جاري';
         }
 
@@ -641,21 +640,21 @@ class DemoHistorySeeder extends Seeder
         };
     }
 
-    private function subtaskStatus(string $stage, string $side): SubtaskStatus
+    private function subtaskStatus(string $stage, string $side): string
     {
         if (in_array($stage, ['resolved', 'closed'], true)) {
-            return SubtaskStatus::Done;
+            return 'done';
         }
 
         return match ($stage) {
-            'testing' => $side === 'qa' ? SubtaskStatus::InProgress : SubtaskStatus::Done,
+            'testing' => $side === 'qa' ? 'in_progress' : 'done',
             'working' => match ($side) {
-                'support' => SubtaskStatus::Done,
-                'backend' => SubtaskStatus::InProgress,
-                'qa' => SubtaskStatus::Todo,
-                default => $this->cursor % 4 === 0 ? SubtaskStatus::Blocked : SubtaskStatus::Todo,
+                'support' => 'done',
+                'backend' => 'in_progress',
+                'qa' => 'todo',
+                default => $this->cursor % 4 === 0 ? 'blocked' : 'todo',
             },
-            default => SubtaskStatus::Todo,
+            default => 'todo',
         };
     }
 

@@ -52,7 +52,7 @@
 
                 <x-field name="type" label="نوع الربط">
                     <select id="type" name="type" class="select" required>
-                        @foreach (\App\Enums\LinkType::options() as $value => $label)
+                        @foreach (\App\Models\LinkTypeDefinition::options() as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
                     </select>

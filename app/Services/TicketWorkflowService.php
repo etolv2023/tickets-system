@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Casts\TicketStatusValue;
-use App\Enums\SubtaskStatus;
 use App\Models\Role;
 use App\Models\Ticket;
 use App\Models\TicketRoleAssignment;
@@ -519,7 +518,7 @@ class TicketWorkflowService
         // ONLY_FULL_GROUP_BY rejects on an aggregate — same reason as
         // SubtaskService::syncCounters().
         $open = $ticket->subtasks()->reorder()
-            ->where('status', '!=', SubtaskStatus::Done->value)
+            ->where('status', '!=', 'done')
             ->count();
 
         if ($open === 0) {

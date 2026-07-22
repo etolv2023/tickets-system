@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\SubtaskStatus;
+use App\Models\SubtaskStatusDefinition;
 use App\Models\Company;
 use App\Models\PointTransaction;
 use App\Models\PriorityDefinition;
@@ -277,7 +277,7 @@ class ReportController extends Controller
             // The subtask filter is by role now (dynamic from the DB), not a
             // hardcoded side (2026-07-24).
             'roles' => \App\Models\Role::assignableList(),
-            'subtaskStatuses' => SubtaskStatus::options(),
+            'subtaskStatuses' => SubtaskStatusDefinition::options(),
             'ticketDateBases' => Ticket::DATE_BASES,
             'subtaskDateBases' => TicketSubtask::DATE_BASES,
         ]);

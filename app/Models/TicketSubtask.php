@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
+use App\Casts\SubtaskStatusCast;
 use App\Enums\SubtaskSide;
-use App\Enums\SubtaskStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,7 +25,7 @@ class TicketSubtask extends Model
     {
         return [
             'side' => SubtaskSide::class,
-            'status' => SubtaskStatus::class,
+            'status' => SubtaskStatusCast::class,
             'start_date' => 'date',
             'due_date' => 'date',
             'estimated_hours' => 'decimal:2',
@@ -67,7 +67,7 @@ class TicketSubtask extends Model
     public function isOverdue(): bool
     {
         return $this->due_date !== null
-            && $this->status !== SubtaskStatus::Done
+            && ! $this->status->isDone()
             && $this->due_date->isPast();
     }
 
@@ -102,7 +102,7 @@ class TicketSubtask extends Model
 
     public function scopeOpen(Builder $query): Builder
     {
-        return $query->where('status', '!=', SubtaskStatus::Done->value);
+        return $query->where('status', '!=', 'done');
     }
 
     /** The date columns a date-range filter may run against. */

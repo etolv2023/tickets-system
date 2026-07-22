@@ -31,6 +31,18 @@
         <x-icon name="flag" class="nav__icon" />
         <span class="nav__label">الأولويات</span>
     </a>
+
+    <a href="{{ route('admin.subtask-statuses.index') }}" class="nav__link" title="حالات الصب تاسك"
+       @if (request()->routeIs('admin.subtask-statuses.*')) aria-current="page" @endif>
+        <x-icon name="check-circle" class="nav__icon" />
+        <span class="nav__label">حالات الصب تاسك</span>
+    </a>
+
+    <a href="{{ route('admin.link-types.index') }}" class="nav__link" title="أنواع الروابط"
+       @if (request()->routeIs('admin.link-types.*')) aria-current="page" @endif>
+        <x-icon name="link" class="nav__icon" />
+        <span class="nav__label">أنواع الروابط</span>
+    </a>
 @endcan
 
 @can('points.rules.manage')

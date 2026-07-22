@@ -64,17 +64,17 @@
             <ul class="tcard__subtask-list">
                 @foreach ($ticket->subtasks as $subtask)
                     <li class="tcard__subtask" data-subtask-id="{{ $subtask->id }}">
-                        <span @class(['tcard__subtask-title', 'tcard__subtask-title--done' => $subtask->status === \App\Enums\SubtaskStatus::Done])>
+                        <span @class(['tcard__subtask-title', 'tcard__subtask-title--done' => $subtask->status->isDone()])>
                             {{ $subtask->title }}
                         </span>
 
                         @can('update', [$subtask, $ticket])
-                            @if ($subtask->status !== \App\Enums\SubtaskStatus::Blocked)
+                            @if (! $subtask->status->needsReason())
                                 <select class="select select--sm" aria-label="حالة {{ $subtask->title }}"
                                         data-subtask-status="{{ route('subtasks.status', $subtask) }}"
                                         data-current="{{ $subtask->status->value }}">
-                                    @foreach ([\App\Enums\SubtaskStatus::Todo, \App\Enums\SubtaskStatus::InProgress, \App\Enums\SubtaskStatus::Done] as $option)
-                                        <option value="{{ $option->value }}" @selected($subtask->status === $option)>{{ $option->label() }}</option>
+                                    @foreach (\App\Models\SubtaskStatusDefinition::quickChangeKeys() as $optionKey)
+                                        <option value="{{ $optionKey }}" @selected($subtask->status->value === $optionKey)>{{ \App\Casts\SubtaskStatusValue::for($optionKey)->label() }}</option>
                                     @endforeach
                                 </select>
                             @else

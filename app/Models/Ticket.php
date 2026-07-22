@@ -232,7 +232,7 @@ class Ticket extends Model
         }
 
         return $this->incomingLinks
-            ->where('type', \App\Enums\LinkType::Blocks)
+            ->filter(fn (TicketLink $link) => $link->type->isBlocks())
             ->contains(fn (TicketLink $link) => $link->fromTicket?->status->isOpen() ?? false);
     }
 

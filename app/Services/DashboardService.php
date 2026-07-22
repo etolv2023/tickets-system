@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Enums\LinkType;
 use App\Casts\TicketTypeValue;
 use App\Models\ActivityLog;
 use App\Models\Ticket;
@@ -118,7 +117,7 @@ class DashboardService
             // Only if it actually blocks something that is itself still open —
             // blocking a closed ticket holds nobody up.
             ->whereHas('outgoingLinks', fn ($q) => $q
-                ->where('type', LinkType::Blocks->value)
+                ->where('type', 'blocks')
                 ->whereHas('toTicket', fn ($t) => $t->whereNotIn('status', ['resolved', 'closed', 'rejected'])));
     }
 

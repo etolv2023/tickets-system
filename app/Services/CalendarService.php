@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Enums\SubtaskStatus;
 use App\Models\Holiday;
 use App\Models\Setting;
 use App\Models\Ticket;
@@ -113,7 +112,7 @@ class CalendarService
         $map = [];
 
         foreach ($subtasks as $subtask) {
-            if ($subtask->assignee_id === null || $subtask->status === SubtaskStatus::Done) {
+            if ($subtask->assignee_id === null || $subtask->status->isDone()) {
                 continue;
             }
 

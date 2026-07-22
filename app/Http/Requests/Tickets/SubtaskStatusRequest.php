@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Tickets;
 
-use App\Enums\SubtaskStatus;
+use App\Models\SubtaskStatusDefinition;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -26,14 +26,11 @@ class SubtaskStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // Blocked is deliberately absent: it needs a reason (F08), and a
-            // one-click control has nowhere to ask for one. Blocking stays in
-            // the full edit form.
-            'status' => ['required', Rule::in([
-                SubtaskStatus::Todo->value,
-                SubtaskStatus::InProgress->value,
-                SubtaskStatus::Done->value,
-            ])],
+            // A reason-requiring status (blocked out of the box) is deliberately
+            // absent: a one-click control has nowhere to ask for the reason, so
+            // those stay in the full edit form. quickChangeKeys() is every
+            // status that doesn't need a reason.
+            'status' => ['required', Rule::in(SubtaskStatusDefinition::quickChangeKeys())],
         ];
     }
 

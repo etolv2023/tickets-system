@@ -5,7 +5,10 @@
 
 {{-- x-data carries the status so the blocked-reason field can appear the moment
      it becomes required, rather than after a failed submit. F08 --}}
-<div class="form-stack" x-data="{ status: @js(old('status', $subtask?->status?->value ?? 'todo')) }">
+<div class="form-stack" x-data="{
+        status: @js(old('status', $subtask?->status?->value ?? 'todo')),
+        reasonStatuses: @js(\App\Models\SubtaskStatusDefinition::reasonKeys()),
+    }">
     <x-field :name="'title'" label="العنوان" :value="$subtask?->title" required :id="$prefix . 'title'" />
 
     <div class="form-grid">
@@ -38,7 +41,7 @@
 
         <x-field name="status" label="الحالة" :id="$prefix . 'status'">
             <select id="{{ $prefix }}status" name="status" class="select" required x-model="status">
-                @foreach (\App\Enums\SubtaskStatus::options() as $value => $label)
+                @foreach (\App\Models\SubtaskStatusDefinition::options() as $value => $label)
                     <option value="{{ $value }}">{{ $label }}</option>
                 @endforeach
             </select>
@@ -75,7 +78,7 @@
                  hint="اليوم الي الصب تاسك مستحقة فيه — ده اللي بيظهر في الكاليندر." />
     </div>
 
-    <div x-show="status === 'blocked'" x-cloak>
+    <div x-show="reasonStatuses.includes(status)" x-cloak>
         <x-field name="blocked_reason" label="سبب التوقف" :value="$subtask?->blocked_reason"
                  :id="$prefix . 'reason'" hint="إجباري لما الحالة تكون متوقفة." />
     </div>

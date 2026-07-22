@@ -12,6 +12,8 @@ use App\Http\Controllers\Admin\PriorityController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\TicketStatusController;
+use App\Http\Controllers\Admin\LinkTypeController;
+use App\Http\Controllers\Admin\SubtaskStatusController as AdminSubtaskStatusController;
 use App\Http\Controllers\Admin\TicketTypeController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\LookupController;
@@ -267,6 +269,20 @@ Route::middleware('auth')->group(function () {
             Route::post('ticket-types', [TicketTypeController::class, 'store'])->name('ticket-types.store');
             Route::put('ticket-types/{ticketType}', [TicketTypeController::class, 'update'])->name('ticket-types.update');
             Route::delete('ticket-types/{ticketType}', [TicketTypeController::class, 'destroy'])->name('ticket-types.destroy');
+
+            // ★ (2026-07-24) The subtask-status list — name, colour and the
+            // needs-reason flag, admin-managed. Same pattern as ticket types.
+            Route::get('subtask-statuses', [AdminSubtaskStatusController::class, 'index'])->name('subtask-statuses.index');
+            Route::post('subtask-statuses', [AdminSubtaskStatusController::class, 'store'])->name('subtask-statuses.store');
+            Route::put('subtask-statuses/{subtaskStatus}', [AdminSubtaskStatusController::class, 'update'])->name('subtask-statuses.update');
+            Route::delete('subtask-statuses/{subtaskStatus}', [AdminSubtaskStatusController::class, 'destroy'])->name('subtask-statuses.destroy');
+
+            // ★ (2026-07-24) The ticket-link-type list — label, reverse label
+            // and colour, admin-managed.
+            Route::get('link-types', [LinkTypeController::class, 'index'])->name('link-types.index');
+            Route::post('link-types', [LinkTypeController::class, 'store'])->name('link-types.store');
+            Route::put('link-types/{linkType}', [LinkTypeController::class, 'update'])->name('link-types.update');
+            Route::delete('link-types/{linkType}', [LinkTypeController::class, 'destroy'])->name('link-types.destroy');
         });
 
         Route::middleware('permission:users.manage')->group(function () {
