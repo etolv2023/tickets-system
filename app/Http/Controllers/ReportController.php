@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\PointSide;
 use App\Enums\SubtaskStatus;
 use App\Models\Company;
 use App\Models\PointTransaction;
@@ -107,7 +106,7 @@ class ReportController extends Controller
     {
         abort_unless($request->user()->hasPermission('points.view.all'), 403);
 
-        $filters = $request->only(['person', 'period', 'from', 'to', 'side', 'type', 'kind', 'company', 'q']);
+        $filters = $request->only(['person', 'period', 'from', 'to', 'role', 'type', 'kind', 'company', 'q']);
 
         $rows = PointTransaction::query()
             ->with([
@@ -125,7 +124,7 @@ class ReportController extends Controller
             ->when($filters['period'] ?? null, fn ($q, $v) => $q->forPeriod($v))
             ->when($filters['from'] ?? null, fn ($q, $v) => $q->whereDate('created_at', '>=', $v))
             ->when($filters['to'] ?? null, fn ($q, $v) => $q->whereDate('created_at', '<=', $v))
-            ->when($filters['side'] ?? null, fn ($q, $v) => $q->where('side', $v))
+            ->when($filters['role'] ?? null, fn ($q, $v) => $q->where('role_id', $v))
             ->when($filters['kind'] ?? null, fn ($q, $v) => $q->where('type', $v))
             ->when($filters['type'] ?? null, fn ($q, $v) => $q->whereHas('ticket', fn ($t) => $t->where('type', $v)))
             ->when($filters['company'] ?? null, fn ($q, $v) => $q->whereHas('ticket', fn ($t) => $t->where('company_id', $v)))
@@ -148,7 +147,9 @@ class ReportController extends Controller
             'summary' => $summary,
             'filters' => $filters,
             'months' => $this->months(),
-            'sides' => PointSide::options(),
+            // The points ledger filter is by role now (dynamic), not a
+            // hardcoded PointSide (2026-07-24).
+            'roles' => \App\Models\Role::assignableList(),
             'types' => TicketTypeDefinition::options(),
             'selectedPerson' => filled($filters['person'] ?? null)
                 ? User::whereKey($filters['person'])->value('name')
