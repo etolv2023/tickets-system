@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PointSide;
 use App\Enums\SubtaskSide;
 use App\Enums\SubtaskStatus;
-use App\Enums\TicketType;
 use App\Models\Company;
-use App\Enums\PointSide;
 use App\Models\PointTransaction;
 use App\Models\PriorityDefinition;
 use App\Models\Ticket;
 use App\Models\TicketStatusDefinition;
 use App\Models\TicketSubtask;
+use App\Models\TicketTypeDefinition;
 use App\Models\User;
 use App\Services\ReportService;
 use Carbon\CarbonImmutable;
@@ -150,7 +150,7 @@ class ReportController extends Controller
             'filters' => $filters,
             'months' => $this->months(),
             'sides' => PointSide::options(),
-            'types' => TicketType::options(),
+            'types' => TicketTypeDefinition::options(),
             'selectedPerson' => filled($filters['person'] ?? null)
                 ? User::whereKey($filters['person'])->value('name')
                 : null,
@@ -272,7 +272,7 @@ class ReportController extends Controller
             'selectedCompany' => filled($filters['company'] ?? null)
                 ? Company::whereKey($filters['company'])->value('name')
                 : null,
-            'types' => TicketType::options(),
+            'types' => TicketTypeDefinition::options(),
             'priorities' => PriorityDefinition::options(),
             'statuses' => TicketStatusDefinition::options(),
             'sides' => SubtaskSide::options(),

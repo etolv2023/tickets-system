@@ -123,7 +123,7 @@
                     </thead>
                     <tbody>
                         @forelse ($byType as $row)
-                            @php $type = \App\Enums\TicketType::from($row->type); @endphp
+                            @php $type = \App\Casts\TicketTypeValue::for($row->type); @endphp
                             <tr>
                                 <td><x-badge :variant="$type->variant()" :icon="$type->icon()">{{ $type->label() }}</x-badge></td>
                                 <td class="table__cell--num">{{ $row->tickets }}</td>

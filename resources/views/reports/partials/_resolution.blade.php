@@ -39,7 +39,7 @@
                 </thead>
                 <tbody>
                     @forelse ($resolution['byType'] as $row)
-                        @php($enum = \App\Enums\TicketType::from($row->k))
+                        @php($enum = \App\Casts\TicketTypeValue::for($row->k))
                         <tr>
                             <td><x-badge :variant="$enum->variant()">{{ $enum->label() }}</x-badge></td>
                             <td class="table__cell--num">{{ round($row->avg_hours) }}</td>

@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Enums\SubtaskSide;
 use App\Enums\SubtaskStatus;
-use App\Enums\TicketType;
 use App\Models\Company;
 use App\Models\Ticket;
 use App\Models\TicketComment;
@@ -64,7 +63,7 @@ class DemoFeatureWalkthroughSeeder extends Seeder
             'description' => '<p>عايزين شاشة كاشير تخصم من المخزون لحظة البيع، '
                 . 'وتطبع فاتورة ضريبية، وتتعامل مع المرتجعات.</p>'
                 . '<p>الفروع ٤ وكلها لازم تشوف نفس الرصيد في نفس اللحظة.</p>',
-            'type' => TicketType::Feature,
+            'type' => 'feature',
             'priority' => 'high',
             'status' => 'in_progress',
             'reported_at' => $monday->copy()->subDays(6)->setTime(10, 15),

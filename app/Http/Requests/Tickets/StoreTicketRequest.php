@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Tickets;
 
 use App\Enums\SubtaskSide;
-use App\Enums\TicketType;
 use App\Models\Company;
 use App\Models\Role;
 use App\Services\AttachmentService;
@@ -72,7 +71,7 @@ class StoreTicketRequest extends FormRequest
             ],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:200000'],
-            'type' => ['required', Rule::enum(TicketType::class)],
+            'type' => ['required', Rule::exists('ticket_types', 'key')],
             'priority' => ['required', Rule::exists('priorities', 'key')],
             'module' => ['nullable', 'string', 'max:100'],
             'attachments' => ['nullable', 'array'],

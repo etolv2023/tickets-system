@@ -20,6 +20,12 @@
         <span class="nav__label">حالات التذاكر</span>
     </a>
 
+    <a href="{{ route('admin.ticket-types.index') }}" class="nav__link" title="أنواع التذاكر"
+       @if (request()->routeIs('admin.ticket-types.*')) aria-current="page" @endif>
+        <x-icon name="ticket" class="nav__icon" />
+        <span class="nav__label">أنواع التذاكر</span>
+    </a>
+
     <a href="{{ route('admin.priorities.index') }}" class="nav__link" title="الأولويات"
        @if (request()->routeIs('admin.priorities.*')) aria-current="page" @endif>
         <x-icon name="flag" class="nav__icon" />

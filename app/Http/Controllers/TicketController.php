@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\TicketType;
 use App\Http\Requests\Tickets\StoreTicketRequest;
 use App\Http\Requests\Tickets\UpdateTicketRequest;
 use App\Models\Company;
@@ -12,6 +11,7 @@ use App\Models\PriorityDefinition;
 use App\Models\Role;
 use App\Models\Ticket;
 use App\Models\TicketStatusDefinition;
+use App\Models\TicketTypeDefinition;
 use App\Models\User;
 use App\Services\ActivityLogger;
 use App\Services\AttachmentService;
@@ -282,7 +282,7 @@ class TicketController extends Controller
         // whole customer table — two queries and a JSON blob that grew with
         // the database are now zero of both.
         return [
-            'types' => TicketType::options(),
+            'types' => TicketTypeDefinition::options(),
             'priorities' => PriorityDefinition::map(),
             // F06 role-assignment extension: the create form's inline subtask
             // repeater offers the same optional "الرول" select.

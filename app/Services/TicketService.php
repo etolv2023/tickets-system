@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Casts\PriorityValue;
 use App\Casts\TicketStatusValue;
-use App\Enums\TicketType;
+use App\Casts\TicketTypeValue;
 use App\Models\CompanyContact;
 use App\Models\Ticket;
 use App\Models\TicketComment;
@@ -35,7 +35,7 @@ class TicketService
                 : null;
 
             $reportedAt = CarbonImmutable::now();
-            $type = TicketType::from($data['type']);
+            $type = TicketTypeValue::for($data['type']);
             $priority = PriorityValue::for($data['priority']);
 
             // F25: internal work has no customer — the origin is a colleague.

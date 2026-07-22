@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Casts\PriorityValue;
 use App\Casts\TicketStatusValue;
-use App\Enums\TicketType;
 use App\Enums\WorkSide;
 use App\Models\Company;
 use App\Models\Ticket;
@@ -38,14 +37,14 @@ class DemoTicketSeeder extends Seeder
 
         // [days ago, company, title, type, priority, status, front, back, tester]
         $rows = [
-            [9, 'NILE', 'فاتورة المبيعات بتطلع بضريبة مضاعفة', TicketType::Bug, PriorityValue::for('urgent'), TicketStatusValue::for('in_progress'), null, 'backend', 'tester'],
-            [7, 'DELTA', 'شاشة المخزون بتعلّق لما الأصناف تعدي 5000', TicketType::Bug, PriorityValue::for('high'), TicketStatusValue::for('assigned'), 'frontend', 'backend', 'tester'],
-            [6, 'DELTA', 'إزاي أطلع تقرير الأرصدة لفرع واحد؟', TicketType::Inquiry, PriorityValue::for('low'), TicketStatusValue::for('resolved'), null, null, null],
-            [5, 'SHARQ', 'تصدير كشف حساب العميل PDF', TicketType::Feature, PriorityValue::for('medium'), TicketStatusValue::for('pending_approval'), null, null, null],
-            [4, 'NILE', 'زرار الحفظ مش ظاهر على الموبايل', TicketType::Bug, PriorityValue::for('medium'), TicketStatusValue::for('dev_done'), 'fullstack', null, 'tester'],
-            [3, 'KHIBRA', 'موديول متابعة المشاريع', TicketType::NewModule, PriorityValue::for('low'), TicketStatusValue::for('pending_approval'), null, null, null],
-            [2, 'DELTA', 'الرصيد الافتتاحي بيتصفر بعد الترحيل', TicketType::Bug, PriorityValue::for('urgent'), TicketStatusValue::for('new'), null, null, null],
-            [1, 'SHARQ', 'تغيير لوجو الشركة في التقارير', TicketType::Feature, PriorityValue::for('low'), TicketStatusValue::for('new'), null, null, null],
+            [9, 'NILE', 'فاتورة المبيعات بتطلع بضريبة مضاعفة', 'bug', PriorityValue::for('urgent'), TicketStatusValue::for('in_progress'), null, 'backend', 'tester'],
+            [7, 'DELTA', 'شاشة المخزون بتعلّق لما الأصناف تعدي 5000', 'bug', PriorityValue::for('high'), TicketStatusValue::for('assigned'), 'frontend', 'backend', 'tester'],
+            [6, 'DELTA', 'إزاي أطلع تقرير الأرصدة لفرع واحد؟', 'inquiry', PriorityValue::for('low'), TicketStatusValue::for('resolved'), null, null, null],
+            [5, 'SHARQ', 'تصدير كشف حساب العميل PDF', 'feature', PriorityValue::for('medium'), TicketStatusValue::for('pending_approval'), null, null, null],
+            [4, 'NILE', 'زرار الحفظ مش ظاهر على الموبايل', 'bug', PriorityValue::for('medium'), TicketStatusValue::for('dev_done'), 'fullstack', null, 'tester'],
+            [3, 'KHIBRA', 'موديول متابعة المشاريع', 'new_module', PriorityValue::for('low'), TicketStatusValue::for('pending_approval'), null, null, null],
+            [2, 'DELTA', 'الرصيد الافتتاحي بيتصفر بعد الترحيل', 'bug', PriorityValue::for('urgent'), TicketStatusValue::for('new'), null, null, null],
+            [1, 'SHARQ', 'تغيير لوجو الشركة في التقارير', 'feature', PriorityValue::for('low'), TicketStatusValue::for('new'), null, null, null],
         ];
 
         $people = ['frontend' => $frontend, 'backend' => $backend, 'fullstack' => $fullstack, 'tester' => $tester];
@@ -81,7 +80,7 @@ class DemoTicketSeeder extends Seeder
                         'assigned_frontend_id' => $front ? $people[$front]->id : null,
                         'assigned_backend_id' => $back ? $people[$back]->id : null,
                         'tester_id' => $test ? $people[$test]->id : null,
-                        'approval_status' => $type->needsApproval() ? 'pending' : 'not_required',
+                        'approval_status' => \App\Casts\TicketTypeValue::for($type)->needsApproval() ? 'pending' : 'not_required',
                         'reported_at' => $reportedAt,
                         'first_response_at' => $reportedAt->addHours(2),
                         'sla_due_at' => $sla->dueAt($priority, $reportedAt),

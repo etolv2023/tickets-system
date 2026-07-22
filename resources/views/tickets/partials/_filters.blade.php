@@ -20,7 +20,7 @@
 
     <select name="type" class="select filters__select">
         <option value="">كل الأنواع</option>
-        @foreach (\App\Enums\TicketType::options() as $value => $label)
+        @foreach (\App\Models\TicketTypeDefinition::options() as $value => $label)
             <option value="{{ $value }}" @selected(($filters['type'] ?? '') === $value)>{{ $label }}</option>
         @endforeach
     </select>

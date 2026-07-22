@@ -6,7 +6,7 @@ use App\Casts\PriorityValue;
 use App\Casts\TicketStatusValue;
 use App\Enums\SubtaskSide;
 use App\Enums\SubtaskStatus;
-use App\Enums\TicketType;
+use App\Casts\TicketTypeValue;
 use App\Enums\WorkSide;
 use App\Models\Company;
 use App\Models\Rating;
@@ -143,7 +143,7 @@ class DemoHistorySeeder extends Seeder
 
         $reportedAt = $this->reportedAt($monthsBack, $index, $count);
         $priority = PriorityValue::for($item['priority']);
-        $type = TicketType::from($item['type']);
+        $type = TicketTypeValue::for($item['type']);
 
         $ticket = Ticket::create([
             'ticket_number' => $this->numbers->next((int) $reportedAt->format('Y')),

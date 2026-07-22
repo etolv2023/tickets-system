@@ -28,14 +28,15 @@
         <div class="form-grid">
             <x-card title="إيه الي عمله" flush>
                 <div class="facts card__body">
-                    @foreach (\App\Enums\TicketType::cases() as $type)
-                        @if ($type->value !== 'undefined')
+                    @foreach (\App\Models\TicketTypeDefinition::map() as $key => $def)
+                        @if ($key !== 'undefined')
+                            @php $type = \App\Casts\TicketTypeValue::for($key); @endphp
                             <div class="facts__row">
                                 <span class="facts__label">
                                     <x-badge :variant="$type->variant()" :icon="$type->icon()">{{ $type->label() }}</x-badge>
                                 </span>
                                 <span class="facts__value facts__value--num">
-                                    {{ $data['byType'][$type->value] ?? 0 }}
+                                    {{ $data['byType'][$key] ?? 0 }}
                                 </span>
                             </div>
                         @endif

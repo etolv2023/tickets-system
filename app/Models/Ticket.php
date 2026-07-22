@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Casts\PriorityCast;
 use App\Casts\TicketStatusCast;
-use App\Enums\TicketType;
+use App\Casts\TicketTypeCast;
 use Carbon\CarbonInterval;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -33,7 +33,7 @@ class Ticket extends Model
     protected function casts(): array
     {
         return [
-            'type' => TicketType::class,
+            'type' => TicketTypeCast::class,
             'priority' => PriorityCast::class,
             'status' => TicketStatusCast::class,
             'reported_at' => 'datetime',

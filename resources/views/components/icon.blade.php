@@ -74,7 +74,7 @@
         /* ---- Ticket type ----
            The set the ticket list was missing entirely: a type badge read as a
            coloured word, so telling a bug from an inquiry meant reading rather
-           than glancing. These four are what TicketType::icon() returns.
+           than glancing. These are the default type icons (TicketTypeValue).
 
            The bug is a simplified six-leg silhouette, not Lucide's eleven-path
            drawing — at 15px that one collapses into a blob. */
