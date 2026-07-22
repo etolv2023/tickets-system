@@ -1,5 +1,9 @@
-{{-- F16: the tester's two buttons. --}}
-@if ($ticket->tester_id === $me->id && in_array($ticket->status->value, ['dev_done', 'testing'], true))
+{{-- F16: the tester's two buttons. Role-based (2026-07-24): shown to whoever
+     holds an is_tester role on this ticket. --}}
+@php
+    $iAmTester = $ticket->roleAssignments->contains(fn ($a) => $a->user_id === $me->id && $a->role?->is_tester);
+@endphp
+@if ($iAmTester && in_array($ticket->status->value, ['dev_done', 'testing'], true))
     <x-collapsible-card title="التيست">
         <div class="stack stack--tight">
             <form method="POST" action="{{ route('tickets.verify', $ticket) }}">

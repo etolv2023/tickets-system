@@ -26,19 +26,18 @@ enum PointSide: string
     }
 
     /**
-     * The tickets column naming the person who owns this side.
-     *
-     * Still the fallback when nobody finished a subtask on this side — the
-     * ticket's own assignee is who the commitment was made to.
+     * The role key this side corresponds to, or null for `support` (which named
+     * the ticket's creator, never a role assignment). Since the fixed columns
+     * were dropped (2026-07-24), a side maps to a role rather than a column.
      */
-    public function participantColumn(): string
+    public function roleKey(): ?string
     {
         return match ($this) {
-            self::Support => 'created_by',
-            self::Frontend => 'assigned_frontend_id',
-            self::Backend => 'assigned_backend_id',
-            self::Tester => 'tester_id',
-            self::Devops => 'devops_id',
+            self::Support => null,
+            self::Frontend => 'frontend',
+            self::Backend => 'backend',
+            self::Tester => 'tester',
+            self::Devops => 'devops',
         };
     }
 

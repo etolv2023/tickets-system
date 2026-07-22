@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Casts\PriorityValue;
 use App\Casts\TicketStatusValue;
-use App\Enums\WorkSide;
 use App\Models\Company;
 use App\Models\Ticket;
 use App\Models\TicketWorkLog;
@@ -35,6 +34,12 @@ class DemoTicketSeeder extends Seeder
 
         $companies = Company::with('contacts')->active()->get()->keyBy('code');
 
+        // Role-based assignment (2026-07-24): each "slot" maps to a role, and
+        // the user filling it becomes that role's assignment on the ticket.
+        $roleIds = \App\Models\Role::query()
+            ->whereIn('key', ['frontend', 'backend', 'tester'])
+            ->pluck('id', 'key');
+
         // [days ago, company, title, type, priority, status, front, back, tester]
         $rows = [
             [9, 'NILE', 'فاتورة المبيعات بتطلع بضريبة مضاعفة', 'bug', PriorityValue::for('urgent'), TicketStatusValue::for('in_progress'), null, 'backend', 'tester'],
@@ -61,7 +66,7 @@ class DemoTicketSeeder extends Seeder
 
             DB::transaction(function () use (
                 $numbers, $sla, $company, $contact, $title, $type, $priority,
-                $status, $reportedAt, $support, $people, $front, $back, $test
+                $status, $reportedAt, $support, $people, $front, $back, $test, $roleIds
             ) {
                 $resolved = in_array($status, [TicketStatusValue::for('resolved'), TicketStatusValue::for('closed')], true);
 
@@ -77,9 +82,6 @@ class DemoTicketSeeder extends Seeder
                         'priority' => $priority,
                         'status' => $status,
                         'created_by' => $support->id,
-                        'assigned_frontend_id' => $front ? $people[$front]->id : null,
-                        'assigned_backend_id' => $back ? $people[$back]->id : null,
-                        'tester_id' => $test ? $people[$test]->id : null,
                         'approval_status' => \App\Casts\TicketTypeValue::for($type)->needsApproval() ? 'pending' : 'not_required',
                         'reported_at' => $reportedAt,
                         'first_response_at' => $reportedAt->addHours(2),
@@ -88,7 +90,23 @@ class DemoTicketSeeder extends Seeder
                     ]
                 );
 
-                $this->seedWorkLogs($ticket, $status);
+                // Role assignments — the slot decides the role, the person fills it.
+                $assignments = array_filter([
+                    'frontend' => $front ? $people[$front]->id : null,
+                    'backend' => $back ? $people[$back]->id : null,
+                    'tester' => $test ? $people[$test]->id : null,
+                ]);
+
+                foreach ($assignments as $roleKey => $userId) {
+                    if (isset($roleIds[$roleKey])) {
+                        DB::table('ticket_role_assignments')->updateOrInsert(
+                            ['ticket_id' => $ticket->id, 'role_id' => $roleIds[$roleKey]],
+                            ['user_id' => $userId, 'created_at' => now(), 'updated_at' => now()]
+                        );
+                    }
+                }
+
+                $this->seedWorkLogs($ticket, $status, $roleIds, $assignments);
                 $this->seedHistory($ticket, $status, $reportedAt, $support->id);
             });
         }
@@ -99,7 +117,11 @@ class DemoTicketSeeder extends Seeder
      * in_progress must have a started side, or the board would show a "بدأت"
      * button on work that already began. F07
      */
-    private function seedWorkLogs(Ticket $ticket, TicketStatusValue $status): void
+    /**
+     * @param  \Illuminate\Support\Collection<string, int>  $roleIds
+     * @param  array<string, int>  $assignments  role key => user id
+     */
+    private function seedWorkLogs(Ticket $ticket, TicketStatusValue $status, $roleIds, array $assignments): void
     {
         $logStatus = match ($status) {
             TicketStatusValue::for('assigned') => 'pending',
@@ -112,17 +134,16 @@ class DemoTicketSeeder extends Seeder
             return;
         }
 
-        foreach (WorkSide::cases() as $side) {
-            $userId = $ticket->{$side->assigneeColumn()};
-
-            if ($userId === null) {
+        // Only the work-logging roles (frontend/backend) get a بدأت/خلصت log. F07
+        foreach (['frontend', 'backend'] as $roleKey) {
+            if (! isset($assignments[$roleKey], $roleIds[$roleKey])) {
                 continue;
             }
 
             TicketWorkLog::updateOrCreate(
-                ['ticket_id' => $ticket->id, 'side' => $side->value],
+                ['ticket_id' => $ticket->id, 'role_id' => $roleIds[$roleKey]],
                 [
-                    'user_id' => $userId,
+                    'user_id' => $assignments[$roleKey],
                     'status' => $logStatus,
                     'started_at' => $logStatus === 'pending' ? null : $ticket->reported_at->addHours(3),
                     'finished_at' => $logStatus === 'done' ? $ticket->reported_at->addHours(20) : null,

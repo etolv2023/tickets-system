@@ -39,7 +39,7 @@
     <div class="tcard__meta">
         <span>{{ $ticket->originLabel() }}</span>
         @if ($mine)
-            <x-badge variant="neutral">{{ $mine->side->label() }}</x-badge>
+            <x-badge variant="neutral">{{ $mine->roleLabel() }}</x-badge>
         @endif
         <span @class(['tcard__age--overdue' => $ticket->isOverdue()])>{{ $ticket->ageLabel() }}</span>
         @if ($ticket->subtasks_total > 0)
@@ -96,7 +96,7 @@
     @if ($other)
         <div class="tcard__other">
             <span class="badge__dot"></span>
-            {{ $other->side->label() }}: {{ $other->statusLabel() }}
+            {{ $other->roleLabel() }}: {{ $other->statusLabel() }}
         </div>
     @endif
 

@@ -44,11 +44,12 @@ class TicketController extends Controller
             // 25 rows of it that nobody reads (CLAUDE.md § 4.3).
             ->select([
                 'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'priority',
-                'status', 'reported_at', 'sla_due_at', 'resolved_at', 'updated_at',
-                'assigned_frontend_id', 'assigned_backend_id', 'tester_id', 'devops_id', 'created_by',
+                'status', 'reported_at', 'sla_due_at', 'resolved_at', 'updated_at', 'created_by',
                 'subtasks_total', 'subtasks_done',
             ])
-            ->with(['company:id,name,code', 'requester:id,name', 'creator:id,name', 'frontend:id,name,avatar_path,is_active', 'backend:id,name,avatar_path,is_active', 'devops:id,name,avatar_path,is_active', 'labels:id,name,color'])
+            // Role-based assignment (2026-07-24): the assignee avatars come from
+            // the ticket's role assignments, not the four dropped columns.
+            ->with(['company:id,name,code', 'requester:id,name', 'creator:id,name', 'roleAssignments.user:id,name,avatar_path,is_active', 'labels:id,name,color'])
             ->visibleTo($request->user())
             ->filter($filters)
             ->defaultOrder()
@@ -132,14 +133,13 @@ class TicketController extends Controller
             return;
         }
 
-        $assignees = $request->only('assigned_frontend_id', 'assigned_backend_id', 'tester_id', 'devops_id');
         $roleAssignments = array_filter($request->input('role_assignments', []), fn ($v) => filled($v));
 
-        if (collect($assignees)->filter()->isEmpty() && $roleAssignments === []) {
+        if ($roleAssignments === []) {
             return;
         }
 
-        $this->workflow->assign($ticket, $assignees, $request->user()->id, $roleAssignments);
+        $this->workflow->assign($ticket, $roleAssignments, $request->user()->id);
     }
 
     /**
@@ -164,15 +164,17 @@ class TicketController extends Controller
             // Neither bodyAttachments.uploader nor workLogs.user is rendered —
             // eager-loading them was two queries paid for nothing.
             'bodyAttachments',
-            'workLogs',
+            // role: the my-work panel prints each log's role name (role-based
+            // work logs since 2026-07-24).
+            'workLogs.role:id,name_ar',
             'statusHistory',
             // F06 role-assignment extension: a subtask's badge shows the role
             // name instead of "أخرى" when it's tagged to one.
             'subtasks.role:id,name_ar',
             'labels',
             'watchers:id',
-            'roleAssignments.role:id,name_ar',
-            'roleAssignments.user:id,name',
+            'roleAssignments.role:id,name_ar,logs_work,is_tester',
+            'roleAssignments.user:id,name,avatar_path,is_active',
             // Both directions in one query each; the related-ticket columns are
             // shared, so a single constrained load covers the pair (F10).
             'outgoingLinks.toTicket:id,ticket_number,title,status,priority',
@@ -303,13 +305,7 @@ class TicketController extends Controller
      */
     private function hydratePeople(Ticket $ticket, $comments): void
     {
-        $ids = collect([
-            $ticket->created_by,
-            $ticket->assigned_frontend_id,
-            $ticket->assigned_backend_id,
-            $ticket->tester_id,
-            $ticket->devops_id,
-        ])
+        $ids = collect([$ticket->created_by])
             ->merge($ticket->subtasks->pluck('assignee_id'))
             ->merge($ticket->statusHistory->pluck('user_id'))
             ->merge($ticket->statusHistory->pluck('recipient_user_id'))
@@ -334,10 +330,6 @@ class TicketController extends Controller
             : CompanyContact::whereIn('id', $contactIds)->get(['id', 'name'])->keyBy('id');
 
         $ticket->setRelation('creator', $people->get($ticket->created_by));
-        $ticket->setRelation('frontend', $people->get($ticket->assigned_frontend_id));
-        $ticket->setRelation('backend', $people->get($ticket->assigned_backend_id));
-        $ticket->setRelation('tester', $people->get($ticket->tester_id));
-        $ticket->setRelation('devops', $people->get($ticket->devops_id));
 
         $ticket->subtasks->each(fn ($s) => $s->setRelation('assignee', $people->get($s->assignee_id)));
         $ticket->statusHistory->each(function ($h) use ($people, $contacts) {
@@ -420,42 +412,32 @@ class TicketController extends Controller
     }
 
     /**
-     * The three assignment dropdowns' lists (F06), driven by skills rather
-     * than role — a "both" developer belongs in both lists (F00.3). Shared by
-     * the ticket page's distribution panel and the create-page block (F06.3).
+     * The assignment dropdowns (F06), one per role an admin opted into the
+     * distribution panel (Role::assignable_on_tickets). Fully role-based since
+     * the four fixed columns were dropped (2026-07-24): a role's candidates are
+     * the active users who hold that role, and there is no longer a separate
+     * skills-driven frontend/backend list — assignment follows the role.
      *
-     * @return array<string, \Illuminate\Support\Collection>
+     * @return array{roles: \Illuminate\Support\Collection}
      */
     private function assignableUsers(): array
     {
         // without('role'): User eager-loads its role for the chrome, but the
-        // role id here comes from the cached map — that join would be a query
-        // spent to learn something already in memory.
+        // role id here comes from the row's own role_id — that join would be a
+        // query spent to learn something already selected.
         $users = User::active()
             ->without('role')
-            ->select(['id', 'name', 'skills', 'role_id'])
+            ->select(['id', 'name', 'role_id'])
             ->orderBy('name')
             ->get();
 
-        $testerRoleId = Role::idByKey('tester');
-        $devopsRoleId = Role::idByKey('devops');
-
-        // F06 role-assignment extension: every other role an admin opted into
-        // the panel gets its own dropdown, candidates being whoever holds that
-        // role — same "by role" pattern as testers/devops just above.
-        $extraRoles = Role::query()->assignableOnTickets()->orderBy('name_ar')->get();
+        $roles = Role::query()->assignableOnTickets()->orderBy('name_ar')->get();
 
         return [
-            'frontend' => $users->filter(fn (User $u) => $u->skills->coversFrontend())->values(),
-            'backend' => $users->filter(fn (User $u) => $u->skills->coversBackend())->values(),
-            'testers' => $users->filter(fn (User $u) => $u->role_id === $testerRoleId)->values(),
-            'roles' => $extraRoles->map(fn (Role $role) => [
+            'roles' => $roles->map(fn (Role $role) => [
                 'role' => $role,
                 'candidates' => $users->filter(fn (User $u) => $u->role_id === $role->id)->values(),
             ]),
-            // By role, like testers. Developers are filtered by skills because
-            // "both" exists there; devops has no such value to filter on.
-            'devops' => $users->filter(fn (User $u) => $u->role_id === $devopsRoleId)->values(),
         ];
     }
 }

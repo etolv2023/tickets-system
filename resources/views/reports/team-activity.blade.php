@@ -48,11 +48,11 @@
                                     <td><x-badge :variant="$ticket->status->variant()">{{ $ticket->status->label() }}</x-badge></td>
                                     <td>
                                         <div class="tickets__people">
-                                            @if ($ticket->frontend)<x-avatar :user="$ticket->frontend" size="sm" />@endif
-                                            @if ($ticket->backend)<x-avatar :user="$ticket->backend" size="sm" />@endif
-                                            @unless ($ticket->frontend || $ticket->backend)
+                                            @forelse ($ticket->roleAssignments as $assignment)
+                                                @if ($assignment->user)<x-avatar :user="$assignment->user" size="sm" />@endif
+                                            @empty
                                                 <span class="u-subtle">مش موزعة</span>
-                                            @endunless
+                                            @endforelse
                                         </div>
                                     </td>
                                     <td class="u-nums">{{ $ticket->reported_at->translatedFormat('j M Y') }}</td>

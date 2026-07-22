@@ -27,6 +27,11 @@ class RoleRequest extends FormRequest
             ],
             'name_ar' => ['required', 'string', 'max:100'],
             'assignable_on_tickets' => ['nullable', 'boolean'],
+            // Two role behaviours the distribution rework made into flags
+            // (2026-07-24): logs_work → the assignment gets a بدأت/خلصت work
+            // log; is_tester → the ticket enters the testing queue.
+            'logs_work' => ['nullable', 'boolean'],
+            'is_tester' => ['nullable', 'boolean'],
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['integer', 'exists:permissions,id'],
         ];

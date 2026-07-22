@@ -23,7 +23,7 @@ class Ticket extends Model
     protected $fillable = [
         'ticket_number', 'company_id', 'requested_by', 'contact_id', 'reporter_name', 'reporter_erp_id',
         'title', 'description', 'type', 'priority', 'status', 'module',
-        'created_by', 'assigned_frontend_id', 'assigned_backend_id', 'tester_id', 'devops_id',
+        'created_by',
         'approval_status', 'approved_by', 'approved_at',
         'reported_at', 'first_response_at', 'sla_due_at', 'resolved_at',
         'resolution_note', 'client_notified_at', 'client_notified_by', 'closed_at',
@@ -103,30 +103,6 @@ class Ticket extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function frontend(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'assigned_frontend_id');
-    }
-
-    public function backend(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'assigned_backend_id');
-    }
-
-    public function tester(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'tester_id');
-    }
-
-    /**
-     * The fourth person on a ticket. Like the tester and unlike the two
-     * developers, DevOps holds no work log — it never gates dev_done.
-     */
-    public function devops(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'devops_id');
-    }
-
     public function comments(): HasMany
     {
         return $this->hasMany(TicketComment::class);
@@ -166,10 +142,56 @@ class Ticket extends Model
         return $this->hasMany(PointTransaction::class);
     }
 
-    /** F06 role-assignment extension — who holds which extra role on this ticket. */
+    /**
+     * F06 — who holds which role on this ticket. Since the four fixed columns
+     * were dropped (2026-07-24) this is the ONE place assignment lives; every
+     * role, built-in or custom, is a row here.
+     */
     public function roleAssignments(): HasMany
     {
         return $this->hasMany(TicketRoleAssignment::class);
+    }
+
+    /**
+     * The user assigned to this ticket under a given role, or null. Reads the
+     * eager-loaded relation when it's there (the ticket page loads it), and
+     * falls back to a scoped query otherwise — an explicit query, so
+     * preventLazyLoading never trips.
+     */
+    public function assigneeIdForRole(int $roleId): ?int
+    {
+        if ($this->relationLoaded('roleAssignments')) {
+            return $this->roleAssignments->firstWhere('role_id', $roleId)?->user_id;
+        }
+
+        return $this->roleAssignments()->where('role_id', $roleId)->value('user_id');
+    }
+
+    /**
+     * Every user assigned to this ticket, in any role — the role-based
+     * replacement for "the frontend/backend/tester/devops columns".
+     *
+     * @return \Illuminate\Support\Collection<int, int>
+     */
+    public function assigneeIds(): \Illuminate\Support\Collection
+    {
+        return $this->relationLoaded('roleAssignments')
+            ? $this->roleAssignments->pluck('user_id')->filter()->unique()->values()
+            : $this->roleAssignments()->distinct()->pluck('user_id');
+    }
+
+    /** True when this user holds any role on the ticket. Query-safe. */
+    public function isAssignee(int $userId): bool
+    {
+        return $this->relationLoaded('roleAssignments')
+            ? $this->roleAssignments->contains('user_id', $userId)
+            : $this->roleAssignments()->where('user_id', $userId)->exists();
+    }
+
+    /** Tickets this user holds any role on (F03 visibility, reports, board). */
+    public function scopeAssignedTo(Builder $query, int $userId): Builder
+    {
+        return $query->whereHas('roleAssignments', fn (Builder $q) => $q->where('user_id', $userId));
     }
 
     public function labels(): BelongsToMany
@@ -405,11 +427,7 @@ class Ticket extends Model
             ->when($filters['type'] ?? null, fn (Builder $q, $v) => $q->where('type', $v))
             ->when($filters['priority'] ?? null, fn (Builder $q, $v) => $q->where('priority', $v))
             ->when($filters['company'] ?? null, fn (Builder $q, $v) => $q->where('company_id', $v))
-            ->when($filters['assignee'] ?? null, fn (Builder $q, $v) => $q->where(fn (Builder $w) => $w
-                ->where('assigned_frontend_id', $v)
-                ->orWhere('assigned_backend_id', $v)
-                ->orWhere('tester_id', $v)
-                ->orWhere('devops_id', $v)))
+            ->when($filters['assignee'] ?? null, fn (Builder $q, $v) => $q->assignedTo((int) $v))
             ->when($filters['from'] ?? null, fn (Builder $q, $v) => $q->whereDate($dateBasis, '>=', $v))
             ->when($filters['to'] ?? null, fn (Builder $q, $v) => $q->whereDate($dateBasis, '<=', $v))
             ->when($filters['q'] ?? null, fn (Builder $q, $term) => $q->search($term));
@@ -441,10 +459,7 @@ class Ticket extends Model
         }
 
         return $query->where(function (Builder $q) use ($user) {
-            $q->where('assigned_frontend_id', $user->id)
-                ->orWhere('assigned_backend_id', $user->id)
-                ->orWhere('tester_id', $user->id)
-                ->orWhere('devops_id', $user->id);
+            $q->whereHas('roleAssignments', fn (Builder $r) => $r->where('user_id', $user->id));
 
             if ($user->hasPermission('tickets.view.own')) {
                 $q->orWhere('created_by', $user->id);

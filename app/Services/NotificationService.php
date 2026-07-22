@@ -97,11 +97,11 @@ class NotificationService
         $implicit = array_filter([
             $ticket->created_by,
             $ticket->requested_by,
-            $ticket->assigned_frontend_id,
-            $ticket->assigned_backend_id,
-            $ticket->tester_id,
-            $ticket->devops_id,
         ]);
+
+        // Everyone assigned to the ticket, in any role — the role-based
+        // replacement for the four fixed assignment columns (2026-07-24).
+        $assigned = $ticket->roleAssignments()->pluck('user_id')->all();
 
         $explicit = $ticket->watchers()->pluck('users.id')->all();
 
@@ -112,7 +112,7 @@ class NotificationService
             ->pluck('assignee_id')
             ->all();
 
-        return array_values(array_unique(array_merge($implicit, $explicit, $workers)));
+        return array_values(array_unique(array_merge($implicit, $assigned, $explicit, $workers)));
     }
 
     /** Older name for the circle; kept so existing call sites keep working. */

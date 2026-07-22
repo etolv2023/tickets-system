@@ -32,7 +32,9 @@ class TicketsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, 
     public function query()
     {
         return Ticket::query()
-            ->with(['company:id,name', 'requester:id,name', 'frontend:id,name', 'backend:id,name', 'tester:id,name', 'devops:id,name', 'creator:id,name'])
+            // Role-based assignment (2026-07-24): the sheet lists every role
+            // holder in one column instead of four fixed ones.
+            ->with(['company:id,name', 'requester:id,name', 'roleAssignments.role:id,name_ar', 'roleAssignments.user:id,name', 'creator:id,name'])
             // The same visibility gate as the screen. An export is not a
             // back door around row-level access.
             ->visibleTo($this->user)
@@ -44,7 +46,7 @@ class TicketsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, 
     {
         return [
             'رقم التذكرة', 'العنوان', 'الشركة', 'المُبلغ', 'النوع',
-            'الأولوية', 'الحالة', 'فتحها', 'فرونت', 'باك', 'تيستر', 'ديف أوبس',
+            'الأولوية', 'الحالة', 'فتحها', 'التوزيع',
             'وقت الإبلاغ', 'مهلة SLA', 'وقت الحل', 'العمر / زمن الحل',
             'المقدّر (س)', 'الفعلي (س)', 'صب تاسكس',
         ];
@@ -62,10 +64,9 @@ class TicketsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, 
             $ticket->priority->label(),
             $ticket->status->label(),
             $ticket->creator?->name,
-            $ticket->frontend?->name,
-            $ticket->backend?->name,
-            $ticket->tester?->name,
-            $ticket->devops?->name,
+            $ticket->roleAssignments
+                ->map(fn ($a) => "{$a->role->name_ar}: {$a->user?->name}")
+                ->implode('، '),
             $ticket->reported_at?->timezone(config('app.display_timezone'))->format('Y-m-d H:i'),
             $ticket->sla_due_at?->timezone(config('app.display_timezone'))->format('Y-m-d H:i'),
             $ticket->resolved_at?->timezone(config('app.display_timezone'))->format('Y-m-d H:i'),

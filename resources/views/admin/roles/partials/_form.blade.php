@@ -45,7 +45,25 @@
                    @checked(old('assignable_on_tickets', $role?->assignable_on_tickets))>
             <span class="checkbox-row__label">
                 تظهر في بلوك التوزيع على التذكرة
-                <small>يبقى للدور ده دروبداون في بلوك «التوزيع»، زي الفرونت والباك بالظبط.</small>
+                <small>يبقى للدور ده دروبداون في بلوك «التوزيع» — كل التوزيع بقى من الأدوار.</small>
+            </span>
+        </label>
+
+        <label class="checkbox-row">
+            <input type="checkbox" name="logs_work" value="1" class="checkbox"
+                   @checked(old('logs_work', $role?->logs_work))>
+            <span class="checkbox-row__label">
+                بيسجّل شغل (بدأت / خلصت)
+                <small>لما حد يتوزّع عليه الدور ده، بياخد سجل شغل بزراري «بدأت» و«خلصت» — وبيحرّك حالة التذكرة (زي الفرونت والباك).</small>
+            </span>
+        </label>
+
+        <label class="checkbox-row">
+            <input type="checkbox" name="is_tester" value="1" class="checkbox"
+                   @checked(old('is_tester', $role?->is_tester))>
+            <span class="checkbox-row__label">
+                دور تيست
+                <small>التذكرة الموزّعة على الدور ده بتظهر في طابور التيست بعد ما التطوير يخلص (زي التيستر).</small>
             </span>
         </label>
     </x-card>

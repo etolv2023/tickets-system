@@ -108,7 +108,6 @@ class BoardController extends Controller
             ->select([
                 'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'priority', 'status',
                 'reported_at', 'sla_due_at', 'resolved_at', 'updated_at',
-                'assigned_frontend_id', 'assigned_backend_id', 'tester_id', 'devops_id',
                 'subtasks_total', 'subtasks_done',
             ])
             // One extra query for the whole board, not one per card. No
@@ -116,14 +115,10 @@ class BoardController extends Controller
             // doesn't show — the accordion needs title + status only.
             ->with([
                 'company:id,name', 'requester:id,name',
-                'workLogs:id,ticket_id,user_id,side,status',
-                'subtasks' => fn ($q) => $q->select(['id', 'ticket_id', 'title', 'status', 'side', 'position']),
+                'workLogs:id,ticket_id,user_id,role_id,status', 'workLogs.role:id,name_ar',
+                'subtasks' => fn ($q) => $q->select(['id', 'ticket_id', 'title', 'status', 'side', 'role_id', 'position']),
             ])
-            ->where(fn ($q) => $q
-                ->where('assigned_frontend_id', $user->id)
-                ->orWhere('assigned_backend_id', $user->id)
-                ->orWhere('tester_id', $user->id)
-                ->orWhere('devops_id', $user->id))
+            ->assignedTo($user->id)
             ->onBoard()
             ->defaultOrder()
             ->get();
@@ -169,21 +164,18 @@ class BoardController extends Controller
             ->select([
                 'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'priority', 'status',
                 'reported_at', 'sla_due_at', 'resolved_at', 'updated_at',
-                'assigned_frontend_id', 'assigned_backend_id', 'tester_id', 'devops_id',
                 'subtasks_total', 'subtasks_done',
             ])
             ->with([
                 'company:id,name', 'requester:id,name',
-                'workLogs:id,ticket_id,user_id,side,status',
-                'frontend:id,name,avatar_path,is_active',
-                'backend:id,name,avatar_path,is_active',
+                'workLogs:id,ticket_id,user_id,role_id,status', 'workLogs.role:id,name_ar',
                 'incomingLinks.fromTicket:id,status',
-                'subtasks' => fn ($q) => $q->select(['id', 'ticket_id', 'title', 'status', 'side', 'position']),
+                'subtasks' => fn ($q) => $q->select(['id', 'ticket_id', 'title', 'status', 'side', 'role_id', 'position']),
             ])
-            // Only the assignee lane reads it — assigneeOf() falls back to
-            // devops for the swimlane label. Loading it unconditionally put
-            // this page at 15 queries, which is § 4's ceiling exactly.
-            ->when($lane === 'assignee', fn ($q) => $q->with('devops:id,name,avatar_path,is_active'))
+            // Only the assignee lane reads it — assigneeOf() takes the ticket's
+            // first role assignment as the swimlane owner. Loading assignees
+            // unconditionally would spend a query the priority lane never uses.
+            ->when($lane === 'assignee', fn ($q) => $q->with('roleAssignments.user:id,name,avatar_path,is_active'))
             ->onBoard()
             ->defaultOrder()
             // A hard ceiling on the whole board. The lanes below are built in
@@ -241,9 +233,17 @@ class BoardController extends Controller
             ->all();
     }
 
-    /** Whoever the board considers to own this ticket's current work. */
+    /**
+     * Whoever the board considers to own this ticket's current work — the first
+     * person assigned to it, in any role. Role-based since the fixed columns
+     * were dropped (2026-07-24); the swimlane only needs one representative owner.
+     */
     private function assigneeOf(Ticket $ticket): ?\App\Models\User
     {
-        return $ticket->frontend ?? $ticket->backend ?? $ticket->devops;
+        if (! $ticket->relationLoaded('roleAssignments')) {
+            return null;
+        }
+
+        return $ticket->roleAssignments->first()?->user;
     }
 }

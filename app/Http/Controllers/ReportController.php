@@ -219,9 +219,8 @@ class ReportController extends Controller
                 ->select([
                     'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'priority',
                     'status', 'reported_at', 'due_date', 'resolved_at',
-                    'assigned_frontend_id', 'assigned_backend_id', 'tester_id',
                 ])
-                ->with(['company:id,name', 'requester:id,name', 'frontend:id,name,avatar_path,is_active', 'backend:id,name,avatar_path,is_active'])
+                ->with(['company:id,name', 'requester:id,name', 'roleAssignments.user:id,name,avatar_path,is_active'])
                 ->filter([
                     'assignee' => $filters['person'] ?? null,
                     'from' => $filters['from'] ?? null,

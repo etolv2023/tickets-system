@@ -86,12 +86,24 @@ class RoleSeeder extends Seeder
 
     /**
      * F06 role-assignment extension: roles that get their own dropdown in the
-     * ticket assignment panel out of the box. frontend/backend/tester/devops
-     * stay out — they already have dedicated columns, and a second dropdown
-     * for the same role would just be a confusing duplicate. A plain role
-     * attribute (Role::assignable_on_tickets), not a permission.
+     * ticket assignment panel out of the box. Distribution is now fully
+     * role-based — there are no hardcoded assignment columns anymore, so the
+     * four dev roles (frontend/backend/tester/devops) are assignable through the
+     * same panel as everyone else. A plain role attribute
+     * (Role::assignable_on_tickets), not a permission.
      */
-    private const ASSIGNABLE_ON_TICKETS = ['admin', 'manager', 'support'];
+    private const ASSIGNABLE_ON_TICKETS = [
+        'admin', 'manager', 'support', 'frontend', 'backend', 'devops', 'tester',
+    ];
+
+    /**
+     * Roles whose assignment gets a بدأت/خلصت work log (F07). Replaces the old
+     * hardcoded "the frontend and backend columns log work" rule.
+     */
+    private const LOGS_WORK = ['frontend', 'backend'];
+
+    /** Roles that put a ticket in the testing queue (F16). Was the tester_id column. */
+    private const IS_TESTER = ['tester'];
 
     public function run(): void
     {
@@ -104,6 +116,8 @@ class RoleSeeder extends Seeder
                     'name_ar' => $definition['name'],
                     'is_system' => true,
                     'assignable_on_tickets' => in_array($key, self::ASSIGNABLE_ON_TICKETS, true),
+                    'logs_work' => in_array($key, self::LOGS_WORK, true),
+                    'is_tester' => in_array($key, self::IS_TESTER, true),
                 ]
             );
 

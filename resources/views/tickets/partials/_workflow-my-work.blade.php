@@ -5,7 +5,7 @@
             @foreach ($myLogs as $log)
                 <div class="row row--between">
                     <span>
-                        {{ $log->side->label() }}
+                        {{ $log->roleLabel() }}
                         <x-badge :variant="$log->statusVariant()">{{ $log->statusLabel() }}</x-badge>
                     </span>
 

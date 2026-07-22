@@ -104,10 +104,17 @@ class TicketPolicy
             && $ticket->approval_status === 'pending';
     }
 
-    /** F16 */
+    /** F16: the tester is whoever holds an is_tester role on the ticket. */
     public function test(User $user, Ticket $ticket): bool
     {
-        return $user->hasPermission('tickets.resolve') && $ticket->tester_id === $user->id;
+        if (! $user->hasPermission('tickets.resolve')) {
+            return false;
+        }
+
+        return $ticket->roleAssignments()
+            ->whereIn('role_id', \App\Models\Role::testerRoleIds())
+            ->where('user_id', $user->id)
+            ->exists();
     }
 
     public function resolve(User $user, Ticket $ticket): bool
@@ -150,19 +157,12 @@ class TicketPolicy
 
     private function isAssigned(User $user, Ticket $ticket): bool
     {
-        if (in_array($user->id, [
-            $ticket->assigned_frontend_id,
-            $ticket->assigned_backend_id,
-            $ticket->tester_id,
-            $ticket->devops_id,
-        ], true)) {
-            return true;
-        }
-
-        // F06 role-assignment extension. Only checked when eager-loaded — same
-        // guard as Ticket::isBlocked(), so a list/board render that never
-        // loaded this relation doesn't trip preventLazyLoading over it.
-        return $ticket->relationLoaded('roleAssignments')
-            && $ticket->roleAssignments->contains('user_id', $user->id);
+        // Role-based since the fixed columns were dropped (2026-07-24): a user
+        // is assigned iff they hold any role on the ticket. Ticket::isAssignee()
+        // reads the eager-loaded relation when present (the ticket page loads
+        // it) and otherwise runs an explicit query — so preventLazyLoading is
+        // never tripped, and an assigned-only user is never wrongly denied on a
+        // path that didn't happen to eager-load the relation.
+        return $ticket->isAssignee($user->id);
     }
 }

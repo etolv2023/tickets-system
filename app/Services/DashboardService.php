@@ -113,10 +113,7 @@ class DashboardService
     public function blockingOthersQuery(int $userId)
     {
         return Ticket::query()
-            ->where(fn ($q) => $q
-                ->where('assigned_frontend_id', $userId)
-                ->orWhere('assigned_backend_id', $userId)
-                ->orWhere('devops_id', $userId))
+            ->assignedTo($userId)
             ->whereNotIn('status', ['resolved', 'closed', 'rejected'])
             // Only if it actually blocks something that is itself still open —
             // blocking a closed ticket holds nobody up.
@@ -254,12 +251,12 @@ class DashboardService
 
         // A load meter beside the numbers, scaled to the busiest person shown.
         // Computed here so the view injects only the --value custom property
-        // (CLAUDE.md § 3). The exact per-side counts stay in the table — the
-        // bar is additive, never a replacement for the figures a manager reads.
-        $max = $rows->max(fn ($p) => $p->frontend_open + $p->backend_open + $p->devops_open) ?: 1;
+        // (CLAUDE.md § 3). Role-based since 2026-07-24: one "open assignments"
+        // figure rather than the old per-side split.
+        $max = $rows->max(fn ($p) => $p->open_load) ?: 1;
 
         return $rows->each(function ($p) use ($max) {
-            $p->load_total = $p->frontend_open + $p->backend_open + $p->devops_open;
+            $p->load_total = $p->open_load;
             $p->load_pct = (int) round($p->load_total / $max * 100);
         });
     }

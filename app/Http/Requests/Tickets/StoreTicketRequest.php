@@ -85,14 +85,9 @@ class StoreTicketRequest extends FormRequest
                 'max:' . intdiv(AttachmentService::MAX_VIDEO_BYTES, 1024),
             ],
 
-            // F06.3: the same distribution block as the ticket page, offered
-            // at creation. Ignored server-side for a feature/module ticket
-            // (needsApproval) until it's approved — see TicketController.
-            'assigned_frontend_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
-            'assigned_backend_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
-            'tester_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
-            'devops_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
-            // F06 role-assignment extension — same block, one entry per role.
+            // F06.3: the role-based distribution block, offered at creation.
+            // Ignored server-side for a feature/module ticket (needsApproval)
+            // until it's approved — see TicketController. One entry per role.
             'role_assignments' => ['nullable', 'array'],
             'role_assignments.*' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
 
@@ -145,10 +140,6 @@ class StoreTicketRequest extends FormRequest
             'module' => 'الموديول',
             'attachments' => 'المرفقات',
             'attachments.*' => 'المرفق',
-            'assigned_frontend_id' => 'مبرمج فرونت',
-            'assigned_backend_id' => 'مبرمج باك',
-            'tester_id' => 'تيستر',
-            'devops_id' => 'ديف أوبس',
             'subtasks' => 'الصب تاسكس',
             'subtasks.*.title' => 'عنوان الصب تاسك',
             'subtasks.*.side' => 'جهة الصب تاسك',

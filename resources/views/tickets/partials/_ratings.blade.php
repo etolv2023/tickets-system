@@ -1,43 +1,35 @@
 @php
     /*
-     * F17: a rating box only exists for a side that actually has someone on it.
-     * "مفيش فرونت متعيّن → خانة الفرونت متظهرش أصلاً (مش disabled)" — so this
-     * builds the list from who is really there, rather than rendering four and
-     * greying some out.
+     * F17: a rating box only exists for a role that actually has someone on it.
+     * Role-based since the fixed columns were dropped (2026-07-24): the list is
+     * built from the ticket's role assignments, one box per assigned person.
      */
-    $sides = collect(\App\Enums\PointSide::cases())
-        ->map(fn ($side) => [
-            'side' => $side,
-            'userId' => $ticket->{$side->participantColumn()},
+    $rows = $ticket->roleAssignments
+        ->filter(fn ($assignment) => $assignment->user_id !== null && $assignment->user !== null)
+        ->map(fn ($assignment) => [
+            'role' => $assignment->role,
+            'person' => $assignment->user,
+            'existing' => $ratings->first(fn ($r) => $r->role_id === $assignment->role_id && $r->ratee_id === $assignment->user_id),
         ])
-        ->filter(fn ($row) => $row['userId'] !== null)
-        ->map(fn ($row) => $row + [
-            'person' => $ticket->{match ($row['side']->value) {
-                'support' => 'creator',
-                'frontend' => 'frontend',
-                'backend' => 'backend',
-                default => 'tester',
-            }},
-            'existing' => $ratings->first(fn ($r) => $r->side === $row['side'] && $r->ratee_id === $row['userId']),
-        ]);
+        ->values();
 @endphp
 
-@if ($sides->isNotEmpty())
+@if ($rows->isNotEmpty())
     <x-collapsible-card title="التقييمات">
         <div class="stack stack--tight">
             @can('ratings.give')
                 <p class="field__hint">اختياري — مش بيعطّل إغلاق التذكرة.</p>
 
-                @foreach ($sides as $row)
+                @foreach ($rows as $row)
                     <form method="POST" action="{{ route('tickets.ratings.store', $ticket) }}" class="rating">
                         @csrf
-                        <input type="hidden" name="side" value="{{ $row['side']->value }}">
+                        <input type="hidden" name="role_id" value="{{ $row['role']->id }}">
 
                         <div class="rating__who">
                             <x-avatar :user="$row['person']" size="sm" />
                             <span>
                                 {{ $row['person']?->name ?? '—' }}
-                                <small class="u-subtle">{{ $row['side']->label() }}</small>
+                                <small class="u-subtle">{{ $row['role']?->name_ar }}</small>
                             </span>
                         </div>
 
@@ -58,12 +50,12 @@
                 {{-- Without ratings.give you can still see them if you may see
                      everyone's. F17 --}}
                 @can('ratings.view.all')
-                    @foreach ($sides->filter(fn ($r) => $r['existing']) as $row)
+                    @foreach ($rows->filter(fn ($r) => $r['existing']) as $row)
                         <div class="row row--between">
                             <span class="row">
                                 <x-avatar :user="$row['person']" size="sm" />
                                 {{ $row['person']?->name }}
-                                <span class="u-subtle">{{ $row['side']->label() }}</span>
+                                <span class="u-subtle">{{ $row['role']?->name_ar }}</span>
                             </span>
                             <x-badge variant="neutral">{{ $row['existing']->score }}/10</x-badge>
                         </div>

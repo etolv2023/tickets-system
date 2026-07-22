@@ -2,8 +2,6 @@
 
 namespace App\Services;
 
-use App\Enums\PointSide;
-use App\Enums\SubtaskSide;
 use App\Enums\SubtaskStatus;
 use App\Models\PointTransaction;
 use App\Models\Ticket;
@@ -50,21 +48,16 @@ use Illuminate\Support\Facades\Schema;
  *     never an exception. Manual corrections (PointCorrectionService) are the
  *     only path for anything the automatic award doesn't cover.
  *   - Logged time has no bearing on any of this (PLAN.md § 5).
- *   - Exception: devops has no starter subtask on assignment (F06.3 only
- *     covers WorkSide::Frontend/Backend), so awardDevopsParticipation() below
- *     pays a flat participation credit when devops is assigned with no
- *     subtask to show for it — see its docblock.
+ *
+ * Distribution is fully role-based (2026-07-24): every assigned role — devops
+ * included — gets a starter subtask on assignment (TicketWorkflowService), so
+ * every participant's work is tracked and paid through the one subtask loop
+ * below. The old devops participation special-case (a flat 0.5 for a devops
+ * assignee with no subtask) is gone with it — devops earns exactly like every
+ * other role now.
  */
 class PointEngineService
 {
-    /**
-     * Flat, one-time credit for a devops person assigned to a ticket
-     * (devops_id) who never got a dedicated subtask — a fixed amount, not
-     * looked up per ticket type, because it is a participation credit for
-     * untracked work, not a matrix rate for tracked work (2026-07-21).
-     */
-    private const DEVOPS_PARTICIPATION_POINTS = 0.5;
-
     public function award(Ticket $ticket): void
     {
         // Guard: an unapproved or rejected feature earns nobody anything. F15
@@ -102,8 +95,6 @@ class PointEngineService
             foreach ($subtasks as $subtask) {
                 $this->awardSubtask($locked, $subtask, $period);
             }
-
-            $this->awardDevopsParticipation($locked, $period);
 
             // Set once, on the first payout only — a historical marker, not a gate.
             if ($locked->points_awarded_at === null) {
@@ -164,58 +155,4 @@ class PointEngineService
         }
     }
 
-    /**
-     * F18 addition (2026-07-21): devops is assignable at the ticket level
-     * (devops_id) without ever getting a subtask — unlike frontend/backend,
-     * which always get a starter subtask the moment they're assigned
-     * (TicketWorkflowService::assign() only auto-creates one for WorkSide
-     * cases, and devops isn't one). Without this, real but untracked devops
-     * work — a config tweak, a quick server check — earned nothing, ever.
-     *
-     * Either this flat credit OR per-subtask points, never both: the moment a
-     * devops subtask exists for this person on this ticket, their work is
-     * tracked and paid through the normal subtask loop above instead. Paid
-     * once per ticket, ever — not backed by a unique index (no natural
-     * column to key one on with subtask_id null), so the ticket lock this
-     * runs under is the only guard against a concurrent double-pay, same
-     * threat model as guard 2 in the class docblock.
-     */
-    public function awardDevopsParticipation(Ticket $ticket, string $period): void
-    {
-        if ($ticket->devops_id === null) {
-            return;
-        }
-
-        $alreadyPaidFlat = PointTransaction::where('ticket_id', $ticket->id)
-            ->where('user_id', $ticket->devops_id)
-            ->where('side', PointSide::Devops->value)
-            ->whereNull('subtask_id')
-            ->exists();
-
-        if ($alreadyPaidFlat) {
-            return;
-        }
-
-        $hasTrackedSubtask = TicketSubtask::query()
-            ->where('ticket_id', $ticket->id)
-            ->whereNull('deleted_at')
-            ->where('side', SubtaskSide::Devops->value)
-            ->where('assignee_id', $ticket->devops_id)
-            ->exists();
-
-        if ($hasTrackedSubtask) {
-            return;
-        }
-
-        PointTransaction::create([
-            'user_id' => $ticket->devops_id,
-            'ticket_id' => $ticket->id,
-            'subtask_id' => null,
-            'side' => PointSide::Devops->value,
-            'points' => self::DEVOPS_PARTICIPATION_POINTS,
-            'type' => 'award',
-            'period' => $period,
-            'reason' => "{$ticket->type->label()} — مشاركة ديف أوبس من غير صب تاسك مخصص",
-        ]);
-    }
 }

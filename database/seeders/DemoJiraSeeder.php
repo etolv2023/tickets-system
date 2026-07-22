@@ -32,9 +32,17 @@ class DemoJiraSeeder extends Seeder
 
         $this->seedLabels($admin->id);
 
+        // Role-based assignment (2026-07-24): find work by role assignments.
+        $roleIds = \App\Models\Role::query()
+            ->whereIn('key', ['frontend', 'backend'])
+            ->pluck('id', 'key');
+
         // A both-sides ticket: give the backend an unfinished subtask so the
         // F07 gate has something real to refuse.
-        $both = Ticket::whereNotNull('assigned_frontend_id')->whereNotNull('assigned_backend_id')->first();
+        $both = Ticket::query()
+            ->whereHas('roleAssignments', fn ($q) => $q->where('role_id', $roleIds['frontend'] ?? 0))
+            ->whereHas('roleAssignments', fn ($q) => $q->where('role_id', $roleIds['backend'] ?? 0))
+            ->first();
 
         if ($both !== null) {
             $rows = [
@@ -70,12 +78,16 @@ class DemoJiraSeeder extends Seeder
         // A ticket that overran its estimate, so the amber/red bar has a case.
         $overrun = Ticket::where('status', 'in_progress')->where('id', '!=', $both?->id)->first();
 
-        if ($overrun !== null && $overrun->assigned_backend_id !== null) {
+        $overrunBackendId = $overrun
+            ? $overrun->assigneeIdForRole($roleIds['backend'] ?? 0)
+            : null;
+
+        if ($overrun !== null && $overrunBackendId !== null) {
             $subtask = $subtasks->create($overrun, [
                 'title' => 'اتتبع مصدر الضريبة المضاعفة',
                 'side' => SubtaskSide::Backend->value,
                 'status' => SubtaskStatus::InProgress->value,
-                'assignee_id' => $overrun->assigned_backend_id,
+                'assignee_id' => $overrunBackendId,
                 'due_date' => now()->subDays(2)->toDateString(),
                 'estimated_hours' => 4,
             ], $admin->id);
@@ -86,7 +98,7 @@ class DemoJiraSeeder extends Seeder
                 'hours' => 8.5,
                 'spent_on' => now()->subDays(2)->toDateString(),
                 'note' => 'أطول من المتوقع',
-            ], $overrun->assigned_backend_id);
+            ], $overrunBackendId);
         }
 
         $this->seedLinks($admin->id);
