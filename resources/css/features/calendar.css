@@ -69,8 +69,15 @@
     text-decoration: underline;
 }
 
-/* The day view is a single column, not a month grid — let it grow and show
-   everything (no cap in _grid), so the one day you asked for is never clipped. */
+/* The day view is ONE day, not a month — a single cell dropped into the 7-column
+   grid would sit in 1/7 of the width with the rest blank. Collapse the grid to a
+   single full-width column so the day fills the row. */
+.cal--day {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+/* Let it grow and show everything (no cap in _grid), so the one day you asked
+   for is never clipped. */
 .cal__day--full {
     height: auto;
     min-height: 132px;
@@ -189,14 +196,3 @@
     );
 }
 
-@media (max-width: 60rem) {
-    /* Tall enough for the capped four chips plus the "+N أكثر" link, so the
-       count the link shows matches what the cell actually hid. */
-    .cal__day {
-        height: 8rem;
-    }
-
-    .cal__day--full {
-        height: auto;
-    }
-}

@@ -55,6 +55,7 @@
 @import './features/timesheet.css';
 @import './features/calendar.css';
 @import './features/calendar-event.css';
+@import './features/calendar-agenda.css';
 @import './features/calendar-timeline.css';
 @import './features/points.css';
 @import './features/queues.css';
