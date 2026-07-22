@@ -47,7 +47,7 @@ class CalendarController extends Controller
 
         [$from, $to] = $this->window($view, $anchor);
 
-        $filters = $request->only('assignee', 'company', 'type', 'priority', 'side', 'show');
+        $filters = $request->only('assignee', 'company', 'type', 'priority', 'side', 'show', 'status');
         $items = $this->calendar->itemsBetween($from, $to, $filters, $onlyUserId);
 
         $users = User::active()->without('role')->get(['id', 'name', 'avatar_path', 'is_active', 'daily_capacity_hours'])->keyBy('id');

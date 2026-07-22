@@ -22,6 +22,8 @@
             </div>
         </div>
 
+        @include('board.partials._filters')
+
         @if (session('status'))
             <x-alert variant="success">{{ session('status') }}</x-alert>
         @endif

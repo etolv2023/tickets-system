@@ -102,6 +102,10 @@ class BoardController extends Controller
     {
         $user = $request->user();
 
+        // The board's own filter bar — type/priority/company/search. Status is
+        // the columns themselves, so it isn't offered here (2026-07-22).
+        $filters = $request->only('q', 'type', 'priority', 'company');
+
         // One query for the whole board: fetch the user's tickets, then group in
         // php rather than running a query per column (CLAUDE.md § 4).
         $tickets = Ticket::query()
@@ -119,6 +123,7 @@ class BoardController extends Controller
                 'subtasks' => fn ($q) => $q->select(['id', 'ticket_id', 'title', 'status', 'side', 'role_id', 'position']),
             ])
             ->assignedTo($user->id)
+            ->filter($filters)
             ->onBoard()
             ->defaultOrder()
             ->get();
@@ -126,6 +131,12 @@ class BoardController extends Controller
         return view('board.mine', [
             'columns' => $this->columns($tickets),
             'user' => $user,
+            'filters' => $filters,
+            'routeName' => 'board.mine',
+            'isTeam' => false,
+            'selectedCompany' => filled($filters['company'] ?? null)
+                ? \App\Models\Company::whereKey($filters['company'])->value('name')
+                : null,
         ]);
     }
 
@@ -160,6 +171,9 @@ class BoardController extends Controller
 
         $lane = $request->query('lane', 'assignee');
 
+        // The board's own filter bar — plus assignee, which /tickets has too.
+        $filters = $request->only('q', 'type', 'priority', 'company', 'assignee');
+
         $tickets = Ticket::query()
             ->select([
                 'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'priority', 'status',
@@ -176,6 +190,7 @@ class BoardController extends Controller
             // first role assignment as the swimlane owner. Loading assignees
             // unconditionally would spend a query the priority lane never uses.
             ->when($lane === 'assignee', fn ($q) => $q->with('roleAssignments.user:id,name,avatar_path,is_active'))
+            ->filter($filters)
             ->onBoard()
             ->defaultOrder()
             // A hard ceiling on the whole board. The lanes below are built in
@@ -191,6 +206,15 @@ class BoardController extends Controller
             'user' => $request->user(),
             'shown' => $tickets->count(),
             'total' => $total,
+            'filters' => $filters,
+            'routeName' => 'board.team',
+            'isTeam' => true,
+            'selectedCompany' => filled($filters['company'] ?? null)
+                ? \App\Models\Company::whereKey($filters['company'])->value('name')
+                : null,
+            'selectedAssignee' => filled($filters['assignee'] ?? null)
+                ? \App\Models\User::whereKey($filters['assignee'])->value('name')
+                : null,
         ]);
     }
 
