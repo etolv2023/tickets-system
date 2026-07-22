@@ -36,5 +36,33 @@ export default function pointMatrix() {
                     this.error = 'مقدرناش نحفظ التعديل. حدّث الصفحة وجرّب تاني.';
                 });
         },
+
+        /** F06 role-assignment extension: same idea, keyed by role instead of scope/side. */
+        saveRole(ticketType, roleId, points, isActive) {
+            this.error = '';
+
+            return fetch('/admin/point-rules/role', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                    Accept: 'application/json',
+                },
+                body: JSON.stringify({
+                    ticket_type: ticketType,
+                    role_id: roleId,
+                    points,
+                    is_active: isActive,
+                }),
+            })
+                .then((r) => (r.ok ? r.json() : Promise.reject(r)))
+                .then((data) => {
+                    this.saved = data.note;
+                    setTimeout(() => (this.saved = ''), 4000);
+                })
+                .catch(() => {
+                    this.error = 'مقدرناش نحفظ التعديل. حدّث الصفحة وجرّب تاني.';
+                });
+        },
     };
 }

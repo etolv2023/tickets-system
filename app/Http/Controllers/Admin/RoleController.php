@@ -45,6 +45,7 @@ class RoleController extends Controller
             'key' => $request->validated('key'),
             'name_ar' => $request->validated('name_ar'),
             'is_system' => false,
+            'assignable_on_tickets' => $request->boolean('assignable_on_tickets'),
         ]);
 
         $role->syncPermissions($request->validated('permissions') ?? []);
@@ -78,19 +79,26 @@ class RoleController extends Controller
 
         $before = [
             'name_ar' => $role->name_ar,
+            'assignable_on_tickets' => $role->assignable_on_tickets,
             'permissions' => $role->permissions()->pluck('permissions.key')->sort()->values()->all(),
         ];
 
         // A system role's key is referenced in code paths and seeders; its name
-        // and permissions stay editable.
-        $role->update($role->is_system
+        // and permissions stay editable. assignable_on_tickets is editable on
+        // every role, system or not — it's what decides whether that role gets
+        // a dropdown in the ticket assignment panel (F06 role-assignment
+        // extension), independent of the fixed key.
+        $data = $role->is_system
             ? ['name_ar' => $request->validated('name_ar')]
-            : $request->safe()->only('key', 'name_ar'));
+            : $request->safe()->only('key', 'name_ar');
+
+        $role->update($data + ['assignable_on_tickets' => $request->boolean('assignable_on_tickets')]);
 
         $role->syncPermissions($request->validated('permissions') ?? []);
 
         $after = [
             'name_ar' => $role->name_ar,
+            'assignable_on_tickets' => $role->assignable_on_tickets,
             'permissions' => $role->permissions()->pluck('permissions.key')->sort()->values()->all(),
         ];
 

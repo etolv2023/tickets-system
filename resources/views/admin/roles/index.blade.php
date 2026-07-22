@@ -42,6 +42,9 @@
                                     @if ($role->is_system)
                                         <x-badge variant="neutral">أساسي</x-badge>
                                     @endif
+                                    @if ($role->assignable_on_tickets)
+                                        <x-badge variant="neutral">في التوزيع</x-badge>
+                                    @endif
                                 </td>
                                 <td class="u-mono u-ltr">{{ $role->key }}</td>
                                 <td class="u-nums">{{ $role->permissions_count }}</td>

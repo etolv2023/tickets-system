@@ -7,6 +7,7 @@ use App\Enums\TicketType;
 use App\Http\Controllers\Controller;
 use App\Models\PointRule;
 use App\Models\PointTransaction;
+use App\Models\Role;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Services\ActivityLogger;
@@ -22,8 +23,12 @@ class PointRuleController extends Controller
     {
         abort_unless($request->user()->hasPermission('points.rules.manage'), 403);
 
+        $roles = Role::query()->assignableOnTickets()->orderBy('name_ar')->get();
+
         return view('admin.point-rules.index', [
-            'rules' => PointRule::all()->keyBy(
+            // Role-based rows (side null) excluded here — they'd throw on
+            // ->side->value and belong in roleRules below instead.
+            'rules' => PointRule::whereNotNull('side')->get()->keyBy(
                 fn (PointRule $r) => "{$r->ticket_type->value}|{$r->scope}|{$r->side->value}"
             ),
             // The combinations F18's matrix actually defines. Anything not here
@@ -67,6 +72,14 @@ class PointRuleController extends Controller
                 ->latest('created_at')
                 ->limit(20)
                 ->get(),
+            // F06 role-assignment extension: one row per (ticket type, role)
+            // opted into ticket assignment — same idea as the fixed matrix
+            // above, just keyed by role instead of scope/side.
+            'roles' => $roles,
+            'roleTypes' => TicketType::cases(),
+            'roleRules' => PointRule::whereNotNull('role_id')->get()->keyBy(
+                fn (PointRule $r) => "{$r->ticket_type->value}|{$r->role_id}"
+            ),
         ]);
     }
 
@@ -166,6 +179,61 @@ class PointRuleController extends Controller
 
         // F18: this never touches points already awarded. Say so, so nobody
         // assumes editing the matrix rewrites history.
+        return response()->json([
+            'ok' => true,
+            'points' => (float) $rule->points,
+            'note' => 'التعديل ده بيسري على الي هيتحل من دلوقتي — النقاط المصروفة قبل كده مش بتتغير.',
+        ]);
+    }
+
+    /**
+     * F06 role-assignment extension: the same inline-save cell, keyed by
+     * (ticket_type, role_id) instead of (scope, side) — no scope involved,
+     * one rule per role.
+     */
+    public function updateRole(Request $request, ActivityLogger $logger): JsonResponse
+    {
+        abort_unless($request->user()->hasPermission('points.rules.manage'), 403);
+
+        $data = $request->validate([
+            'ticket_type' => ['required', 'string'],
+            'role_id' => ['required', 'integer', 'exists:roles,id'],
+            'points' => ['required', 'numeric', 'min:0', 'max:999'],
+            'is_active' => ['required', 'boolean'],
+        ]);
+
+        $rule = PointRule::firstOrNew([
+            'ticket_type' => $data['ticket_type'],
+            'role_id' => $data['role_id'],
+        ]);
+
+        // scope carries no meaning for a role rule — 'any' is the closest
+        // existing value, and the column stays NOT NULL.
+        if (! $rule->exists) {
+            $rule->scope = 'any';
+        }
+
+        $before = $rule->exists ? ['points' => $rule->points, 'is_active' => $rule->is_active] : null;
+
+        $rule->fill([
+            'points' => $data['points'],
+            'is_active' => $data['is_active'],
+            'updated_by' => $request->user()->id,
+        ])->save();
+
+        $logger->log(
+            action: 'point_rule.updated',
+            userId: $request->user()->id,
+            subject: $rule,
+            changes: [
+                'rule' => "{$data['ticket_type']}|role:{$data['role_id']}",
+                'from' => $before,
+                'to' => ['points' => $rule->points, 'is_active' => $rule->is_active],
+            ],
+            ip: $request->ip(),
+            userAgent: $request->userAgent(),
+        );
+
         return response()->json([
             'ok' => true,
             'points' => (float) $rule->points,

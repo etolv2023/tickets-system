@@ -16,11 +16,13 @@ class Role extends Model
 
     public const ID_MAP_KEY = 'roles.id.map';
 
-    protected $fillable = ['key', 'name_ar', 'is_system'];
+    public const ASSIGNABLE_CACHE_KEY = 'roles.assignable_on_tickets';
+
+    protected $fillable = ['key', 'name_ar', 'is_system', 'assignable_on_tickets'];
 
     protected function casts(): array
     {
-        return ['is_system' => 'boolean'];
+        return ['is_system' => 'boolean', 'assignable_on_tickets' => 'boolean'];
     }
 
     protected static function booted(): void
@@ -30,11 +32,13 @@ class Role extends Model
         static::saved(function () {
             Cache::forget(self::CACHE_KEY);
             Cache::forget(self::ID_MAP_KEY);
+            Cache::forget(self::ASSIGNABLE_CACHE_KEY);
         });
 
         static::deleted(function () {
             Cache::forget(self::CACHE_KEY);
             Cache::forget(self::ID_MAP_KEY);
+            Cache::forget(self::ASSIGNABLE_CACHE_KEY);
         });
     }
 
@@ -101,5 +105,25 @@ class Role extends Model
     public function scopeDeletable($query)
     {
         return $query->where('is_system', false);
+    }
+
+    /** F06 role-assignment extension: the roles the ticket panel offers a dropdown for. */
+    public function scopeAssignableOnTickets($query)
+    {
+        return $query->where('assignable_on_tickets', true);
+    }
+
+    /**
+     * Cached, read-only list of assignable-on-tickets roles — the subtask
+     * form renders one per row, so this must not cost a query per row.
+     *
+     * @return \Illuminate\Support\Collection<int, self>
+     */
+    public static function assignableList()
+    {
+        return Cache::rememberForever(
+            self::ASSIGNABLE_CACHE_KEY,
+            fn () => static::assignableOnTickets()->orderBy('name_ar')->get(['id', 'name_ar'])
+        );
     }
 }

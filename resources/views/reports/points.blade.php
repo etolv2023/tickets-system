@@ -154,7 +154,7 @@
                     <tbody>
                         @forelse ($bySide as $row)
                             <tr>
-                                <td>{{ $row->side->label() }}</td>
+                                <td>{{ $row->side?->label() ?? $row->role?->name_ar ?? '—' }}</td>
                                 <td class="table__cell--num u-subtle">{{ $row->awards }}</td>
                                 <td class="table__cell--num points-cell">{{ $n($row->total) }}</td>
                                 <td class="table__cell--num">

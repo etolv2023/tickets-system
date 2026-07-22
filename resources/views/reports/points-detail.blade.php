@@ -142,7 +142,7 @@
                                     {{ $row->subtask?->title ?? '—' }}
                                 </td>
 
-                                <td>{{ $row->side->label() }}</td>
+                                <td>{{ $row->side?->label() ?? $row->role?->name_ar ?? '—' }}</td>
 
                                 {{-- Where the number came from: a matrix rule, or a
                                      person who typed it. The second kind needs a name

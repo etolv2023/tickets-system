@@ -37,11 +37,15 @@ class ReportService
             ->pluck('n', 'type')
             ->all();
 
+        // F06 role-assignment extension: a role-based award has side = null
+        // and role_id set instead — grouped separately so it isn't merged
+        // into (or lost inside) the side=null bucket.
         $points = PointTransaction::query()
-            ->selectRaw('side, SUM(points) total')
+            ->selectRaw('side, role_id, SUM(points) total')
             ->where('user_id', $user->id)
             ->forPeriod($period)
-            ->groupBy('side')
+            ->groupBy('side', 'role_id')
+            ->with('role:id,name_ar')
             ->get();
 
         return [
@@ -134,11 +138,15 @@ class ReportService
             ->with('user:id,name,avatar_path,is_active,role_id', 'user.role:id,name_ar')
             ->get();
 
+        // F06 role-assignment extension: same reasoning as employeeProfile()'s
+        // $points above — role_id joins side in the grouping so a role-based
+        // award gets its own row instead of collapsing into side = null.
         $bySide = PointTransaction::query()
-            ->selectRaw('side, SUM(points) total, COUNT(*) awards')
+            ->selectRaw('side, role_id, SUM(points) total, COUNT(*) awards')
             ->forPeriod($period)
-            ->groupBy('side')
+            ->groupBy('side', 'role_id')
             ->orderByDesc('total')
+            ->with('role:id,name_ar')
             ->get();
 
         // Where the points came from: a ticket's type is what the matrix

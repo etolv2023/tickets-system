@@ -84,6 +84,14 @@ class RoleSeeder extends Seeder
         ],
     ];
 
+    /**
+     * F06 role-assignment extension: roles that get their own dropdown in the
+     * ticket assignment panel out of the box. frontend/backend/tester/devops
+     * stay out — they already have dedicated columns, and a second dropdown
+     * for the same role would just be a confusing duplicate.
+     */
+    private const ASSIGNABLE_ON_TICKETS = ['admin', 'manager', 'support'];
+
     public function run(): void
     {
         $permissionIds = Permission::pluck('id', 'key');
@@ -91,7 +99,11 @@ class RoleSeeder extends Seeder
         foreach (self::ROLES as $key => $definition) {
             $role = Role::updateOrCreate(
                 ['key' => $key],
-                ['name_ar' => $definition['name'], 'is_system' => true]
+                [
+                    'name_ar' => $definition['name'],
+                    'is_system' => true,
+                    'assignable_on_tickets' => in_array($key, self::ASSIGNABLE_ON_TICKETS, true),
+                ]
             );
 
             $ids = $definition['permissions'] === '*'

@@ -34,6 +34,15 @@
                 />
             @endif
         </div>
+
+        <label class="checkbox-row">
+            <input type="checkbox" name="assignable_on_tickets" value="1" class="checkbox"
+                   @checked(old('assignable_on_tickets', $role?->assignable_on_tickets))>
+            <span class="checkbox-row__label">
+                تظهر في التوزيع
+                <small>يبقى للدور ده دروبداون في بلوك «التوزيع» على التذكرة، زي الفرونت والباك بالظبط.</small>
+            </span>
+        </label>
     </x-card>
 
     {{-- Was one column of forty-odd checkboxes: no grouping you could see, no

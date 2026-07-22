@@ -94,6 +94,9 @@ class PointEngineService
                 ->whereNotNull('assignee_id')
                 ->where('points', '>', 0)
                 ->whereDoesntHave('pointTransaction')
+                // F06 role-assignment extension: awardSubtask() reads
+                // ->role->name_ar for a role-based subtask.
+                ->with('role:id,name_ar')
                 ->get();
 
             foreach ($subtasks as $subtask) {
@@ -113,6 +116,18 @@ class PointEngineService
     /** Public so the points:backfill command can reuse the exact same award logic. */
     public function awardSubtask(Ticket $ticket, TicketSubtask $subtask, string $period): void
     {
+        // F06 role-assignment extension: a subtask tied to a role (support/
+        // manager/admin/custom) pays that role directly — same mechanism as
+        // every fixed side, just keyed by role_id instead of PointSide.
+        if ($subtask->role_id !== null) {
+            $this->createTransaction($ticket, $subtask, $period, [
+                'role_id' => $subtask->role_id,
+                'reason' => "{$ticket->type->label()} — {$subtask->role->name_ar} ({$subtask->title})",
+            ]);
+
+            return;
+        }
+
         $side = $subtask->side->toPointSide();
 
         // 'other' is not evidence of whose work this was — no side, no award.
@@ -120,18 +135,25 @@ class PointEngineService
             return;
         }
 
+        $this->createTransaction($ticket, $subtask, $period, [
+            'side' => $side->value,
+            'reason' => "{$ticket->type->label()} — {$side->label()} ({$subtask->title})",
+        ]);
+    }
+
+    /** @param  array{side?: string, role_id?: int, reason: string}  $earner */
+    private function createTransaction(Ticket $ticket, TicketSubtask $subtask, string $period, array $earner): void
+    {
         try {
             PointTransaction::create([
                 'user_id' => $subtask->assignee_id,
                 'ticket_id' => $ticket->id,
                 'subtask_id' => $subtask->id,
-                'side' => $side->value,
                 'points' => $subtask->points,
                 'type' => 'award',
                 'rule_id' => $subtask->rule_id,
                 'period' => $period,
-                'reason' => "{$ticket->type->label()} — {$side->label()} ({$subtask->title})",
-            ]);
+            ] + $earner);
         } catch (UniqueConstraintViolationException) {
             // Guard 3 fired: this exact subtask already has a row. Nothing to
             // do — the point of the index is that it makes this harmless.

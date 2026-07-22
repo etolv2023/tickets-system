@@ -44,6 +44,20 @@
             </select>
         </x-field>
 
+        {{-- F06 role-assignment extension: one dropdown per role an admin
+             opted into the panel from /admin/roles. --}}
+        @php $currentRoleAssignments = $ticket->roleAssignments->pluck('user_id', 'role_id'); @endphp
+        @foreach ($assignable['roles'] as $entry)
+            <x-field name="role_assignments[{{ $entry['role']->id }}]" :label="$entry['role']->name_ar">
+                <select id="role_assignments_{{ $entry['role']->id }}" name="role_assignments[{{ $entry['role']->id }}]" class="select">
+                    <option value="">— مفيش —</option>
+                    @foreach ($entry['candidates'] as $person)
+                        <option value="{{ $person->id }}" @selected(($currentRoleAssignments[$entry['role']->id] ?? null) === $person->id)>{{ $person->name }}</option>
+                    @endforeach
+                </select>
+            </x-field>
+        @endforeach
+
         <x-button variant="primary" size="sm" block>احفظ التوزيع</x-button>
     </form>
 </x-collapsible-card>

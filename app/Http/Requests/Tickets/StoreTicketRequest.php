@@ -94,12 +94,16 @@ class StoreTicketRequest extends FormRequest
             'assigned_backend_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
             'tester_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
             'devops_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
+            // F06 role-assignment extension — same block, one entry per role.
+            'role_assignments' => ['nullable', 'array'],
+            'role_assignments.*' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
 
             // F08 — the optional inline plan. store() consumes validated(), so
             // without these rules the rows would be silently dropped.
             'subtasks' => ['nullable', 'array', 'max:20'],
             'subtasks.*.title' => ['required', 'string', 'max:255'],
             'subtasks.*.side' => ['nullable', Rule::enum(SubtaskSide::class)],
+            'subtasks.*.role_id' => ['nullable', 'integer', Rule::exists('roles', 'id')->where('assignable_on_tickets', true)],
             'subtasks.*.due_date' => ['nullable', 'date'],
         ];
     }
