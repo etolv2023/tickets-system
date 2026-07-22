@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Cache;
 /**
  * The admin-manageable status list that replaced the fixed TicketStatus enum.
  * Read on every ticket render, so it's cached forever and busted on write —
- * same pattern as Role and PointRule.
+ * same pattern as Role and PriorityDefinition.
  */
 class TicketStatusDefinition extends Model
 {

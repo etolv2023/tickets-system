@@ -2,7 +2,6 @@ import Alpine from 'alpinejs';
 import editor from './components/editor';
 import uploader from './components/uploader';
 import lightbox from './components/lightbox';
-import pointMatrix from './components/point-matrix';
 import combobox from './components/combobox';
 import bell from './components/bell';
 import notifyPermission from './components/notify-permission';
@@ -199,7 +198,6 @@ Alpine.data('copyValue', (value) => ({
 Alpine.data('editor', editor);
 Alpine.data('uploader', uploader);
 Alpine.data('lightbox', lightbox);
-Alpine.data('pointMatrix', pointMatrix);
 Alpine.data('combobox', combobox);
 Alpine.data('bell', bell);
 Alpine.data('notifyPermission', notifyPermission);

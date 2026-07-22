@@ -24,7 +24,7 @@ class SubtaskController extends Controller
         $data = $request->validated();
 
         // points feeds real bonus money — only points.rules.manage overrides
-        // the matrix default. Anyone else's value is silently ignored, not
+        // the flat default. Anyone else's value is silently ignored, not
         // rejected, so the form still saves with the default it already shows.
         if (! $request->user()->can('updatePoints', TicketSubtask::class)) {
             unset($data['points']);

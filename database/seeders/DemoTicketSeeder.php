@@ -4,8 +4,6 @@ namespace Database\Seeders;
 
 use App\Casts\PriorityValue;
 use App\Casts\TicketStatusValue;
-use App\Enums\TicketScope;
-use App\Enums\TicketType;
 use App\Enums\WorkSide;
 use App\Models\Company;
 use App\Models\Ticket;
@@ -37,21 +35,21 @@ class DemoTicketSeeder extends Seeder
 
         $companies = Company::with('contacts')->active()->get()->keyBy('code');
 
-        // [days ago, company, title, type, scope, priority, status, front, back, tester]
+        // [days ago, company, title, type, priority, status, front, back, tester]
         $rows = [
-            [9, 'NILE', 'فاتورة المبيعات بتطلع بضريبة مضاعفة', TicketType::Bug, TicketScope::Backend, PriorityValue::for('urgent'), TicketStatusValue::for('in_progress'), null, 'backend', 'tester'],
-            [7, 'DELTA', 'شاشة المخزون بتعلّق لما الأصناف تعدي 5000', TicketType::Bug, TicketScope::Both, PriorityValue::for('high'), TicketStatusValue::for('assigned'), 'frontend', 'backend', 'tester'],
-            [6, 'DELTA', 'إزاي أطلع تقرير الأرصدة لفرع واحد؟', TicketType::Inquiry, TicketScope::Inquiry, PriorityValue::for('low'), TicketStatusValue::for('resolved'), null, null, null],
-            [5, 'SHARQ', 'تصدير كشف حساب العميل PDF', TicketType::Feature, TicketScope::Both, PriorityValue::for('medium'), TicketStatusValue::for('pending_approval'), null, null, null],
-            [4, 'NILE', 'زرار الحفظ مش ظاهر على الموبايل', TicketType::Bug, TicketScope::Frontend, PriorityValue::for('medium'), TicketStatusValue::for('dev_done'), 'fullstack', null, 'tester'],
-            [3, 'KHIBRA', 'موديول متابعة المشاريع', TicketType::NewModule, TicketScope::Both, PriorityValue::for('low'), TicketStatusValue::for('pending_approval'), null, null, null],
-            [2, 'DELTA', 'الرصيد الافتتاحي بيتصفر بعد الترحيل', TicketType::Bug, TicketScope::Backend, PriorityValue::for('urgent'), TicketStatusValue::for('new'), null, null, null],
-            [1, 'SHARQ', 'تغيير لوجو الشركة في التقارير', TicketType::Feature, TicketScope::Frontend, PriorityValue::for('low'), TicketStatusValue::for('new'), null, null, null],
+            [9, 'NILE', 'فاتورة المبيعات بتطلع بضريبة مضاعفة', 'bug', PriorityValue::for('urgent'), TicketStatusValue::for('in_progress'), null, 'backend', 'tester'],
+            [7, 'DELTA', 'شاشة المخزون بتعلّق لما الأصناف تعدي 5000', 'bug', PriorityValue::for('high'), TicketStatusValue::for('assigned'), 'frontend', 'backend', 'tester'],
+            [6, 'DELTA', 'إزاي أطلع تقرير الأرصدة لفرع واحد؟', 'inquiry', PriorityValue::for('low'), TicketStatusValue::for('resolved'), null, null, null],
+            [5, 'SHARQ', 'تصدير كشف حساب العميل PDF', 'feature', PriorityValue::for('medium'), TicketStatusValue::for('pending_approval'), null, null, null],
+            [4, 'NILE', 'زرار الحفظ مش ظاهر على الموبايل', 'bug', PriorityValue::for('medium'), TicketStatusValue::for('dev_done'), 'fullstack', null, 'tester'],
+            [3, 'KHIBRA', 'موديول متابعة المشاريع', 'new_module', PriorityValue::for('low'), TicketStatusValue::for('pending_approval'), null, null, null],
+            [2, 'DELTA', 'الرصيد الافتتاحي بيتصفر بعد الترحيل', 'bug', PriorityValue::for('urgent'), TicketStatusValue::for('new'), null, null, null],
+            [1, 'SHARQ', 'تغيير لوجو الشركة في التقارير', 'feature', PriorityValue::for('low'), TicketStatusValue::for('new'), null, null, null],
         ];
 
         $people = ['frontend' => $frontend, 'backend' => $backend, 'fullstack' => $fullstack, 'tester' => $tester];
 
-        foreach ($rows as [$daysAgo, $code, $title, $type, $scope, $priority, $status, $front, $back, $test]) {
+        foreach ($rows as [$daysAgo, $code, $title, $type, $priority, $status, $front, $back, $test]) {
             $company = $companies[$code] ?? null;
 
             if ($company === null) {
@@ -62,7 +60,7 @@ class DemoTicketSeeder extends Seeder
             $reportedAt = CarbonImmutable::now()->subDays($daysAgo)->subHours(random_int(0, 9));
 
             DB::transaction(function () use (
-                $numbers, $sla, $company, $contact, $title, $type, $scope, $priority,
+                $numbers, $sla, $company, $contact, $title, $type, $priority,
                 $status, $reportedAt, $support, $people, $front, $back, $test
             ) {
                 $resolved = in_array($status, [TicketStatusValue::for('resolved'), TicketStatusValue::for('closed')], true);
@@ -76,14 +74,13 @@ class DemoTicketSeeder extends Seeder
                         'reporter_erp_id' => $contact?->erp_employee_id,
                         'description' => '<p>' . e($title) . '</p><p>المشكلة بتحصل مع كل المستخدمين وبتتكرر يومياً.</p>',
                         'type' => $type,
-                        'scope' => $scope,
                         'priority' => $priority,
                         'status' => $status,
                         'created_by' => $support->id,
                         'assigned_frontend_id' => $front ? $people[$front]->id : null,
                         'assigned_backend_id' => $back ? $people[$back]->id : null,
                         'tester_id' => $test ? $people[$test]->id : null,
-                        'approval_status' => $type->needsApproval() ? 'pending' : 'not_required',
+                        'approval_status' => \App\Casts\TicketTypeValue::for($type)->needsApproval() ? 'pending' : 'not_required',
                         'reported_at' => $reportedAt,
                         'first_response_at' => $reportedAt->addHours(2),
                         'sla_due_at' => $sla->dueAt($priority, $reportedAt),

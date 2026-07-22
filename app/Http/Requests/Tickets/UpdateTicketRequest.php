@@ -2,8 +2,6 @@
 
 namespace App\Http\Requests\Tickets;
 
-use App\Enums\TicketScope;
-use App\Enums\TicketType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,8 +20,7 @@ class UpdateTicketRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:200000'],
-            'type' => ['required', Rule::enum(TicketType::class)],
-            'scope' => ['required', Rule::enum(TicketScope::class)],
+            'type' => ['required', Rule::exists('ticket_types', 'key')],
             'priority' => ['required', Rule::exists('priorities', 'key')],
             'module' => ['nullable', 'string', 'max:100'],
         ];
@@ -35,7 +32,6 @@ class UpdateTicketRequest extends FormRequest
             'title' => 'العنوان',
             'description' => 'الوصف',
             'type' => 'النوع',
-            'scope' => 'النطاق',
             'priority' => 'الأولوية',
             'module' => 'الموديول',
         ];

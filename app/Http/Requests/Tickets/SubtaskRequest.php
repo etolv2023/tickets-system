@@ -39,7 +39,7 @@ class SubtaskRequest extends FormRequest
             // date is what the calendar and "due today" both read.
             'due_date' => ['nullable', 'date'],
             'estimated_hours' => ['nullable', 'numeric', 'min:0', 'max:999'],
-            // F18: left blank on creation, SubtaskService fills the matrix
+            // F18: left blank on creation, SubtaskService fills the flat
             // default. Always editable from then on — this is the subtask's
             // own points, not a read-only echo of the ticket.
             'points' => ['nullable', 'numeric', 'min:0', 'max:999'],

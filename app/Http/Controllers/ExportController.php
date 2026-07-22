@@ -19,7 +19,7 @@ class ExportController extends Controller
     {
         $this->authorize('viewAny', \App\Models\Ticket::class);
 
-        $filters = $request->only('q', 'status', 'type', 'scope', 'priority', 'company', 'assignee', 'from', 'to');
+        $filters = $request->only('q', 'status', 'type', 'priority', 'company', 'assignee', 'from', 'to');
 
         $logger->log(
             action: 'export.tickets',

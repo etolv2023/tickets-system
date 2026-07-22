@@ -20,7 +20,7 @@
 
     <select name="type" class="select filters__select">
         <option value="">كل الأنواع</option>
-        @foreach (\App\Enums\TicketType::options() as $value => $label)
+        @foreach (\App\Models\TicketTypeDefinition::options() as $value => $label)
             <option value="{{ $value }}" @selected(($filters['type'] ?? '') === $value)>{{ $label }}</option>
         @endforeach
     </select>
@@ -29,13 +29,6 @@
         <option value="">كل الأولويات</option>
         @foreach (\App\Models\PriorityDefinition::options() as $value => $label)
             <option value="{{ $value }}" @selected(($filters['priority'] ?? '') === $value)>{{ $label }}</option>
-        @endforeach
-    </select>
-
-    <select name="scope" class="select filters__select">
-        <option value="">كل النطاقات</option>
-        @foreach (\App\Enums\TicketScope::options() as $value => $label)
-            <option value="{{ $value }}" @selected(($filters['scope'] ?? '') === $value)>{{ $label }}</option>
         @endforeach
     </select>
 

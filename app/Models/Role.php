@@ -18,11 +18,11 @@ class Role extends Model
 
     public const ASSIGNABLE_CACHE_KEY = 'roles.assignable_on_tickets';
 
-    protected $fillable = ['key', 'name_ar', 'is_system'];
+    protected $fillable = ['key', 'name_ar', 'is_system', 'assignable_on_tickets'];
 
     protected function casts(): array
     {
-        return ['is_system' => 'boolean'];
+        return ['is_system' => 'boolean', 'assignable_on_tickets' => 'boolean'];
     }
 
     protected static function booted(): void
@@ -59,7 +59,6 @@ class Role extends Model
         $this->permissions()->sync($permissionIds);
 
         Cache::forget(self::CACHE_KEY);
-        Cache::forget(self::ASSIGNABLE_CACHE_KEY);
     }
 
     public function users(): HasMany
@@ -105,19 +104,18 @@ class Role extends Model
 
     /**
      * F06 role-assignment extension: the roles the ticket panel offers a
-     * dropdown for — driven by the `tickets.assignable_as_role` permission,
-     * exactly like every other role-gated behaviour (RolePolicy::delete()
-     * already keys off users_count the same way; this is the same style of
-     * check for the assign panel).
+     * dropdown for. A plain attribute of the role, not a permission — it
+     * answers "does this role show up as an assignment target", which is a
+     * different question from "what can this role's members do".
      */
     public function scopeAssignableOnTickets($query)
     {
-        return $query->whereHas('permissions', fn ($q) => $q->where('key', 'tickets.assignable_as_role'));
+        return $query->where('assignable_on_tickets', true);
     }
 
     public function isAssignableOnTickets(): bool
     {
-        return in_array('tickets.assignable_as_role', self::permissionMap()[$this->id] ?? [], true);
+        return (bool) $this->assignable_on_tickets;
     }
 
     /**

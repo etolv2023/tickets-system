@@ -25,11 +25,6 @@ class PermissionSeeder extends Seeder
             'tickets.reopen' => 'إعادة فتح تذكرة',
             'tickets.close' => 'إغلاق التذكرة',
             'tickets.notify_client' => 'تسجيل إبلاغ العميل',
-            // F06 role-assignment extension: not "can this role assign
-            // tickets" (that's tickets.assign) — this is "can a member of
-            // this role BE the one assigned", i.e. does the role get its own
-            // dropdown in the assignment panel.
-            'tickets.assignable_as_role' => 'يظهر كخيار في توزيع التذاكر',
         ],
         'comments' => [
             'comments.create' => 'إضافة تعليق',
@@ -49,7 +44,7 @@ class PermissionSeeder extends Seeder
         'points' => [
             'points.view.all' => 'عرض نقاط الجميع',
             'points.view.own' => 'عرض نقاطه هو',
-            'points.rules.manage' => 'تعديل مصفوفة النقاط',
+            'points.rules.manage' => 'تعديل نقاط الصب تاسك والتصحيحات',
         ],
         'reports' => [
             'reports.view' => 'عرض التقارير',

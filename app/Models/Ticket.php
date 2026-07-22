@@ -4,8 +4,7 @@ namespace App\Models;
 
 use App\Casts\PriorityCast;
 use App\Casts\TicketStatusCast;
-use App\Enums\TicketScope;
-use App\Enums\TicketType;
+use App\Casts\TicketTypeCast;
 use Carbon\CarbonInterval;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -23,7 +22,7 @@ class Ticket extends Model
 
     protected $fillable = [
         'ticket_number', 'company_id', 'requested_by', 'contact_id', 'reporter_name', 'reporter_erp_id',
-        'title', 'description', 'type', 'scope', 'priority', 'status', 'module',
+        'title', 'description', 'type', 'priority', 'status', 'module',
         'created_by', 'assigned_frontend_id', 'assigned_backend_id', 'tester_id', 'devops_id',
         'approval_status', 'approved_by', 'approved_at',
         'reported_at', 'first_response_at', 'sla_due_at', 'resolved_at',
@@ -34,8 +33,7 @@ class Ticket extends Model
     protected function casts(): array
     {
         return [
-            'type' => TicketType::class,
-            'scope' => TicketScope::class,
+            'type' => TicketTypeCast::class,
             'priority' => PriorityCast::class,
             'status' => TicketStatusCast::class,
             'reported_at' => 'datetime',
@@ -405,7 +403,6 @@ class Ticket extends Model
                 fn (Builder $q) => $q->where('status', $filters['status'])
             )
             ->when($filters['type'] ?? null, fn (Builder $q, $v) => $q->where('type', $v))
-            ->when($filters['scope'] ?? null, fn (Builder $q, $v) => $q->where('scope', $v))
             ->when($filters['priority'] ?? null, fn (Builder $q, $v) => $q->where('priority', $v))
             ->when($filters['company'] ?? null, fn (Builder $q, $v) => $q->where('company_id', $v))
             ->when($filters['assignee'] ?? null, fn (Builder $q, $v) => $q->where(fn (Builder $w) => $w

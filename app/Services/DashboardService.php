@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Enums\LinkType;
-use App\Enums\TicketType;
+use App\Casts\TicketTypeValue;
 use App\Models\ActivityLog;
 use App\Models\Ticket;
 use App\Models\TicketSubtask;
@@ -175,7 +175,7 @@ class DashboardService
      * and CLAUDE.md § 3 keeps that arithmetic out of Blade. One row per type,
      * ready to render.
      *
-     * @return Collection<int, object{type: TicketType, total: int, done: int, open: int, pct: int}>
+     * @return Collection<int, object{type: TicketTypeValue, total: int, done: int, open: int, pct: int}>
      */
     public function ticketStatsByType(User $user, string $from, string $to): Collection
     {
@@ -190,7 +190,7 @@ class DashboardService
                 $done = (int) $rows->whereIn('status', ['resolved', 'closed'])->sum('n');
 
                 return (object) [
-                    'type' => TicketType::from($type),
+                    'type' => TicketTypeValue::for($type),
                     'total' => $total,
                     'done' => $done,
                     'open' => $total - $done,

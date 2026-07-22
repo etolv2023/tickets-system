@@ -32,9 +32,9 @@ class DemoJiraSeeder extends Seeder
 
         $this->seedLabels($admin->id);
 
-        // The both-sides ticket: give the backend an unfinished subtask so the
+        // A both-sides ticket: give the backend an unfinished subtask so the
         // F07 gate has something real to refuse.
-        $both = Ticket::where('scope', 'both')->whereNotNull('assigned_backend_id')->first();
+        $both = Ticket::whereNotNull('assigned_frontend_id')->whereNotNull('assigned_backend_id')->first();
 
         if ($both !== null) {
             $rows = [

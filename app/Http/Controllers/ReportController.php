@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PointSide;
 use App\Enums\SubtaskSide;
 use App\Enums\SubtaskStatus;
-use App\Enums\TicketScope;
-use App\Enums\TicketType;
 use App\Models\Company;
-use App\Enums\PointSide;
 use App\Models\PointTransaction;
 use App\Models\PriorityDefinition;
 use App\Models\Ticket;
 use App\Models\TicketStatusDefinition;
 use App\Models\TicketSubtask;
+use App\Models\TicketTypeDefinition;
 use App\Models\User;
 use App\Services\ReportService;
 use Carbon\CarbonImmutable;
@@ -151,7 +150,7 @@ class ReportController extends Controller
             'filters' => $filters,
             'months' => $this->months(),
             'sides' => PointSide::options(),
-            'types' => TicketType::options(),
+            'types' => TicketTypeDefinition::options(),
             'selectedPerson' => filled($filters['person'] ?? null)
                 ? User::whereKey($filters['person'])->value('name')
                 : null,
@@ -212,13 +211,13 @@ class ReportController extends Controller
 
         $filters = $request->only([
             'person', 'from', 'to', 'ticket_date_basis', 'subtask_date_basis',
-            'type', 'scope', 'priority', 'status', 'company', 'side', 'subtask_status',
+            'type', 'priority', 'status', 'company', 'side', 'subtask_status',
         ]);
 
         $tickets = $show !== 'subtasks'
             ? Ticket::query()
                 ->select([
-                    'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'scope', 'priority',
+                    'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'priority',
                     'status', 'reported_at', 'due_date', 'resolved_at',
                     'assigned_frontend_id', 'assigned_backend_id', 'tester_id',
                 ])
@@ -229,7 +228,6 @@ class ReportController extends Controller
                     'to' => $filters['to'] ?? null,
                     'date_basis' => $filters['ticket_date_basis'] ?? null,
                     'type' => $filters['type'] ?? null,
-                    'scope' => $filters['scope'] ?? null,
                     'priority' => $filters['priority'] ?? null,
                     'status' => $filters['status'] ?? null,
                     'company' => $filters['company'] ?? null,
@@ -274,8 +272,7 @@ class ReportController extends Controller
             'selectedCompany' => filled($filters['company'] ?? null)
                 ? Company::whereKey($filters['company'])->value('name')
                 : null,
-            'types' => TicketType::options(),
-            'scopes' => TicketScope::options(),
+            'types' => TicketTypeDefinition::options(),
             'priorities' => PriorityDefinition::options(),
             'statuses' => TicketStatusDefinition::options(),
             'sides' => SubtaskSide::options(),

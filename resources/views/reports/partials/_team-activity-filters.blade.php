@@ -56,13 +56,6 @@
             @endforeach
         </select>
 
-        <select name="scope" class="select filters__select">
-            <option value="">كل النطاقات</option>
-            @foreach ($scopes as $value => $label)
-                <option value="{{ $value }}" @selected(($filters['scope'] ?? '') === $value)>{{ $label }}</option>
-            @endforeach
-        </select>
-
         <select name="priority" class="select filters__select">
             <option value="">كل الأولويات</option>
             @foreach ($priorities as $value => $label)

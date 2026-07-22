@@ -16,9 +16,6 @@ class SystemSeeder extends Seeder
             PermissionSeeder::class,
             RoleSeeder::class,
             SettingSeeder::class,
-            // F00.1 lists the points matrix as part of a real install — it has
-            // to be there before the first ticket is ever resolved.
-            PointRuleSeeder::class,
         ]);
     }
 }

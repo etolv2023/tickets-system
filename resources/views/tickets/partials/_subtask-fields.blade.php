@@ -64,11 +64,11 @@
             <x-field name="points" label="النقاط" type="number"
                      :value="$subtask?->points" step="0.5" min="0" max="999"
                      :id="$prefix . 'points'"
-                     hint="{{ $subtask ? '' : 'سيبها فاضية لتاخد قيمة مصفوفة النقاط الافتراضية.' }}" />
+                     hint="{{ $subtask ? '' : 'سيبها فاضية لتاخد النقطة الواحدة الافتراضية.' }}" />
         @else
-            {{-- النقاط بتتحدد من مصفوفة النقاط بس، والأدمن (points.rules.manage)
-                 هو الوحيد اللي يقدر يعدّلها — قراءة بس هنا، نفس نمط
-                 input--locked المستخدم للحقول اللي النظام بيملاها مش اليوزر. --}}
+            {{-- النقاط ليها صلاحية مستقلة (points.rules.manage) — هو الوحيد اللي
+                 يقدر يعدّلها، قراءة بس هنا، نفس نمط input--locked المستخدم
+                 للحقول اللي النظام بيملاها مش اليوزر. --}}
             <div class="field">
                 <label class="field__label" for="{{ $prefix }}points">النقاط</label>
                 <input type="text" id="{{ $prefix }}points" class="input input--locked" disabled

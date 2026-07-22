@@ -14,11 +14,10 @@
             <div>
                 <h1 class="page-title">تقرير النقاط</h1>
                 <p class="page-subtitle">
-                    كل نقطة مصدرها صب تاسك واحد خلص — القيمة بتتحط افتراضياً من
-                    <a href="{{ route('admin.point-rules.index') }}">مصفوفة النقاط</a>
-                    وقت إنشاء الصب تاسك، وتقدر تتعدّل لكل صب تاسك لوحده. مفيش تقسيم
-                    ومفيش نقاط على مستوى التذكرة نفسها. التصحيحات اليدوية (لو فيه)
-                    محسوبة في الإجمالي وبتتمّيز في جدول كل موظف.
+                    كل نقطة مصدرها صب تاسك واحد خلص — القيمة بتتحط بنقطة واحدة
+                    افتراضياً وقت إنشاء الصب تاسك، وتقدر تتعدّل لكل صب تاسك لوحده.
+                    مفيش تقسيم ومفيش نقاط على مستوى التذكرة نفسها. التصحيحات اليدوية
+                    (لو فيه) محسوبة في الإجمالي وبتتمّيز في جدول كل موظف.
                     تسجيل الوقت مالوش أي علاقة بيها.
                 </p>
             </div>
@@ -110,7 +109,7 @@
         </x-collapsible-section>
 
         <x-collapsible-section title="النقاط حسب نوع التذكرة"
-                               meta="ده الي بيبرّر المصفوفة">
+                               meta="من أنهي نوع جت النقط">
             <div class="table-wrap">
                 <table class="table">
                     <thead>
@@ -124,7 +123,7 @@
                     </thead>
                     <tbody>
                         @forelse ($byType as $row)
-                            @php $type = \App\Enums\TicketType::from($row->type); @endphp
+                            @php $type = \App\Casts\TicketTypeValue::for($row->type); @endphp
                             <tr>
                                 <td><x-badge :variant="$type->variant()" :icon="$type->icon()">{{ $type->label() }}</x-badge></td>
                                 <td class="table__cell--num">{{ $row->tickets }}</td>

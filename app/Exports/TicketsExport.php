@@ -43,7 +43,7 @@ class TicketsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, 
     public function headings(): array
     {
         return [
-            'رقم التذكرة', 'العنوان', 'الشركة', 'المُبلغ', 'النوع', 'النطاق',
+            'رقم التذكرة', 'العنوان', 'الشركة', 'المُبلغ', 'النوع',
             'الأولوية', 'الحالة', 'فتحها', 'فرونت', 'باك', 'تيستر', 'ديف أوبس',
             'وقت الإبلاغ', 'مهلة SLA', 'وقت الحل', 'العمر / زمن الحل',
             'المقدّر (س)', 'الفعلي (س)', 'صب تاسكس',
@@ -59,7 +59,6 @@ class TicketsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, 
             $ticket->originLabel(),
             $ticket->reporter_name,
             $ticket->type->label(),
-            $ticket->scope->label(),
             $ticket->priority->label(),
             $ticket->status->label(),
             $ticket->creator?->name,

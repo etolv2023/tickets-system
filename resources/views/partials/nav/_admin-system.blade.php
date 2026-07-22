@@ -20,6 +20,12 @@
         <span class="nav__label">حالات التذاكر</span>
     </a>
 
+    <a href="{{ route('admin.ticket-types.index') }}" class="nav__link" title="أنواع التذاكر"
+       @if (request()->routeIs('admin.ticket-types.*')) aria-current="page" @endif>
+        <x-icon name="ticket" class="nav__icon" />
+        <span class="nav__label">أنواع التذاكر</span>
+    </a>
+
     <a href="{{ route('admin.priorities.index') }}" class="nav__link" title="الأولويات"
        @if (request()->routeIs('admin.priorities.*')) aria-current="page" @endif>
         <x-icon name="flag" class="nav__icon" />
@@ -28,10 +34,10 @@
 @endcan
 
 @can('points.rules.manage')
-    <a href="{{ route('admin.point-rules.index') }}" class="nav__link" title="مصفوفة النقاط"
+    <a href="{{ route('admin.point-rules.index') }}" class="nav__link" title="تصحيحات النقاط"
        @if (request()->routeIs('admin.point-rules.*')) aria-current="page" @endif>
         <x-icon name="grid" class="nav__icon" />
-        <span class="nav__label">مصفوفة النقاط</span>
+        <span class="nav__label">تصحيحات النقاط</span>
     </a>
 @endcan
 

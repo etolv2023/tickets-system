@@ -36,6 +36,20 @@
         </div>
     </x-card>
 
+    {{-- A plain attribute of the role, deliberately separate from "الصلاحيات"
+         below: this answers "does this role show up as an assignment target
+         on a ticket", not "what can this role's members do". --}}
+    <x-card title="التوزيع">
+        <label class="checkbox-row">
+            <input type="checkbox" name="assignable_on_tickets" value="1" class="checkbox"
+                   @checked(old('assignable_on_tickets', $role?->assignable_on_tickets))>
+            <span class="checkbox-row__label">
+                تظهر في بلوك التوزيع على التذكرة
+                <small>يبقى للدور ده دروبداون في بلوك «التوزيع»، زي الفرونت والباك بالظبط.</small>
+            </span>
+        </label>
+    </x-card>
+
     {{-- Was one column of forty-odd checkboxes: no grouping you could see, no
          way to tell how much of a section was on, and a scroll to reach the
          save button. Now each group is its own panel with its own count and a

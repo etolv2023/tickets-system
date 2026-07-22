@@ -18,7 +18,7 @@
             <tbody>
                 @forelse ($byType as $type => $rows)
                     @php
-                        $enum = \App\Enums\TicketType::from($type);
+                        $enum = \App\Casts\TicketTypeValue::for($type);
                         $total = $rows->sum('n');
                         $done = $rows->whereIn('status', ['resolved', 'closed'])->sum('n');
                     @endphp

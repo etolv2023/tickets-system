@@ -149,8 +149,7 @@ class ReportService
             ->with('role:id,name_ar')
             ->get();
 
-        // Where the points came from: a ticket's type is what the matrix
-        // priced, so this is the report that justifies the matrix.
+        // Where the points came from, broken down by the ticket's type.
         $byType = PointTransaction::query()
             ->join('tickets', 'tickets.id', '=', 'point_transactions.ticket_id')
             ->selectRaw('tickets.type, SUM(point_transactions.points) total, COUNT(*) awards')

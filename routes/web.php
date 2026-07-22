@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\PriorityController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\TicketStatusController;
+use App\Http\Controllers\Admin\TicketTypeController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\LookupController;
 use App\Http\Controllers\NotificationController;
@@ -223,11 +224,9 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('admin')->name('admin.')->group(function () {
-        // F18 — the points matrix. points.rules.manage is admin-only.
+        // F18 — the points correction ledger. points.rules.manage is admin-only.
         Route::middleware('permission:points.rules.manage')->group(function () {
             Route::get('point-rules', [PointRuleController::class, 'index'])->name('point-rules.index');
-            Route::put('point-rules', [PointRuleController::class, 'update'])->name('point-rules.update');
-            Route::put('point-rules/role', [PointRuleController::class, 'updateRole'])->name('point-rules.update-role');
             Route::post('point-rules/corrections', [PointRuleController::class, 'storeCorrection'])
                 ->name('point-rules.corrections.store');
         });
@@ -261,6 +260,13 @@ Route::middleware('auth')->group(function () {
             Route::post('priorities', [PriorityController::class, 'store'])->name('priorities.store');
             Route::put('priorities/{priority}', [PriorityController::class, 'update'])->name('priorities.update');
             Route::delete('priorities/{priority}', [PriorityController::class, 'destroy'])->name('priorities.destroy');
+
+            // ★ (2026-07-23) The ticket-type list — name, colour, icon and the
+            // needs-approval flag, all admin-managed.
+            Route::get('ticket-types', [TicketTypeController::class, 'index'])->name('ticket-types.index');
+            Route::post('ticket-types', [TicketTypeController::class, 'store'])->name('ticket-types.store');
+            Route::put('ticket-types/{ticketType}', [TicketTypeController::class, 'update'])->name('ticket-types.update');
+            Route::delete('ticket-types/{ticketType}', [TicketTypeController::class, 'destroy'])->name('ticket-types.destroy');
         });
 
         Route::middleware('permission:users.manage')->group(function () {

@@ -28,7 +28,6 @@
                     <div class="queue-card__badges">
                         <span class="queue-card__number">{{ $ticket->ticket_number }}</span>
                         <x-badge :variant="$ticket->status->variant()" class="badge--sm">{{ $ticket->status->label() }}</x-badge>
-                        <x-badge variant="slate" class="badge--sm">{{ $ticket->scope->label() }}</x-badge>
                     </div>
 
                     <a class="queue-card__title" href="{{ route('tickets.show', $ticket) }}">{{ $ticket->title }}</a>

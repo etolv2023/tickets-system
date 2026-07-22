@@ -17,7 +17,7 @@ class QueueController extends Controller
         return view('queues.approvals', [
             'tickets' => Ticket::query()
                 ->select([
-                    'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'scope',
+                    'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type',
                     'priority', 'status', 'reported_at', 'sla_due_at', 'created_by',
                 ])
                 // An approver decides from what the ticket asks for, so the card
@@ -41,7 +41,7 @@ class QueueController extends Controller
         return view('queues.testing', [
             'tickets' => Ticket::query()
                 ->select([
-                    'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'scope',
+                    'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type',
                     'priority', 'status', 'reported_at', 'sla_due_at',
                     'assigned_frontend_id', 'assigned_backend_id',
                 ])
