@@ -113,10 +113,10 @@ class TicketSubtask extends Model
     ];
 
     /**
-     * The team-activity report's filter set (F19.3). Person, side, status, a
+     * The team-activity report's filter set (F19.3). Person, role, status, a
      * date range against a caller-chosen column, and the parent ticket's own
      * type/company — so "show me bug-related subtasks" works without the
-     * caller joining by hand.
+     * caller joining by hand. Role-based since 2026-07-24 (was a hardcoded side).
      *
      * @param  array<string, mixed>  $filters
      */
@@ -128,7 +128,7 @@ class TicketSubtask extends Model
 
         return $query
             ->when($filters['person'] ?? null, fn (Builder $q, $v) => $q->where('assignee_id', $v))
-            ->when($filters['side'] ?? null, fn (Builder $q, $v) => $q->where('side', $v))
+            ->when($filters['role'] ?? null, fn (Builder $q, $v) => $q->where('role_id', $v))
             ->when($filters['status'] ?? null, fn (Builder $q, $v) => $q->where('status', $v))
             ->when($filters['from'] ?? null, fn (Builder $q, $v) => $q->whereDate($dateBasis, '>=', $v))
             ->when($filters['to'] ?? null, fn (Builder $q, $v) => $q->whereDate($dateBasis, '<=', $v))

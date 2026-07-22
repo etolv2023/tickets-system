@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Tickets;
 
-use App\Enums\SubtaskSide;
 use App\Enums\SubtaskStatus;
 use App\Models\Role;
 use App\Models\Ticket;
@@ -28,10 +27,9 @@ class SubtaskRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
             'assignee_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
-            'side' => ['required', Rule::enum(SubtaskSide::class)],
-            // F06 role-assignment extension: an optional tag onto a role
-            // (support/manager/admin/custom) instead of the fixed side —
-            // only ever a role opted into ticket assignment.
+            // A subtask is categorised by its role now (2026-07-24): the dynamic
+            // list of assignable roles from the DB, not a hardcoded side.
+            // Optional — a general step can stay uncategorised.
             'role_id' => ['nullable', 'integer', Rule::in(Role::assignableList()->pluck('id'))],
             'status' => ['required', Rule::enum(SubtaskStatus::class)],
             // A subtask carries one date. It is estimated in hours, so a
@@ -80,7 +78,6 @@ class SubtaskRequest extends FormRequest
             'title' => 'العنوان',
             'description' => 'الوصف',
             'assignee_id' => 'المسؤول',
-            'side' => 'الجهة',
             'role_id' => 'الرول',
             'status' => 'الحالة',
             'start_date' => 'تاريخ البداية',

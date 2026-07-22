@@ -20,33 +20,21 @@
             </select>
         </x-field>
 
-        <x-field name="side" label="الجهة" :id="$prefix . 'side'"
-                 hint="فرونت أو باك بس هما الي بيمنعوا «خلصت».">
-            <select id="{{ $prefix }}side" name="side" class="select" required>
-                @foreach (\App\Enums\SubtaskSide::options() as $value => $label)
-                    <option value="{{ $value }}" @selected(old('side', $subtask?->side?->value ?? 'other') === $value)>
-                        {{ $label }}
+        {{-- The subtask's role is its categorisation (2026-07-24): the list is
+             the assignable roles from the DB, not a hardcoded side. Completing a
+             role-tagged subtask pays that role (F18). Optional — a general step
+             can stay uncategorised. --}}
+        <x-field name="role_id" label="الرول" :id="$prefix . 'role'"
+                 hint="النقاط بتتحسب على الرول ده. سيبها «بدون» لو الخطوة عامة.">
+            <select id="{{ $prefix }}role" name="role_id" class="select">
+                <option value="">— بدون —</option>
+                @foreach (($assignableRoles ?? collect()) as $role)
+                    <option value="{{ $role->id }}" @selected((int) old('role_id', $subtask?->role_id) === $role->id)>
+                        {{ $role->name_ar }}
                     </option>
                 @endforeach
             </select>
         </x-field>
-
-        @if (($assignableRoles ?? collect())->isNotEmpty())
-            {{-- F06 role-assignment extension: tag the subtask to a role
-                 instead of a fixed side, so completing it pays that role
-                 (F18) exactly like frontend/backend do. --}}
-            <x-field name="role_id" label="الرول (اختياري)" :id="$prefix . 'role'"
-                     hint="لو مختار، النقاط بتتحسب على الرول ده مش على الجهة.">
-                <select id="{{ $prefix }}role" name="role_id" class="select">
-                    <option value="">— بدون —</option>
-                    @foreach ($assignableRoles as $role)
-                        <option value="{{ $role->id }}" @selected((int) old('role_id', $subtask?->role_id) === $role->id)>
-                            {{ $role->name_ar }}
-                        </option>
-                    @endforeach
-                </select>
-            </x-field>
-        @endif
 
         <x-field name="status" label="الحالة" :id="$prefix . 'status'">
             <select id="{{ $prefix }}status" name="status" class="select" required x-model="status">

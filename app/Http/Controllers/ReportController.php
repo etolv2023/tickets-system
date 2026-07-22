@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PointSide;
-use App\Enums\SubtaskSide;
 use App\Enums\SubtaskStatus;
 use App\Models\Company;
 use App\Models\PointTransaction;
@@ -211,7 +210,7 @@ class ReportController extends Controller
 
         $filters = $request->only([
             'person', 'from', 'to', 'ticket_date_basis', 'subtask_date_basis',
-            'type', 'priority', 'status', 'company', 'side', 'subtask_status',
+            'type', 'priority', 'status', 'company', 'role', 'subtask_status',
         ]);
 
         $tickets = $show !== 'subtasks'
@@ -239,16 +238,16 @@ class ReportController extends Controller
         $subtasks = $show !== 'tickets'
             ? TicketSubtask::query()
                 ->select([
-                    'id', 'ticket_id', 'title', 'assignee_id', 'side', 'status',
+                    'id', 'ticket_id', 'title', 'assignee_id', 'side', 'role_id', 'status',
                     'start_date', 'due_date', 'estimated_hours', 'spent_hours', 'completed_at',
                 ])
-                ->with(['assignee:id,name,avatar_path,is_active', 'ticket:id,ticket_number,title,company_id,requested_by,type'])
+                ->with(['assignee:id,name,avatar_path,is_active', 'role:id,name_ar', 'ticket:id,ticket_number,title,company_id,requested_by,type'])
                 ->filter([
                     'person' => $filters['person'] ?? null,
                     'from' => $filters['from'] ?? null,
                     'to' => $filters['to'] ?? null,
                     'date_basis' => $filters['subtask_date_basis'] ?? null,
-                    'side' => $filters['side'] ?? null,
+                    'role' => $filters['role'] ?? null,
                     'status' => $filters['subtask_status'] ?? null,
                     'type' => $filters['type'] ?? null,
                     'company' => $filters['company'] ?? null,
@@ -274,7 +273,9 @@ class ReportController extends Controller
             'types' => TicketTypeDefinition::options(),
             'priorities' => PriorityDefinition::options(),
             'statuses' => TicketStatusDefinition::options(),
-            'sides' => SubtaskSide::options(),
+            // The subtask filter is by role now (dynamic from the DB), not a
+            // hardcoded side (2026-07-24).
+            'roles' => \App\Models\Role::assignableList(),
             'subtaskStatuses' => SubtaskStatus::options(),
             'ticketDateBases' => Ticket::DATE_BASES,
             'subtaskDateBases' => TicketSubtask::DATE_BASES,

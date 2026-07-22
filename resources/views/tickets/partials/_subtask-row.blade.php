@@ -34,9 +34,11 @@
                     <x-badge :variant="$subtask->status->variant()">{{ $subtask->status->label() }}</x-badge>
                 @endcan
 
-                {{-- F06 role-assignment extension: a role-tagged subtask shows
-                     the role name instead of the underlying "أخرى" side. --}}
-                <x-badge variant="neutral">{{ $subtask->role?->name_ar ?? $subtask->side->label() }}</x-badge>
+                {{-- A subtask is categorised by its role now (2026-07-24); an
+                     untagged one is general work. --}}
+                @if ($subtask->role)
+                    <x-badge variant="neutral">{{ $subtask->role->name_ar }}</x-badge>
+                @endif
 
                 @if ($subtask->assignee)
                     <span class="row">
