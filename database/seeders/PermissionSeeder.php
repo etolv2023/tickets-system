@@ -44,7 +44,7 @@ class PermissionSeeder extends Seeder
         'points' => [
             'points.view.all' => 'عرض نقاط الجميع',
             'points.view.own' => 'عرض نقاطه هو',
-            'points.rules.manage' => 'تعديل مصفوفة النقاط',
+            'points.rules.manage' => 'تعديل نقاط الصب تاسك والتصحيحات',
         ],
         'reports' => [
             'reports.view' => 'عرض التقارير',
