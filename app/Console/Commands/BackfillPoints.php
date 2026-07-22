@@ -2,8 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Enums\PointSide;
-use App\Enums\SubtaskSide;
 use App\Enums\SubtaskStatus;
 use App\Models\PointTransaction;
 use App\Models\Ticket;
@@ -15,34 +13,27 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * F18 fix (2026-07-21): points_awarded_at used to gate the whole ticket, so any
- * subtask finished after a ticket's first resolve (a reopened ticket, a devops
- * subtask added late) never got paid — silently, forever. PointEngineService
- * now checks per-subtask instead; this command pays out what the old gate
- * already lost. Reuses PointEngineService::awardSubtask() so the calculation
- * is identical to the live engine — nothing here is recomputed by hand.
+ * subtask finished after a ticket's first resolve (a reopened ticket, a subtask
+ * added late) never got paid — silently, forever. PointEngineService now checks
+ * per-subtask instead; this command pays out what the old gate already lost.
+ * Reuses PointEngineService::awardSubtask() so the calculation is identical to
+ * the live engine — nothing here is recomputed by hand.
  *
- * Also backfills PointEngineService::awardDevopsParticipation() — a second,
- * separate gap: devops assigned to an already-resolved ticket with no
- * dedicated subtask never earned the flat participation credit either,
- * since that logic didn't exist until now.
- *
- * Naturally idempotent: both stages only ever select what has no matching
- * point_transaction row yet, so running the command twice finds nothing to
- * do the second time.
+ * Naturally idempotent: it only ever selects subtasks with no matching
+ * point_transaction row yet, so running the command twice finds nothing to do
+ * the second time.
  */
 class BackfillPoints extends Command
 {
     protected $signature = 'points:backfill';
 
-    protected $description = 'يصرف النقاط الفايتة على صب تاسكس اتخلصت قبل كده ومكسبتش نقاط، وعلى ديف أوبس متعيّن من غير صب تاسك';
+    protected $description = 'يصرف النقاط الفايتة على صب تاسكس اتخلصت قبل كده ومكسبتش نقاط';
 
     public function handle(PointEngineService $engine): int
     {
         $subtaskCount = $this->backfillSubtasks($engine);
-        $this->newLine();
-        $devopsCount = $this->backfillDevopsParticipation($engine);
 
-        if ($subtaskCount === 0 && $devopsCount === 0) {
+        if ($subtaskCount === 0) {
             $this->info('مفيش نقاط فايتة نلاقيها.');
         }
 
@@ -102,60 +93,6 @@ class BackfillPoints extends Command
             $skipped = $ids->count() - $created->count();
             $this->warn("{$skipped} صب تاسك اترفض (side = other مالوش نقطة، أو Race) — التفاصيل في اللوج.");
         }
-
-        return $created->count();
-    }
-
-    private function backfillDevopsParticipation(PointEngineService $engine): int
-    {
-        $tickets = Ticket::query()
-            ->whereNotNull('devops_id')
-            ->whereNotNull('resolved_at')
-            ->whereDoesntHave('pointTransactions', fn ($q) => $q
-                ->where('side', PointSide::Devops->value)
-                ->whereNull('subtask_id'))
-            ->whereDoesntHave('subtasks', fn ($q) => $q
-                ->whereNull('deleted_at')
-                ->where('side', SubtaskSide::Devops->value)
-                ->whereColumn('assignee_id', 'tickets.devops_id'))
-            ->get()
-            ->filter(fn (Ticket $ticket) => ! (
-                $ticket->type->needsApproval() && $ticket->approval_status !== 'approved'
-            ));
-
-        if ($tickets->isEmpty()) {
-            $this->info('مفيش تذاكر ديف أوبس فايتة مشاركتها.');
-
-            return 0;
-        }
-
-        $ids = $tickets->pluck('id');
-
-        foreach ($tickets as $ticket) {
-            $period = ($ticket->resolved_at ?? now())->format('Y-m');
-
-            DB::transaction(function () use ($engine, $ticket, $period) {
-                $locked = Ticket::whereKey($ticket->id)->lockForUpdate()->first();
-                $engine->awardDevopsParticipation($locked, $period);
-            });
-        }
-
-        $created = PointTransaction::where('side', PointSide::Devops->value)
-            ->whereNull('subtask_id')
-            ->whereIn('ticket_id', $ids)
-            ->get();
-
-        $this->line('مشاركة ديف أوبس من غير صب تاسك:');
-        $this->table(
-            ['المستخدم', 'عدد التذاكر', 'إجمالي النقاط'],
-            $created->groupBy('user_id')->map(fn ($rows, $userId) => [
-                User::find($userId)?->name ?? "#{$userId}",
-                $rows->count(),
-                (float) $rows->sum('points'),
-            ])->values()->all()
-        );
-
-        $this->info("اتصرف {$created->count()} من {$ids->count()} تذكرة — إجمالي {$created->sum('points')} نقطة.");
 
         return $created->count();
     }

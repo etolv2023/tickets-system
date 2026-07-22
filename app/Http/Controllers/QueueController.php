@@ -38,19 +38,24 @@ class QueueController extends Controller
 
         abort_unless($user->hasPermission('tickets.resolve'), 403);
 
+        // Role-based tester queue (2026-07-24): "my tickets to test" is the
+        // tickets where I hold an is_tester role.
+        $testerRoleIds = \App\Models\Role::testerRoleIds();
+
         return view('queues.testing', [
             'tickets' => Ticket::query()
                 ->select([
                     'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type',
                     'priority', 'status', 'reported_at', 'sla_due_at',
-                    'assigned_frontend_id', 'assigned_backend_id',
                 ])
                 ->with([
                     'company:id,name', 'requester:id,name',
-                    'frontend:id,name,avatar_path,is_active',
-                    'backend:id,name,avatar_path,is_active',
+                    // The developers to talk to — everyone who logged work on it.
+                    'workLogs.user:id,name,avatar_path,is_active',
                 ])
-                ->where('tester_id', $user->id)
+                ->whereHas('roleAssignments', fn ($q) => $q
+                    ->whereIn('role_id', $testerRoleIds)
+                    ->where('user_id', $user->id))
                 ->whereIn('status', ['dev_done', 'testing'])
                 ->defaultOrder()
                 ->paginate(25),
@@ -61,7 +66,7 @@ class QueueController extends Controller
                     ->select(['id', 'ticket_number', 'company_id', 'requested_by', 'title', 'priority', 'status', 'reported_at', 'sla_due_at'])
                     ->with('company:id,name', 'requester:id,name')
                     ->where('status', 'dev_done')
-                    ->whereNull('tester_id')
+                    ->whereDoesntHave('roleAssignments', fn ($q) => $q->whereIn('role_id', $testerRoleIds))
                     ->defaultOrder()
                     ->limit(25)
                     ->get()

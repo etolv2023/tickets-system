@@ -181,6 +181,11 @@ class BoardMoveController extends Controller
      */
     private function drive(Ticket $ticket, int $actorId, array $verbs, bool $quiet = false): void
     {
+        // The service reads $log->roleLabel() (its role) when moving a log, so
+        // the relation has to be loaded here — an explicit load, allowed under
+        // preventLazyLoading. Role-based work logs since 2026-07-24.
+        $ticket->loadMissing('workLogs.role');
+
         $logs = $ticket->workLogs->where('user_id', $actorId);
 
         if ($logs->isEmpty()) {

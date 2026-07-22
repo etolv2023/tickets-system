@@ -29,9 +29,7 @@ class ReportService
             ->selectRaw('type, COUNT(*) n')
             ->whereBetween('resolved_at', [$from, $to])
             ->where(fn ($q) => $q
-                ->where('assigned_frontend_id', $user->id)
-                ->orWhere('assigned_backend_id', $user->id)
-                ->orWhere('devops_id', $user->id)
+                ->assignedTo($user->id)
                 ->orWhere('created_by', $user->id))
             ->groupBy('type')
             ->pluck('n', 'type')
@@ -89,20 +87,19 @@ class ReportService
     {
         $resolved = Ticket::query()
             ->whereBetween('resolved_at', [$from, $to])
-            ->where(fn ($q) => $q
-                ->where('assigned_frontend_id', $user->id)
-                ->orWhere('assigned_backend_id', $user->id)
-                ->orWhere('devops_id', $user->id))
+            ->assignedTo($user->id)
             ->count();
 
         $reopened = DB::table('ticket_status_history')
             ->join('tickets', 'tickets.id', '=', 'ticket_status_history.ticket_id')
             ->where('ticket_status_history.to_status', 'reopened')
             ->whereBetween('ticket_status_history.created_at', [$from, $to])
-            ->where(fn ($q) => $q
-                ->where('tickets.assigned_frontend_id', $user->id)
-                ->orWhere('tickets.assigned_backend_id', $user->id)
-                ->orWhere('tickets.devops_id', $user->id))
+            // Role-based assignment: the ticket has a role assignment for this
+            // user. A raw join, so this is an EXISTS subquery, not whereHas.
+            ->whereExists(fn ($q) => $q->select(DB::raw(1))
+                ->from('ticket_role_assignments')
+                ->whereColumn('ticket_role_assignments.ticket_id', 'tickets.id')
+                ->where('ticket_role_assignments.user_id', $user->id))
             ->count();
 
         return [
@@ -215,11 +212,7 @@ class ReportService
             ->selectRaw('user_id, SUM(points) total, COUNT(*) awards')
             ->forPeriod($period)
             ->when($filters['person'] ?? null, fn ($q, $v) => $q->where('user_id', $v))
-            ->when($filters['assignee'] ?? null, fn ($q, $v) => $q->whereHas('ticket', fn ($t) => $t
-                ->where('assigned_frontend_id', $v)
-                ->orWhere('assigned_backend_id', $v)
-                ->orWhere('devops_id', $v)
-                ->orWhere('tester_id', $v)))
+            ->when($filters['assignee'] ?? null, fn ($q, $v) => $q->whereHas('ticket', fn ($t) => $t->assignedTo((int) $v)))
             ->groupBy('user_id')
             ->orderByDesc('total')
             ->with('user:id,name,avatar_path,is_active,role_id')
@@ -281,21 +274,24 @@ class ReportService
             ->get();
     }
 
-    /** F19.3 — open tickets per developer. */
+    /**
+     * F19.3 — open tickets per person. Role-based since the fixed columns were
+     * dropped (2026-07-24): the per-side split (frontend/backend/devops) is now
+     * a single "open assignments" count, since assignment is no longer keyed to
+     * a fixed set of sides. `open_load` counts open assignment slots (holding two
+     * roles on one ticket is two slots of work — rare, and reasonable to weigh).
+     */
     public function teamLoad(): Collection
     {
         return User::query()
             ->select(['id', 'name', 'avatar_path', 'is_active'])
             ->without('role')
-            ->withCount([
-                'assignedFrontend as frontend_open' => fn ($q) => $q->whereNotIn('status', ['resolved', 'closed', 'rejected']),
-                'assignedBackend as backend_open' => fn ($q) => $q->whereNotIn('status', ['resolved', 'closed', 'rejected']),
-                'assignedDevops as devops_open' => fn ($q) => $q->whereNotIn('status', ['resolved', 'closed', 'rejected']),
-            ])
+            ->withCount(['assignedTickets as open_load' => fn ($q) => $q
+                ->whereNotIn('status', ['resolved', 'closed', 'rejected'])])
             ->active()
             ->get()
-            ->filter(fn ($u) => $u->frontend_open > 0 || $u->backend_open > 0 || $u->devops_open > 0)
-            ->sortByDesc(fn ($u) => $u->frontend_open + $u->backend_open + $u->devops_open)
+            ->filter(fn ($u) => $u->open_load > 0)
+            ->sortByDesc(fn ($u) => $u->open_load)
             ->values();
     }
 
@@ -332,10 +328,7 @@ class ReportService
     {
         $avg = Ticket::query()
             ->whereBetween('resolved_at', [$from, $to])
-            ->where(fn ($q) => $q
-                ->where('assigned_frontend_id', $user->id)
-                ->orWhere('assigned_backend_id', $user->id)
-                ->orWhere('devops_id', $user->id))
+            ->assignedTo($user->id)
             ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, reported_at, resolved_at)) h')
             ->value('h');
 
@@ -349,10 +342,7 @@ class ReportService
             ->with('company:id,name', 'requester:id,name')
             ->whereBetween('resolved_at', [$from, $to])
             ->where(fn ($q) => $q
-                ->where('assigned_frontend_id', $user->id)
-                ->orWhere('assigned_backend_id', $user->id)
-                ->orWhere('tester_id', $user->id)
-                ->orWhere('devops_id', $user->id)
+                ->assignedTo($user->id)
                 ->orWhere('created_by', $user->id))
             ->orderByDesc('resolved_at')
             ->limit(100)

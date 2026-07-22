@@ -98,19 +98,16 @@
                                         <x-status-select :ticket="$ticket" />
                                     </td>
                                     <td>
+                                        {{-- Role-based assignment (2026-07-24):
+                                             one avatar per assigned person. --}}
                                         <div class="tickets__people">
-                                            @if ($ticket->frontend)
-                                                <x-avatar :user="$ticket->frontend" size="sm" />
-                                            @endif
-                                            @if ($ticket->backend)
-                                                <x-avatar :user="$ticket->backend" size="sm" />
-                                            @endif
-                                            @if ($ticket->devops)
-                                                <x-avatar :user="$ticket->devops" size="sm" />
-                                            @endif
-                                            @unless ($ticket->frontend || $ticket->backend || $ticket->devops)
+                                            @forelse ($ticket->roleAssignments as $assignment)
+                                                @if ($assignment->user)
+                                                    <x-avatar :user="$assignment->user" size="sm" />
+                                                @endif
+                                            @empty
                                                 <span class="u-subtle">مش موزعة</span>
-                                            @endunless
+                                            @endforelse
                                         </div>
                                     </td>
                                     <td class="table__cell--muted">{{ $ticket->creator?->name ?? '—' }}</td>

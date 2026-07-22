@@ -119,29 +119,19 @@
             <span class="facts__label">فتحها</span>
             <span class="facts__value">{{ $ticket->creator->name }}</span>
         </div>
-        <div class="facts__row">
-            <span class="facts__label">فرونت</span>
-            <span class="facts__value">{{ $ticket->frontend?->name ?? '—' }}</span>
-        </div>
-        <div class="facts__row">
-            <span class="facts__label">باك</span>
-            <span class="facts__value">{{ $ticket->backend?->name ?? '—' }}</span>
-        </div>
-        <div class="facts__row">
-            <span class="facts__label">تيستر</span>
-            <span class="facts__value">{{ $ticket->tester?->name ?? '—' }}</span>
-        </div>
-        <div class="facts__row">
-            <span class="facts__label">ديف أوبس</span>
-            <span class="facts__value">{{ $ticket->devops?->name ?? '—' }}</span>
-        </div>
-        {{-- F06 role-assignment extension --}}
-        @foreach ($ticket->roleAssignments as $assignment)
+        {{-- Fully role-based distribution (2026-07-24): one row per assigned
+             role, no hardcoded frontend/backend/tester/devops. --}}
+        @forelse ($ticket->roleAssignments as $assignment)
             <div class="facts__row">
                 <span class="facts__label">{{ $assignment->role->name_ar }}</span>
-                <span class="facts__value">{{ $assignment->user->name }}</span>
+                <span class="facts__value">{{ $assignment->user?->name ?? '—' }}</span>
             </div>
-        @endforeach
+        @empty
+            <div class="facts__row">
+                <span class="facts__label">التوزيع</span>
+                <span class="facts__value">لسه متوزعتش</span>
+            </div>
+        @endforelse
     </div>
 
     {{-- Assignment, the start/finish buttons and the state machine arrive in

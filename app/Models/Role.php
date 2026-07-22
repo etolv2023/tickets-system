@@ -18,11 +18,20 @@ class Role extends Model
 
     public const ASSIGNABLE_CACHE_KEY = 'roles.assignable_on_tickets';
 
-    protected $fillable = ['key', 'name_ar', 'is_system', 'assignable_on_tickets'];
+    public const WORK_LOGGING_CACHE_KEY = 'roles.logs_work';
+
+    public const TESTER_CACHE_KEY = 'roles.is_tester';
+
+    protected $fillable = ['key', 'name_ar', 'is_system', 'assignable_on_tickets', 'logs_work', 'is_tester'];
 
     protected function casts(): array
     {
-        return ['is_system' => 'boolean', 'assignable_on_tickets' => 'boolean'];
+        return [
+            'is_system' => 'boolean',
+            'assignable_on_tickets' => 'boolean',
+            'logs_work' => 'boolean',
+            'is_tester' => 'boolean',
+        ];
     }
 
     protected static function booted(): void
@@ -33,12 +42,16 @@ class Role extends Model
             Cache::forget(self::CACHE_KEY);
             Cache::forget(self::ID_MAP_KEY);
             Cache::forget(self::ASSIGNABLE_CACHE_KEY);
+            Cache::forget(self::WORK_LOGGING_CACHE_KEY);
+            Cache::forget(self::TESTER_CACHE_KEY);
         });
 
         static::deleted(function () {
             Cache::forget(self::CACHE_KEY);
             Cache::forget(self::ID_MAP_KEY);
             Cache::forget(self::ASSIGNABLE_CACHE_KEY);
+            Cache::forget(self::WORK_LOGGING_CACHE_KEY);
+            Cache::forget(self::TESTER_CACHE_KEY);
         });
     }
 
@@ -119,6 +132,43 @@ class Role extends Model
     }
 
     /**
+     * An assignment of this role gets a بدأت/خلصت work log (F07). Replaces the
+     * old hardcoded "frontend + backend columns log work" rule — the admin now
+     * flags any role from /admin/roles.
+     */
+    public function logsWork(): bool
+    {
+        return (bool) $this->logs_work;
+    }
+
+    /**
+     * A ticket assigned to this role shows in the testing queue (F16). Replaces
+     * the old hardcoded tester_id column.
+     */
+    public function isTester(): bool
+    {
+        return (bool) $this->is_tester;
+    }
+
+    /** @return \Illuminate\Support\Collection<int, self> ids of roles that log work */
+    public static function workLoggingRoleIds()
+    {
+        return Cache::rememberForever(
+            self::WORK_LOGGING_CACHE_KEY,
+            fn () => static::where('logs_work', true)->pluck('id')
+        );
+    }
+
+    /** @return \Illuminate\Support\Collection<int, int> ids of tester roles */
+    public static function testerRoleIds()
+    {
+        return Cache::rememberForever(
+            self::TESTER_CACHE_KEY,
+            fn () => static::where('is_tester', true)->pluck('id')
+        );
+    }
+
+    /**
      * Cached, read-only list of assignable-on-tickets roles — the subtask
      * form renders one per row, so this must not cost a query per row.
      *
@@ -128,7 +178,7 @@ class Role extends Model
     {
         return Cache::rememberForever(
             self::ASSIGNABLE_CACHE_KEY,
-            fn () => static::assignableOnTickets()->orderBy('name_ar')->get(['id', 'name_ar'])
+            fn () => static::assignableOnTickets()->orderBy('name_ar')->get(['id', 'name_ar', 'logs_work', 'is_tester'])
         );
     }
 }

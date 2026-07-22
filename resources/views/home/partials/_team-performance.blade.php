@@ -13,11 +13,8 @@
             <table class="table table--hover">
                 <thead>
                     <tr>
-                        <th>المبرمج</th>
-                        <th class="table__cell--num">فرونت</th>
-                        <th class="table__cell--num">باك</th>
-                        <th class="table__cell--num">ديف أوبس</th>
-                        <th class="table__cell--num">الإجمالي</th>
+                        <th>الموظف</th>
+                        <th class="table__cell--num">التذاكر المفتوحة</th>
                         <th>الحِمل</th>
                     </tr>
                 </thead>
@@ -30,9 +27,6 @@
                                     {{ $person->name }}
                                 </div>
                             </td>
-                            <td class="table__cell--num">{{ $person->frontend_open }}</td>
-                            <td class="table__cell--num">{{ $person->backend_open }}</td>
-                            <td class="table__cell--num">{{ $person->devops_open }}</td>
                             <td class="table__cell--num">{{ $person->load_total }}</td>
                             <td>
                                 <div class="meter meter--slate">
@@ -42,7 +36,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6">
+                            <td colspan="3">
                                 <div class="today__clear">
                                     <x-icon name="check-circle" class="today__clear-glyph" />
                                     مفيش شغل مفتوح على حد.

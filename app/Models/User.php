@@ -59,20 +59,22 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
-    /** Tickets this person owns the frontend side of. F19 */
-    public function assignedFrontend(): HasMany
+    /**
+     * Tickets this person holds any role on (F19). Role-based since the fixed
+     * assignment columns were dropped (2026-07-24): one relation through
+     * ticket_role_assignments replaces the per-side hasMany's.
+     */
+    public function assignedTickets(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->hasMany(Ticket::class, 'assigned_frontend_id');
+        return $this->belongsToMany(Ticket::class, 'ticket_role_assignments')
+            ->withPivot('role_id')
+            ->withTimestamps();
     }
 
-    public function assignedBackend(): HasMany
+    /** Role assignments this person holds across all tickets. */
+    public function ticketRoleAssignments(): HasMany
     {
-        return $this->hasMany(Ticket::class, 'assigned_backend_id');
-    }
-
-    public function assignedDevops(): HasMany
-    {
-        return $this->hasMany(Ticket::class, 'devops_id');
+        return $this->hasMany(TicketRoleAssignment::class);
     }
 
     public function subtasks(): HasMany

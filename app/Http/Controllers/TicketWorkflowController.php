@@ -25,12 +25,11 @@ class TicketWorkflowController extends Controller
 
     public function assign(AssignTicketRequest $request, Ticket $ticket, ActivityLogger $logger): RedirectResponse
     {
-        $before = $ticket->only('assigned_frontend_id', 'assigned_backend_id', 'tester_id', 'devops_id');
+        $before = $ticket->roleAssignments()->pluck('user_id', 'role_id')->all();
         $roleAssignments = $request->validated('role_assignments') ?? [];
-        $assignees = collect($request->validated())->except('role_assignments')->all();
 
         try {
-            $this->workflow->assign($ticket, $assignees, $request->user()->id, $roleAssignments);
+            $this->workflow->assign($ticket, $roleAssignments, $request->user()->id);
         } catch (DomainException $e) {
             return back()->withErrors(['assign' => $e->getMessage()]);
         }
@@ -39,7 +38,10 @@ class TicketWorkflowController extends Controller
             action: 'ticket.assigned',
             userId: $request->user()->id,
             subject: $ticket,
-            changes: ['from' => $before, 'to' => $ticket->only('assigned_frontend_id', 'assigned_backend_id', 'tester_id', 'devops_id')],
+            changes: [
+                'from' => $before,
+                'to' => $ticket->roleAssignments()->pluck('user_id', 'role_id')->all(),
+            ],
             ip: $request->ip(),
             userAgent: $request->userAgent(),
         );

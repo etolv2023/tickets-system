@@ -2,20 +2,18 @@
 
 namespace App\Models;
 
-use App\Enums\WorkSide;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TicketWorkLog extends Model
 {
     protected $fillable = [
-        'ticket_id', 'user_id', 'side', 'status', 'started_at', 'finished_at', 'duration_minutes',
+        'ticket_id', 'user_id', 'role_id', 'status', 'started_at', 'finished_at', 'duration_minutes',
     ];
 
     protected function casts(): array
     {
         return [
-            'side' => WorkSide::class,
             'started_at' => 'datetime',
             'finished_at' => 'datetime',
         ];
@@ -29,6 +27,22 @@ class TicketWorkLog extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * The role this commitment is for (F07). Replaces the old WorkSide `side`:
+     * a work log now belongs to whatever role was flagged logs_work, not to a
+     * hardcoded frontend/backend enum.
+     */
+    public function role(): BelongsTo
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    /** The role's Arabic name — what the my-work panel and cards used to get from side->label(). */
+    public function roleLabel(): string
+    {
+        return $this->role?->name_ar ?? '—';
     }
 
     public function statusLabel(): string

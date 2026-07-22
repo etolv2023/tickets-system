@@ -7,7 +7,6 @@ use App\Casts\TicketStatusValue;
 use App\Enums\SubtaskSide;
 use App\Enums\SubtaskStatus;
 use App\Casts\TicketTypeValue;
-use App\Enums\WorkSide;
 use App\Models\Company;
 use App\Models\Rating;
 use App\Models\Ticket;
@@ -255,12 +254,27 @@ class DemoHistorySeeder extends Seeder
 
         $at = $reportedAt->addHours(6);
 
-        $ticket->forceFill([
-            'assigned_frontend_id' => $crew['frontend']->id ?? null,
-            'assigned_backend_id' => $crew['backend']->id ?? null,
-            'tester_id' => $scopeHint === 'inquiry' ? null : $crew['qa']->id,
-            'status' => TicketStatusValue::for('assigned'),
-        ])->save();
+        $ticket->forceFill(['status' => TicketStatusValue::for('assigned')])->save();
+
+        // Role-based assignment (2026-07-24): the slot decides the role.
+        $roleIds = \App\Models\Role::query()
+            ->whereIn('key', ['frontend', 'backend', 'tester'])
+            ->pluck('id', 'key');
+
+        $slots = array_filter([
+            'frontend' => $crew['frontend']->id ?? null,
+            'backend' => $crew['backend']->id ?? null,
+            'tester' => $scopeHint === 'inquiry' ? null : ($crew['qa']->id ?? null),
+        ]);
+
+        foreach ($slots as $roleKey => $userId) {
+            if (isset($roleIds[$roleKey])) {
+                DB::table('ticket_role_assignments')->updateOrInsert(
+                    ['ticket_id' => $ticket->id, 'role_id' => $roleIds[$roleKey]],
+                    ['user_id' => $userId, 'created_at' => now(), 'updated_at' => now()]
+                );
+            }
+        }
 
         $this->history($ticket, 'new', 'assigned', $at);
 
@@ -391,8 +405,16 @@ class DemoHistorySeeder extends Seeder
             default => 'done',
         };
 
-        foreach (WorkSide::cases() as $side) {
-            $userId = $ticket->{$side->assigneeColumn()};
+        // Only the work-logging roles (frontend/backend) get a بدأت/خلصت log. F07
+        $roleIds = \App\Models\Role::query()
+            ->whereIn('key', ['frontend', 'backend'])
+            ->pluck('id', 'key');
+
+        foreach ($roleIds as $roleId) {
+            $userId = DB::table('ticket_role_assignments')
+                ->where('ticket_id', $ticket->id)
+                ->where('role_id', $roleId)
+                ->value('user_id');
 
             if ($userId === null) {
                 continue;
@@ -400,7 +422,7 @@ class DemoHistorySeeder extends Seeder
 
             TicketWorkLog::create([
                 'ticket_id' => $ticket->id,
-                'side' => $side->value,
+                'role_id' => $roleId,
                 'user_id' => $userId,
                 'status' => $logStatus,
                 'started_at' => $logStatus === 'pending' ? null : $reportedAt->addHours(8),

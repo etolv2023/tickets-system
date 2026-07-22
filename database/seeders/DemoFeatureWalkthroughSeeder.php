@@ -74,10 +74,38 @@ class DemoFeatureWalkthroughSeeder extends Seeder
             'approval_status' => 'approved',
             'approved_by' => $admin->id,
             'approved_at' => $monday->copy()->subDays(5)->setTime(9, 30),
-            'assigned_frontend_id' => $frontend->id,
-            'assigned_backend_id' => $backend->id,
-            'tester_id' => $tester->id,
         ]);
+
+        // Role-based assignment (2026-07-24): frontend/backend/tester roles.
+        $roleIds = \App\Models\Role::query()
+            ->whereIn('key', ['frontend', 'backend', 'tester'])
+            ->pluck('id', 'key');
+
+        foreach (['frontend' => $frontend, 'backend' => $backend, 'tester' => $tester] as $roleKey => $person) {
+            if (isset($roleIds[$roleKey])) {
+                \Illuminate\Support\Facades\DB::table('ticket_role_assignments')->updateOrInsert(
+                    ['ticket_id' => $ticket->id, 'role_id' => $roleIds[$roleKey]],
+                    ['user_id' => $person->id, 'created_at' => now(), 'updated_at' => now()]
+                );
+            }
+        }
+
+        // Work-logging roles get an in_progress work log, matching the ticket's
+        // own in_progress status (the بدأت button was pressed, خلصت not yet).
+        foreach (['frontend' => $frontend, 'backend' => $backend] as $roleKey => $person) {
+            if (isset($roleIds[$roleKey])) {
+                \App\Models\TicketWorkLog::updateOrCreate(
+                    ['ticket_id' => $ticket->id, 'role_id' => $roleIds[$roleKey]],
+                    [
+                        'user_id' => $person->id,
+                        'status' => 'in_progress',
+                        'started_at' => $monday->copy()->subDays(4)->setTime(10, 0),
+                        'finished_at' => null,
+                        'duration_minutes' => null,
+                    ]
+                );
+            }
+        }
 
         foreach ($this->plan($monday, $frontend, $backend, $tester) as $row) {
             $subtask = $subtasks->create($ticket, [

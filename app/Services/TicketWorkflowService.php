@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Casts\TicketStatusValue;
 use App\Enums\SubtaskStatus;
-use App\Enums\WorkSide;
 use App\Models\Role;
 use App\Models\Ticket;
 use App\Models\TicketRoleAssignment;
@@ -149,31 +148,35 @@ class TicketWorkflowService
     }
 
     /**
-     * One subtask per side the ticket is actually assigned to — the question
-     * is the ticket's own developer's to chase, never the recipient's,
+     * One subtask per work-logging role the ticket is actually assigned to — the
+     * question is the ticket's own developer's to chase, never the recipient's,
      * regardless of whether the recipient is a colleague or a client contact.
+     *
+     * Role-based since the fixed columns were dropped (2026-07-24): "the
+     * developers" is now "whoever holds a logs_work role", so a custom role an
+     * admin flagged as working the ticket gets a follow-up too.
      */
     private function createFollowUpSubtask(Ticket $ticket, TicketStatusValue $to, ?string $note, int $actorId): void
     {
         $title = "متابعة: {$ticket->title} — {$to->label()}";
 
-        foreach (WorkSide::cases() as $side) {
-            $userId = $ticket->{$side->assigneeColumn()};
+        $workLoggingRoleIds = Role::workLoggingRoleIds();
 
-            if ($userId === null) {
-                continue;
-            }
+        $assignments = $ticket->roleAssignments()
+            ->whereIn('role_id', $workLoggingRoleIds)
+            ->get(['role_id', 'user_id']);
 
+        foreach ($assignments as $assignment) {
             $this->subtasks->create($ticket, [
                 'title' => $title,
                 'description' => $note,
-                'assignee_id' => $userId,
-                'side' => $side->value,
+                'assignee_id' => $assignment->user_id,
+                'role_id' => $assignment->role_id,
                 'due_date' => now()->toDateString(),
             ], $actorId);
 
             $this->notifications->notifyUser(
-                $userId,
+                $assignment->user_id,
                 $ticket,
                 'subtask.assigned',
                 "اتعملك صب تاسك متابعة على {$ticket->ticket_number}: {$to->label()}",
@@ -187,7 +190,12 @@ class TicketWorkflowService
     {
         // A bounced ticket is the one event a developer must not miss. F16
         if ($to === TicketStatusValue::for('reopened')) {
-            foreach ([$ticket->assigned_frontend_id, $ticket->assigned_backend_id] as $devId) {
+            // Every work-logging role's holder — the role-based "the developers".
+            $devIds = $ticket->roleAssignments()
+                ->whereIn('role_id', Role::workLoggingRoleIds())
+                ->pluck('user_id');
+
+            foreach ($devIds as $devId) {
                 $this->notifications->notifyUser(
                     $devId,
                     $ticket,
@@ -213,13 +221,19 @@ class TicketWorkflowService
     }
 
     /**
-     * Assignment creates one work log per side that the scope actually needs.
-     * The log is what "start" and "finish" later act on (F06).
+     * Distribution is fully role-based (2026-07-24). Every assignment — the two
+     * developers, the tester, devops, and any custom role an admin opted in — is
+     * a ticket_role_assignments row. Two role flags drive the behaviour the four
+     * fixed columns used to hardcode:
      *
-     * @param  array{assigned_frontend_id?: int|null, assigned_backend_id?: int|null, tester_id?: int|null}  $assignees
-     * @param  array<int, int|null>  $roleAssignments  role_id => user_id (F06 role-assignment extension)
+     *   - logs_work: the assignment gets a بدأت/خلصت work log (F07), and a
+     *     starter subtask so completing it earns points (F18).
+     *   - is_tester: the ticket enters the testing queue once development is
+     *     done (F16), handled in finish().
+     *
+     * @param  array<int, int|null>  $roleAssignments  role_id => user_id (null = unassign)
      */
-    public function assign(Ticket $ticket, array $assignees, int $actorId, array $roleAssignments = []): Ticket
+    public function assign(Ticket $ticket, array $roleAssignments, int $actorId): Ticket
     {
         // A feature can't be worked on before it's approved — the Policy blocks
         // the button, and this blocks everything else. F15
@@ -227,70 +241,7 @@ class TicketWorkflowService
             throw new DomainException('الفيتشر لازم توافق عليه الأول قبل ما يتوزع.');
         }
 
-        $before = $ticket->only('assigned_frontend_id', 'assigned_backend_id', 'tester_id');
-
-        return DB::transaction(function () use ($ticket, $assignees, $actorId, $before, $roleAssignments) {
-            $ticket->fill($assignees)->save();
-
-            if ($ticket->tester_id !== null && $ticket->tester_id !== $before['tester_id']) {
-                $this->notifications->notifyUser(
-                    $ticket->tester_id,
-                    $ticket,
-                    'ticket.assigned',
-                    "اتعملك أساين على {$ticket->ticket_number} كتيستر: {$ticket->title}",
-                    $actorId,
-                );
-            }
-
-            foreach (WorkSide::cases() as $side) {
-                $userId = $ticket->{$side->assigneeColumn()};
-
-                // Tell the person only when they're newly on it. F20
-                if ($userId !== null && $userId !== ($before[$side->assigneeColumn()] ?? null)) {
-                    $this->notifications->notifyUser(
-                        $userId,
-                        $ticket,
-                        'ticket.assigned',
-                        "اتعملك أساين على {$ticket->ticket_number} كـ{$side->label()}: {$ticket->title}",
-                        $actorId,
-                    );
-                }
-
-                if ($userId === null) {
-                    // Un-assigning a side drops its commitment, but only while
-                    // nothing has been done on it — otherwise history is lost.
-                    $ticket->workLogs()
-                        ->where('side', $side->value)
-                        ->where('status', 'pending')
-                        ->delete();
-
-                    continue;
-                }
-
-                TicketWorkLog::updateOrCreate(
-                    ['ticket_id' => $ticket->id, 'side' => $side->value],
-                    ['user_id' => $userId]
-                );
-
-                // A side that's had nobody on it before gets a starter subtask,
-                // same title as the ticket, on the same developer — a default
-                // starting point, not a requirement (they can retitle/reassign
-                // it freely). Reassigning an already-worked side never repeats
-                // this, or every hand-off would pile up a fresh duplicate.
-                // ★ …and only when the side has nothing at all. The starter
-                // exists so a newly-assigned side is never an empty list; a
-                // developer who already wrote their own plan on the create form
-                // does not want ours stacked on top of it.
-                if (($before[$side->assigneeColumn()] ?? null) === null
-                    && ! $ticket->subtasks()->where('side', $side->value)->exists()) {
-                    $this->subtasks->create($ticket, [
-                        'title' => $ticket->title,
-                        'assignee_id' => $userId,
-                        'side' => $side->value,
-                    ], $actorId);
-                }
-            }
-
+        return DB::transaction(function () use ($ticket, $roleAssignments, $actorId) {
             $this->assignRoles($ticket, $roleAssignments, $actorId);
 
             if ($ticket->status === TicketStatusValue::for('new') || $ticket->status === TicketStatusValue::for('pending_approval')) {
@@ -302,12 +253,12 @@ class TicketWorkflowService
     }
 
     /**
-     * F06 role-assignment extension: the generic counterpart of the
-     * frontend/backend/tester/devops block above, for every role an admin has
-     * opted into the assignment panel (Role::isAssignableOnTickets()). Same
-     * shape as a fixed side: notify only a newly-assigned person, and give a
-     * role its first assignment a starter subtask exactly like F06.3 — so
-     * completing it earns points the same way a developer's does (F18).
+     * The one assignment path (F06). For every role_id => user_id: assign or
+     * unassign, notify only a newly-assigned person, and — for a logs_work role
+     * — keep its work log and starter subtask in sync. A starter subtask on the
+     * first assignment means completing the work earns points the same way for
+     * every role (F18), which is exactly what made the old devops participation
+     * special-case unnecessary.
      *
      * @param  array<int, int|null>  $roleAssignments  role_id => user_id
      */
@@ -334,6 +285,15 @@ class TicketWorkflowService
             if ($userId === null) {
                 $before?->delete();
 
+                // Un-assigning a work-logging role drops its commitment, but only
+                // while nothing has been done on it — otherwise history is lost.
+                if ($role->logsWork()) {
+                    $ticket->workLogs()
+                        ->where('role_id', $roleId)
+                        ->where('status', 'pending')
+                        ->delete();
+                }
+
                 continue;
             }
 
@@ -354,8 +314,19 @@ class TicketWorkflowService
                 $actorId,
             );
 
+            // A work-logging role gets the بدأت/خلصت commitment the ticket's
+            // status machine acts on (F07). Re-assigning to a new person keeps
+            // the existing log and just moves its owner.
+            if ($role->logsWork()) {
+                TicketWorkLog::updateOrCreate(
+                    ['ticket_id' => $ticket->id, 'role_id' => $roleId],
+                    ['user_id' => $userId]
+                );
+            }
+
             // First assignment for this role only — a hand-off to someone else
-            // never repeats it, same rule as F06.3.
+            // never repeats it (F06.3). The starter means a newly-assigned role
+            // is never an empty list, and gives F18 something to pay.
             if ($before === null && ! $ticket->subtasks()->where('role_id', $roleId)->exists()) {
                 $this->subtasks->create($ticket, [
                     'title' => $ticket->title,
@@ -379,7 +350,7 @@ class TicketWorkflowService
             $ticket = $log->ticket;
 
             if (in_array($ticket->status, [TicketStatusValue::for('assigned'), TicketStatusValue::for('reopened')], true)) {
-                $this->transition($ticket, TicketStatusValue::for('in_progress'), $actorId, "{$log->side->label()}: بدأ الشغل");
+                $this->transition($ticket, TicketStatusValue::for('in_progress'), $actorId, "{$log->roleLabel()}: بدأ الشغل");
             }
         });
     }
@@ -410,7 +381,7 @@ class TicketWorkflowService
             // direction; this is its finish-side twin.
             $ticket = $log->ticket;
             if (in_array($ticket->status, [TicketStatusValue::for('assigned'), TicketStatusValue::for('reopened')], true)) {
-                $this->transition($ticket, TicketStatusValue::for('in_progress'), $actorId, "{$log->side->label()}: استئناف الشغل");
+                $this->transition($ticket, TicketStatusValue::for('in_progress'), $actorId, "{$log->roleLabel()}: استئناف الشغل");
             }
 
             $finishedAt = now();
@@ -430,7 +401,12 @@ class TicketWorkflowService
 
                 // No tester means nobody is going to verify it, so the ticket
                 // waits for support or a manager rather than sitting in limbo. F16
-                if ($ticket->tester_id !== null) {
+                // "Has a tester" is now "holds an is_tester role assignment".
+                $hasTester = $ticket->roleAssignments()
+                    ->whereIn('role_id', Role::testerRoleIds())
+                    ->exists();
+
+                if ($hasTester) {
                     $this->transition($ticket, TicketStatusValue::for('testing'), $actorId, 'في انتظار التيست');
                 }
             }
@@ -448,16 +424,19 @@ class TicketWorkflowService
             return null;
         }
 
+        // A work log's subtasks are the ones tagged to its role (F07). Role-based
+        // since the columns were dropped: the starter and any follow-ups carry
+        // role_id, so the gate reads role_id rather than the old WorkSide.
         $open = DB::table('ticket_subtasks')
             ->where('ticket_id', $log->ticket_id)
-            ->where('side', $log->side->value)
+            ->where('role_id', $log->role_id)
             ->whereNull('deleted_at')
             ->where('status', '!=', 'done')
             ->count();
 
         return $open === 0
             ? null
-            : "لسه فيه {$open} صب تاسك مش خالصة على جهة {$log->side->label()}. خلّصها الأول.";
+            : "لسه فيه {$open} صب تاسك مش خالصة على جهة {$log->roleLabel()}. خلّصها الأول.";
     }
 
     /**
@@ -499,23 +478,25 @@ class TicketWorkflowService
             return null;
         }
 
+        // Only a role the ticket is STILL assigned to can block it. When a
+        // work-logging role is un-assigned (or handed to a different role), its
+        // work log is kept for history but is no longer this ticket's commitment
+        // and must not block the resolve forever. Without this, a reassigned
+        // ticket got stuck on an orphaned role that nobody is working any more
+        // (2026-07-21, role-based since 2026-07-24).
+        $assignedRoleIds = $ticket->roleAssignments()->pluck('role_id')->all();
+
         $unfinished = $ticket->workLogs()
             ->where('status', '!=', 'done')
-            ->get(['side'])
-            // Only a side the ticket is STILL assigned to can block it. When a
-            // ticket is moved from one side to another (backend → frontend), the
-            // old side's work log is kept for history but its assignee is
-            // cleared — it is no longer this ticket's commitment and must not
-            // block the resolve forever. Without this, a reassigned ticket got
-            // stuck on an orphaned side that nobody is working any more
-            // (2026-07-21).
-            ->filter(fn ($log) => $ticket->{$log->side->assigneeColumn()} !== null);
+            ->whereIn('role_id', $assignedRoleIds)
+            ->with('role:id,name_ar')
+            ->get();
 
         if ($unfinished->isEmpty()) {
             return null;
         }
 
-        $sides = $unfinished->map(fn ($log) => $log->side->label())->implode(' و');
+        $sides = $unfinished->map(fn ($log) => $log->roleLabel())->implode(' و');
 
         return "لسه فيه شغل مخلّصش على التذكرة ({$sides}). لازم كل جهة تضغط «خلصت» قبل ما تحوّلها لـ «{$to->label()}».";
     }
@@ -573,7 +554,7 @@ class TicketWorkflowService
             // dev_done and testing both mean "development is over". Taking a
             // side back makes that untrue, so the ticket follows its sides.
             if (in_array($ticket->status->value, ['dev_done', 'testing'], true)) {
-                $this->transition($ticket, TicketStatusValue::for('in_progress'), $actorId, "{$log->side->label()}: رجع يشتغل");
+                $this->transition($ticket, TicketStatusValue::for('in_progress'), $actorId, "{$log->roleLabel()}: رجع يشتغل");
             }
         });
     }

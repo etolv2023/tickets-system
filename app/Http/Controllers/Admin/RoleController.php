@@ -46,6 +46,8 @@ class RoleController extends Controller
             'name_ar' => $request->validated('name_ar'),
             'is_system' => false,
             'assignable_on_tickets' => $request->boolean('assignable_on_tickets'),
+            'logs_work' => $request->boolean('logs_work'),
+            'is_tester' => $request->boolean('is_tester'),
         ]);
 
         $role->syncPermissions($request->validated('permissions') ?? []);
@@ -90,7 +92,11 @@ class RoleController extends Controller
             ? ['name_ar' => $request->validated('name_ar')]
             : $request->safe()->only('key', 'name_ar');
 
-        $role->update($data + ['assignable_on_tickets' => $request->boolean('assignable_on_tickets')]);
+        $role->update($data + [
+            'assignable_on_tickets' => $request->boolean('assignable_on_tickets'),
+            'logs_work' => $request->boolean('logs_work'),
+            'is_tester' => $request->boolean('is_tester'),
+        ]);
 
         $role->syncPermissions($request->validated('permissions') ?? []);
 
@@ -128,6 +134,8 @@ class RoleController extends Controller
             'name_ar' => "{$role->name_ar} (نسخة)",
             'is_system' => false,
             'assignable_on_tickets' => $role->assignable_on_tickets,
+            'logs_work' => $role->logs_work,
+            'is_tester' => $role->is_tester,
         ]);
 
         $copy->syncPermissions($role->permissions()->pluck('permissions.id')->all());

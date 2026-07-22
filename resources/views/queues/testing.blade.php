@@ -34,16 +34,15 @@
 
                     <div class="queue-card__meta">
                         <span>{{ $ticket->originLabel() }}</span>
-                        @if ($ticket->frontend)
-                            <span aria-hidden="true">·</span>
-                            <x-avatar :user="$ticket->frontend" size="sm" />
-                            <span>{{ $ticket->frontend->name }}</span>
-                        @endif
-                        @if ($ticket->backend)
-                            <span aria-hidden="true">·</span>
-                            <x-avatar :user="$ticket->backend" size="sm" />
-                            <span>{{ $ticket->backend->name }}</span>
-                        @endif
+                        {{-- The developers to talk to — whoever logged work on it
+                             (role-based since 2026-07-24). --}}
+                        @foreach ($ticket->workLogs as $log)
+                            @if ($log->user)
+                                <span aria-hidden="true">·</span>
+                                <x-avatar :user="$log->user" size="sm" />
+                                <span>{{ $log->user->name }}</span>
+                            @endif
+                        @endforeach
                         <span aria-hidden="true">·</span>
                         <span @class(['queue-card__age--overdue' => $ticket->isOverdue()])>{{ $ticket->ageLabel() }}</span>
                     </div>
