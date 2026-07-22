@@ -11,9 +11,6 @@
                     <h1 class="page-title">{{ $employee->name }}</h1>
                     <p class="page-subtitle">
                         {{ $employee->role->name_ar }}
-                        @if ($employee->skills->value !== 'none')
-                            · {{ $employee->skills->label() }}
-                        @endif
                     </p>
                 </div>
             </div>

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\UserSkill;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,7 +21,6 @@ class User extends Authenticatable
         'email',
         'password',
         'role_id',
-        'skills',
         'daily_capacity_hours',
         'must_change_password',
         'avatar_path',
@@ -45,7 +43,6 @@ class User extends Authenticatable
     {
         return [
             'password' => 'hashed',
-            'skills' => UserSkill::class,
             'daily_capacity_hours' => 'decimal:2',
             'must_change_password' => 'boolean',
             'is_active' => 'boolean',
@@ -127,16 +124,5 @@ class User extends Authenticatable
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
-    }
-
-    /** Users who can take frontend work — driven by skills, not role. F00.3 */
-    public function scopeFrontendCapable(Builder $query): Builder
-    {
-        return $query->whereIn('skills', [UserSkill::Frontend->value, UserSkill::Both->value]);
-    }
-
-    public function scopeBackendCapable(Builder $query): Builder
-    {
-        return $query->whereIn('skills', [UserSkill::Backend->value, UserSkill::Both->value]);
     }
 }

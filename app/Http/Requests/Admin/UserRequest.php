@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Enums\UserSkill;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -27,7 +26,6 @@ class UserRequest extends FormRequest
                 Rule::unique('users', 'email')->ignore($user?->id),
             ],
             'role_id' => ['required', 'integer', 'exists:roles,id'],
-            'skills' => ['required', Rule::enum(UserSkill::class)],
             'daily_capacity_hours' => ['required', 'numeric', 'min:0.5', 'max:24'],
             'is_active' => ['boolean'],
             // Only offered when creating; an edit never touches the password.

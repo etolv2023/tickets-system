@@ -21,17 +21,6 @@
                         @endforeach
                     </select>
                 </x-field>
-
-                <x-field name="skills" label="التخصص" required hint="ده الي بيحدد يظهر في أنهي قائمة توزيع — مش الدور.">
-                    <select id="skills" name="skills" required
-                            @class(['select', 'select--invalid' => $errors->has('skills')])>
-                        @foreach ($skills as $value => $label)
-                            <option value="{{ $value }}" @selected(old('skills', $user?->skills?->value ?? 'none') === $value)>
-                                {{ $label }}
-                            </option>
-                        @endforeach
-                    </select>
-                </x-field>
             </div>
 
             <x-field

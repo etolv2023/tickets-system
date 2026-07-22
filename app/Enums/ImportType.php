@@ -33,7 +33,7 @@ enum ImportType: string
         return match ($this) {
             self::Companies => ['name', 'code', 'is_active', 'notes'],
             self::Contacts => ['company_code', 'name', 'erp_employee_id', 'email', 'phone', 'is_active'],
-            self::Users => ['name', 'email', 'role_key', 'skills', 'is_active'],
+            self::Users => ['name', 'email', 'role_key', 'is_active'],
         };
     }
 

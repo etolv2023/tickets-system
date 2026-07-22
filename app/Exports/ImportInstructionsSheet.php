@@ -3,7 +3,6 @@
 namespace App\Exports;
 
 use App\Enums\ImportType;
-use App\Enums\UserSkill;
 use App\Exports\Concerns\SanitizesCells;
 use App\Models\Role;
 use Maatwebsite\Excel\Concerns\FromArray;
@@ -55,7 +54,6 @@ class ImportInstructionsSheet implements FromArray, WithHeadings, WithTitle, Sho
                 ['name', 'إجباري', 'اسم الموظف.'],
                 ['email', 'إجباري', 'إيميل صحيح. لو موجود قبل كده الصف هيحدّث المستخدم مش هيعمل واحد جديد.'],
                 ['role_key', 'إجباري', 'كود الدور. المتاح: ' . implode('، ', Role::pluck('key')->all())],
-                ['skills', 'اختياري', 'المتاح: ' . implode('، ', array_column(UserSkill::cases(), 'value')) . '. بيحدد المستخدم يظهر في أنهي قائمة توزيع.'],
             ], $common, [
                 ['', '', ''],
                 ['ملاحظة أمنية', '', 'مفيش عمود كلمة سر — وده مقصود. كل مستخدم جديد بياخد كلمة سر عشوائية وبيتجبر يغيّرها أول دخول.'],
