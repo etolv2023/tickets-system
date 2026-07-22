@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Enums\SubtaskStatus;
+use App\Casts\SubtaskStatusValue;
 use App\Models\Ticket;
 use App\Models\TicketSubtask;
 use Illuminate\Support\Facades\DB;
@@ -53,22 +53,23 @@ class SubtaskService
     public function update(TicketSubtask $subtask, array $data): TicketSubtask
     {
         return DB::transaction(function () use ($subtask, $data) {
-            $status = isset($data['status']) ? SubtaskStatus::from($data['status']) : $subtask->status;
+            $status = isset($data['status']) ? SubtaskStatusValue::for($data['status']) : $subtask->status;
 
             // Timestamps follow the status rather than being asked for.
-            if ($status === SubtaskStatus::InProgress && $subtask->started_at === null) {
+            if ($status->isInProgress() && $subtask->started_at === null) {
                 $data['started_at'] = now();
             }
 
-            if ($status === SubtaskStatus::Done) {
+            if ($status->isDone()) {
                 $data['completed_at'] = $subtask->completed_at ?? now();
-            } elseif ($subtask->status === SubtaskStatus::Done) {
+            } elseif ($subtask->status->isDone()) {
                 // Moved back out of done — the completion time is no longer true.
                 $data['completed_at'] = null;
             }
 
-            // A reason only belongs to a blocked subtask; unblocking clears it.
-            if ($status !== SubtaskStatus::Blocked) {
+            // A reason only belongs to a status that requires one; leaving it
+            // clears it.
+            if (! $status->needsReason()) {
                 $data['blocked_reason'] = null;
             }
 
@@ -124,7 +125,7 @@ class SubtaskService
         $counts = $ticket->subtasks()
             ->reorder()
             ->selectRaw('COUNT(*) total, SUM(status = ?) done, SUM(estimated_hours) estimate', [
-                SubtaskStatus::Done->value,
+                'done',
             ])
             ->first();
 

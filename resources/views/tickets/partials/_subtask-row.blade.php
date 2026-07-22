@@ -1,4 +1,4 @@
-@php $done = $subtask->status === \App\Enums\SubtaskStatus::Done; @endphp
+@php $done = $subtask->status->isDone(); @endphp
 
 <div class="subtask" data-subtask-id="{{ $subtask->id }}" x-data="{ editing: false }">
     @can('update', [$subtask, $ticket])
@@ -19,12 +19,12 @@
                      a select without a "blocked" option would silently show
                      the wrong value. --}}
                 @can('update', [$subtask, $ticket])
-                    @if ($subtask->status !== \App\Enums\SubtaskStatus::Blocked)
+                    @if (! $subtask->status->needsReason())
                         <select class="select select--sm" aria-label="حالة الصب تاسك"
                                 data-subtask-status="{{ route('subtasks.status', $subtask) }}"
                                 data-current="{{ $subtask->status->value }}">
-                            @foreach ([\App\Enums\SubtaskStatus::Todo, \App\Enums\SubtaskStatus::InProgress, \App\Enums\SubtaskStatus::Done] as $option)
-                                <option value="{{ $option->value }}" @selected($subtask->status === $option)>{{ $option->label() }}</option>
+                            @foreach (\App\Models\SubtaskStatusDefinition::quickChangeKeys() as $optionKey)
+                                <option value="{{ $optionKey }}" @selected($subtask->status->value === $optionKey)>{{ \App\Casts\SubtaskStatusValue::for($optionKey)->label() }}</option>
                             @endforeach
                         </select>
                     @else
@@ -34,9 +34,11 @@
                     <x-badge :variant="$subtask->status->variant()">{{ $subtask->status->label() }}</x-badge>
                 @endcan
 
-                {{-- F06 role-assignment extension: a role-tagged subtask shows
-                     the role name instead of the underlying "أخرى" side. --}}
-                <x-badge variant="neutral">{{ $subtask->role?->name_ar ?? $subtask->side->label() }}</x-badge>
+                {{-- A subtask is categorised by its role now (2026-07-24); an
+                     untagged one is general work. --}}
+                @if ($subtask->role)
+                    <x-badge variant="neutral">{{ $subtask->role->name_ar }}</x-badge>
+                @endif
 
                 @if ($subtask->assignee)
                     <span class="row">

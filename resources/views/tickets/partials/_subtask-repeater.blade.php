@@ -13,7 +13,7 @@
     <div class="repeater"
          x-data="{
              rows: @js(old('subtasks', [])),
-             add() { this.rows.push({ title: '', side: 'other', due_date: '' }) },
+             add() { this.rows.push({ title: '', role_id: '', due_date: '' }) },
          }">
         <p class="repeater__lead">
             قسّم الشغل من دلوقتي لو عايز. تقدر تضيفها أو تعدّلها بعدين من صفحة التذكرة،
@@ -30,11 +30,12 @@
                 </div>
 
                 <div class="repeater__field">
-                    <label class="label" :for="`subtask-side-${index}`">الجهة</label>
-                    <select class="select" x-model="row.side"
-                            :id="`subtask-side-${index}`" :name="`subtasks[${index}][side]`">
-                        @foreach (\App\Enums\SubtaskSide::cases() as $side)
-                            <option value="{{ $side->value }}">{{ $side->label() }}</option>
+                    <label class="label" :for="`subtask-role-${index}`">الرول</label>
+                    <select class="select" x-model="row.role_id"
+                            :id="`subtask-role-${index}`" :name="`subtasks[${index}][role_id]`">
+                        <option value="">— بدون —</option>
+                        @foreach (($assignableRoles ?? collect()) as $role)
+                            <option value="{{ $role->id }}">{{ $role->name_ar }}</option>
                         @endforeach
                     </select>
                 </div>

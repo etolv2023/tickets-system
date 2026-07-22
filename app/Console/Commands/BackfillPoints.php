@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Enums\SubtaskStatus;
 use App\Models\PointTransaction;
 use App\Models\Ticket;
 use App\Models\TicketSubtask;
@@ -44,7 +43,7 @@ class BackfillPoints extends Command
     {
         $subtasks = TicketSubtask::query()
             ->whereNull('deleted_at')
-            ->where('status', SubtaskStatus::Done->value)
+            ->where('status', 'done')
             ->whereNotNull('assignee_id')
             ->where('points', '>', 0)
             ->whereDoesntHave('pointTransaction')

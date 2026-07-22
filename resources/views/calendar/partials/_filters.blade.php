@@ -41,10 +41,17 @@
         @endforeach
     </select>
 
-    <select name="side" class="select filters__select">
-        <option value="">كل الجهات</option>
-        @foreach ($sides as $value => $label)
-            <option value="{{ $value }}" @selected(($filters['side'] ?? '') === $value)>{{ $label }}</option>
+    <select name="status" class="select filters__select">
+        <option value="">كل الحالات</option>
+        @foreach (\App\Models\TicketStatusDefinition::options() as $value => $label)
+            <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $label }}</option>
+        @endforeach
+    </select>
+
+    <select name="role" class="select filters__select">
+        <option value="">كل الأدوار</option>
+        @foreach ($roles as $role)
+            <option value="{{ $role->id }}" @selected((int) ($filters['role'] ?? 0) === $role->id)>{{ $role->name_ar }}</option>
         @endforeach
     </select>
 

@@ -97,7 +97,7 @@
                     <span class="today__row-title">{{ $ticket->title }}</span>
                     <div class="today__row-meta">
                         بتبلوك:
-                        @foreach ($ticket->outgoingLinks->where('type', \App\Enums\LinkType::Blocks) as $link)
+                        @foreach ($ticket->outgoingLinks->filter(fn ($l) => $l->type->isBlocks()) as $link)
                             @if ($link->toTicket && $link->toTicket->status->isOpen())
                                 <span class="u-mono u-ltr">{{ $link->toTicket->ticket_number }}</span>
                             @endif

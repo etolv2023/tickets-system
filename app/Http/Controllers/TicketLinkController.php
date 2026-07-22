@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\LinkType;
+use App\Casts\LinkTypeValue;
+use App\Models\LinkTypeDefinition;
 use App\Models\Ticket;
 use App\Models\TicketLink;
 use App\Notifications\NotificationEvent;
@@ -23,7 +24,7 @@ class TicketLinkController extends Controller
         // arrives is a key rather than a number a human retyped.
         $data = $request->validate([
             'to_ticket_id' => ['required', 'integer', 'exists:tickets,id'],
-            'type' => ['required', Rule::enum(LinkType::class)],
+            'type' => ['required', Rule::in(array_keys(LinkTypeDefinition::map()))],
         ], [], ['to_ticket_id' => 'التذكرة', 'type' => 'نوع الربط']);
 
         $target = Ticket::findOrFail($data['to_ticket_id']);
@@ -55,7 +56,7 @@ class TicketLinkController extends Controller
         // Both circles hear it: a link is a fact about two tickets, and the
         // other ticket's owners are exactly the people it may now block.
         $notifications = app(NotificationService::class);
-        $label = LinkType::from($data['type'])->label();
+        $label = LinkTypeValue::for($data['type'])->label();
 
         $notifications->dispatch(
             $ticket,

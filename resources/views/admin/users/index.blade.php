@@ -36,7 +36,6 @@
                         <tr>
                             <th>المستخدم</th>
                             <th>الدور</th>
-                            <th>التخصص</th>
                             <th>آخر دخول</th>
                             <th>الحالة</th>
                             <th class="table__cell--actions">إجراءات</th>
@@ -55,13 +54,6 @@
                                     </div>
                                 </td>
                                 <td>{{ $user->role->name_ar }}</td>
-                                <td>
-                                    @if ($user->skills->value !== 'none')
-                                        <x-badge variant="neutral">{{ $user->skills->label() }}</x-badge>
-                                    @else
-                                        <span class="u-subtle">—</span>
-                                    @endif
-                                </td>
                                 <td class="u-nums">
                                     {{ $user->last_login_at?->timezone(config('app.display_timezone'))->diffForHumans() ?? 'مدخلش لسه' }}
                                 </td>

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\PointSide;
 use App\Http\Controllers\Controller;
 use App\Models\PointTransaction;
+use App\Models\Role;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Services\ActivityLogger;
@@ -26,11 +26,13 @@ class PointRuleController extends Controller
         abort_unless($request->user()->hasPermission('points.rules.manage'), 403);
 
         return view('admin.point-rules.index', [
-            'sides' => PointSide::cases(),
+            // A correction is attributed to a role now (dynamic), not a
+            // hardcoded PointSide (2026-07-24).
+            'roles' => Role::assignableList(),
             'users' => User::active()->orderBy('name')->get(['id', 'name']),
             'corrections' => PointTransaction::query()
                 ->where('type', 'correction')
-                ->with(['user:id,name', 'ticket:id,ticket_number,title', 'correctedBy:id,name'])
+                ->with(['user:id,name', 'ticket:id,ticket_number,title', 'correctedBy:id,name', 'role:id,name_ar'])
                 ->latest('created_at')
                 ->limit(20)
                 ->get(),
@@ -50,13 +52,13 @@ class PointRuleController extends Controller
         $data = $request->validate([
             'user_id' => ['required', 'integer', 'exists:users,id'],
             'points' => ['required', 'numeric', 'min:-999', 'max:999', 'not_in:0'],
-            'side' => ['required', \Illuminate\Validation\Rule::enum(PointSide::class)],
+            'role_id' => ['required', 'integer', \Illuminate\Validation\Rule::in(Role::assignableList()->pluck('id'))],
             'reason' => ['required', 'string', 'max:255'],
             'ticket_number' => ['nullable', 'string', 'max:50'],
         ], [], [
             'user_id' => 'المستخدم',
             'points' => 'النقاط',
-            'side' => 'الجهة',
+            'role_id' => 'الدور',
             'reason' => 'السبب',
             'ticket_number' => 'رقم التذكرة',
         ]);
@@ -72,7 +74,7 @@ class PointRuleController extends Controller
         $correction = PointTransaction::create([
             'user_id' => $data['user_id'],
             'ticket_id' => $ticket?->id,
-            'side' => $data['side'],
+            'role_id' => $data['role_id'],
             'points' => $data['points'],
             'type' => 'correction',
             'created_by' => $request->user()->id,
@@ -84,7 +86,7 @@ class PointRuleController extends Controller
             action: 'point_correction.created',
             userId: $request->user()->id,
             subject: $correction,
-            changes: ['to' => $correction->only('user_id', 'ticket_id', 'side', 'points', 'reason')],
+            changes: ['to' => $correction->only('user_id', 'ticket_id', 'role_id', 'points', 'reason')],
             ip: $request->ip(),
             userAgent: $request->userAgent(),
         );

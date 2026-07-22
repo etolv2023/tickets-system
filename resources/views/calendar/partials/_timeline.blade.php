@@ -37,7 +37,7 @@
                                        'cal__item',
                                        'cal__item--' . $subtask->ticket->priority->variant(),
                                        'cal__item--overdue' => $subtask->isOverdue(),
-                                       'cal__item--done' => $subtask->status === \App\Enums\SubtaskStatus::Done,
+                                       'cal__item--done' => $subtask->status->isDone(),
                                    ])
                                    href="{{ route('tickets.show', $subtask->ticket_id) }}"
                                    data-subtask-id="{{ $subtask->id }}"

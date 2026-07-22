@@ -2,9 +2,8 @@
 
 namespace App\Http\Requests\Tickets;
 
-use App\Enums\SubtaskSide;
-use App\Enums\SubtaskStatus;
 use App\Models\Role;
+use App\Models\SubtaskStatusDefinition;
 use App\Models\Ticket;
 use App\Models\TicketSubtask;
 use Illuminate\Foundation\Http\FormRequest;
@@ -28,12 +27,12 @@ class SubtaskRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
             'assignee_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
-            'side' => ['required', Rule::enum(SubtaskSide::class)],
-            // F06 role-assignment extension: an optional tag onto a role
-            // (support/manager/admin/custom) instead of the fixed side —
-            // only ever a role opted into ticket assignment.
+            // A subtask is categorised by its role now (2026-07-24): the dynamic
+            // list of assignable roles from the DB, not a hardcoded side.
+            // Optional — a general step can stay uncategorised.
             'role_id' => ['nullable', 'integer', Rule::in(Role::assignableList()->pluck('id'))],
-            'status' => ['required', Rule::enum(SubtaskStatus::class)],
+            // Dynamic since 2026-07-24: any status the admin defined.
+            'status' => ['required', Rule::in(array_keys(SubtaskStatusDefinition::map()))],
             // A subtask carries one date. It is estimated in hours, so a
             // multi-day start..due span contradicted its own estimate; the due
             // date is what the calendar and "due today" both read.
@@ -43,9 +42,10 @@ class SubtaskRequest extends FormRequest
             // default. Always editable from then on — this is the subtask's
             // own points, not a read-only echo of the ticket.
             'points' => ['nullable', 'numeric', 'min:0', 'max:999'],
-            // F08: blocked without a reason tells nobody anything.
+            // F08: a status flagged needs_reason (blocked out of the box) can't
+            // be set without a reason.
             'blocked_reason' => [
-                Rule::requiredIf(fn () => $this->input('status') === SubtaskStatus::Blocked->value),
+                Rule::requiredIf(fn () => (SubtaskStatusDefinition::map()[$this->input('status')] ?? null)?->needs_reason ?? false),
                 'nullable', 'string', 'max:255',
             ],
         ];
@@ -80,7 +80,6 @@ class SubtaskRequest extends FormRequest
             'title' => 'العنوان',
             'description' => 'الوصف',
             'assignee_id' => 'المسؤول',
-            'side' => 'الجهة',
             'role_id' => 'الرول',
             'status' => 'الحالة',
             'start_date' => 'تاريخ البداية',

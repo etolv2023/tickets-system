@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Tickets;
 
-use App\Enums\SubtaskSide;
 use App\Models\Company;
 use App\Models\Role;
 use App\Services\AttachmentService;
@@ -95,7 +94,6 @@ class StoreTicketRequest extends FormRequest
             // without these rules the rows would be silently dropped.
             'subtasks' => ['nullable', 'array', 'max:20'],
             'subtasks.*.title' => ['required', 'string', 'max:255'],
-            'subtasks.*.side' => ['nullable', Rule::enum(SubtaskSide::class)],
             'subtasks.*.role_id' => ['nullable', 'integer', Rule::in(Role::assignableList()->pluck('id'))],
             'subtasks.*.due_date' => ['nullable', 'date'],
         ];
@@ -142,7 +140,6 @@ class StoreTicketRequest extends FormRequest
             'attachments.*' => 'المرفق',
             'subtasks' => 'الصب تاسكس',
             'subtasks.*.title' => 'عنوان الصب تاسك',
-            'subtasks.*.side' => 'جهة الصب تاسك',
             'subtasks.*.due_date' => 'تاريخ استحقاق الصب تاسك',
         ];
     }

@@ -83,7 +83,7 @@
                             <tr>
                                 <th>الصب تاسك</th>
                                 <th>التذكرة</th>
-                                <th>الجهة</th>
+                                <th>الدور</th>
                                 <th>الحالة</th>
                                 <th>المسؤول</th>
                                 <th>الاستحقاق</th>
@@ -100,7 +100,7 @@
                                         </a>
                                         <span class="u-subtle">{{ $subtask->ticket->title }}</span>
                                     </td>
-                                    <td><x-badge variant="neutral">{{ $subtask->side->label() }}</x-badge></td>
+                                    <td><x-badge variant="neutral">{{ $subtask->role?->name_ar ?? 'عام' }}</x-badge></td>
                                     <td><x-badge :variant="$subtask->status->variant()">{{ $subtask->status->label() }}</x-badge></td>
                                     <td>
                                         @if ($subtask->assignee)

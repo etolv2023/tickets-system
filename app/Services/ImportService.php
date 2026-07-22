@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Enums\ImportType;
-use App\Enums\UserSkill;
 use App\Imports\SheetReader;
 use App\Models\Company;
 use App\Models\CompanyContact;
@@ -252,7 +251,6 @@ class ImportService
                 'name' => ['required', 'string', 'max:150'],
                 'email' => ['required', 'email', 'max:255'],
                 'role_key' => ['required', 'string'],
-                'skills' => ['nullable', 'string'],
             ],
         };
 
@@ -284,13 +282,6 @@ class ImportService
                 return [
                     'column' => 'role_key',
                     'reason' => "الدور «{$row['role_key']}» مش موجود. المتاح: {$known}",
-                ];
-            }
-
-            if ($row['skills'] !== null && UserSkill::tryFrom($row['skills']) === null) {
-                return [
-                    'column' => 'skills',
-                    'reason' => "التخصص «{$row['skills']}» مش صحيح. المتاح: frontend، backend، both، none",
                 ];
             }
         }
@@ -362,7 +353,6 @@ class ImportService
         $user->fill([
             'name' => $row['name'],
             'role_id' => $context['roles'][$row['role_key']],
-            'skills' => $row['skills'] ?? UserSkill::None->value,
             'is_active' => $row['is_active'],
         ]);
 

@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Enums\SubtaskStatus;
 use App\Models\PointTransaction;
 use App\Models\Ticket;
 use App\Models\TicketSubtask;
@@ -83,7 +82,7 @@ class PointEngineService
             $subtasks = TicketSubtask::query()
                 ->where('ticket_id', $locked->id)
                 ->whereNull('deleted_at')
-                ->where('status', SubtaskStatus::Done->value)
+                ->where('status', 'done')
                 ->whereNotNull('assignee_id')
                 ->where('points', '>', 0)
                 ->whereDoesntHave('pointTransaction')

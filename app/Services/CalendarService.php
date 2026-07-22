@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Enums\SubtaskStatus;
 use App\Models\Holiday;
 use App\Models\Setting;
 use App\Models\Ticket;
@@ -51,13 +50,16 @@ class CalendarService
             ->whereBetween('due_date', [$from->toDateString(), $to->toDateString()])
             ->when($onlyUserId, fn ($q) => $q->where('assignee_id', $onlyUserId))
             ->when($filters['assignee'] ?? null, fn ($q, $v) => $q->where('assignee_id', $v))
-            ->when($filters['side'] ?? null, fn ($q, $v) => $q->where('side', $v))
+            // Categorised by role now (2026-07-24), not the hardcoded side.
+            ->when($filters['role'] ?? null, fn ($q, $v) => $q->where('role_id', $v))
             ->when(
-                ($filters['company'] ?? null) || ($filters['type'] ?? null) || ($filters['priority'] ?? null),
+                ($filters['company'] ?? null) || ($filters['type'] ?? null) || ($filters['priority'] ?? null) || ($filters['status'] ?? null),
                 fn ($q) => $q->whereHas('ticket', fn ($t) => $t
                     ->when($filters['company'] ?? null, fn ($w, $v) => $w->where('company_id', $v))
                     ->when($filters['type'] ?? null, fn ($w, $v) => $w->where('type', $v))
-                    ->when($filters['priority'] ?? null, fn ($w, $v) => $w->where('priority', $v)))
+                    ->when($filters['priority'] ?? null, fn ($w, $v) => $w->where('priority', $v))
+                    // A subtask follows its ticket's status — filter by the parent.
+                    ->when($filters['status'] ?? null, fn ($w, $v) => $w->where('status', $v)))
             )
             ->get();
 
@@ -66,6 +68,10 @@ class CalendarService
             ->with('company:id,name', 'requester:id,name')
             ->whereNotNull('due_date')
             ->whereBetween('due_date', [$from->toDateString(), $to->toDateString()])
+            ->when($filters['type'] ?? null, fn ($q, $v) => $q->where('type', $v))
+            ->when($filters['priority'] ?? null, fn ($q, $v) => $q->where('priority', $v))
+            ->when($filters['company'] ?? null, fn ($q, $v) => $q->where('company_id', $v))
+            ->when($filters['status'] ?? null, fn ($q, $v) => $q->where('status', $v))
             ->when($onlyUserId, fn ($q) => $q->assignedTo((int) $onlyUserId))
             ->get();
 
@@ -78,6 +84,10 @@ class CalendarService
             ->whereNotNull('sla_due_at')
             ->whereBetween('sla_due_at', [$from->startOfDay(), $to->endOfDay()])
             ->whereNotIn('status', ['resolved', 'closed', 'rejected'])
+            ->when($filters['type'] ?? null, fn ($q, $v) => $q->where('type', $v))
+            ->when($filters['priority'] ?? null, fn ($q, $v) => $q->where('priority', $v))
+            ->when($filters['company'] ?? null, fn ($q, $v) => $q->where('company_id', $v))
+            ->when($filters['status'] ?? null, fn ($q, $v) => $q->where('status', $v))
             ->when($onlyUserId, fn ($q) => $q->assignedTo((int) $onlyUserId))
             ->get();
 
@@ -102,7 +112,7 @@ class CalendarService
         $map = [];
 
         foreach ($subtasks as $subtask) {
-            if ($subtask->assignee_id === null || $subtask->status === SubtaskStatus::Done) {
+            if ($subtask->assignee_id === null || $subtask->status->isDone()) {
                 continue;
             }
 

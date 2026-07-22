@@ -29,10 +29,10 @@
                         </select>
                     </x-field>
 
-                    <x-field name="side" label="الجهة" required>
-                        <select id="side" name="side" class="select" required>
-                            @foreach ($sides as $side)
-                                <option value="{{ $side->value }}" @selected(old('side') === $side->value)>{{ $side->label() }}</option>
+                    <x-field name="role_id" label="الدور" required>
+                        <select id="role_id" name="role_id" class="select" required>
+                            @foreach ($roles as $role)
+                                <option value="{{ $role->id }}" @selected((int) old('role_id') === $role->id)>{{ $role->name_ar }}</option>
                             @endforeach
                         </select>
                     </x-field>
@@ -71,7 +71,7 @@
                         @forelse ($corrections as $row)
                             <tr>
                                 <td>{{ $row->user->name }}</td>
-                                <td>{{ $row->side->label() }}</td>
+                                <td>{{ $row->role?->name_ar ?? $row->side?->label() ?? '—' }}</td>
                                 <td class="table__cell--num points-cell">{{ rtrim(rtrim($row->points, '0'), '.') }}</td>
                                 <td class="u-subtle">{{ $row->reason }}</td>
                                 <td>

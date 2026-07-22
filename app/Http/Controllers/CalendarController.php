@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\SubtaskSide;
 use App\Models\Company;
 use App\Models\Holiday;
+use App\Models\Role;
 use App\Models\User;
 use App\Services\CalendarService;
 use Carbon\CarbonImmutable;
@@ -47,7 +47,7 @@ class CalendarController extends Controller
 
         [$from, $to] = $this->window($view, $anchor);
 
-        $filters = $request->only('assignee', 'company', 'type', 'priority', 'side', 'show');
+        $filters = $request->only('assignee', 'company', 'type', 'priority', 'role', 'show', 'status');
         $items = $this->calendar->itemsBetween($from, $to, $filters, $onlyUserId);
 
         $users = User::active()->without('role')->get(['id', 'name', 'avatar_path', 'is_active', 'daily_capacity_hours'])->keyBy('id');
@@ -73,7 +73,9 @@ class CalendarController extends Controller
             'selectedAssignee' => filled($filters['assignee'] ?? null)
                 ? User::whereKey($filters['assignee'])->value('name')
                 : null,
-            'sides' => SubtaskSide::options(),
+            // The subtask "جهة" filter is by role now — dynamic from the DB,
+            // not a hardcoded side (2026-07-24).
+            'roles' => Role::assignableList(),
             'isTeam' => $onlyUserId === null,
             'routeName' => $onlyUserId === null ? 'calendar.team' : 'calendar.mine',
         ]);

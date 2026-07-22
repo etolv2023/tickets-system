@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\UserSkill;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UserRequest;
 use App\Models\Role;
@@ -21,7 +20,7 @@ class UserController extends Controller
 
         return view('admin.users.index', [
             'users' => User::query()
-                ->select(['id', 'name', 'email', 'role_id', 'skills', 'is_active', 'must_change_password', 'last_login_at', 'avatar_path'])
+                ->select(['id', 'name', 'email', 'role_id', 'is_active', 'must_change_password', 'last_login_at', 'avatar_path'])
                 ->when($request->query('q'), fn ($q, $term) => $q->where(fn ($w) => $w
                     ->where('name', 'like', "%{$term}%")
                     ->orWhere('email', 'like', "%{$term}%")))
@@ -54,7 +53,7 @@ class UserController extends Controller
             action: 'user.created',
             userId: $request->user()->id,
             subject: $user,
-            changes: ['to' => $user->only('name', 'email', 'role_id', 'skills', 'is_active')],
+            changes: ['to' => $user->only('name', 'email', 'role_id', 'is_active')],
             ip: $request->ip(),
             userAgent: $request->userAgent(),
         );
@@ -78,7 +77,7 @@ class UserController extends Controller
             $this->authorize('deactivate', $user);
         }
 
-        $before = $user->only('name', 'email', 'role_id', 'skills', 'is_active');
+        $before = $user->only('name', 'email', 'role_id', 'is_active');
 
         // An edit never silently changes a password — that's resetPassword's job.
         $user->update($request->safe()->except(['password', 'password_confirmation']));
@@ -87,7 +86,7 @@ class UserController extends Controller
             action: 'user.updated',
             userId: $request->user()->id,
             subject: $user,
-            changes: ['from' => $before, 'to' => $user->only('name', 'email', 'role_id', 'skills', 'is_active')],
+            changes: ['from' => $before, 'to' => $user->only('name', 'email', 'role_id', 'is_active')],
             ip: $request->ip(),
             userAgent: $request->userAgent(),
         );
@@ -128,7 +127,6 @@ class UserController extends Controller
     {
         return [
             'roles' => Role::orderBy('id')->get(['id', 'name_ar', 'key']),
-            'skills' => UserSkill::options(),
         ];
     }
 }

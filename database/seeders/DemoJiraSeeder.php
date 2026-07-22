@@ -2,9 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Enums\LinkType;
 use App\Enums\SubtaskSide;
-use App\Enums\SubtaskStatus;
 use App\Models\Label;
 use App\Models\Ticket;
 use App\Models\TicketLink;
@@ -46,28 +44,28 @@ class DemoJiraSeeder extends Seeder
 
         if ($both !== null) {
             $rows = [
-                ['عدّل الفاليديشن على الفورم', SubtaskSide::Frontend, SubtaskStatus::Done, $frontend, 3, -4],
-                ['صلّح استعلام الأصناف البطيء', SubtaskSide::Backend, SubtaskStatus::InProgress, $backend, 6, 2],
-                ['اظبط الـ pagination', SubtaskSide::Backend, SubtaskStatus::Todo, $backend, 2, 4],
-                ['اختبر على 10 آلاف صنف', SubtaskSide::Qa, SubtaskStatus::Todo, null, 1, 5],
+                ['عدّل الفاليديشن على الفورم', SubtaskSide::Frontend, 'done', $frontend, 3, -4],
+                ['صلّح استعلام الأصناف البطيء', SubtaskSide::Backend, 'in_progress', $backend, 6, 2],
+                ['اظبط الـ pagination', SubtaskSide::Backend, 'todo', $backend, 2, 4],
+                ['اختبر على 10 آلاف صنف', SubtaskSide::Qa, 'todo', null, 1, 5],
             ];
 
             foreach ($rows as [$title, $side, $status, $assignee, $estimate, $dueOffset]) {
                 $subtask = $subtasks->create($both, [
                     'title' => $title,
                     'side' => $side->value,
-                    'status' => $status->value,
+                    'status' => $status,
                     'assignee_id' => $assignee?->id,
                     'start_date' => now()->addDays($dueOffset - 2)->toDateString(),
                     'due_date' => now()->addDays($dueOffset)->toDateString(),
                     'estimated_hours' => $estimate,
-                    'completed_at' => $status === SubtaskStatus::Done ? now()->subDay() : null,
+                    'completed_at' => $status === 'done' ? now()->subDay() : null,
                 ], $admin->id);
 
-                if ($assignee !== null && $status !== SubtaskStatus::Todo) {
+                if ($assignee !== null && $status !== 'todo') {
                     $time->log($both, [
                         'subtask_id' => $subtask->id,
-                        'hours' => $status === SubtaskStatus::Done ? $estimate : round($estimate / 2, 2),
+                        'hours' => $status === 'done' ? $estimate : round($estimate / 2, 2),
                         'spent_on' => now()->subDays(1)->toDateString(),
                         'note' => 'شغل على ' . $title,
                     ], $assignee->id);
@@ -86,7 +84,7 @@ class DemoJiraSeeder extends Seeder
             $subtask = $subtasks->create($overrun, [
                 'title' => 'اتتبع مصدر الضريبة المضاعفة',
                 'side' => SubtaskSide::Backend->value,
-                'status' => SubtaskStatus::InProgress->value,
+                'status' => 'in_progress',
                 'assignee_id' => $overrunBackendId,
                 'due_date' => now()->subDays(2)->toDateString(),
                 'estimated_hours' => 4,
@@ -142,7 +140,7 @@ class DemoJiraSeeder extends Seeder
             [
                 'from_ticket_id' => $tickets[0]->id,
                 'to_ticket_id' => $tickets[1]->id,
-                'type' => LinkType::Blocks->value,
+                'type' => 'blocks',
             ],
             ['created_by' => $adminId]
         );
@@ -151,7 +149,7 @@ class DemoJiraSeeder extends Seeder
             [
                 'from_ticket_id' => $tickets[2]->id,
                 'to_ticket_id' => $tickets[0]->id,
-                'type' => LinkType::Relates->value,
+                'type' => 'relates',
             ],
             ['created_by' => $adminId]
         );

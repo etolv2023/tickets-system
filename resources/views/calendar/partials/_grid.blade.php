@@ -28,6 +28,7 @@
         <div
             @class([
                 'cal__day',
+                'cal__day--full' => $view === 'day',
                 'cal__day--outside' => $view === 'month' && $day->month !== $anchor->month,
                 'cal__day--off' => ! $isWorking,
                 'cal__day--today' => $day->isToday(),
@@ -53,14 +54,32 @@
                 </span>
             @endforeach
 
-            <div data-items class="stack stack--tight">
+            @php
+                /*
+                 * A day with many items used to overflow its fixed-height cell
+                 * and break the grid. In month/week the cell shows the first few
+                 * and a "+N أكثر" link into the day view, which lists them all;
+                 * the day view itself (cal__day--full) is uncapped. The counter
+                 * runs across all three kinds so the cap is the whole day, not
+                 * per-kind.
+                 */
+                $dayTickets = $ticketsByDay[$key] ?? collect();
+                $daySlas = $slasByDay[$key] ?? collect();
+                $totalItems = $daySubtasks->count() + $dayTickets->count() + $daySlas->count();
+                $cap = in_array($view, ['month', 'week'], true) ? 4 : $totalItems;
+                $shown = 0;
+            @endphp
+
+            {{-- One clip region for every kind, so nothing spills past the cell. --}}
+            <div data-items class="cal__body">
                 @foreach ($daySubtasks as $subtask)
+                    @continue($shown >= $cap)
                     <a
                         @class([
                             'cal__item',
                             'cal__item--' . $subtask->ticket->priority->variant(),
                             'cal__item--overdue' => $subtask->isOverdue(),
-                            'cal__item--done' => $subtask->status === \App\Enums\SubtaskStatus::Done,
+                            'cal__item--done' => $subtask->status->isDone(),
                         ])
                         href="{{ route('tickets.show', $subtask->ticket_id) }}"
                         data-subtask-id="{{ $subtask->id }}"
@@ -80,30 +99,42 @@
                             <span class="cal__hours u-mono">{{ rtrim(rtrim($subtask->estimated_hours, '0'), '.') }}س</span>
                         @endif
                     </a>
+                    @php $shown++; @endphp
+                @endforeach
+
+                {{-- Ticket deadlines are a different kind of thing from the work
+                     below them, so they get a different shape: a solid bar, not a
+                     tinted chip. --}}
+                @foreach ($dayTickets as $ticket)
+                    @continue($shown >= $cap)
+                    <a class="cal__ticket cal__ticket--{{ $ticket->priority->variant() }}"
+                       href="{{ route('tickets.show', $ticket) }}"
+                       title="استحقاق التذكرة — {{ $ticket->title }}">
+                        <span class="cal__ticket-tag">تذكرة</span>
+                        <span class="u-mono">{{ $ticket->ticket_number }}</span>
+                    </a>
+                    @php $shown++; @endphp
+                @endforeach
+
+                {{-- F13: an SLA reads as a red circle, never a block — it is a
+                     promise to the customer, not a task you can drag. --}}
+                @foreach ($daySlas as $sla)
+                    @continue($shown >= $cap)
+                    <a class="cal__sla" href="{{ route('tickets.show', $sla) }}"
+                       title="مهلة SLA — {{ $sla->title }}">
+                        <span class="cal__sla-dot"></span>
+                        <span class="u-mono">{{ $sla->ticket_number }}</span>
+                    </a>
+                    @php $shown++; @endphp
                 @endforeach
             </div>
 
-            {{-- Ticket deadlines are a different kind of thing from the work
-                 below them, so they get a different shape: a solid bar, not a
-                 tinted chip. --}}
-            @foreach (($ticketsByDay[$key] ?? collect()) as $ticket)
-                <a class="cal__ticket cal__ticket--{{ $ticket->priority->variant() }}"
-                   href="{{ route('tickets.show', $ticket) }}"
-                   title="استحقاق التذكرة — {{ $ticket->title }}">
-                    <span class="cal__ticket-tag">تذكرة</span>
-                    <span class="u-mono">{{ $ticket->ticket_number }}</span>
+            @if ($totalItems > $cap)
+                <a class="cal__more"
+                   href="{{ route($routeName, array_merge(array_filter($filters), ['view' => 'day', 'date' => $key])) }}">
+                    +{{ $totalItems - $cap }} أكثر
                 </a>
-            @endforeach
-
-            {{-- F13: an SLA reads as a red circle, never a block — it is a
-                 promise to the customer, not a task you can drag. --}}
-            @foreach (($slasByDay[$key] ?? collect()) as $sla)
-                <a class="cal__sla" href="{{ route('tickets.show', $sla) }}"
-                   title="مهلة SLA — {{ $sla->title }}">
-                    <span class="cal__sla-dot"></span>
-                    <span class="u-mono">{{ $sla->ticket_number }}</span>
-                </a>
-            @endforeach
+            @endif
         </div>
     @endforeach
 </div>
