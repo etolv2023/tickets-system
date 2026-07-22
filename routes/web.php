@@ -263,9 +263,10 @@ Route::middleware('auth')->group(function () {
             Route::delete('priorities/{priority}', [PriorityController::class, 'destroy'])->name('priorities.destroy');
         });
 
-        Route::middleware('permission:users.manage')
-            ->resource('roles', RoleController::class)
-            ->except('show');
+        Route::middleware('permission:users.manage')->group(function () {
+            Route::resource('roles', RoleController::class)->except('show');
+            Route::post('roles/{role}/duplicate', [RoleController::class, 'duplicate'])->name('roles.duplicate');
+        });
 
         // F01 — customers and their contacts.
         Route::middleware('permission:companies.manage')->group(function () {

@@ -304,8 +304,8 @@ class TicketWorkflowService
     /**
      * F06 role-assignment extension: the generic counterpart of the
      * frontend/backend/tester/devops block above, for every role an admin has
-     * opted into the assignment panel (Role::assignable_on_tickets). Same
-     * shape as a fixed side: notify only a newly-assigned person, and give a
+     * granted `tickets.assignable_as_role` (Role::isAssignableOnTickets()).
+     * Same shape as a fixed side: notify only a newly-assigned person, and give a
      * role its first assignment a starter subtask exactly like F06.3 — so
      * completing it earns points the same way a developer's does (F18).
      *

@@ -4,6 +4,7 @@ namespace App\Http\Requests\Tickets;
 
 use App\Enums\SubtaskSide;
 use App\Enums\SubtaskStatus;
+use App\Models\Role;
 use App\Models\Ticket;
 use App\Models\TicketSubtask;
 use Illuminate\Foundation\Http\FormRequest;
@@ -31,7 +32,7 @@ class SubtaskRequest extends FormRequest
             // F06 role-assignment extension: an optional tag onto a role
             // (support/manager/admin/custom) instead of the fixed side —
             // only ever a role opted into ticket assignment.
-            'role_id' => ['nullable', 'integer', Rule::exists('roles', 'id')->where('assignable_on_tickets', true)],
+            'role_id' => ['nullable', 'integer', Rule::in(Role::assignableList()->pluck('id'))],
             'status' => ['required', Rule::enum(SubtaskStatus::class)],
             // A subtask carries one date. It is estimated in hours, so a
             // multi-day start..due span contradicted its own estimate; the due

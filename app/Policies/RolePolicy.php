@@ -33,17 +33,16 @@ class RolePolicy
     }
 
     /**
-     * Two guards, both refusals a human can act on: system roles are permanent
-     * (F22.3), and a role still holding users would orphan them.
+     * ★ (2026-07-22) Any role — system included — is deletable once it holds
+     * no users, by explicit request. A system role's key still can't be
+     * renamed (RoleController::update()), and code that looks one up by key
+     * (Role::idByKey('tester')/('devops') for the assignment dropdowns) just
+     * finds nothing if it's gone — the same as any other role nobody uses.
      */
     public function delete(User $user, Role $role): Response
     {
         if (! $user->hasPermission('users.manage')) {
             return Response::deny('ليس لديك صلاحية لحذف الأدوار.');
-        }
-
-        if ($role->is_system) {
-            return Response::deny('ده دور أساسي في النظام — مينفعش يتحذف.');
         }
 
         if ($role->users()->exists()) {

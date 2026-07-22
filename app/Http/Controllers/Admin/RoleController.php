@@ -45,7 +45,6 @@ class RoleController extends Controller
             'key' => $request->validated('key'),
             'name_ar' => $request->validated('name_ar'),
             'is_system' => false,
-            'assignable_on_tickets' => $request->boolean('assignable_on_tickets'),
         ]);
 
         $role->syncPermissions($request->validated('permissions') ?? []);
@@ -79,26 +78,19 @@ class RoleController extends Controller
 
         $before = [
             'name_ar' => $role->name_ar,
-            'assignable_on_tickets' => $role->assignable_on_tickets,
             'permissions' => $role->permissions()->pluck('permissions.key')->sort()->values()->all(),
         ];
 
         // A system role's key is referenced in code paths and seeders; its name
-        // and permissions stay editable. assignable_on_tickets is editable on
-        // every role, system or not — it's what decides whether that role gets
-        // a dropdown in the ticket assignment panel (F06 role-assignment
-        // extension), independent of the fixed key.
-        $data = $role->is_system
+        // and permissions stay editable.
+        $role->update($role->is_system
             ? ['name_ar' => $request->validated('name_ar')]
-            : $request->safe()->only('key', 'name_ar');
-
-        $role->update($data + ['assignable_on_tickets' => $request->boolean('assignable_on_tickets')]);
+            : $request->safe()->only('key', 'name_ar'));
 
         $role->syncPermissions($request->validated('permissions') ?? []);
 
         $after = [
             'name_ar' => $role->name_ar,
-            'assignable_on_tickets' => $role->assignable_on_tickets,
             'permissions' => $role->permissions()->pluck('permissions.key')->sort()->values()->all(),
         ];
 
@@ -112,6 +104,51 @@ class RoleController extends Controller
         );
 
         return redirect()->route('admin.roles.index')->with('status', "تم تحديث دور «{$role->name_ar}».");
+    }
+
+    /**
+     * A copy starts from the same permissions but is never itself a system
+     * role — even duplicating "مدير النظام" gives an ordinary, deletable
+     * role an admin can then rename and prune from /admin/roles/{role}/edit.
+     * The key is de-duplicated by suffixing a number, since `key` is unique
+     * and ASCII-only (RoleRequest).
+     */
+    public function duplicate(Request $request, Role $role, ActivityLogger $logger): RedirectResponse
+    {
+        $this->authorize('create', Role::class);
+
+        $copy = Role::create([
+            'key' => $this->uniqueCopyKey($role->key),
+            'name_ar' => "{$role->name_ar} (نسخة)",
+            'is_system' => false,
+        ]);
+
+        $copy->syncPermissions($role->permissions()->pluck('permissions.id')->all());
+
+        $logger->log(
+            action: 'role.duplicated',
+            userId: $request->user()->id,
+            subject: $copy,
+            changes: ['from_role' => $role->only('id', 'key', 'name_ar'), 'to' => $copy->only('key', 'name_ar')],
+            ip: $request->ip(),
+            userAgent: $request->userAgent(),
+        );
+
+        return redirect()->route('admin.roles.edit', $copy)
+            ->with('status', "اتنسخ دور «{$role->name_ar}» — سمّيه واحفظ.");
+    }
+
+    private function uniqueCopyKey(string $baseKey): string
+    {
+        $key = "{$baseKey}_copy";
+        $suffix = 2;
+
+        while (Role::where('key', $key)->exists()) {
+            $key = "{$baseKey}_copy{$suffix}";
+            $suffix++;
+        }
+
+        return $key;
     }
 
     public function destroy(Request $request, Role $role, ActivityLogger $logger): RedirectResponse

@@ -26,7 +26,6 @@ class RoleRequest extends FormRequest
                 Rule::unique('roles', 'key')->ignore($role?->id),
             ],
             'name_ar' => ['required', 'string', 'max:100'],
-            'assignable_on_tickets' => ['nullable', 'boolean'],
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['integer', 'exists:permissions,id'],
         ];
