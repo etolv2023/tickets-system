@@ -1,0 +1,100 @@
+/* The mobile agenda (_agenda.blade.php) and the desktop/mobile swap.
+
+   A 7-column month grid is unreadable on a phone, so below 60rem the month and
+   week views drop the grid and render a vertical list of full-width day
+   sections instead (CLAUDE.md § 6 — mobile is the primary surface). Only one of
+   the two layouts is ever in view. */
+
+/* Desktop: grid only. */
+.cal-agenda-only {
+    display: none;
+}
+
+@media (max-width: 60rem) {
+    .cal-grid-only {
+        display: none;
+    }
+
+    .cal-agenda-only {
+        display: block;
+    }
+}
+
+.cal-agenda {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+/* Each day is its own surface card, so the eye can tell one day's work from the
+   next without a grid line to lean on. */
+.cal-agenda__day {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background-color: var(--surface);
+    overflow: hidden;
+}
+
+.cal-agenda__day--today {
+    border-color: var(--action);
+}
+
+.cal-agenda__date {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background-color: var(--surface-2);
+    border-block-end: 1px solid var(--border-subtle);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-heavy);
+    color: var(--text);
+}
+
+.cal-agenda__day--today .cal-agenda__day-name {
+    color: var(--action);
+}
+
+/* A running count of the day's items, on its own small ground. */
+.cal-agenda__count {
+    flex: none;
+    min-width: 1.4rem;
+    padding-inline: var(--space-1);
+    text-align: center;
+    border-radius: var(--radius-full);
+    background-color: var(--chip);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-heavy);
+    color: var(--text-muted);
+}
+
+.cal-agenda__holiday {
+    flex: none;
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-medium);
+    color: var(--text-subtle);
+}
+
+.cal-agenda__items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-3);
+}
+
+/* The chips carry full-width rows here, not slivers in a cramped cell — so they
+   get room to breathe: a touch more height and a real hit target. */
+.cal-agenda__items .cal__item,
+.cal-agenda__items .cal__ticket,
+.cal-agenda__items .cal__sla {
+    padding-block: var(--space-2);
+    font-size: var(--text-sm);
+}
+
+.cal-agenda__empty {
+    padding: var(--space-6) var(--space-3);
+    text-align: center;
+    color: var(--text-subtle);
+    font-size: var(--text-sm);
+}

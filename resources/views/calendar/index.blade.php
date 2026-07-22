@@ -26,8 +26,18 @@
 
         @if ($view === 'timeline')
             @include('calendar.partials._timeline')
-        @else
+        @elseif ($view === 'day')
+            {{-- One full-width day — no grid to squeeze it into a column. --}}
             @include('calendar.partials._grid')
+        @else
+            {{-- Month/week: the grid on desktop, a readable agenda on the phone.
+                 Only one is ever visible (calendar-agenda.css). --}}
+            <div class="cal-grid-only">
+                @include('calendar.partials._grid')
+            </div>
+            <div class="cal-agenda-only">
+                @include('calendar.partials._agenda')
+            </div>
         @endif
 
         @include('calendar.partials._legend')
