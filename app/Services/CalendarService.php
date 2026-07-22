@@ -51,7 +51,8 @@ class CalendarService
             ->whereBetween('due_date', [$from->toDateString(), $to->toDateString()])
             ->when($onlyUserId, fn ($q) => $q->where('assignee_id', $onlyUserId))
             ->when($filters['assignee'] ?? null, fn ($q, $v) => $q->where('assignee_id', $v))
-            ->when($filters['side'] ?? null, fn ($q, $v) => $q->where('side', $v))
+            // Categorised by role now (2026-07-24), not the hardcoded side.
+            ->when($filters['role'] ?? null, fn ($q, $v) => $q->where('role_id', $v))
             ->when(
                 ($filters['company'] ?? null) || ($filters['type'] ?? null) || ($filters['priority'] ?? null) || ($filters['status'] ?? null),
                 fn ($q) => $q->whereHas('ticket', fn ($t) => $t
