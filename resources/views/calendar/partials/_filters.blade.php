@@ -41,6 +41,13 @@
         @endforeach
     </select>
 
+    <select name="status" class="select filters__select">
+        <option value="">كل الحالات</option>
+        @foreach (\App\Models\TicketStatusDefinition::options() as $value => $label)
+            <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $label }}</option>
+        @endforeach
+    </select>
+
     <select name="side" class="select filters__select">
         <option value="">كل الجهات</option>
         @foreach ($sides as $value => $label)

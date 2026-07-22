@@ -28,17 +28,56 @@
 }
 
 /* A fixed row height keeps the month a readable rhythm — a tall day must not
-   push every other week down the page. */
+   push every other week down the page. A day with more items than fit shows the
+   first few and a "+N أكثر" link into the day view (_grid caps the count), so a
+   busy day never spills past its cell and breaks the grid. */
 .cal__day {
     display: flex;
     flex-direction: column;
     gap: 3px;
-    /* Was 96px, which fit two chips and clipped the third. A month view whose
-       cells hide half their contents is a month view you cannot trust. */
     height: 132px;
     padding: var(--space-2);
     background-color: var(--surface);
-    overflow-y: auto;
+    /* Clip, don't scroll: the cap + "+N أكثر" link is what handles a full day,
+       so a tiny in-cell scrollbar (unusable on mobile) is never needed. */
+    overflow: hidden;
+}
+
+/* The items sit in one clip region between the fixed day number above and the
+   "+N أكثر" link below, so overflow is bounded to this box, never the cell. */
+.cal__body {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Pinned under the items — always visible, never scrolled away. */
+.cal__more {
+    flex-shrink: 0;
+    margin-block-start: 2px;
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-heavy);
+    color: var(--action);
+    text-align: center;
+    text-decoration: none;
+}
+
+.cal__more:hover {
+    text-decoration: underline;
+}
+
+/* The day view is a single column, not a month grid — let it grow and show
+   everything (no cap in _grid), so the one day you asked for is never clipped. */
+.cal__day--full {
+    height: auto;
+    min-height: 132px;
+}
+
+.cal__day--full .cal__body {
+    overflow: visible;
 }
 
 /* Days outside the month are context, not content. */
@@ -151,7 +190,13 @@
 }
 
 @media (max-width: 60rem) {
+    /* Tall enough for the capped four chips plus the "+N أكثر" link, so the
+       count the link shows matches what the cell actually hid. */
     .cal__day {
-        height: 5.5rem;
+        height: 8rem;
+    }
+
+    .cal__day--full {
+        height: auto;
     }
 }
