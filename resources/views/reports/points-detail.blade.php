@@ -144,9 +144,9 @@
 
                                 <td>{{ $row->side?->label() ?? $row->role?->name_ar ?? '—' }}</td>
 
-                                {{-- Where the number came from: a matrix rule, or a
-                                     person who typed it. The second kind needs a name
-                                     against it. --}}
+                                {{-- Where the number came from: an automatic award,
+                                     or a person who typed a correction. The second
+                                     kind needs a name against it. --}}
                                 <td>
                                     @if ($row->type === 'correction')
                                         <x-badge variant="amber" class="badge--sm">تصحيح يدوي</x-badge>

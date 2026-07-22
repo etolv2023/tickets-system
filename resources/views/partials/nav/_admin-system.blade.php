@@ -28,10 +28,10 @@
 @endcan
 
 @can('points.rules.manage')
-    <a href="{{ route('admin.point-rules.index') }}" class="nav__link" title="مصفوفة النقاط"
+    <a href="{{ route('admin.point-rules.index') }}" class="nav__link" title="تصحيحات النقاط"
        @if (request()->routeIs('admin.point-rules.*')) aria-current="page" @endif>
         <x-icon name="grid" class="nav__icon" />
-        <span class="nav__label">مصفوفة النقاط</span>
+        <span class="nav__label">تصحيحات النقاط</span>
     </a>
 @endcan
 

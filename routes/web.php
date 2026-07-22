@@ -223,7 +223,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('admin')->name('admin.')->group(function () {
-        // F18 — the points matrix. points.rules.manage is admin-only.
+        // F18 — the points correction ledger. points.rules.manage is admin-only.
         Route::middleware('permission:points.rules.manage')->group(function () {
             Route::get('point-rules', [PointRuleController::class, 'index'])->name('point-rules.index');
             Route::post('point-rules/corrections', [PointRuleController::class, 'storeCorrection'])

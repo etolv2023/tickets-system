@@ -44,7 +44,7 @@ use Illuminate\Support\Facades\Schema;
  *   - period comes from resolved_at, not now(): a ticket resolved in March and
  *     stamped in April belongs to March's bonus.
  *   - Editing a subtask's points after it was paid is NOT retrospective — the
- *     ledger keeps what it paid, same as editing the matrix never was.
+ *     ledger keeps what it paid.
  *   - The same person on frontend AND backend earns two separate rows. Intended.
  *   - A subtask with no assignee, zero points, or side 'other' earns nothing —
  *     never an exception. Manual corrections (PointCorrectionService) are the
