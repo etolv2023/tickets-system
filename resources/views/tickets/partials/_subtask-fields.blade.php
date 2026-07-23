@@ -23,13 +23,10 @@
             </select>
         </x-field>
 
-        {{-- The subtask's role is set by the distribution now, not edited here
-             (2026-07-23): role lives on the ticket (who's assigned), and points
-             are a flat point per subtask — so a role picker on every subtask was
-             noise. It's carried as a hidden value so an auto-created subtask
-             keeps the role its per-role finish gate (F07) and reports rely on;
-             the edit form just doesn't expose it. --}}
-        <input type="hidden" name="role_id" value="{{ old('role_id', $subtask?->role_id) }}">
+        {{-- The role picker is gone (2026-07-23): a subtask's role follows its
+             owner and is set server-side (SubtaskService), so it can't drift
+             from who's actually doing the work. No field here — the assignee
+             above is the single input that decides both. --}}
 
         <x-field name="status" label="الحالة" :id="$prefix . 'status'">
             <select id="{{ $prefix }}status" name="status" class="select" required x-model="status">
