@@ -23,21 +23,13 @@
             </select>
         </x-field>
 
-        {{-- The subtask's role is its categorisation (2026-07-24): the list is
-             the assignable roles from the DB, not a hardcoded side. Completing a
-             role-tagged subtask pays that role (F18). Optional — a general step
-             can stay uncategorised. --}}
-        <x-field name="role_id" label="الرول" :id="$prefix . 'role'"
-                 hint="النقاط بتتحسب على الرول ده. سيبها «بدون» لو الخطوة عامة.">
-            <select id="{{ $prefix }}role" name="role_id" class="select">
-                <option value="">— بدون —</option>
-                @foreach (($assignableRoles ?? collect()) as $role)
-                    <option value="{{ $role->id }}" @selected((int) old('role_id', $subtask?->role_id) === $role->id)>
-                        {{ $role->name_ar }}
-                    </option>
-                @endforeach
-            </select>
-        </x-field>
+        {{-- The subtask's role is set by the distribution now, not edited here
+             (2026-07-23): role lives on the ticket (who's assigned), and points
+             are a flat point per subtask — so a role picker on every subtask was
+             noise. It's carried as a hidden value so an auto-created subtask
+             keeps the role its per-role finish gate (F07) and reports rely on;
+             the edit form just doesn't expose it. --}}
+        <input type="hidden" name="role_id" value="{{ old('role_id', $subtask?->role_id) }}">
 
         <x-field name="status" label="الحالة" :id="$prefix . 'status'">
             <select id="{{ $prefix }}status" name="status" class="select" required x-model="status">

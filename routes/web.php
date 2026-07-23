@@ -116,6 +116,11 @@ Route::middleware('auth')->group(function () {
     // F06 / F07 / F15 / F16 — everything that moves a ticket.
     Route::prefix('tickets/{ticket}')->name('tickets.')->group(function () {
         Route::post('assign', [TicketWorkflowController::class, 'assign'])->name('assign');
+        // Defensive: a GET to the assign URL (a stale tab, a bookmarked POST
+        // action, a browser prefetch) would otherwise 405. Redirect it back to
+        // the ticket instead of showing an error page. A controller action, not
+        // a closure — closures can't be route:cache'd, and production runs it.
+        Route::get('assign', [TicketWorkflowController::class, 'assignRedirect']);
         Route::post('status', [TicketWorkflowController::class, 'changeStatus'])->name('status.change');
         Route::post('work-logs/{workLog}/start', [TicketWorkflowController::class, 'start'])->name('work.start');
         Route::post('work-logs/{workLog}/finish', [TicketWorkflowController::class, 'finish'])->name('work.finish');

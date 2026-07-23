@@ -49,6 +49,17 @@ class TicketWorkflowController extends Controller
         return back()->with('status', 'تم التوزيع.');
     }
 
+    /**
+     * A GET on the assign URL is never something the app issues — distribution
+     * is the POST above. But a stale tab, a bookmarked action or a browser
+     * prefetch can land here, and a raw 405 page is a bad thing to show for it.
+     * Send them back to the ticket instead.
+     */
+    public function assignRedirect(Ticket $ticket): RedirectResponse
+    {
+        return redirect()->route('tickets.show', $ticket);
+    }
+
     public function start(Request $request, Ticket $ticket, TicketWorkLog $workLog): RedirectResponse
     {
         $this->authorizeLog($request, $ticket, $workLog);
