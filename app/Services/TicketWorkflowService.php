@@ -232,7 +232,7 @@ class TicketWorkflowService
      *
      * @param  array<int, int|null>  $roleAssignments  role_id => user_id (null = unassign)
      */
-    public function assign(Ticket $ticket, array $roleAssignments, int $actorId): Ticket
+    public function assign(Ticket $ticket, array $roleAssignments, int $actorId, bool $seedStarters = true): Ticket
     {
         // A feature can't be worked on before it's approved — the Policy blocks
         // the button, and this blocks everything else. F15
@@ -240,8 +240,8 @@ class TicketWorkflowService
             throw new DomainException('الفيتشر لازم توافق عليه الأول قبل ما يتوزع.');
         }
 
-        return DB::transaction(function () use ($ticket, $roleAssignments, $actorId) {
-            $this->assignRoles($ticket, $roleAssignments, $actorId);
+        return DB::transaction(function () use ($ticket, $roleAssignments, $actorId, $seedStarters) {
+            $this->assignRoles($ticket, $roleAssignments, $actorId, $seedStarters);
 
             if ($ticket->status === TicketStatusValue::for('new') || $ticket->status === TicketStatusValue::for('pending_approval')) {
                 $this->transition($ticket, TicketStatusValue::for('assigned'), $actorId, 'تم التوزيع');
@@ -259,9 +259,13 @@ class TicketWorkflowService
      * every role (F18), which is exactly what made the old devops participation
      * special-case unnecessary.
      *
+     * $seedStarters is the F06.3 auto-starter switch: normally true, but the
+     * create page turns it off when the user hand-wrote a subtask plan — their
+     * list is the whole plan, so the system adds none on top of it.
+     *
      * @param  array<int, int|null>  $roleAssignments  role_id => user_id
      */
-    private function assignRoles(Ticket $ticket, array $roleAssignments, int $actorId): void
+    private function assignRoles(Ticket $ticket, array $roleAssignments, int $actorId, bool $seedStarters = true): void
     {
         if ($roleAssignments === []) {
             return;
@@ -325,14 +329,50 @@ class TicketWorkflowService
 
             // First assignment for this role only — a hand-off to someone else
             // never repeats it (F06.3). The starter means a newly-assigned role
-            // is never an empty list, and gives F18 something to pay.
-            if ($before === null && ! $ticket->subtasks()->where('role_id', $roleId)->exists()) {
+            // is never an empty list, and gives F18 something to pay. Skipped
+            // entirely when the user supplied their own subtask plan.
+            if ($seedStarters && $before === null && ! $ticket->subtasks()->where('role_id', $roleId)->exists()) {
                 $this->subtasks->create($ticket, [
                     'title' => $ticket->title,
                     'assignee_id' => $userId,
                     'role_id' => $roleId,
                 ], $actorId);
             }
+        }
+    }
+
+    /**
+     * F15: save the distribution the user picked at creation for a ticket that
+     * still needs approval. The choice is persisted as ticket_role_assignments
+     * rows so it isn't lost, but NOTHING acts on it yet — no starter subtask, no
+     * work log, no notification, and the status stays pending_approval. approve()
+     * activates these rows the moment the ticket is approved.
+     *
+     * @param  array<int, int|null>  $roleAssignments  role_id => user_id
+     */
+    public function planAssignments(Ticket $ticket, array $roleAssignments, int $actorId): void
+    {
+        $roleAssignments = array_filter($roleAssignments, fn ($v) => filled($v));
+
+        if ($roleAssignments === []) {
+            return;
+        }
+
+        $assignable = Role::query()->assignableOnTickets()
+            ->whereIn('id', array_keys($roleAssignments))
+            ->pluck('id');
+
+        foreach ($roleAssignments as $roleId => $userId) {
+            // Never plan a role nobody opted into assignment — same guard the
+            // live path uses, so a stale id can't sneak in as a plan row.
+            if (! $assignable->contains($roleId)) {
+                continue;
+            }
+
+            TicketRoleAssignment::updateOrCreate(
+                ['ticket_id' => $ticket->id, 'role_id' => $roleId],
+                ['user_id' => $userId]
+            );
         }
     }
 
@@ -597,34 +637,51 @@ class TicketWorkflowService
     /** F15 */
     public function approve(Ticket $ticket, int $adminId): Ticket
     {
-        $from = $ticket->status;
+        return DB::transaction(function () use ($ticket, $adminId) {
+            $from = $ticket->status;
 
-        // Approval also advances the status OUT of pending_approval (2026-07-21).
-        // It used to only flip approval_status and leave the status where it was,
-        // so an approved-but-unassigned ticket kept the «بانتظار الموافقة» badge —
-        // it read as still-pending, was gone from the approvals queue (correctly,
-        // it's approved), and wasn't assigned to anyone: an invisible limbo. It
-        // lands on 'new' — approved, ready to be assigned, exactly like a
-        // non-approval ticket before assignment. assign() then takes new →
-        // assigned as usual.
-        $advancing = $from->value === 'pending_approval';
-        $to = $advancing ? TicketStatusValue::for('new') : $from;
+            // Approval also advances the status OUT of pending_approval (2026-07-21).
+            // It used to only flip approval_status and leave the status where it was,
+            // so an approved-but-unassigned ticket kept the «بانتظار الموافقة» badge —
+            // it read as still-pending, was gone from the approvals queue (correctly,
+            // it's approved), and wasn't assigned to anyone: an invisible limbo. It
+            // lands on 'new' — approved, ready to be assigned, exactly like a
+            // non-approval ticket before assignment. assign() then takes new →
+            // assigned as usual.
+            $advancing = $from->value === 'pending_approval';
+            $to = $advancing ? TicketStatusValue::for('new') : $from;
 
-        $ticket->update([
-            'approval_status' => 'approved',
-            'approved_by' => $adminId,
-            'approved_at' => now(),
-            'status' => $to,
-        ]);
+            $ticket->update([
+                'approval_status' => 'approved',
+                'approved_by' => $adminId,
+                'approved_at' => now(),
+                'status' => $to,
+            ]);
 
-        $ticket->statusHistory()->create([
-            'from_status' => $from->value,
-            'to_status' => $to->value,
-            'user_id' => $adminId,
-            'note' => 'تمت الموافقة',
-        ]);
+            $ticket->statusHistory()->create([
+                'from_status' => $from->value,
+                'to_status' => $to->value,
+                'user_id' => $adminId,
+                'note' => 'تمت الموافقة',
+            ]);
 
-        return $ticket;
+            // F15/F06.3: activate the distribution the creator saved (planAssignments).
+            // The plan rows carried no side effects while pending; now that work can
+            // legally begin, run them through assign() so each role gets its work log,
+            // notification, starter subtask and the ticket moves to «موزّعة». Deleting
+            // the plan rows first makes assign() see a first assignment for each and
+            // apply the full effect. Starters are suppressed if the creator also
+            // hand-wrote subtasks (their plan wins, same rule as a normal ticket).
+            $planned = $ticket->roleAssignments()->pluck('user_id', 'role_id')->all();
+
+            if ($planned !== []) {
+                $seedStarters = ! $ticket->subtasks()->exists();
+                $ticket->roleAssignments()->delete();
+                $this->assign($ticket->refresh(), $planned, $adminId, $seedStarters);
+            }
+
+            return $ticket->refresh();
+        });
     }
 
     /** F15: a rejected ticket earns nobody anything. */

@@ -120,16 +120,19 @@ class TicketController extends Controller
     }
 
     /**
-     * The create-page distribution block reuses TicketWorkflowService::assign()
-     * as-is — same starter-subtask behaviour as assigning from the ticket page
-     * (F06.3), no separate code path. A feature/module ticket starts
-     * pending_approval and assign() refuses it before approval (F15); the
-     * fields are simply ignored for those until someone approves and assigns
-     * from the ticket page instead.
+     * The create-page distribution block. A normal ticket is assigned live and
+     * seeds a starter subtask per role (F06.3). A feature/module ticket starts
+     * pending_approval, so its distribution is SAVED as a plan (planAssignments,
+     * F15) and activated the moment it's approved — the choice is no longer lost.
+     *
+     * Either way, if the user hand-wrote subtasks above, the auto starters are
+     * suppressed: their plan is the whole plan (seedStarters=false). For an
+     * approval ticket that decision is re-made at approval time from the
+     * subtasks that survive, so it's not passed here.
      */
     private function assignAtCreation(Ticket $ticket, StoreTicketRequest $request): void
     {
-        if (! auth()->user()->hasPermission('tickets.assign') || $ticket->type->needsApproval()) {
+        if (! auth()->user()->hasPermission('tickets.assign')) {
             return;
         }
 
@@ -139,7 +142,15 @@ class TicketController extends Controller
             return;
         }
 
-        $this->workflow->assign($ticket, $roleAssignments, $request->user()->id);
+        if ($ticket->type->needsApproval()) {
+            $this->workflow->planAssignments($ticket, $roleAssignments, $request->user()->id);
+
+            return;
+        }
+
+        $seedStarters = empty($request->validated('subtasks'));
+
+        $this->workflow->assign($ticket, $roleAssignments, $request->user()->id, $seedStarters);
     }
 
     /**
