@@ -26,12 +26,22 @@ class AttachmentController extends Controller
     {
         $this->authorizeAttachment($request, $attachment);
 
-        return response()
+        $response = response()
             ->download(
                 $this->attachments->path($attachment->stored_name),
                 $attachment->original_name,
                 $this->hardenedHeaders($attachment->mime_type),
             );
+
+        // This one was leaving as a bare `Cache-Control: public` — no lifetime,
+        // but storable by any shared cache all the same, and it is the route
+        // that serves the ORIGINAL file rather than a thumbnail we re-encoded.
+        // A download is fetched once and saved to disk, so there is nothing to
+        // gain from caching it and one obvious thing to lose.
+        $response->setPrivate();
+        $response->headers->set('Cache-Control', 'private, no-store');
+
+        return $response;
     }
 
     /**
@@ -44,10 +54,10 @@ class AttachmentController extends Controller
 
         abort_unless($attachment->isImage() && $attachment->thumbnail_name !== null, 404);
 
-        return response()->file(
+        return $this->privatelyCached(response()->file(
             $this->attachments->path($attachment->thumbnail_name),
-            $this->hardenedHeaders($attachment->mime_type) + ['Cache-Control' => 'private, max-age=3600'],
-        );
+            $this->hardenedHeaders($attachment->mime_type),
+        ));
     }
 
     /** Full-size image for the lightbox, still behind the same authorisation. */
@@ -57,10 +67,34 @@ class AttachmentController extends Controller
 
         abort_unless($attachment->isImage(), 404);
 
-        return response()->file(
+        return $this->privatelyCached(response()->file(
             $this->attachments->path($attachment->stored_name),
-            $this->hardenedHeaders($attachment->mime_type) + ['Cache-Control' => 'private, max-age=3600'],
-        );
+            $this->hardenedHeaders($attachment->mime_type),
+        ));
+    }
+
+    /**
+     * An hour in THIS browser's cache and nowhere else.
+     *
+     * ★ (2026-08-03) Both image routes used to pass
+     * `'Cache-Control' => 'private, max-age=3600'` in the headers array. That
+     * does not survive: Symfony re-computes the directive list from the parsed
+     * header, and what actually left the server was `max-age=3600, PUBLIC` —
+     * verified against the running app, not read off the code. So every file in
+     * storage/app/private was, for an hour, storable by any shared cache or
+     * proxy between us and the user, with the authorisation check already behind
+     * it. Harmless while these urls only appeared inside a ticket's gallery;
+     * less so now that a board of 100 cards emits 100 of them.
+     *
+     * setPrivate()/setMaxAge() go through the same normalisation instead of
+     * fighting it, and emit `max-age=3600, private`.
+     */
+    private function privatelyCached(BinaryFileResponse $response): BinaryFileResponse
+    {
+        $response->setPrivate();
+        $response->setMaxAge(3600);
+
+        return $response;
     }
 
     private function authorizeAttachment(Request $request, TicketAttachment $attachment): void

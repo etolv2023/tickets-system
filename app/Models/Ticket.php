@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -307,6 +308,28 @@ class Ticket extends Model
     public function bodyAttachments(): HasMany
     {
         return $this->attachments()->whereNull('comment_id');
+    }
+
+    /**
+     * The one image a board card shows — the first picture attached to the
+     * ticket itself.
+     *
+     * ofMany() rather than "load them all and take the first": it resolves to a
+     * single subquery-joined row per ticket, so a 300-card board still costs one
+     * query and returns 300 rows, not every image on every ticket.
+     *
+     * Comment attachments are excluded on purpose. A screenshot somebody pasted
+     * halfway down a thread is a reply, not what the ticket is about; the cover
+     * should be the picture the reporter opened with. thumbnail_name is only
+     * ever written for images (AttachmentService), so it doubles as the
+     * is-an-image test and guarantees there is something small to serve.
+     */
+    public function coverImage(): HasOne
+    {
+        return $this->hasOne(TicketAttachment::class)->ofMany(
+            ['id' => 'min'],
+            fn (Builder $query) => $query->whereNull('comment_id')->whereNotNull('thumbnail_name'),
+        );
     }
 
     /**

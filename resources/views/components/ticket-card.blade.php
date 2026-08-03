@@ -22,6 +22,21 @@
          data-drop-columns="{{ implode(' ', $drops) }}">
     <x-priority-stripe :priority="$ticket->priority" />
 
+    {{-- The ticket's first picture, so a board of bug reports can be read by
+         eye. Full-bleed to the top and end edges but stopping at the priority
+         stripe, which still runs the whole height — the stripe is how priority
+         is read, and a banner across it would cut that signal in half.
+
+         The thumbnail, never the original: AttachmentService writes a 320px
+         copy at upload, and a board is the last place to send a 4MB photo.
+         Rendered only when the relation was eager-loaded, like the subtask
+         accordion below — a caller that didn't load it gets a card with no
+         cover rather than a query per card. --}}
+    @if ($ticket->relationLoaded('coverImage') && $ticket->coverImage)
+        <img class="tcard__cover" src="{{ route('attachments.thumb', $ticket->coverImage) }}"
+             alt="" loading="lazy" decoding="async">
+    @endif
+
     <div class="tcard__top">
         {{-- Only the grip starts a drag, so the title link, the status select,
              the accordion and the بدأت / خلصت buttons all still work. --}}

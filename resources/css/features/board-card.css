@@ -25,6 +25,46 @@
     box-shadow: var(--shadow-sm);
 }
 
+/* Cover image (2026-08-03) — the ticket's first picture, so a column of bug
+   reports is scannable by eye instead of by reading nine titles.
+
+   Full-bleed by negative margins rather than by taking the padding off .tcard:
+   the card's own padding is what every other row inside it is aligned to. The
+   inline-start margin is -(--space-3) while the card's start padding is
+   (--stripe-width + --space-3), so the image lands exactly ON the stripe's
+   outer edge and the stripe stays whole from top to bottom.
+
+   .tcard needs overflow:hidden for the card's own radius to clip the top-end
+   corner — that is why the radius isn't restated here, and why it stays right
+   in both directions without a single physical property. */
+.tcard {
+    overflow: hidden;
+
+    /* .board__list is a flex column with max-height: 28rem and overflow-y:auto,
+       and a flex item shrinks before its container scrolls. So a full column
+       squeezed 17 cards into 26px each instead of scrolling — the exact
+       opposite of what board.css's height bound was written to do. It was
+       already happening; it just used to be invisible, because the content
+       spilled out of the squashed box and each card LOOKED full height while
+       overlapping its neighbour. overflow:hidden above stopped the spill and
+       showed it for what it was. This is the actual fix: cards keep their
+       height, the column scrolls. */
+    flex-shrink: 0;
+}
+
+.tcard__cover {
+    display: block;
+    margin-block-start: calc(var(--space-3) * -1);
+    margin-inline: calc(var(--space-3) * -1);
+    /* A letterbox, not the thumbnail's own shape: cards in a column must be
+       the same height whatever anyone happened to upload. */
+    aspect-ratio: 16 / 7;
+    object-fit: cover;
+    /* Held until the image decodes, so the card doesn't flash a hole. */
+    background-color: var(--surface-2);
+    border-block-end: 1px solid var(--border-subtle);
+}
+
 /* Reversed so the type badge leads and the id trails, matching every other
    ticket surface in the app. The markup order serves the screen reader. */
 .tcard__top {

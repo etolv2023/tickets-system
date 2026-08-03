@@ -185,6 +185,13 @@ class BoardController extends Controller
                 'company:id,name', 'requester:id,name',
                 'workLogs:id,ticket_id,user_id,role_id,status', 'workLogs.role:id,name_ar',
                 'subtasks' => fn ($q) => $q->select(self::subtaskColumns()),
+                // One subquery-joined row per ticket, not every image on every
+                // ticket. Loaded whole rather than with a column list: a
+                // one-of-many relation joins the table to itself under an
+                // alias, and a bare column list there is ambiguity waiting to
+                // happen — the row is four short strings, so there is nothing
+                // to win by trimming it.
+                'coverImage',
                 // ★ (2026-08-03) Not for display — the card shows no assignee.
                 // Ticket::isAssignee() reads this relation when it is loaded and
                 // otherwise runs an exists() query, and TicketPolicy::view()
@@ -260,6 +267,13 @@ class BoardController extends Controller
                 'workLogs:id,ticket_id,user_id,role_id,status', 'workLogs.role:id,name_ar',
                 'incomingLinks.fromTicket:id,status',
                 'subtasks' => fn ($q) => $q->select(self::subtaskColumns()),
+                // One subquery-joined row per ticket, not every image on every
+                // ticket. Loaded whole rather than with a column list: a
+                // one-of-many relation joins the table to itself under an
+                // alias, and a bare column list there is ambiguity waiting to
+                // happen — the row is four short strings, so there is nothing
+                // to win by trimming it.
+                'coverImage',
             ])
             // Only the assignee lane reads it — assigneeOf() takes the ticket's
             // first role assignment as the swimlane owner. Loading assignees
