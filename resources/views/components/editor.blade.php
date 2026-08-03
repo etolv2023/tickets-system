@@ -25,6 +25,12 @@
 >
     <div x-ref="editor"></div>
     <input type="hidden" name="{{ $name }}" x-ref="input" value="{{ $current }}">
+
+    {{-- Says where a pasted image went. Without it the paste looks like it did
+         nothing: the picture is not in the text, and the attachment list is
+         further down the page than the eye follows. --}}
+    <p class="editor__notice" x-show="notice" x-text="notice" x-cloak
+       role="status" aria-live="polite"></p>
 </div>
 
 @error($name)

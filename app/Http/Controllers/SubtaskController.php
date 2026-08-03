@@ -55,6 +55,20 @@ class SubtaskController extends Controller
             unset($data['points']);
         }
 
+        // ★ (2026-08-02) Handing the subtask to someone else is its own
+        // permission — it moves who F18 pays. Dropped silently rather than
+        // rejected, same as points above: the form still saves everything the
+        // user was allowed to change, and the owner field is hidden from them
+        // anyway, so a value here means a hand-edited request.
+        if (array_key_exists('assignee_id', $data)
+            && (int) $data['assignee_id'] !== (int) $subtask->assignee_id
+            && ! $request->user()->can('reassign', [$subtask, $ticket])) {
+            // role_id goes with it: a subtask's role follows its owner
+            // (SubtaskService::roleFollowsAssignee), so letting one through
+            // without the other is how the two drift apart.
+            unset($data['assignee_id'], $data['role_id']);
+        }
+
         $this->subtasks->update($subtask, $data);
 
         if ($subtask->assignee_id !== null && $subtask->assignee_id !== $before) {

@@ -14,6 +14,12 @@ class QueueController extends Controller
     {
         abort_unless($request->user()->hasPermission('features.approve'), 403);
 
+        // ★ (2026-08-02) Same people filter as the tickets list: on a queue of
+        // pending features, "whose is this?" is the question an approver asks
+        // most, and the three ways someone is attached to a ticket (holds a
+        // role, opened it, owns a subtask on it) are exactly as different here.
+        $filters = $request->only('assignee', 'relation');
+
         return view('queues.approvals', [
             'tickets' => Ticket::query()
                 ->select([
@@ -26,8 +32,15 @@ class QueueController extends Controller
                 ->selectRaw('LEFT(description, 1000) AS description_excerpt')
                 ->with(['company:id,name', 'requester:id,name', 'creator:id,name,avatar_path,is_active'])
                 ->where('approval_status', 'pending')
+                ->when($filters['assignee'] ?? null,
+                    fn ($q, $v) => $q->involving((int) $v, $filters['relation'] ?? null))
                 ->defaultOrder()
-                ->paginate(25),
+                ->paginate(25)
+                ->withQueryString(),
+            'filters' => $filters,
+            'selectedAssignee' => filled($filters['assignee'] ?? null)
+                ? \App\Models\User::whereKey($filters['assignee'])->value('name')
+                : null,
         ]);
     }
 

@@ -26,7 +26,7 @@ class RoleSeeder extends Seeder
                 'tickets.create', 'tickets.edit', 'tickets.assign', 'tickets.resolve',
                 'tickets.reopen', 'tickets.close', 'tickets.notify_client',
                 'comments.create', 'comments.internal',
-                'subtasks.manage', 'time.log', 'links.manage',
+                'subtasks.manage', 'subtasks.reassign', 'time.log', 'links.manage',
                 'ratings.give', 'ratings.view.all',
                 'points.view.own', 'points.view.all',
                 'reports.view',
@@ -39,7 +39,7 @@ class RoleSeeder extends Seeder
                 'tickets.create', 'tickets.edit', 'tickets.resolve', 'tickets.close',
                 'tickets.notify_client',
                 'comments.create', 'comments.internal',
-                'subtasks.manage', 'time.log', 'links.manage',
+                'subtasks.manage', 'subtasks.reassign', 'time.log', 'links.manage',
                 'points.view.own',
             ],
         ],
@@ -48,7 +48,7 @@ class RoleSeeder extends Seeder
             'permissions' => [
                 'tickets.view.assigned',
                 'comments.create', 'comments.internal',
-                'worklog.manage', 'subtasks.manage', 'time.log', 'links.manage',
+                'worklog.manage', 'subtasks.manage', 'subtasks.reassign', 'time.log', 'links.manage',
                 'points.view.own',
             ],
         ],
@@ -57,7 +57,7 @@ class RoleSeeder extends Seeder
             'permissions' => [
                 'tickets.view.assigned',
                 'comments.create', 'comments.internal',
-                'worklog.manage', 'subtasks.manage', 'time.log', 'links.manage',
+                'worklog.manage', 'subtasks.manage', 'subtasks.reassign', 'time.log', 'links.manage',
                 'points.view.own',
             ],
         ],
@@ -69,7 +69,7 @@ class RoleSeeder extends Seeder
             'permissions' => [
                 'tickets.view.assigned',
                 'comments.create', 'comments.internal',
-                'subtasks.manage', 'time.log', 'links.manage',
+                'subtasks.manage', 'subtasks.reassign', 'time.log', 'links.manage',
                 'points.view.own',
             ],
         ],
@@ -78,7 +78,7 @@ class RoleSeeder extends Seeder
             'permissions' => [
                 'tickets.view.assigned', 'tickets.resolve', 'tickets.reopen',
                 'comments.create', 'comments.internal',
-                'subtasks.manage', 'time.log',
+                'subtasks.manage', 'subtasks.reassign', 'time.log',
                 'points.view.own',
             ],
         ],

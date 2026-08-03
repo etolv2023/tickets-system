@@ -12,16 +12,35 @@
     <x-field :name="'title'" label="العنوان" :value="$subtask?->title" required :id="$prefix . 'title'" />
 
     <div class="form-grid">
-        <x-field name="assignee_id" label="المسؤول" :id="$prefix . 'assignee'">
-            <select id="{{ $prefix }}assignee" name="assignee_id" class="select">
-                <option value="">— مش مسندة —</option>
-                @foreach ($assignableAll as $person)
-                    <option value="{{ $person->id }}" @selected((int) old('assignee_id', $subtask?->assignee_id) === $person->id)>
-                        {{ $person->name }}
-                    </option>
-                @endforeach
-            </select>
-        </x-field>
+        @php
+            // ★ (2026-08-02) Moving a subtask to someone else is its own
+            // permission — it moves who gets paid for it. A new subtask is never
+            // a "move", so the picker always shows while creating.
+            $mayReassign = $subtask === null
+                || auth()->user()->can('reassign', [$subtask, $ticket]);
+        @endphp
+
+        @if ($mayReassign)
+            <x-field name="assignee_id" label="المسؤول" :id="$prefix . 'assignee'">
+                <select id="{{ $prefix }}assignee" name="assignee_id" class="select">
+                    <option value="">— مش مسندة —</option>
+                    @foreach ($assignableAll as $person)
+                        <option value="{{ $person->id }}" @selected((int) old('assignee_id', $subtask?->assignee_id) === $person->id)>
+                            {{ $person->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </x-field>
+        @else
+            {{-- Shown, not hidden: the owner is a fact about the subtask you are
+                 editing, and a field that vanishes reads as a bug. Locked, with
+                 the reason, is the honest version. --}}
+            <x-field name="assignee_locked" label="المسؤول" :id="$prefix . 'assignee-locked'"
+                     hint="نقل الصب تاسك لشخص تاني محتاج صلاحية.">
+                <input id="{{ $prefix }}assignee-locked" class="input input--locked" type="text" readonly
+                       value="{{ $subtask->assignee?->name ?? 'مش مسندة' }}">
+            </x-field>
+        @endif
 
         {{-- The role picker is gone (2026-07-23): a subtask's role follows its
              owner and is set server-side (SubtaskService), so it can't drift

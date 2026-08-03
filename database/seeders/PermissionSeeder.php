@@ -39,6 +39,16 @@ class PermissionSeeder extends Seeder
             // a named person's exception (permission_user), not a job title's
             // property, exactly like system.backup below.
             'subtasks.manage.any' => 'التحكم في صب تاسكس الآخرين',
+            // ★ (2026-08-02) Handing a subtask to somebody else, or deleting it,
+            // split out of subtasks.manage. Editing your own step is planning;
+            // moving the work off yourself — or removing the record that it
+            // existed — changes who gets paid for it (F18), which is a different
+            // kind of decision and now a separately revocable one.
+            //
+            // Seeded to every role that already held subtasks.manage, so nothing
+            // anyone could do yesterday stops working. The point is that it can
+            // now be taken away from ONE person without touching the rest.
+            'subtasks.reassign' => 'نقل الصب تاسك لشخص تاني أو حذفها',
             'time.log' => 'تسجيل الوقت',
             'links.manage' => 'ربط التذاكر ببعضها',
             'features.approve' => 'الموافقة على الفيتشرات والموديولات',

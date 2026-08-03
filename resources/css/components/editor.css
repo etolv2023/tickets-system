@@ -19,6 +19,17 @@
     border-color: var(--border-strong);
 }
 
+/* Where a pasted image went. Sits inside the editor's border as a footer strip
+   so it reads as this control talking about itself, not a page-level alert. */
+.editor__notice {
+    padding-block: var(--space-2);
+    padding-inline: var(--space-4);
+    border-block-start: 1px solid var(--border-subtle);
+    background-color: var(--surface-2);
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+}
+
 /* ---- Toolbar ---- */
 
 .editor .ql-toolbar.ql-snow {
@@ -136,7 +147,11 @@
 }
 
 .editor .ql-editor {
-    min-height: 8rem;
+    /* ★ (2026-08-02) 8rem is about three lines — it read as an afterthought
+       next to the single-line title above it, on the field that carries the
+       whole problem statement. It grows past this as you type; the floor just
+       has to look like somewhere you're expected to write more than a sentence. */
+    min-height: 13rem;
     padding: var(--space-4);
     color: var(--text);
     line-height: var(--leading-relaxed);

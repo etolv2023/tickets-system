@@ -18,21 +18,43 @@
                      reason cleared, which only the full edit form can do, and
                      a select without a "blocked" option would silently show
                      the wrong value. --}}
-                @can('update', [$subtask, $ticket])
-                    @if (! $subtask->status->needsReason())
-                        <select class="select select--sm" aria-label="حالة الصب تاسك"
-                                data-subtask-status="{{ route('subtasks.status', $subtask) }}"
-                                data-current="{{ $subtask->status->value }}">
-                            @foreach (\App\Models\SubtaskStatusDefinition::quickChangeKeys() as $optionKey)
-                                <option value="{{ $optionKey }}" @selected($subtask->status->value === $optionKey)>{{ \App\Casts\SubtaskStatusValue::for($optionKey)->label() }}</option>
-                            @endforeach
-                        </select>
-                    @else
-                        <x-badge :variant="$subtask->status->variant()">{{ $subtask->status->label() }}</x-badge>
-                    @endif
-                @else
+                @php
+                    $quick = \App\Models\SubtaskStatusDefinition::quickChangeKeys();
+                    // Covers two cases at once: a reason-requiring status (never
+                    // quick-changeable), and a status whose definition an admin
+                    // deleted — a select with no matching option would silently
+                    // display the FIRST status instead of the real one.
+                    $asBadge = ! in_array($subtask->status->value, $quick, true);
+                @endphp
+
+                @if ($asBadge)
                     <x-badge :variant="$subtask->status->variant()">{{ $subtask->status->label() }}</x-badge>
-                @endcan
+                @else
+                    @php $mayChange = auth()->user()->can('update', [$subtask, $ticket]); @endphp
+
+                    {{-- ★ (2026-08-02) Someone else's subtask shows the SAME
+                         control, disabled — not a badge.
+
+                         On a ticket several roles share, swapping the control
+                         out for a badge made the rows look like two different
+                         kinds of thing, and you couldn't tell "this isn't mine"
+                         from "this one can't be changed at all". One control in
+                         two states says both: the status is readable in the
+                         same place on every row, and the greyed box says whose
+                         it is without a word of explanation. --}}
+                    <select class="select select--sm" aria-label="حالة الصب تاسك"
+                            @disabled(! $mayChange)
+                            @if ($mayChange)
+                                data-subtask-status="{{ route('subtasks.status', $subtask) }}"
+                                data-current="{{ $subtask->status->value }}"
+                            @else
+                                title="{{ $subtask->assignee ? "الصب تاسك دي بتاعة {$subtask->assignee->name}" : 'مش من حقك تغيّر الصب تاسك دي' }}"
+                            @endif>
+                        @foreach ($quick as $optionKey)
+                            <option value="{{ $optionKey }}" @selected($subtask->status->value === $optionKey)>{{ \App\Casts\SubtaskStatusValue::for($optionKey)->label() }}</option>
+                        @endforeach
+                    </select>
+                @endif
 
                 {{-- A subtask is categorised by its role now (2026-07-24); an
                      untagged one is general work. --}}
@@ -106,12 +128,17 @@
             <div class="row">
                 <x-button variant="ghost" size="sm" type="button" @click="editing = true">تعديل</x-button>
 
-                <form method="POST" action="{{ route('tickets.subtasks.destroy', [$ticket, $subtask]) }}"
-                      onsubmit="return confirm('متأكد إنك عايز تحذف «{{ $subtask->title }}»؟')">
-                    @csrf
-                    @method('DELETE')
-                    <x-button variant="ghost" size="sm">حذف</x-button>
-                </form>
+                {{-- Its own permission since 2026-08-02: deleting destroys the
+                     record F18 would have paid on, which is not the same act as
+                     editing your own step. --}}
+                @can('delete', [$subtask, $ticket])
+                    <form method="POST" action="{{ route('tickets.subtasks.destroy', [$ticket, $subtask]) }}"
+                          onsubmit="return confirm('متأكد إنك عايز تحذف «{{ $subtask->title }}»؟')">
+                        @csrf
+                        @method('DELETE')
+                        <x-button variant="ghost" size="sm">حذف</x-button>
+                    </form>
+                @endcan
             </div>
         </div>
     @endcan

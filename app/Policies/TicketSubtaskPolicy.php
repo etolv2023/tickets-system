@@ -56,9 +56,36 @@ class TicketSubtaskPolicy
             && ! $ticket->isLocked();
     }
 
+    /**
+     * ★ (2026-08-02) Deleting is not the same act as editing, so it stopped
+     * riding on update().
+     *
+     * Changing your subtask's status or its title is planning your own work.
+     * Removing it destroys the only record that the work was ever asked for —
+     * and with it the row F18 would have paid on. Same for handing it to
+     * somebody else (reassign() below): both change WHO gets paid, which is a
+     * different decision from how the work is going.
+     *
+     * Seeded to every role that already had subtasks.manage, so this changes
+     * nothing on day one. What it buys is the ability to take it off one person
+     * through the per-user overrides, without also taking away their ability to
+     * work.
+     */
     public function delete(User $user, TicketSubtask $subtask, ?\App\Models\Ticket $ticket = null): bool
     {
-        return $this->update($user, $subtask, $ticket);
+        return $this->update($user, $subtask, $ticket)
+            && $user->hasPermission('subtasks.reassign');
+    }
+
+    /**
+     * Moving a subtask from one person to another. Checked by SubtaskController
+     * only when assignee_id actually changes — editing your own subtask without
+     * touching its owner never needs this.
+     */
+    public function reassign(User $user, TicketSubtask $subtask, ?\App\Models\Ticket $ticket = null): bool
+    {
+        return $this->update($user, $subtask, $ticket)
+            && $user->hasPermission('subtasks.reassign');
     }
 
     /**

@@ -66,6 +66,9 @@ class PortalController extends Controller
 
             return view('portal.show', [
                 'ticket' => $ticket,
+                // F24 again: the description can now carry inline images, and a
+                // ticket-level attachment is not correspondence.
+                'descriptionForPortal' => $this->attachments->stripInlineImagesForPortal($ticket->description),
                 'comments' => $comments,
                 'uploadAccept' => $upload['accept'],
                 'uploadHint' => $upload['hint'],

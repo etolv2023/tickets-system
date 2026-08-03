@@ -23,6 +23,39 @@
     }
 }
 
+/* Distribution rows. Role and person are one decision in two controls, so they
+   share a row and the remove button hangs off the end — same shape as a subtask
+   row below, because they are the same kind of thing: a list you build up. */
+.assign {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+}
+
+.assign__row {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    inline-size: 100%;
+}
+
+.assign__field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    flex: 1 1 9rem;
+    min-inline-size: 0;
+}
+
+/* Says the empty state is deliberate, not a form that failed to load. */
+.assign__empty {
+    font-size: var(--text-sm);
+    color: var(--text-subtle);
+    padding-block: var(--space-2);
+}
+
 /* The optional inline subtask plan on the create form. Rows wrap on a narrow
    screen instead of pushing the remove button off the edge. */
 .repeater {

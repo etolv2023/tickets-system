@@ -109,12 +109,40 @@
         @isset($assignable)
             {{-- One Alpine scope around both blocks: the subtask repeater has to
                  react to the distribution above it, because a row's owner can
-                 only be someone this ticket is actually being assigned to. --}}
+                 only be someone this ticket is actually being assigned to.
+
+                 `assignments` is derived from the rows rather than stored, so the
+                 repeater can't drift out of sync with what was actually picked —
+                 there is one source of truth and it is the rows. --}}
             <div x-data="{
-                     assignments: @js((object) old('role_assignments', [])),
-                     roleNames: @js($assignable['roles']->mapWithKeys(fn ($e) => [$e['role']->id => $e['role']->name_ar])),
+                     roles: @js($assignable['roles']->map(fn ($e) => [
+                         'id' => $e['role']->id,
+                         'name' => $e['role']->name_ar,
+                         'candidates' => $e['candidates']->map(fn ($u) => ['id' => $u->id, 'name' => $u->name])->values(),
+                     ])->values()),
+                     rows: Object.entries(@js((object) old('role_assignments', [])))
+                         .filter(([, userId]) => userId)
+                         .map(([roleId, userId]) => ({ roleId: String(roleId), userId: String(userId) })),
+
+                     /* Roles still free, plus the one this row already holds. */
+                     rolesFor(currentId) {
+                         const taken = this.rows.map((r) => r.roleId).filter((id) => id && id !== currentId);
+                         return this.roles.filter((role) => ! taken.includes(String(role.id)));
+                     },
+                     candidatesFor(roleId) {
+                         return this.roles.find((role) => String(role.id) === String(roleId))?.candidates ?? [];
+                     },
+
+                     get assignments() {
+                         return Object.fromEntries(
+                             this.rows.filter((r) => r.roleId && r.userId).map((r) => [r.roleId, r.userId])
+                         );
+                     },
+                     get roleNames() {
+                         return Object.fromEntries(this.roles.map((role) => [role.id, role.name]));
+                     },
                      assignedRoleIds() {
-                         return Object.keys(this.assignments).filter((id) => this.assignments[id]);
+                         return Object.keys(this.assignments);
                      },
                  }">
                 @include('tickets.partials._assign-fields')
