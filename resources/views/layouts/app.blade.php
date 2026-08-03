@@ -4,6 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    {{-- Namespaces anything this browser remembers for the person using it, so a
+         shared machine never restores someone else's saved filters. --}}
+    <meta name="user-id" content="{{ auth()->id() }}">
     <title>@yield('title', 'الرئيسية') — {{ $appName }}</title>
     {{-- The uploaded logo wins; the SVG below is the default mark. The type
          hint is only emitted for the SVG, because an uploaded logo may be a
@@ -24,6 +27,26 @@
          reason — CSS can act on them immediately. --}}
     <script>
         (function () {
+            // The filter bar you left, put back. This has to run here rather
+            // than in the bundle for the same reason the theme does: by the time
+            // app.js boots the unfiltered list is already painted, and a redirect
+            // then is a visible jump on every visit.
+            //
+            // Only ever fires on a BARE url, so a filtered link someone sent you
+            // always wins over what you saved. replace() rather than assign()
+            // keeps the bare url out of history — otherwise Back would land on
+            // it and bounce straight forward again.
+            if (! location.search) {
+                var scope = (document.querySelector('meta[name="user-id"]') || {}).content || '0';
+                var saved = localStorage.getItem('filters:' + scope + ':' + location.pathname);
+
+                if (saved) {
+                    location.replace(location.pathname + '?' + saved);
+
+                    return;
+                }
+            }
+
             var root = document.documentElement;
             var theme = localStorage.getItem('theme');
             if (theme === 'dark' || theme === 'light') {

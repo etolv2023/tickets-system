@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
 use App\Models\Ticket;
 use App\Models\TicketStatusDefinition;
 use Illuminate\Http\Request;
@@ -46,7 +47,7 @@ class BoardController extends Controller
             : collect();
 
         $allowed = TicketStatusDefinition::transitionMap()[$ticket->status->value] ?? [];
-        $openSubtasks = $ticket->subtasks_total - $ticket->subtasks_done > 0;
+        $openSubtasks = self::hasGatingSubtasks($ticket);
 
         return collect(self::COLUMNS)
             ->filter(function (array $column, string $key) use ($ticket, $mine, $allowed, $openSubtasks) {
@@ -82,6 +83,68 @@ class BoardController extends Controller
     }
 
     /**
+     * Whether an open subtask actually stands between this ticket and «مغلقة».
+     *
+     * ★ (2026-08-03) Was `subtasks_total - subtasks_done > 0` — the raw counter,
+     * which counts every open subtask whoever it belongs to. That stopped
+     * matching the rule the server enforces: TicketWorkflowService::subtaskBlocker()
+     * was narrowed on 2026-08-02 so a subtask on a role that logs no work (دعم,
+     * ديف أوبس) no longer blocks — those roles are support around the delivery,
+     * not the delivery. So the board greyed out a column the server would have
+     * accepted: a card the developers had finished could not be dragged to
+     * «مغلقة» while a devops step was open, while «غيّر الحالة» on the ticket
+     * page moved the very same ticket without complaint.
+     *
+     * Read off the already-loaded relation — which carries role_id — so this is
+     * still zero queries per card, and workLoggingRoleIds() is cached forever.
+     * A caller that did not eager-load subtasks keeps the counter: stricter than
+     * the server, never looser, so it can only ever refuse a legal drop rather
+     * than offer an illegal one.
+     */
+    private static ?\Illuminate\Support\Collection $gatingRoleIds = null;
+
+    private static function hasGatingSubtasks(Ticket $ticket): bool
+    {
+        if (! $ticket->relationLoaded('subtasks')) {
+            return $ticket->subtasks_total - $ticket->subtasks_done > 0;
+        }
+
+        // Held for the request, not re-read per card. workLoggingRoleIds() is
+        // cached forever, but the cache driver here is `file` — so calling it
+        // once per card on a 300-card board is 300 filesystem reads for a list
+        // that cannot change mid-request.
+        $gating = self::$gatingRoleIds ??= Role::workLoggingRoleIds();
+
+        // Same predicate as subtaskBlocker(): not done, and either untagged
+        // (general work nobody claimed) or on a work-logging role.
+        return $ticket->subtasks->contains(
+            fn ($subtask) => ! $subtask->status->isDone()
+                && ($subtask->role_id === null || $gating->contains($subtask->role_id))
+        );
+    }
+
+    /**
+     * The subtask columns a card needs. Both boards load the same set, so it
+     * lives here rather than being written twice and drifting.
+     *
+     * ★ (2026-08-03) assignee_id is on this list and must stay on it.
+     * TicketSubtaskPolicy::owns() treats a NULL assignee as "nobody claimed this
+     * step, so anyone who can plan may edit it" — correct for a real unowned
+     * subtask, and catastrophic for a column that simply wasn't selected. Every
+     * card came back with assignee_id = null, so the policy passed for everyone
+     * and the board rendered a live status dropdown on other people's subtasks
+     * — while the ticket page, which loads the whole model, correctly showed
+     * them disabled. The server still refused the write, so nothing was
+     * corrupted; the board was just offering a control it knew would bounce.
+     *
+     * @return array<int, string>
+     */
+    private static function subtaskColumns(): array
+    {
+        return ['id', 'ticket_id', 'title', 'status', 'side', 'role_id', 'assignee_id', 'position'];
+    }
+
+    /**
      * A board is a picture of live work, so the closed column is a short tail —
      * not the archive. Without this it fetched every ticket ever closed: at
      * 5,000 tickets that was 4,268 rows and a 6.7s render.
@@ -114,13 +177,25 @@ class BoardController extends Controller
                 'reported_at', 'sla_due_at', 'resolved_at', 'updated_at',
                 'subtasks_total', 'subtasks_done',
             ])
-            // One extra query for the whole board, not one per card. No
-            // assignee: that would be a second query for a name the card
-            // doesn't show — the accordion needs title + status only.
+            // One extra query for the whole board, not one per card. Still no
+            // assignee RELATION — the card shows no name, and that would be a
+            // second query. assignee_id itself is not optional though: see
+            // subtaskColumns().
             ->with([
                 'company:id,name', 'requester:id,name',
                 'workLogs:id,ticket_id,user_id,role_id,status', 'workLogs.role:id,name_ar',
-                'subtasks' => fn ($q) => $q->select(['id', 'ticket_id', 'title', 'status', 'side', 'role_id', 'position']),
+                'subtasks' => fn ($q) => $q->select(self::subtaskColumns()),
+                // ★ (2026-08-03) Not for display — the card shows no assignee.
+                // Ticket::isAssignee() reads this relation when it is loaded and
+                // otherwise runs an exists() query, and TicketPolicy::view()
+                // goes through it for anyone without tickets.view.all. Every
+                // @can() on a card therefore cost one query, so this screen ran
+                // one SELECT per card: 23 cards measured 34 queries, and it grew
+                // with the board. Loaded once here it is a single extra query
+                // for the whole page. The team board doesn't need it — that
+                // route requires tickets.view.all, which short-circuits view()
+                // before it ever asks.
+                'roleAssignments:id,ticket_id,user_id,role_id',
             ])
             ->assignedTo($user->id)
             ->filter($filters)
@@ -184,7 +259,7 @@ class BoardController extends Controller
                 'company:id,name', 'requester:id,name',
                 'workLogs:id,ticket_id,user_id,role_id,status', 'workLogs.role:id,name_ar',
                 'incomingLinks.fromTicket:id,status',
-                'subtasks' => fn ($q) => $q->select(['id', 'ticket_id', 'title', 'status', 'side', 'role_id', 'position']),
+                'subtasks' => fn ($q) => $q->select(self::subtaskColumns()),
             ])
             // Only the assignee lane reads it — assigneeOf() takes the ticket's
             // first role assignment as the swimlane owner. Loading assignees

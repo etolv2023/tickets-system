@@ -19,10 +19,16 @@
      Leaving the whole thing empty is still fine: blank rows are dropped in
      StoreTicketRequest before the rules run. --}}
 <x-card title="الصب تاسكس (اختياري)">
+    {{-- `subtaskRows`, not `rows`: the distribution block one scope up already
+         owns a `rows`, and Alpine resolves a name against the innermost scope
+         that has it — including inside a parent method, because `this` there is
+         the merged proxy of the *call site*. Naming this one `rows` made the
+         parent's assignedRoleIds() read the subtask rows and always return [],
+         which locked the add button shut no matter who was assigned. --}}
     <div class="repeater"
          x-data="{
-             rows: @js(array_values(old('subtasks', []))),
-             add() { this.rows.push({ title: '', role_id: '', due_date: '' }) },
+             subtaskRows: @js(array_values(old('subtasks', []))),
+             add() { this.subtaskRows.push({ title: '', role_id: '', due_date: '' }) },
          }">
         <p class="repeater__lead">
             قسّم الشغل من دلوقتي لو عايز. تقدر تضيفها أو تعدّلها بعدين من صفحة التذكرة،
@@ -33,7 +39,7 @@
             <p class="field__hint">وزّع الشغل فوق الأول — الصب تاسك لازم يكون ليها صاحب عشان تكسب نقطها.</p>
         </template>
 
-        <template x-for="(row, index) in rows" :key="index">
+        <template x-for="(row, index) in subtaskRows" :key="index">
             <div class="repeater__row">
                 <div class="repeater__field repeater__field--grow">
                     <label class="label" :for="`subtask-title-${index}`">العنوان</label>
@@ -66,7 +72,7 @@
                            :id="`subtask-due-${index}`" :name="`subtasks[${index}][due_date]`">
                 </div>
 
-                <button type="button" class="repeater__remove" @click="rows.splice(index, 1)"
+                <button type="button" class="repeater__remove" @click="subtaskRows.splice(index, 1)"
                         aria-label="شيل الصف">
                     <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" fill="none" />

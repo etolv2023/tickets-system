@@ -6,10 +6,15 @@ import combobox from './components/combobox';
 import bell from './components/bell';
 import notifyPermission from './components/notify-permission';
 import registerSubmitGuard from './components/submit-guard';
+import registerStickyFilters from './components/sticky-filters';
 
 // Before Alpine, and before anything else can attach a submit handler: a
 // double-click on "إرسال" used to post the same comment three times.
 registerSubmitGuard();
+
+// Writes each filter bar's last state. The matching restore runs inline in the
+// layout head — see the comment there for why it can't live in this bundle.
+registerStickyFilters();
 
 // Theme: tokens.css already follows prefers-color-scheme on its own. This store
 // only lets a user override the OS choice and remembers it. The initial value is

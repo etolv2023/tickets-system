@@ -1,4 +1,9 @@
-<form method="GET" action="{{ route($routeName) }}" class="filters">
+{{-- data-remember="off": the calendar is the one filter bar that must NOT be
+     restored. Its state carries `date`, so remembering it would open the
+     calendar on whatever month you last browsed — you'd come back in أغسطس and
+     land in يونيو. A calendar's job is to open on today. Nothing is written for
+     this screen, so the head's restore finds no key and never fires. --}}
+<form method="GET" action="{{ route($routeName) }}" class="filters" data-remember="off">
     <input type="hidden" name="view" value="{{ $view }}">
     <input type="hidden" name="date" value="{{ $anchor->toDateString() }}">
 
