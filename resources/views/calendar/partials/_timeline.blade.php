@@ -42,7 +42,8 @@
                                    href="{{ route('tickets.show', $subtask->ticket_id) }}"
                                    data-subtask-id="{{ $subtask->id }}"
                                    data-due-date="{{ $key }}"
-                                   draggable="true"
+                                   {{-- Owner-only drag — see _day-items. --}}
+                                   @can('update', [$subtask, $subtask->ticket]) draggable="true" @endcan
                                    title="{{ $subtask->ticket->ticket_number }} — {{ $subtask->title }}">
                                     {{ Str::limit($subtask->title, 10) }}
                                 </a>

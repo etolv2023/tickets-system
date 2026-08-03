@@ -33,6 +33,12 @@ class PermissionSeeder extends Seeder
         'workflow' => [
             'worklog.manage' => 'سجل الشغل — بدأت وخلصت',
             'subtasks.manage' => 'إدارة الصب تاسكس',
+            // ★ (2026-08-02) subtasks.manage lets you plan YOUR work. This is
+            // the override that reaches somebody else's — reassigning it,
+            // finishing it, deleting it. Deliberately granted to NO role: it is
+            // a named person's exception (permission_user), not a job title's
+            // property, exactly like system.backup below.
+            'subtasks.manage.any' => 'التحكم في صب تاسكس الآخرين',
             'time.log' => 'تسجيل الوقت',
             'links.manage' => 'ربط التذاكر ببعضها',
             'features.approve' => 'الموافقة على الفيتشرات والموديولات',

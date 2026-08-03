@@ -163,3 +163,17 @@
     font-size: var(--text-2xs);
     color: var(--text-subtle);
 }
+
+/* On the per-user screen: this box is ticked because the person's ROLE grants
+   it, not because anyone singled them out. Un-ticking it writes a revoke for
+   this one person, so the difference has to be visible before they click. */
+.perms__inherited {
+    align-self: flex-start;
+    margin-block-start: 2px;
+    padding-block: 1px;
+    padding-inline: var(--space-2);
+    border-radius: var(--radius-full);
+    background-color: var(--surface-2);
+    color: var(--text-subtle);
+    font-size: var(--text-2xs);
+}

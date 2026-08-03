@@ -37,7 +37,7 @@ class TicketController extends Controller
     {
         $this->authorize('viewAny', Ticket::class);
 
-        $filters = $request->only('q', 'status', 'type', 'priority', 'company', 'assignee', 'from', 'to');
+        $filters = $request->only('q', 'status', 'type', 'priority', 'company', 'assignee', 'relation', 'from', 'to');
 
         $tickets = Ticket::query()
             // Never select description here: it's LONGTEXT and this page shows
@@ -67,6 +67,10 @@ class TicketController extends Controller
             'selectedAssignee' => filled($filters['assignee'] ?? null)
                 ? User::whereKey($filters['assignee'])->value('name')
                 : null,
+            // The "تذاكري" shortcut is only meaningful to someone whose list
+            // holds other people's tickets in the first place. For a
+            // view.assigned-only user every row is already theirs.
+            'canSeeOthers' => $request->user()->hasPermission('tickets.view.all'),
         ]);
     }
 
@@ -109,8 +113,25 @@ class TicketController extends Controller
         // Before assignAtCreation, not after: assign() seeds a starter subtask
         // for any side that has none, and it must be able to see the plan the
         // user typed here or it would add a duplicate on top of it.
+        //
+        // ★ (2026-08-02) Each row arrives carrying the role it belongs to, and
+        // that role's person becomes its assignee. A subtask with no assignee
+        // earns its owner nothing, forever (PointEngineService filters on
+        // assignee_id) — TK-2026-00169 lost 7 subtasks' worth that way, so the
+        // create form no longer has a path that produces one.
+        //
+        // Read from the request, not from ticket_role_assignments: on a
+        // feature the distribution is still only a plan at this point and
+        // nothing is written to that table until approval.
+        $owners = $this->roleAssignmentsFromRequest($request);
+
         foreach ($request->validated('subtasks') ?? [] as $row) {
-            $this->subtasks->create($ticket, $row + ['status' => 'todo'], $request->user()->id);
+            $roleId = $row['role_id'] ?? null;
+
+            $this->subtasks->create($ticket, $row + [
+                'status' => 'todo',
+                'assignee_id' => $roleId === null ? null : ($owners[$roleId] ?? null),
+            ], $request->user()->id);
         }
 
         $this->assignAtCreation($ticket, $request);
@@ -120,23 +141,34 @@ class TicketController extends Controller
     }
 
     /**
+     * The distribution the user picked on the create page, as role_id => user_id,
+     * with the "— مفيش —" rows dropped. Used twice: to own the hand-written
+     * subtasks, and to actually assign the ticket.
+     *
+     * @return array<int, int> role_id => user_id
+     */
+    private function roleAssignmentsFromRequest(StoreTicketRequest $request): array
+    {
+        if (! $request->user()->hasPermission('tickets.assign')) {
+            return [];
+        }
+
+        return array_filter($request->input('role_assignments', []), fn ($v) => filled($v));
+    }
+
+    /**
      * The create-page distribution block. A normal ticket is assigned live and
      * seeds a starter subtask per role (F06.3). A feature/module ticket starts
      * pending_approval, so its distribution is SAVED as a plan (planAssignments,
      * F15) and activated the moment it's approved — the choice is no longer lost.
      *
-     * Either way, if the user hand-wrote subtasks above, the auto starters are
-     * suppressed: their plan is the whole plan (seedStarters=false). For an
-     * approval ticket that decision is re-made at approval time from the
-     * subtasks that survive, so it's not passed here.
+     * ★ (2026-08-02) The hand-written plan no longer suppresses the starters.
+     * assignRoles() skips a starter only for a role that already HAS a subtask,
+     * so a role the creator didn't plan for still gets one — see the note there.
      */
     private function assignAtCreation(Ticket $ticket, StoreTicketRequest $request): void
     {
-        if (! auth()->user()->hasPermission('tickets.assign')) {
-            return;
-        }
-
-        $roleAssignments = array_filter($request->input('role_assignments', []), fn ($v) => filled($v));
+        $roleAssignments = $this->roleAssignmentsFromRequest($request);
 
         if ($roleAssignments === []) {
             return;
@@ -148,9 +180,7 @@ class TicketController extends Controller
             return;
         }
 
-        $seedStarters = empty($request->validated('subtasks'));
-
-        $this->workflow->assign($ticket, $roleAssignments, $request->user()->id, $seedStarters);
+        $this->workflow->assign($ticket, $roleAssignments, $request->user()->id);
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Tickets;
 
+use App\Casts\SubtaskStatusValue;
 use App\Models\Role;
 use App\Models\SubtaskStatusDefinition;
 use App\Models\Ticket;
@@ -26,7 +27,16 @@ class SubtaskRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
-            'assignee_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
+            // ★ (2026-08-02) Optional while the subtask is still open — writing
+            // down a step before knowing who takes it is real planning. Required
+            // the moment it is marked done: PointEngineService pays per
+            // assignee, so a finished subtask with nobody on it is work that can
+            // never be paid (the TK-2026-00169 failure). Same gate as
+            // SubtaskStatusRequest, for the full form.
+            'assignee_id' => [
+                Rule::requiredIf(fn () => SubtaskStatusValue::for((string) $this->input('status'))->isDone()),
+                'nullable', 'integer', Rule::exists('users', 'id')->where('is_active', true),
+            ],
             // A subtask is categorised by its role now (2026-07-24): the dynamic
             // list of assignable roles from the DB, not a hardcoded side.
             // Optional — a general step can stay uncategorised.
@@ -95,6 +105,7 @@ class SubtaskRequest extends FormRequest
         return [
             'due_date.after_or_equal' => 'تاريخ الاستحقاق مينفعش يكون قبل تاريخ البداية.',
             'blocked_reason.required' => 'لازم تكتب سبب التوقف.',
+            'assignee_id.required' => 'حدّد صاحب الصب تاسك قبل ما تخلّصها — الشغل اللي مالوش صاحب مش بياخد نقط.',
         ];
     }
 }

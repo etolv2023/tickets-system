@@ -29,6 +29,9 @@ class StoreTicketTypeRequest extends FormRequest
             // Only an icon the <x-icon> component actually draws.
             'icon' => ['required', Rule::in(array_keys(TicketTypeDefinition::ICONS))],
             'needs_approval' => ['boolean'],
+            // The points a subtask on this type opens at. 0 is allowed and
+            // meaningful: a type whose work is tracked but never paid.
+            'default_points' => ['required', 'numeric', 'min:0', 'max:999'],
         ];
     }
 
@@ -40,6 +43,7 @@ class StoreTicketTypeRequest extends FormRequest
             'color' => 'اللون',
             'icon' => 'الأيقونة',
             'needs_approval' => 'يحتاج موافقة',
+            'default_points' => 'النقاط الافتراضية',
         ];
     }
 

@@ -4,21 +4,34 @@
      Three fields per row on purpose. The full subtask form has eight (points,
      hours, blocked reason…), and most of them are meaningless for work that
      has not started: a subtask created with its ticket has no spent hours and
-     is not blocked. Assignee is left out too — assignment happens in the block
-     right above this one, and repeating it per row invites the two to disagree.
+     is not blocked.
 
-     Leaving this empty is exactly today's behaviour: blank rows are dropped in
+     ★ (2026-08-02) The "الرول" select became "صاحبها", and it is no longer
+     decorative: store() turns it into the row's assignee_id. A subtask with no
+     assignee is invisible to the point engine forever — TK-2026-00169 was
+     resolved with seven of them and paid nobody. So the options are exactly the
+     people being assigned in the block above, and:
+
+       - nobody assigned yet  → no rows can be added at all
+       - exactly one role     → it is the owner, no question asked
+       - more than one        → the row must say which, every time
+
+     Leaving the whole thing empty is still fine: blank rows are dropped in
      StoreTicketRequest before the rules run. --}}
 <x-card title="الصب تاسكس (اختياري)">
     <div class="repeater"
          x-data="{
-             rows: @js(old('subtasks', [])),
+             rows: @js(array_values(old('subtasks', []))),
              add() { this.rows.push({ title: '', role_id: '', due_date: '' }) },
          }">
         <p class="repeater__lead">
             قسّم الشغل من دلوقتي لو عايز. تقدر تضيفها أو تعدّلها بعدين من صفحة التذكرة،
-            وكل صب تاسك بتاخد نقطة واحدة افتراضياً وتتعدّل لوحدها.
+            وكل صب تاسك بتاخد نقط النوع افتراضياً وتتعدّل لوحدها.
         </p>
+
+        <template x-if="assignedRoleIds().length === 0">
+            <p class="field__hint">وزّع الشغل فوق الأول — الصب تاسك لازم يكون ليها صاحب عشان تكسب نقطها.</p>
+        </template>
 
         <template x-for="(row, index) in rows" :key="index">
             <div class="repeater__row">
@@ -29,16 +42,23 @@
                            placeholder="اكتب خطوة من الشغل…" maxlength="255">
                 </div>
 
-                <div class="repeater__field">
-                    <label class="label" :for="`subtask-role-${index}`">الرول</label>
-                    <select class="select" x-model="row.role_id"
-                            :id="`subtask-role-${index}`" :name="`subtasks[${index}][role_id]`">
-                        <option value="">— بدون —</option>
-                        @foreach (($assignableRoles ?? collect()) as $role)
-                            <option value="{{ $role->id }}">{{ $role->name_ar }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                {{-- One person on the ticket: the owner is not a question. --}}
+                <template x-if="assignedRoleIds().length === 1">
+                    <input type="hidden" :name="`subtasks[${index}][role_id]`" :value="assignedRoleIds()[0]">
+                </template>
+
+                <template x-if="assignedRoleIds().length > 1">
+                    <div class="repeater__field">
+                        <label class="label" :for="`subtask-owner-${index}`">صاحبها</label>
+                        <select class="select" x-model="row.role_id" required
+                                :id="`subtask-owner-${index}`" :name="`subtasks[${index}][role_id]`">
+                            <option value="">— اختار —</option>
+                            <template x-for="roleId in assignedRoleIds()" :key="roleId">
+                                <option :value="roleId" x-text="roleNames[roleId]"></option>
+                            </template>
+                        </select>
+                    </div>
+                </template>
 
                 <div class="repeater__field">
                     <label class="label" :for="`subtask-due-${index}`">الاستحقاق</label>
@@ -61,7 +81,11 @@
         @foreach ($errors->get('subtasks.*.title') as $message)
             <p class="field__error">{{ $message[0] }}</p>
         @endforeach
+        @foreach ($errors->get('subtasks.*.role_id') as $message)
+            <p class="field__error">{{ $message[0] }}</p>
+        @endforeach
 
-        <x-button variant="ghost" size="sm" type="button" @click="add()">+ أضف صب تاسك</x-button>
+        <x-button variant="ghost" size="sm" type="button" @click="add()"
+                  x-bind:disabled="assignedRoleIds().length === 0">+ أضف صب تاسك</x-button>
     </div>
 </x-card>

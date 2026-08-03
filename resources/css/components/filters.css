@@ -10,6 +10,77 @@
     flex-wrap: wrap;
 }
 
+/* ★ (2026-08-02) Two-line variant, for a screen with more filters than fit a
+   sane single row. The tickets bar had ten controls of six different widths in
+   one flex-wrap: every viewport width broke them differently, so no control
+   had a place you could learn. These two children give it a fixed shape —
+   .filters__bar is what you act with, .filters__narrow is what you narrow by.
+   A .filters that has neither child is unaffected, so companies/users/board
+   keep the plain row. */
+.filters:has(.filters__bar) {
+    display: block;
+}
+
+.filters__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+/* Grid, not flex-wrap: equal tracks mean the controls line up in columns
+   instead of stepping raggedly, and the count of columns changes only at real
+   breakpoints rather than per-control. */
+.filters__narrow {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    align-items: center;
+    gap: var(--space-2);
+    margin-block-start: var(--space-2);
+    padding-block-start: var(--space-3);
+    border-block-start: 1px solid var(--border-subtle);
+}
+
+.filters__narrow .select,
+.filters__narrow .input {
+    inline-size: 100%;
+    min-inline-size: 0;
+}
+
+/* The person and their relation to the ticket are one question in two controls,
+   so they share a cell and never wrap apart. */
+.filters__person {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: var(--space-2);
+    grid-column: span 2;
+}
+
+.filters__person .select {
+    inline-size: auto;
+}
+
+/* The saved view, marked as a state rather than a plain button — it is the one
+   control here that is either on or off. */
+.filters__mine--on {
+    border-color: var(--action-line);
+    background-color: var(--action-bg);
+    color: var(--action);
+}
+
+@media (width < 48rem) {
+    /* Below this the two-column person cell and the date pair both stop fitting
+       side by side; one column per control is the only honest layout left. */
+    .filters__narrow {
+        grid-template-columns: 1fr;
+    }
+
+    .filters__person {
+        grid-column: span 1;
+    }
+}
+
 .filters__search {
     flex: 1;
     min-width: 12rem;

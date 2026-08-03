@@ -9,7 +9,10 @@
     <div class="form-grid">
         @forelse ($assignable['roles'] as $entry)
             <x-field name="role_assignments[{{ $entry['role']->id }}]" :label="$entry['role']->name_ar">
-                <select id="role_assignments_{{ $entry['role']->id }}" name="role_assignments[{{ $entry['role']->id }}]" class="select">
+                {{-- x-model feeds the subtask repeater below: a row can only be
+                     owned by a role that has somebody picked here. --}}
+                <select id="role_assignments_{{ $entry['role']->id }}" name="role_assignments[{{ $entry['role']->id }}]" class="select"
+                        x-model="assignments[{{ $entry['role']->id }}]">
                     <option value="">— مفيش —</option>
                     @foreach ($entry['candidates'] as $person)
                         <option value="{{ $person->id }}" @selected(old("role_assignments.{$entry['role']->id}") == $person->id)>{{ $person->name }}</option>

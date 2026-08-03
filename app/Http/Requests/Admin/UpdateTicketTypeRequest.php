@@ -27,6 +27,9 @@ class UpdateTicketTypeRequest extends FormRequest
             'color' => ['required', Rule::in(array_keys(Label::COLORS))],
             'icon' => ['required', Rule::in(array_keys(TicketTypeDefinition::ICONS))],
             'needs_approval' => ['boolean'],
+            // Changing this only moves what the NEXT subtask opens at — every
+            // subtask already created keeps the number it carries (F18).
+            'default_points' => ['required', 'numeric', 'min:0', 'max:999'],
         ];
     }
 
@@ -37,6 +40,7 @@ class UpdateTicketTypeRequest extends FormRequest
             'color' => 'اللون',
             'icon' => 'الأيقونة',
             'needs_approval' => 'يحتاج موافقة',
+            'default_points' => 'النقاط الافتراضية',
         ];
     }
 }

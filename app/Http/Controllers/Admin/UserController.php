@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UserRequest;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\ActivityLogger;
@@ -47,7 +48,10 @@ class UserController extends Controller
     {
         $this->authorize('create', User::class);
 
-        $user = User::create($request->safe()->except('password_confirmation'));
+        // No permission picker on the create form: the role isn't saved yet, so
+        // there is no baseline to diff exceptions against. A new user starts on
+        // exactly their role's set and is edited afterwards if they need one.
+        $user = User::create($request->safe()->except(['password_confirmation', 'permissions']));
 
         $logger->log(
             action: 'user.created',
@@ -65,7 +69,33 @@ class UserController extends Controller
     {
         $this->authorize('update', $user);
 
-        return view('admin.users.edit', $this->formData() + ['user' => $user]);
+        $rolePermissionIds = $user->role?->permissions()->pluck('permissions.id')->all() ?? [];
+
+        return view('admin.users.edit', $this->formData() + [
+            'user' => $user,
+            'groups' => Permission::orderBy('id')->get()->groupBy('group'),
+            // What the role gives, so the picker can mark those "من الدور".
+            'rolePermissionIds' => $rolePermissionIds,
+            // What this person can actually do today — role baseline with their
+            // own exceptions already applied. The admin edits this, and
+            // update() turns the difference back into exception rows.
+            'effectivePermissionIds' => $this->effectivePermissionIds($user, $rolePermissionIds),
+        ]);
+    }
+
+    /**
+     * @param  array<int, int>  $rolePermissionIds
+     * @return array<int, int>
+     */
+    private function effectivePermissionIds(User $user, array $rolePermissionIds): array
+    {
+        $overrides = $user->permissionOverrides()->pluck('granted', 'permissions.id');
+
+        return Permission::orderBy('id')->pluck('id')
+            ->filter(fn (int $id) => $overrides->has($id)
+                ? (bool) $overrides[$id]
+                : in_array($id, $rolePermissionIds, true))
+            ->values()->all();
     }
 
     public function update(UserRequest $request, User $user, ActivityLogger $logger): RedirectResponse
@@ -77,16 +107,27 @@ class UserController extends Controller
             $this->authorize('deactivate', $user);
         }
 
-        $before = $user->only('name', 'email', 'role_id', 'is_active');
+        $before = $user->only('name', 'email', 'role_id', 'is_active')
+            + ['permissions' => $this->overrideSummary($user)];
 
         // An edit never silently changes a password — that's resetPassword's job.
-        $user->update($request->safe()->except(['password', 'password_confirmation']));
+        $user->update($request->safe()->except(['password', 'password_confirmation', 'permissions']));
+
+        // Absent (the create form, or any caller that doesn't render the picker)
+        // means "don't touch the exceptions" — NOT "revoke everything".
+        if ($request->has('permissions')) {
+            $this->syncOverrides($user->refresh(), $request->validated('permissions') ?? []);
+        }
 
         $logger->log(
             action: 'user.updated',
             userId: $request->user()->id,
             subject: $user,
-            changes: ['from' => $before, 'to' => $user->only('name', 'email', 'role_id', 'is_active')],
+            changes: [
+                'from' => $before,
+                'to' => $user->only('name', 'email', 'role_id', 'is_active')
+                    + ['permissions' => $this->overrideSummary($user->refresh())],
+            ],
             ip: $request->ip(),
             userAgent: $request->userAgent(),
         );
@@ -121,6 +162,48 @@ class UserController extends Controller
             'user' => $user->name,
             'password' => $password,
         ]);
+    }
+
+    /**
+     * Turns the effective set the admin ticked back into exception rows: only
+     * the permissions that DISAGREE with the role are stored. Ticking something
+     * the role already grants writes nothing, and un-ticking it writes a revoke.
+     *
+     * The diff is recomputed against the role the user has AFTER this save, so
+     * changing someone's role and their permissions in one submit lands on the
+     * baseline the admin was actually looking at.
+     *
+     * @param  array<int, int|string>  $effectiveIds
+     */
+    private function syncOverrides(User $user, array $effectiveIds): void
+    {
+        $effectiveIds = array_map('intval', $effectiveIds);
+        $roleIds = $user->role?->permissions()->pluck('permissions.id')->all() ?? [];
+
+        $verdicts = [];
+
+        foreach (Permission::orderBy('id')->pluck('id') as $id) {
+            $wanted = in_array($id, $effectiveIds, true);
+
+            if ($wanted !== in_array($id, $roleIds, true)) {
+                $verdicts[$id] = $wanted;
+            }
+        }
+
+        $user->syncPermissionOverrides($verdicts);
+    }
+
+    /**
+     * The exceptions in a form the audit log can show: permission changes are a
+     * sensitive edit and have to be traceable to whoever made them (§ 5).
+     *
+     * @return array<string, string>
+     */
+    private function overrideSummary(User $user): array
+    {
+        return $user->permissionOverrides()->get()
+            ->mapWithKeys(fn (Permission $p) => [$p->key => $p->pivot->granted ? 'مزوّدة' : 'متشالة'])
+            ->all();
     }
 
     private function formData(): array
