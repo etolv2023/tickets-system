@@ -107,10 +107,29 @@
 
     @unless ($ticket)
         @isset($assignable)
-            @include('tickets.partials._assign-fields')
+            {{-- One Alpine scope around both blocks: the subtask repeater has to
+                 react to the distribution above it, because a row's owner can
+                 only be someone this ticket is actually being assigned to. --}}
+            <div x-data="{
+                     assignments: @js((object) old('role_assignments', [])),
+                     roleNames: @js($assignable['roles']->mapWithKeys(fn ($e) => [$e['role']->id => $e['role']->name_ar])),
+                     assignedRoleIds() {
+                         return Object.keys(this.assignments).filter((id) => this.assignments[id]);
+                     },
+                 }">
+                @include('tickets.partials._assign-fields')
+                @include('tickets.partials._subtask-repeater')
+            </div>
+        @else
+            {{-- No tickets.assign means no distribution on this page, and a
+                 subtask with nobody on it earns nothing. The plan waits for the
+                 ticket page, after someone distributes it. --}}
+            <x-card title="الصب تاسكس">
+                <p class="field__hint">
+                    الصب تاسكس بتتضاف من صفحة التذكرة بعد ما تتوزّع — كل صب تاسك لازم يكون ليها صاحب عشان تكسب نقطها.
+                </p>
+            </x-card>
         @endisset
-
-        @include('tickets.partials._subtask-repeater')
 
         <x-card title="المرفقات">
             <x-uploader />

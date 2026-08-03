@@ -45,7 +45,7 @@ class TicketTypeController extends Controller
             action: 'ticket_type.created',
             userId: $request->user()->id,
             subject: $type,
-            changes: ['to' => $type->only('key', 'name_ar', 'needs_approval')],
+            changes: ['to' => $type->only('key', 'name_ar', 'needs_approval', 'default_points')],
             ip: $request->ip(),
             userAgent: $request->userAgent(),
         );
@@ -55,7 +55,9 @@ class TicketTypeController extends Controller
 
     public function update(UpdateTicketTypeRequest $request, TicketTypeDefinition $ticketType, ActivityLogger $logger): RedirectResponse
     {
-        $before = $ticketType->only('name_ar', 'color', 'icon', 'needs_approval');
+        // default_points is in here because it feeds real bonus money — a change
+        // to it has to be traceable to whoever made it (§ 5).
+        $before = $ticketType->only('name_ar', 'color', 'icon', 'needs_approval', 'default_points');
 
         $ticketType->update($request->validated());
 
@@ -63,7 +65,7 @@ class TicketTypeController extends Controller
             action: 'ticket_type.updated',
             userId: $request->user()->id,
             subject: $ticketType,
-            changes: ['from' => $before, 'to' => $ticketType->only('name_ar', 'color', 'icon', 'needs_approval')],
+            changes: ['from' => $before, 'to' => $ticketType->only('name_ar', 'color', 'icon', 'needs_approval', 'default_points')],
             ip: $request->ip(),
             userAgent: $request->userAgent(),
         );

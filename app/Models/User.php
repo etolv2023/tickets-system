@@ -6,15 +6,21 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    /** Every user's permission exceptions in one cached array — see overrideMap(). */
+    public const OVERRIDES_CACHE_KEY = 'users.permission_overrides';
 
     protected $fillable = [
         'name',
@@ -49,6 +55,16 @@ class User extends Authenticatable
             'email_notifications' => 'boolean',
             'last_login_at' => 'datetime',
         ];
+    }
+
+    /**
+     * The override rows are cascadeOnDelete, so deleting a user silently drops
+     * their exceptions — the cached map has to go with them or it would keep
+     * answering for an id that no longer exists (and could be reused).
+     */
+    protected static function booted(): void
+    {
+        static::deleted(fn () => Cache::forget(self::OVERRIDES_CACHE_KEY));
     }
 
     public function role(): BelongsTo
@@ -103,6 +119,15 @@ class User extends Authenticatable
     /**
      * Reads the cached role => permissions map keyed by role_id, so an
      * authorization check costs neither a query nor a relation load.
+     *
+     * ★ (2026-08-02) Then applies this user's own exceptions on top. The role is
+     * still the baseline — the override table only ever holds deliberate
+     * departures from it, so a user with no exceptions behaves exactly as
+     * before and the lookup below is a miss on an empty array.
+     *
+     * Both layers are cached forever and busted on write, because this runs on
+     * every authorization check on every page. Adding a query here would put one
+     * on each of the ~20 policy calls a ticket page makes (§ 4).
      */
     public function hasPermission(string $key): bool
     {
@@ -110,7 +135,57 @@ class User extends Authenticatable
             return false;
         }
 
+        $overrides = self::overrideMap()[$this->id] ?? [];
+
+        // An exception wins over the role in both directions: it can add a key
+        // the role lacks, and take away one the role grants.
+        if (array_key_exists($key, $overrides)) {
+            return $overrides[$key];
+        }
+
         return in_array($key, Role::permissionMap()[$this->role_id] ?? [], true);
+    }
+
+    /** Deliberate exceptions to a user's role permissions (grant or revoke). */
+    public function permissionOverrides(): BelongsToMany
+    {
+        return $this->belongsToMany(Permission::class)->withPivot('granted')->withTimestamps();
+    }
+
+    /**
+     * user id => [permission key => granted]. One cached array for the whole
+     * table: it holds only exceptions, so it stays a handful of rows even with
+     * hundreds of users — far cheaper to cache whole than per user, and one
+     * bust key instead of one per person.
+     *
+     * @return array<int, array<string, bool>>
+     */
+    public static function overrideMap(): array
+    {
+        return Cache::rememberForever(self::OVERRIDES_CACHE_KEY, function () {
+            return DB::table('permission_user')
+                ->join('permissions', 'permissions.id', '=', 'permission_user.permission_id')
+                ->get(['permission_user.user_id', 'permissions.key', 'permission_user.granted'])
+                ->groupBy('user_id')
+                ->map(fn ($rows) => $rows->mapWithKeys(fn ($row) => [$row->key => (bool) $row->granted])->all())
+                ->all();
+        });
+    }
+
+    /**
+     * Always change overrides through here — a direct sync() on the relation
+     * writes the pivot without firing a model event, so the cache above would
+     * survive the change and the user would keep their old permissions.
+     *
+     * @param  array<string, bool>  $verdicts  permission id => granted
+     */
+    public function syncPermissionOverrides(array $verdicts): void
+    {
+        $this->permissionOverrides()->sync(
+            collect($verdicts)->map(fn (bool $granted) => ['granted' => $granted])->all()
+        );
+
+        Cache::forget(self::OVERRIDES_CACHE_KEY);
     }
 
     /** Initials for the avatar fallback — first letter of the first two words. */

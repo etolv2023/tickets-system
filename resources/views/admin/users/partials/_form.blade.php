@@ -46,6 +46,35 @@
         </div>
     </x-card>
 
+    @isset($groups)
+        {{-- ★ (2026-08-02) Per-user permission exceptions.
+
+             The admin ticks what this person can actually do, starting from
+             whatever their role already grants — not "add an exception" /
+             "remove an exception", which is how the data is stored but not how
+             anybody thinks about it. UserController saves only the boxes that
+             DIFFER from the role, so the override table holds nothing but
+             deliberate departures and a user left untouched keeps zero rows.
+
+             Edit only: on create the role isn't saved yet, so there is no
+             baseline to diff against. The new user starts on exactly their
+             role's set and exceptions are added by editing them after. --}}
+        <x-card title="صلاحيات الشخص">
+            <x-slot:actions>
+                <span class="u-subtle">استثناءات فوق الدور</span>
+            </x-slot:actions>
+
+            <p class="field__hint">
+                علّم اللي {{ $user->name }} يقدر يعمله. المعلّم بـ«من الدور» جاي من دوره —
+                لو شيلت العلامة عنه بيتمنع منه هو لوحده، ولو علّمت حاجة زيادة بتتدي له هو لوحده.
+                زمايله في نفس الدور مش بيتأثروا.
+            </p>
+
+            <x-permission-picker :groups="$groups" :selected="$effectivePermissionIds"
+                                 :inherited="$rolePermissionIds" name="permissions" id-prefix="uperm" />
+        </x-card>
+    @endisset
+
     @unless ($user)
         <x-card title="كلمة السر">
             <div class="form-grid">

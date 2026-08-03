@@ -194,6 +194,41 @@ class Ticket extends Model
         return $query->whereHas('roleAssignments', fn (Builder $q) => $q->where('user_id', $userId));
     }
 
+    /** The ways a person can be attached to a ticket, for the people filter. */
+    public const RELATIONS = [
+        'any' => 'أي علاقة',
+        'assigned' => 'مسندة له',
+        'created' => 'هو اللي فتحها',
+        'subtask' => 'عنده صب تاسك فيها',
+    ];
+
+    /**
+     * ★ (2026-08-02) "Tickets this person is involved in" — which is three
+     * different questions, and the old filter only answered one of them.
+     *
+     * Holding a role, opening the ticket, and owning a subtask on it are
+     * genuinely different attachments: a support agent opens tickets they never
+     * work on, and a developer picks up subtasks on tickets assigned to someone
+     * else. Filtering by "المسؤول" alone hid both of those people.
+     *
+     * 'any' is the default because it is what someone picking a name off a list
+     * means: show me everything this person touches.
+     */
+    public function scopeInvolving(Builder $query, int $userId, ?string $relation = null): Builder
+    {
+        $relation = array_key_exists((string) $relation, self::RELATIONS) ? $relation : 'any';
+
+        return match ($relation) {
+            'assigned' => $query->assignedTo($userId),
+            'created' => $query->where('created_by', $userId),
+            'subtask' => $query->whereHas('subtasks', fn (Builder $q) => $q->where('assignee_id', $userId)),
+            default => $query->where(fn (Builder $q) => $q
+                ->whereHas('roleAssignments', fn (Builder $r) => $r->where('user_id', $userId))
+                ->orWhere('created_by', $userId)
+                ->orWhereHas('subtasks', fn (Builder $s) => $s->where('assignee_id', $userId))),
+        };
+    }
+
     public function labels(): BelongsToMany
     {
         // Table named explicitly: Laravel's convention would be label_ticket
@@ -427,7 +462,8 @@ class Ticket extends Model
             ->when($filters['type'] ?? null, fn (Builder $q, $v) => $q->where('type', $v))
             ->when($filters['priority'] ?? null, fn (Builder $q, $v) => $q->where('priority', $v))
             ->when($filters['company'] ?? null, fn (Builder $q, $v) => $q->where('company_id', $v))
-            ->when($filters['assignee'] ?? null, fn (Builder $q, $v) => $q->assignedTo((int) $v))
+            ->when($filters['assignee'] ?? null,
+                fn (Builder $q, $v) => $q->involving((int) $v, $filters['relation'] ?? null))
             ->when($filters['from'] ?? null, fn (Builder $q, $v) => $q->whereDate($dateBasis, '>=', $v))
             ->when($filters['to'] ?? null, fn (Builder $q, $v) => $q->whereDate($dateBasis, '<=', $v))
             ->when($filters['q'] ?? null, fn (Builder $q, $term) => $q->search($term));

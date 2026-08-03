@@ -94,9 +94,38 @@ class StoreTicketRequest extends FormRequest
             // without these rules the rows would be silently dropped.
             'subtasks' => ['nullable', 'array', 'max:20'],
             'subtasks.*.title' => ['required', 'string', 'max:255'],
-            'subtasks.*.role_id' => ['nullable', 'integer', Rule::in(Role::assignableList()->pluck('id'))],
+            // ★ (2026-08-02) The row's role is now who OWNS it, not a loose
+            // label: store() turns it into the subtask's assignee, and an
+            // unowned subtask can never earn its points (F18). So it is
+            // required, and it must be a role this ticket is actually being
+            // distributed to — offering a role nobody holds would put the
+            // subtask right back in the unassigned state this replaced.
+            'subtasks.*.role_id' => [
+                'required', 'integer', Rule::in($this->distributedRoleIds()),
+            ],
             'subtasks.*.due_date' => ['nullable', 'date'],
         ];
+    }
+
+    /**
+     * The role ids the create form is assigning someone to, right now. Empty
+     * when the user can't assign at all — and then the subtask repeater is
+     * hidden, so there is nothing to validate against.
+     *
+     * @return array<int, int>
+     */
+    private function distributedRoleIds(): array
+    {
+        if (! $this->user()->hasPermission('tickets.assign')) {
+            return [];
+        }
+
+        $assignable = Role::assignableList()->pluck('id')->all();
+
+        return array_values(array_filter(
+            array_keys(array_filter($this->input('role_assignments', []), fn ($v) => filled($v))),
+            fn ($roleId) => in_array((int) $roleId, $assignable, false)
+        ));
     }
 
     public function after(): array
@@ -140,7 +169,16 @@ class StoreTicketRequest extends FormRequest
             'attachments.*' => 'المرفق',
             'subtasks' => 'الصب تاسكس',
             'subtasks.*.title' => 'عنوان الصب تاسك',
+            'subtasks.*.role_id' => 'صاحب الصب تاسك',
             'subtasks.*.due_date' => 'تاريخ استحقاق الصب تاسك',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'subtasks.*.role_id.required' => 'لازم تحدد الصب تاسك دي بتاعة مين من اللي وزّعت عليهم.',
+            'subtasks.*.role_id.in' => 'الصب تاسك لازم تبقى لواحد من اللي وزّعت عليهم التذكرة.',
         ];
     }
 }

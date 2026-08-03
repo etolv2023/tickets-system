@@ -42,7 +42,17 @@ class CalendarService
             // is a 500, not a slow page.
             ->with([
                 'assignee:id,name,avatar_path,is_active',
-                'ticket:id,ticket_number,title,priority,company_id,requested_by,type',
+                // ★ (2026-08-02) status and created_by are here for the chip's
+                // authorization check, not for display: only the subtask's owner
+                // gets a draggable chip, and TicketSubtaskPolicy reads
+                // isLocked() (status) and TicketPolicy::view() (created_by).
+                // Without them both read null and the page 500s.
+                'ticket:id,ticket_number,title,priority,company_id,requested_by,type,status,created_by',
+                // Same reason: isAssignee() falls back to a query PER ticket
+                // when this isn't loaded — an N+1 across a whole month for
+                // anyone without tickets.view.all. Loaded once, it's an array
+                // lookup and the check costs nothing.
+                'ticket.roleAssignments:id,ticket_id,user_id',
                 'ticket.company:id,name',
                 'ticket.requester:id,name',
             ])

@@ -18,15 +18,6 @@ use Illuminate\Support\Facades\DB;
 class SubtaskService
 {
     /**
-     * ★ (2026-07-23) No matrix, no lookup by side/scope/role — every subtask
-     * starts at this flat default and is edited by hand from then on
-     * (subtasks.manage already lets anyone who can touch the subtask edit its
-     * points). F18 always paid exactly what a subtask carries; this just
-     * stops pretending there's a formula behind the starting number.
-     */
-    private const DEFAULT_POINTS = 1.0;
-
-    /**
      * @param  array<string, mixed>  $data
      */
     public function create(Ticket $ticket, array $data, int $createdBy): TicketSubtask
@@ -35,7 +26,20 @@ class SubtaskService
             $data = $this->roleFollowsAssignee($data);
 
             if (! isset($data['points']) || $data['points'] === '' || $data['points'] === null) {
-                $data['points'] = self::DEFAULT_POINTS;
+                // ★ (2026-07-23) No matrix, no lookup by side/scope/role — a
+                // subtask starts at a default and is edited by hand from then on
+                // (subtasks.manage already lets anyone who can touch it edit its
+                // points). F18 always paid exactly what a subtask carries.
+                //
+                // ★ (2026-08-02) That starting number is the ticket type's own
+                // weight, so a فيتشر opens heavier than a بج without anyone
+                // retyping it per row. Still one lookup, still no formula.
+                //
+                // Applies to every path equally — the auto starter (F06.3), the
+                // rows typed on the create form (F08), and the ticket page's add
+                // button. A subtask added by hand is not a second-class subtask.
+                // Not ?: — a type deliberately weighted 0 must stay 0.
+                $data['points'] = $ticket->type->defaultPoints();
             }
 
             $subtask = $ticket->subtasks()->create($data + [

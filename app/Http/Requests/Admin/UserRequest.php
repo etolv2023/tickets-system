@@ -34,6 +34,13 @@ class UserRequest extends FormRequest
                 $user ? 'nullable' : 'required',
                 'string', 'confirmed', Password::min(10),
             ],
+            // ★ (2026-08-02) The effective permission set the admin ticked, not
+            // the exceptions themselves — UserController diffs it against the
+            // role to work out which rows to store. Edit only; the create form
+            // renders no picker, and an absent key must not be read as "revoke
+            // everything", which is why update() only acts when it is present.
+            'permissions' => ['sometimes', 'array'],
+            'permissions.*' => ['integer', 'exists:permissions,id'],
         ];
     }
 

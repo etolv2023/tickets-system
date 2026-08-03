@@ -232,7 +232,7 @@ class TicketWorkflowService
      *
      * @param  array<int, int|null>  $roleAssignments  role_id => user_id (null = unassign)
      */
-    public function assign(Ticket $ticket, array $roleAssignments, int $actorId, bool $seedStarters = true): Ticket
+    public function assign(Ticket $ticket, array $roleAssignments, int $actorId): Ticket
     {
         // A feature can't be worked on before it's approved — the Policy blocks
         // the button, and this blocks everything else. F15
@@ -240,8 +240,8 @@ class TicketWorkflowService
             throw new DomainException('الفيتشر لازم توافق عليه الأول قبل ما يتوزع.');
         }
 
-        return DB::transaction(function () use ($ticket, $roleAssignments, $actorId, $seedStarters) {
-            $this->assignRoles($ticket, $roleAssignments, $actorId, $seedStarters);
+        return DB::transaction(function () use ($ticket, $roleAssignments, $actorId) {
+            $this->assignRoles($ticket, $roleAssignments, $actorId);
 
             if ($ticket->status === TicketStatusValue::for('new') || $ticket->status === TicketStatusValue::for('pending_approval')) {
                 $this->transition($ticket, TicketStatusValue::for('assigned'), $actorId, 'تم التوزيع');
@@ -259,13 +259,21 @@ class TicketWorkflowService
      * every role (F18), which is exactly what made the old devops participation
      * special-case unnecessary.
      *
-     * $seedStarters is the F06.3 auto-starter switch: normally true, but the
-     * create page turns it off when the user hand-wrote a subtask plan — their
-     * list is the whole plan, so the system adds none on top of it.
+     * ★ (2026-08-02) The global $seedStarters switch is gone. It was an
+     * all-or-nothing kill: the moment the creator hand-wrote ONE subtask, the
+     * starter was suppressed for EVERY role — so a ticket with a hand-written
+     * frontend plan left its support and devops assignees with no subtask at
+     * all, and F18 pays per subtask, so they earned nothing. TK-2026-00169 lost
+     * 7 subtasks' worth of points exactly this way.
+     *
+     * The per-role guard below (`! ...->where('role_id', $roleId)->exists()`)
+     * was always the real rule and is enough on its own: a role the creator
+     * already planned for keeps their plan, every other assigned role still
+     * gets its starter.
      *
      * @param  array<int, int|null>  $roleAssignments  role_id => user_id
      */
-    private function assignRoles(Ticket $ticket, array $roleAssignments, int $actorId, bool $seedStarters = true): void
+    private function assignRoles(Ticket $ticket, array $roleAssignments, int $actorId): void
     {
         if ($roleAssignments === []) {
             return;
@@ -330,8 +338,8 @@ class TicketWorkflowService
             // First assignment for this role only — a hand-off to someone else
             // never repeats it (F06.3). The starter means a newly-assigned role
             // is never an empty list, and gives F18 something to pay. Skipped
-            // entirely when the user supplied their own subtask plan.
-            if ($seedStarters && $before === null && ! $ticket->subtasks()->where('role_id', $roleId)->exists()) {
+            // only for a role the creator already wrote a subtask for.
+            if ($before === null && ! $ticket->subtasks()->where('role_id', $roleId)->exists()) {
                 $this->subtasks->create($ticket, [
                     'title' => $ticket->title,
                     'assignee_id' => $userId,
@@ -557,12 +565,24 @@ class TicketWorkflowService
         // drops the relation's default orderBy('position'), which
         // ONLY_FULL_GROUP_BY rejects on an aggregate — same reason as
         // SubtaskService::syncCounters().
+        //
+        // ★ (2026-08-02) A subtask on a non-work-logging role (دعم, ديف أوبس)
+        // no longer blocks. Those roles get a starter subtask so their work is
+        // tracked and paid, but they are support around the delivery, not the
+        // delivery — a ticket the developers finished shouldn't sit open on
+        // them. This makes the two gates agree: unfinishedSideBlocker already
+        // only counts logs_work roles. A subtask with no role at all still
+        // blocks — that's general work nobody has claimed.
         $open = $ticket->subtasks()->reorder()
             ->where('status', '!=', 'done')
+            ->where(fn ($q) => $q->whereNull('role_id')
+                ->orWhereIn('role_id', Role::workLoggingRoleIds()))
             ->count();
 
         if ($open === 0) {
-            // The counter drifted. Heal it rather than block on a stale number.
+            // Either the counter drifted, or everything still open belongs to a
+            // role that doesn't gate. Re-sync so the drift case self-heals; the
+            // non-gating case is simply not a block.
             $this->subtasks->syncCounters($ticket);
 
             return null;
@@ -670,14 +690,19 @@ class TicketWorkflowService
             // legally begin, run them through assign() so each role gets its work log,
             // notification, starter subtask and the ticket moves to «موزّعة». Deleting
             // the plan rows first makes assign() see a first assignment for each and
-            // apply the full effect. Starters are suppressed if the creator also
-            // hand-wrote subtasks (their plan wins, same rule as a normal ticket).
+            // apply the full effect.
+            //
+            // ★ (2026-08-02) The `$seedStarters = ! $ticket->subtasks()->exists()`
+            // that used to sit here is gone — it was the exact line that cost
+            // TK-2026-00169 its points. One hand-written subtask silenced the
+            // starter for every planned role, so roles the creator hadn't
+            // planned for arrived with nothing to be paid on. assignRoles()
+            // already skips only the roles that HAVE a subtask.
             $planned = $ticket->roleAssignments()->pluck('user_id', 'role_id')->all();
 
             if ($planned !== []) {
-                $seedStarters = ! $ticket->subtasks()->exists();
                 $ticket->roleAssignments()->delete();
-                $this->assign($ticket->refresh(), $planned, $adminId, $seedStarters);
+                $this->assign($ticket->refresh(), $planned, $adminId);
             }
 
             return $ticket->refresh();

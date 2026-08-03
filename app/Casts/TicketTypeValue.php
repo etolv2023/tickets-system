@@ -25,6 +25,7 @@ final class TicketTypeValue
         private readonly string $colorVariant,
         private readonly string $iconName,
         private readonly bool $needsApproval,
+        private readonly float $defaultPoints,
     ) {
     }
 
@@ -44,6 +45,9 @@ final class TicketTypeValue
             // neutral "undefined" glyph rather than rendering nothing.
             iconName: $row->icon ?? 'undefined',
             needsApproval: (bool) ($row->needs_approval ?? false),
+            // A type deleted out from under old tickets falls back to the flat
+            // 1.0 the whole system used before types carried a weight.
+            defaultPoints: (float) ($row->default_points ?? 1.0),
         );
     }
 
@@ -74,6 +78,16 @@ final class TicketTypeValue
     public function needsApproval(): bool
     {
         return $this->needsApproval;
+    }
+
+    /**
+     * ★ (2026-08-02) The points a new subtask on this type opens at. Still a
+     * starting number, not a formula — SubtaskService applies it once at
+     * creation and it is hand-editable from then on (F18).
+     */
+    public function defaultPoints(): float
+    {
+        return $this->defaultPoints;
     }
 
     public function __toString(): string

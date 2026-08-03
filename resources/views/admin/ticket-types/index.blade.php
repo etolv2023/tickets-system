@@ -41,6 +41,9 @@
                         @endforeach
                     </select>
                 </x-field>
+                <x-field name="default_points" label="النقاط الافتراضية" required
+                         type="number" step="0.25" min="0" max="999" :value="1"
+                         hint="النقطة اللي بتبدأ بيها كل صب تاسك على النوع ده — وتتعدّل بعدها بإيدك." />
                 <label class="checkbox-row">
                     <input type="checkbox" name="needs_approval" value="1" class="checkbox">
                     <span class="checkbox-row__label">
@@ -90,6 +93,10 @@
                                                 <option value="{{ $value }}" @selected($t->icon === $value)>{{ $label }}</option>
                                             @endforeach
                                         </select>
+                                        <input type="number" name="default_points" step="0.25" min="0" max="999"
+                                               value="{{ (float) $t->default_points }}" aria-label="النقاط الافتراضية"
+                                               class="input opt-form__num">
+                                        <span class="settings__unit">نقطة</span>
                                         <label class="checkbox-row">
                                             <input type="checkbox" name="needs_approval" value="1" class="checkbox"
                                                    @checked($t->needs_approval)>
