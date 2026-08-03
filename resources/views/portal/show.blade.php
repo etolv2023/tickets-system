@@ -29,7 +29,10 @@
 
     @if ($ticket->description)
         <x-card title="اللي اتبلّغ عنه">
-            <div class="prose">{!! $ticket->description !!}</div>
+            {{-- F24: an image inline in the description is a ticket-level
+                 attachment, which never crosses to the customer. Stripped here
+                 rather than left to 403 as a broken image. --}}
+            <div class="prose">{!! $descriptionForPortal !!}</div>
         </x-card>
     @endif
 

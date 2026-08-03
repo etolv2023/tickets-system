@@ -77,6 +77,88 @@ class AttachmentService
     }
 
     /**
+     * ★ (2026-08-02) An image pasted into the editor is stored as an attachment
+     * (finfo, re-encode, size cap, uuid name — § 5) but has to APPEAR where it
+     * was pasted, because the text around it is usually about that picture.
+     *
+     * The editor can't write the real URL: at paste time the attachment has no
+     * id, and on the create form the ticket doesn't exist either. So it writes a
+     * placeholder carrying a token it made up, posts the same tokens alongside
+     * the files in upload order, and this swaps them for real URLs once the rows
+     * exist. A token with no matching file — the user pasted then removed the
+     * attachment — leaves the placeholder, which the purifier then drops as an
+     * img with an unreachable src rather than leaving a live wrong link.
+     *
+     * @param  array<int, TicketAttachment>  $attachments  in upload order
+     * @param  array<int, string>  $tokens  the editor's tokens, same order
+     */
+    public function resolveInlineImages(?string $html, array $attachments, array $tokens): ?string
+    {
+        if (blank($html) || $tokens === []) {
+            return $html;
+        }
+
+        foreach (array_values($tokens) as $index => $token) {
+            $attachment = $attachments[$index] ?? null;
+
+            if ($attachment === null || ! preg_match('/^[A-Za-z0-9-]{6,64}$/', (string) $token)) {
+                continue;
+            }
+
+            // The purifier runs on the description BEFORE this, and fills a
+            // missing alt from the last path segment — which at that point is
+            // the token. Left alone, every inline image ends up labelled with an
+            // internal id, read aloud by a screen reader. Swap it for the file's
+            // own name in the same pass.
+            $html = str_replace(
+                [self::pendingUrl($token), 'alt="' . $token . '"'],
+                [route('attachments.view', $attachment), 'alt="' . e($attachment->original_name) . '"'],
+                $html
+            );
+        }
+
+        return $html;
+    }
+
+    /** The placeholder the editor writes. Absolute, so it survives the purifier's scheme whitelist. */
+    public static function pendingUrl(string $token): string
+    {
+        return rtrim(config('app.url'), '/') . '/attachments/pending/' . $token;
+    }
+
+    /**
+     * The description is stored once and the customer portal renders that same
+     * HTML — so an image pasted into it would appear on the client's side of the
+     * wall too. It must not.
+     *
+     * F24 draws the line at the comment: a file reaches the customer exactly
+     * when it hangs off a public reply, which makes "share this" the same
+     * decision as "is this reply internal?". An image pasted into the
+     * DESCRIPTION is a ticket-level attachment — working material — and
+     * PortalController deliberately never loads those.
+     *
+     * So the image is removed rather than re-pointed at the portal's route:
+     * rewriting it would have quietly published a file the rule hides. A short
+     * marker is left in its place, because the sentence around it usually says
+     * "as in the screenshot" and a silent gap reads as a rendering fault.
+     */
+    public function stripInlineImagesForPortal(?string $html): ?string
+    {
+        if (blank($html)) {
+            return $html;
+        }
+
+        // Inline replacement, not a block: the img sits inside a <p>, and
+        // wrapping it in another one nests paragraphs — invalid HTML that
+        // browsers silently split, breaking the surrounding sentence.
+        return preg_replace(
+            '#<img[^>]*>#i',
+            '<em>[صورة داخلية]</em>',
+            $html
+        );
+    }
+
+    /**
      * A client's upload from the portal. Same storage pipeline, stricter gate:
      * the portal's own type list and size cap, mandatory scanning, and no
      * uploader id — the person on the other end is a contact, not a user.

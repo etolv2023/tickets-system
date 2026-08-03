@@ -33,6 +33,14 @@
         >
     </label>
 
+    {{-- One token per file, in the same order the file input carries them, so
+         the server can tell which upload is the image the description points at.
+         Empty for a file picked normally — only a paste into the editor makes
+         one. --}}
+    <template x-for="(item, index) in files" :key="`token-${index}`">
+        <input type="hidden" name="attachment_tokens[]" :value="item.token ?? ''">
+    </template>
+
     <p class="field__error" x-show="error" x-text="error" x-cloak></p>
 
     <div class="uploader__list" x-show="files.length" x-cloak>

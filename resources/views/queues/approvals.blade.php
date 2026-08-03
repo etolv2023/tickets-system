@@ -20,6 +20,41 @@
             <x-alert variant="error">{{ $errors->first() }}</x-alert>
         @endif
 
+        {{-- The people filter from /tickets, minus everything that doesn't apply
+             to a queue of pending features: no status (they're all pending), no
+             type, no dates. Just "whose is this?". --}}
+        <form method="GET" action="{{ route('queues.approvals') }}" class="filters">
+            <div class="filters__bar">
+                <div class="filters__person">
+                    <div class="filters__combobox">
+                        <x-combobox name="assignee" resource="users"
+                                    :value="$filters['assignee'] ?? null"
+                                    :selected="$selectedAssignee"
+                                    placeholder="أي شخص" />
+                    </div>
+
+                    <select name="relation" class="select" aria-label="علاقته بالتذكرة">
+                        @foreach (\App\Models\Ticket::RELATIONS as $value => $label)
+                            <option value="{{ $value }}" @selected(($filters['relation'] ?? 'any') === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <x-button variant="secondary">فلترة</x-button>
+
+                @if (array_filter($filters))
+                    <x-button variant="ghost" :href="route('queues.approvals')">مسح</x-button>
+                @endif
+
+                <a href="{{ route('queues.approvals', ['assignee' => auth()->id(), 'relation' => 'any']) }}"
+                   @class(['btn', 'btn--secondary', 'filters__mine',
+                           'filters__mine--on' => (int) ($filters['assignee'] ?? 0) === auth()->id()])>
+                    <x-icon name="user" class="btn__icon" />
+                    بتاعتي
+                </a>
+            </div>
+        </form>
+
         <div class="queue">
             @forelse ($tickets as $ticket)
                 <article class="queue-card queue-card--pending" x-data="{ rejecting: false }">

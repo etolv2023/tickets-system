@@ -92,7 +92,18 @@ class TicketController extends Controller
 
         if ($request->hasFile('attachments')) {
             try {
-                $this->attachments->attachMany($ticket, $request->file('attachments'), $request->user()->id);
+                $saved = $this->attachments->attachMany($ticket, $request->file('attachments'), $request->user()->id);
+
+                // An image pasted into the description was uploaded as an
+                // attachment but is still pointing at the editor's placeholder.
+                // Now that the rows exist, point it at the real file.
+                $ticket->forceFill([
+                    'description' => $this->attachments->resolveInlineImages(
+                        $ticket->description,
+                        $saved,
+                        $request->input('attachment_tokens', [])
+                    ),
+                ])->saveQuietly();
             } catch (RuntimeException $e) {
                 // The ticket itself is already saved; say what didn't make it
                 // rather than throwing the whole thing away.
