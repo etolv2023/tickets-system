@@ -105,14 +105,36 @@ class AttachmentService
                 continue;
             }
 
+            // ★ (2026-08-03) Matched on the PATH, not on the absolute url.
+            //
+            // The two halves of this placeholder are built from different
+            // sources: the browser writes window.location.origin (editor.js),
+            // this side used to look for config('app.url'). They agree only when
+            // the two strings are character-for-character identical, and on
+            // production they were not — APP_URL said http://tickets.etolv.net
+            // while the host 301s every request to https, so the browser could
+            // only ever be on https. str_replace found nothing, every inline
+            // image kept a /attachments/pending/… src, and there is no such
+            // route: the picture died on the way in. Verified by printing both
+            // strings on the server, not inferred.
+            //
+            // A scheme, a host, a port or a proxy in front can now all differ
+            // without breaking it — the token is the identity, and the token is
+            // already validated as [A-Za-z0-9-] above, so it is regex-safe.
+            $html = preg_replace(
+                '#(?:[a-z][a-z0-9+.-]*://[^"\'\s<>]*?)?/attachments/pending/' . preg_quote($token, '#') . '#i',
+                str_replace('$', '\\$', route('attachments.view', $attachment)),
+                $html
+            );
+
             // The purifier runs on the description BEFORE this, and fills a
             // missing alt from the last path segment — which at that point is
             // the token. Left alone, every inline image ends up labelled with an
             // internal id, read aloud by a screen reader. Swap it for the file's
             // own name in the same pass.
             $html = str_replace(
-                [self::pendingUrl($token), 'alt="' . $token . '"'],
-                [route('attachments.view', $attachment), 'alt="' . e($attachment->original_name) . '"'],
+                'alt="' . $token . '"',
+                'alt="' . e($attachment->original_name) . '"',
                 $html
             );
         }

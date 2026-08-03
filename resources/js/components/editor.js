@@ -71,6 +71,37 @@ export default function editor({ name, value = '', placeholder = '', simple = fa
          * where the cursor is. The picture stays in the sentence it belongs to;
          * the bytes go through the attachment pipeline. @returns {boolean}
          */
+        /**
+         * Where to put the picture, without ever asking Quill to re-read the
+         * live DOM selection.
+         *
+         * ★ (2026-08-03) handOff used to end its fallback with
+         * `this.quill.getSelection(true)`. The `true` makes Quill focus the
+         * editor and rebuild its range from the native selection —
+         * getSelection → update → getRange → normalizedToRange — and that last
+         * step maps each selection node back to a blot. During a paste the node
+         * it lands on is not always one Quill owns, so the map yields null and
+         * it dies on `null.offset`.
+         *
+         * It THROWS, it does not return null, so the `?.` that used to guard it
+         * never ran: handOff blew up before insertEmbed, before setSelection,
+         * and before the notice was set. The file was already in the attachment
+         * list by then — which is exactly the reported symptom, a picture that
+         * lands in المرفقات and never appears in the text. Confirmed from a real
+         * browser's stack trace (Proxy.getSelection ← Proxy.handOff), not from
+         * reading the code.
+         *
+         * The bare getSelection() returns Quill's own last-known range without
+         * touching focus or the DOM, and the catch covers whatever is left.
+         */
+        caret() {
+            try {
+                return this.quill.getSelection()?.index ?? this.quill.getLength();
+            } catch {
+                return this.quill.getLength();
+            }
+        },
+
         handOff(files, range = null) {
             const tokens = files.map(() => newToken());
 
@@ -87,7 +118,7 @@ export default function editor({ name, value = '', placeholder = '', simple = fa
                 // Local blob for the preview, token remembered against it: the
                 // blob is what the user sees while writing, and sync() swaps it
                 // for the placeholder in what actually gets submitted.
-                let at = (range ?? this.quill.getSelection(true))?.index ?? this.quill.getLength();
+                let at = range?.index ?? this.caret();
 
                 accepted.forEach((token, i) => {
                     const blob = URL.createObjectURL(files[tokens.indexOf(token)]);
@@ -133,9 +164,15 @@ export default function editor({ name, value = '', placeholder = '', simple = fa
                 const images = imagesFrom(event.clipboardData);
 
                 if (images.length) {
+                    // Read the caret BEFORE preventDefault, and pass it on — the
+                    // drop handler below always did, the paste handler never did,
+                    // and that asymmetry is what pushed handOff onto the
+                    // getSelection(true) path that throws. Symmetric now.
+                    const at = this.quill.getSelection();
+
                     event.preventDefault();
                     event.stopPropagation();
-                    this.handOff(images);
+                    this.handOff(images, at);
                 }
             }, true);
 
