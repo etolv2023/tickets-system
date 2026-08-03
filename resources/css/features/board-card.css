@@ -52,17 +52,72 @@
     flex-shrink: 0;
 }
 
-.tcard__cover {
+/* How far the id row climbs back onto the picture. One number, in one place,
+   because it has to stay in step with that row's own height. */
+.tcard {
+    --hero-overlap: 2rem;
+}
+
+.tcard__hero {
+    position: relative;
     display: block;
     margin-block-start: calc(var(--space-3) * -1);
     margin-inline: calc(var(--space-3) * -1);
-    /* A letterbox, not the thumbnail's own shape: cards in a column must be
-       the same height whatever anyone happened to upload. */
-    aspect-ratio: 16 / 7;
-    object-fit: cover;
     /* Held until the image decodes, so the card doesn't flash a hole. */
     background-color: var(--surface-2);
-    border-block-end: 1px solid var(--border-subtle);
+}
+
+/* The ratio lives on the IMAGE, not on the wrapper. On the wrapper it loses:
+   an auto-height parent gives a `block-size: 100%` child nothing to resolve
+   against, so the image falls back to its own intrinsic ratio and stretches the
+   box past the aspect-ratio it was given — a 320x206 thumbnail came out 145px
+   tall in a 201px column instead of 63px. Measured, not guessed.
+
+   A letterbox, not the thumbnail's own shape: cards in a column must be the
+   same height whatever anyone happened to upload. 16:5 rather than a taller
+   crop because the id row is about to take the bottom third of it. */
+.tcard__hero img {
+    display: block;
+    inline-size: 100%;
+    aspect-ratio: 16 / 5;
+    object-fit: cover;
+}
+
+/* The scrim. Built from --inverse-surface, the token for a surface that is dark
+   in BOTH themes — the same one the lightbox reads on. A raw rgba() here would
+   be a colour written by hand in a component file, which this project doesn't
+   do, and it would also be wrong: the darkness under this text must not invert
+   with the theme, and --inverse-* is exactly the set that doesn't.
+
+   Weighted to the bottom because that is the only part the text crosses; the
+   top of the picture is left alone. */
+.tcard__hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(
+        to top,
+        color-mix(in srgb, var(--inverse-surface) 72%, transparent) 0%,
+        color-mix(in srgb, var(--inverse-surface) 34%, transparent) 45%,
+        transparent 100%
+    );
+}
+
+/* ADJACENT SIBLING, deliberately: every rule below reaches .tcard__top only
+   when a .tcard__hero actually precedes it. A card with no picture matches
+   none of this and stays exactly what it was. */
+.tcard__hero + .tcard__top {
+    position: relative;
+    /* Over the scrim, and — with position:relative — the grip stays grabbable
+       rather than being covered by the ::after layer. */
+    z-index: 1;
+    margin-block-start: calc((var(--hero-overlap) + var(--space-2)) * -1);
+    padding-inline: var(--space-1);
+}
+
+.tcard__hero + .tcard__top .tcard__number,
+.tcard__hero + .tcard__top .tcard__grip {
+    color: var(--inverse-text);
 }
 
 /* Reversed so the type badge leads and the id trails, matching every other

@@ -27,14 +27,22 @@
          stripe, which still runs the whole height — the stripe is how priority
          is read, and a banner across it would cut that signal in half.
 
+         The id row that follows RIDES the bottom of this image (see
+         `.tcard__hero + .tcard__top` in board-card.css), which is why the two
+         are siblings rather than nested: a card with no picture must come out
+         byte-for-byte what it was, and an adjacent-sibling rule is the only
+         version of that which cannot leak.
+
          The thumbnail, never the original: AttachmentService writes a 320px
          copy at upload, and a board is the last place to send a 4MB photo.
          Rendered only when the relation was eager-loaded, like the subtask
          accordion below — a caller that didn't load it gets a card with no
          cover rather than a query per card. --}}
     @if ($ticket->relationLoaded('coverImage') && $ticket->coverImage)
-        <img class="tcard__cover" src="{{ route('attachments.thumb', $ticket->coverImage) }}"
-             alt="" loading="lazy" decoding="async">
+        <div class="tcard__hero">
+            <img src="{{ route('attachments.thumb', $ticket->coverImage) }}"
+                 alt="" loading="lazy" decoding="async">
+        </div>
     @endif
 
     <div class="tcard__top">
