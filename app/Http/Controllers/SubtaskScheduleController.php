@@ -23,7 +23,17 @@ class SubtaskScheduleController extends Controller
 
     public function move(Request $request, TicketSubtask $subtask): JsonResponse
     {
-        $this->authorize('update', $subtask);
+        // ★ (2026-08-05) 'schedule' REPLACES the old 'update' check rather than
+        // joining it. This endpoint does exactly one thing — move a due date —
+        // and a subtask finished after its due date is docked its points, so
+        // that is the single most valuable field on the row.
+        //
+        // Keeping 'update' alongside it would have defeated the point: update()
+        // requires owning the subtask, so the manager the permission was created
+        // for got a 403 on every row that belonged to a developer — which is
+        // every row they would ever need to reschedule. schedule() carries the
+        // ticket-visibility and lock checks itself.
+        $this->authorize('schedule', [$subtask, $subtask->ticket]);
 
         $data = $request->validate([
             'due_date' => ['required', 'date'],

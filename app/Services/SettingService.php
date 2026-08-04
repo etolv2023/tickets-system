@@ -26,6 +26,7 @@ class SettingService
         'work_day_start' => 'string',
         'work_day_end' => 'string',
         'email_notifications_enabled' => 'bool',
+        'late_penalty_accumulates' => 'bool',
     ];
 
     /**

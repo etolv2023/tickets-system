@@ -26,7 +26,11 @@ class RoleSeeder extends Seeder
                 'tickets.create', 'tickets.edit', 'tickets.assign', 'tickets.resolve',
                 'tickets.reopen', 'tickets.close', 'tickets.notify_client',
                 'comments.create', 'comments.internal',
-                'subtasks.manage', 'subtasks.reassign', 'time.log', 'links.manage',
+                // ★ (2026-08-05) subtasks.schedule stops here and at admin: a
+                // due date now decides whether its owner earns or loses the
+                // subtask's points, so it belongs to whoever plans the work.
+                'subtasks.manage', 'subtasks.reassign', 'subtasks.schedule',
+                'time.log', 'links.manage',
                 'ratings.give', 'ratings.view.all',
                 'points.view.own', 'points.view.all',
                 'reports.view',

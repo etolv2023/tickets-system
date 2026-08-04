@@ -111,4 +111,62 @@ class TicketSubtaskPolicy
     {
         return $user->hasPermission('points.rules.manage');
     }
+
+    /**
+     * ★ (2026-08-05) Setting or moving the due date — its own permission, for
+     * exactly the same reason points has one.
+     *
+     * The due date used to be ordinary planning: any of the six roles with
+     * subtasks.manage could type one, and the calendar let its owner drag it to
+     * another day. That was fine while a date was only a date.
+     *
+     * It stopped being only a date when PointEngineService started writing a
+     * subtask finished after its due date at MINUS its points. From that moment
+     * the field decides money, and leaving it with the person whose money it is
+     * means anyone running late can drag their own deadline forward and turn a
+     * penalty back into an award. Nothing else in the system asks the person
+     * being measured to set the measurement.
+     *
+     * So it moves to whoever plans the work rather than does it — admin and
+     * manager out of the box. Everyone else still sees the date (it is a fact
+     * about their subtask, and the calendar is built on it); they just can't
+     * write it, the same read-only treatment points already gets.
+     *
+     * Deliberately NOT folded into points.rules.manage: scheduling work and
+     * administering the points ledger are two different jobs, and an admin
+     * should be able to hand out one without the other.
+     *
+     * Gates all three write paths — the subtask form, the ticket create form's
+     * rows, and the calendar's drag endpoint.
+     *
+     * Deliberately does NOT go through update() and its owns() check, unlike
+     * delete() and reassign() above. Those two are "you may do more to your own
+     * subtask"; this one is the opposite kind of permission — its entire purpose
+     * is reaching work that belongs to somebody else. A manager who could only
+     * date their own subtasks could not schedule the team, which is the one
+     * thing scheduling is for. Requiring ownership here made the calendar drag
+     * 403 for the exact person the permission was created for.
+     *
+     * Ticket visibility and the lock still apply: this widens WHOSE subtask you
+     * may date, never WHICH tickets you can touch.
+     *
+     * Called two ways, hence the optional arguments. With the class name
+     * (`can('schedule', TicketSubtask::class)`) it answers "may this person set
+     * dates at all" — what the form fields ask before rendering. With a subtask
+     * it answers the full question, which is what the write paths authorize.
+     */
+    public function schedule(User $user, ?TicketSubtask $subtask = null, ?\App\Models\Ticket $ticket = null): bool
+    {
+        if (! $user->hasPermission('subtasks.schedule')) {
+            return false;
+        }
+
+        if ($subtask === null) {
+            return true;
+        }
+
+        $ticket ??= $subtask->ticket;
+
+        return $user->can('view', $ticket) && ! $ticket->isLocked();
+    }
 }

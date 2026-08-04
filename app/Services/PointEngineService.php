@@ -47,6 +47,10 @@ use Illuminate\Support\Facades\Schema;
  *     never an exception. Manual corrections (PointCorrectionService) are the
  *     only path for anything the automatic award doesn't cover.
  *   - Logged time has no bearing on any of this (PLAN.md § 5).
+ *   - ★ (2026-08-05) A subtask finished after its due date earns nothing and is
+ *     docked instead. This class no longer owns that rule — LatePenaltyService
+ *     does, because the 06:00 sweep charges it long before any resolve. All
+ *     that happens here is the refusal to pay.
  *
  * Distribution is fully role-based (2026-07-24): every assigned role — devops
  * included — gets a starter subtask on assignment (TicketWorkflowService), so
@@ -57,6 +61,10 @@ use Illuminate\Support\Facades\Schema;
  */
 class PointEngineService
 {
+    public function __construct(private readonly LatePenaltyService $penalties)
+    {
+    }
+
     public function award(Ticket $ticket): void
     {
         // Guard: an unapproved or rejected feature earns nobody anything. F15
@@ -112,7 +120,7 @@ class PointEngineService
         if ($subtask->role_id !== null) {
             $this->createTransaction($ticket, $subtask, $period, [
                 'role_id' => $subtask->role_id,
-                'reason' => "{$ticket->type->label()} — {$subtask->role->name_ar} ({$subtask->title})",
+                'earner' => $subtask->role->name_ar,
             ]);
 
             return;
@@ -127,13 +135,77 @@ class PointEngineService
 
         $this->createTransaction($ticket, $subtask, $period, [
             'side' => $side->value,
-            'reason' => "{$ticket->type->label()} — {$side->label()} ({$subtask->title})",
+            'earner' => $side->label(),
         ]);
     }
 
-    /** @param  array{side?: string, role_id?: int, reason: string}  $earner */
+    /**
+     * The moment the work actually landed.
+     *
+     * SubtaskService stamps completed_at as a subtask goes done, so that is
+     * normally the answer. The fallbacks are for rows that predate it — the
+     * ticket's own resolution time, then the clock.
+     */
+    private function finishedAt(Ticket $ticket, TicketSubtask $subtask): \Illuminate\Support\Carbon
+    {
+        return $subtask->completed_at ?? $ticket->resolved_at ?? now();
+    }
+
+    /**
+     * ★ (2026-08-05) Where lateness decides whether anything is paid at all.
+     *
+     * A subtask delivered after its due date earns nothing — ever. It is not
+     * paid less and it is not paid later; it is docked instead, at MINUS its
+     * points. The rule is deliberately blind to how late and to why, because
+     * the point of a due date is that it is a line, not a slope.
+     *
+     * The deduction itself is LatePenaltyService's job, not this class's. That
+     * service owns the rule because the 06:00 sweep — not this method — is what
+     * normally charges it: a ticket can sit open for weeks, and waiting for
+     * resolve would mean nobody sees the cost until payout day. By the time a
+     * late subtask reaches this method it has usually been charged already, and
+     * charge() returns false because UNIQUE(subtask_id, charge_key) refuses the
+     * repeat. What this call is really for is the gap the sweep cannot see: a
+     * subtask backdated, finished and resolved between two runs never sat
+     * overdue at 6 AM, yet it was still delivered late.
+     *
+     * A subtask with no due date is never late. Nothing was promised, so nothing
+     * was missed.
+     *
+     * Which is why the due date stopped being ordinary planning the same day:
+     * it is gated behind subtasks.schedule (TicketSubtaskPolicy::schedule), so
+     * the person who stands to lose the points is not the person who draws the
+     * line they lose them by.
+     *
+     * The comparison is TicketSubtask::finishedLate() rather than a copy here —
+     * the ticket page warns the owner before the fact through the same method,
+     * and two versions of this rule drifting apart would mean the screen
+     * promising points the payout doesn't give.
+     *
+     * @param  array{side?: string, role_id?: int, earner: string}  $earner
+     */
     private function createTransaction(Ticket $ticket, TicketSubtask $subtask, string $period, array $earner): void
     {
+        $finished = $this->finishedAt($ticket, $subtask);
+
+        if ($subtask->finishedLate($finished)) {
+            $this->penalties->charge($ticket, $subtask, $finished);
+
+            return;
+        }
+
+        $label = $earner['earner'];
+        unset($earner['earner']);
+
+        $head = "{$ticket->type->label()} — {$label} (";
+        // Titles are validated at max:255 on their own, so an unguarded
+        // "{type} — {earner} ({title})" can overflow VARCHAR(255) and abort the
+        // resolve in strict mode. The title is what gives.
+        $room = 255 - mb_strlen($head) - 1;
+        $title = mb_strlen($subtask->title) > $room
+            ? mb_substr($subtask->title, 0, max(0, $room - 1)) . '…'
+            : $subtask->title;
+
         try {
             PointTransaction::create([
                 'user_id' => $subtask->assignee_id,
@@ -141,7 +213,9 @@ class PointEngineService
                 'subtask_id' => $subtask->id,
                 'points' => $subtask->points,
                 'type' => 'award',
+                'charge_key' => 'award',
                 'period' => $period,
+                'reason' => $head . $title . ')',
             ] + $earner);
         } catch (UniqueConstraintViolationException) {
             // Guard 3 fired: this exact subtask already has a row. Nothing to

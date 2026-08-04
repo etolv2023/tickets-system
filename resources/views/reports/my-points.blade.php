@@ -3,8 +3,14 @@
 @section('title', 'نقاطي')
 
 @php
-    $awardsCount = $transactions->where('type', '!=', 'correction')->count();
+    // ★ (2026-08-05) 'award' explicitly, not "anything that isn't a
+    // correction": a penalty row is neither, and counting it under «مرة
+    // اتصرفلك فيها نقط» would tell somebody they were paid on the exact
+    // occasion they were docked.
+    $awardsCount = $transactions->where('type', 'award')->count();
     $correctionsTotal = (float) $transactions->where('type', 'correction')->sum('points');
+    $penalties = $transactions->where('type', 'penalty');
+    $penaltiesTotal = (float) $penalties->sum('points');
     $lastEarned = $transactions->first()?->created_at;
 @endphp
 
@@ -38,6 +44,16 @@
                 <div class="stat-tile stat-tile--green">
                     <div class="stat-tile__figure u-mono">{{ $lastEarned->format('j M') }}</div>
                     <div class="stat-tile__caption">آخر نقطة اتصرفت</div>
+                </div>
+            @endif
+
+            {{-- ★ (2026-08-05) الخصم بيتعرض لوحده مش مدفون في الإجمالي — لو
+                 اتخصم منك، تعرف قد إيه وعلى كام صب تاسك من غير ما تعد
+                 الجدول بإيدك. --}}
+            @if ($penaltiesTotal !== 0.0)
+                <div class="stat-tile stat-tile--red">
+                    <div class="stat-tile__figure">{{ rtrim(rtrim(number_format($penaltiesTotal, 2), '0'), '.') }}</div>
+                    <div class="stat-tile__caption">خصم تأخير ({{ $penalties->count() }} صب تاسك)</div>
                 </div>
             @endif
 
@@ -98,12 +114,21 @@
                                     @if ($row->type === 'correction')
                                         <x-badge variant="neutral">تصحيح يدوي</x-badge>
                                     @else
+                                        {{-- ★ (2026-08-05) الخصم لسه بيشاور على
+                                             الصب تاسك بتاعته — العنوان هو الي
+                                             بيخلي السطر مفهوم، والبادج بيقول
+                                             ليه بالسالب. --}}
+                                        @if ($row->type === 'penalty')
+                                            <x-badge variant="urgent">خصم تأخير</x-badge>
+                                        @endif
                                         {{ $row->subtask->title ?? '—' }}
                                     @endif
                                 </td>
                                 <td>{{ $row->side?->label() ?? $row->role?->name_ar ?? '—' }}</td>
                                 <td class="u-subtle">{{ $row->reason }}</td>
-                                <td class="table__cell--num">{{ rtrim(rtrim($row->points, '0'), '.') }}</td>
+                                <td @class(['table__cell--num', 'points-cell--negative' => $row->points < 0])>
+                                    {{ rtrim(rtrim($row->points, '0'), '.') }}
+                                </td>
                             </tr>
                         @empty
                             <tr class="table__empty">

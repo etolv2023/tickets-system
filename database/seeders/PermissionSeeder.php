@@ -49,6 +49,14 @@ class PermissionSeeder extends Seeder
             // anyone could do yesterday stops working. The point is that it can
             // now be taken away from ONE person without touching the rest.
             'subtasks.reassign' => 'نقل الصب تاسك لشخص تاني أو حذفها',
+            // ★ (2026-08-05) The due date became a money field the day a
+            // subtask finished after it started costing MINUS its points
+            // (PointEngineService::isLate). A deadline the person being
+            // measured can move is not a deadline, so writing it is now its own
+            // permission — held by whoever plans the work (admin, manager), not
+            // by everyone who does it. Reading it is untouched: the date still
+            // shows on every row and drives the calendar.
+            'subtasks.schedule' => 'تحديد تاريخ استحقاق الصب تاسك',
             'time.log' => 'تسجيل الوقت',
             'links.manage' => 'ربط التذاكر ببعضها',
             'features.approve' => 'الموافقة على الفيتشرات والموديولات',

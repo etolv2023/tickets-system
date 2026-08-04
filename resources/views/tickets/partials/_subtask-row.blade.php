@@ -81,8 +81,18 @@
                 @endif
 
                 @if ($subtask->points > 0)
-                    <span class="points-cell" title="النقاط الي هتتصرف لما التذكرة تتحل">
-                        {{ rtrim(rtrim($subtask->points, '0'), '.') }} نقطة
+                    {{-- ★ (2026-08-05) الرقم بيتقال بإشارته. صب تاسك ليها تاريخ
+                         استحقاق وخلصت بعده بتتسجل في دفتر النقاط بالسالب
+                         (PointEngineService)، فعرض الموجب هنا كان هيوعد بحاجة
+                         الصرف مش هيديها. لسه مخلصتش؟ نفس التحذير — يعني
+                         «لو خلصتها دلوقتي دي تكلفتها». --}}
+                    @php $costs = $subtask->finishedLate(); @endphp
+
+                    <span @class(['points-cell', 'points-cell--negative' => $costs])
+                          title="{{ $costs
+                                ? 'اتأخرت عن تاريخ الاستحقاق — النقط دي هتتخصم مش هتتصرف لما التذكرة تتحل'
+                                : 'النقاط الي هتتصرف لما التذكرة تتحل' }}">
+                        {{ $costs ? '−' : '' }}{{ rtrim(rtrim($subtask->points, '0'), '.') }} نقطة
                     </span>
                 @endif
 

@@ -66,11 +66,17 @@
                     </div>
                 </template>
 
-                <div class="repeater__field">
-                    <label class="label" :for="`subtask-due-${index}`">الاستحقاق</label>
-                    <input type="date" class="input" x-model="row.due_date"
-                           :id="`subtask-due-${index}`" :name="`subtasks[${index}][due_date]`">
-                </div>
+                {{-- ★ (2026-08-05) تاريخ الاستحقاق ليه صلاحية مستقلة
+                     (subtasks.schedule) — بقى بيحدد النقط موجبة ولا سالبة.
+                     الحقل مش بيتعرض أصلاً لغير المصرح، والكونترولر بيسقّطه
+                     برضه لو اتبعت بالإيد. --}}
+                @can('schedule', \App\Models\TicketSubtask::class)
+                    <div class="repeater__field">
+                        <label class="label" :for="`subtask-due-${index}`">الاستحقاق</label>
+                        <input type="date" class="input" x-model="row.due_date"
+                               :id="`subtask-due-${index}`" :name="`subtasks[${index}][due_date]`">
+                    </div>
+                @endcan
 
                 <button type="button" class="repeater__remove" @click="subtaskRows.splice(index, 1)"
                         aria-label="شيل الصف">
