@@ -8,13 +8,14 @@ use App\Models\Ticket;
 use App\Models\TicketSubtask;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 /**
- * â˜… (2026-08-05) The late-delivery deduction (F18 extension).
+ * ★ (2026-08-05) The late-delivery deduction (F18 extension).
  *
  * A subtask that carried a due date and crossed it does not merely forfeit its
- * points â€” it is written into the ledger at MINUS the same figure. Blind to how
+ * points — it is written into the ledger at MINUS the same figure. Blind to how
  * late and to why: an hour past midnight and two weeks past cost the same,
  * because the point of a due date is that it is a line, not a slope. And
  * finishing it afterwards changes nothing; there is no path where work
@@ -22,19 +23,19 @@ use Illuminate\Support\Facades\Log;
  *
  * Two callers, one rule:
  *
- *   1. ChargeLatePenalties â€” the 06:00 sweep. This is the primary one, and the
+ *   1. ChargeLatePenalties — the 06:00 sweep. This is the primary one, and the
  *      reason the deduction does not wait for the ticket to be resolved: a
  *      ticket can sit open for weeks, and a penalty nobody sees until payout
  *      day is a penalty that teaches nothing.
  *   2. PointEngineService, at resolve. The safety net for the gap the sweep
- *      cannot cover â€” a subtask backdated, finished and resolved between two
+ *      cannot cover — a subtask backdated, finished and resolved between two
  *      runs never sat overdue at 6 AM, but it was still delivered late.
  *
  * HOW OFTEN a subtask can be docked is the one part an admin controls, through
- * the Â«ØªØ±Ø§ÙƒÙ… Ø§Ù„ØªØ£Ø®ÙŠØ± Ø¹Ù„Ù‰ Ø§Ù„ØªØ§Ø³ÙƒØ§ØªÂ» setting:
+ * the «تراكم التأخير على التاسكات» setting:
  *
- *   off (default) â†’ once per subtask, ever. Being late is a single event.
- *   on            â†’ once every morning it is still overdue AND still unfinished.
+ *   off (default) → once per subtask, ever. Being late is a single event.
+ *   on            → once every morning it is still overdue AND still unfinished.
  *                   Standing still costs more than being late once, and the
  *                   reason line says which day's charge each row is.
  *
@@ -76,12 +77,12 @@ class LatePenaltyService
 
     /**
      * What --dry-run shows. Same query and same decision as chargeOverdue(),
-     * with nothing written â€” a preview that runs different code from the real
+     * with nothing written — a preview that runs different code from the real
      * run is a preview of nothing.
      *
-     * @return \Illuminate\Support\Collection<int, array<string, mixed>>
+     * @return Collection<int, array<string, mixed>>
      */
-    public function previewOverdue(?Carbon $asOf = null): \Illuminate\Support\Collection
+    public function previewOverdue(?Carbon $asOf = null): Collection
     {
         $asOf ??= now();
         $accumulates = $this->accumulates();
@@ -94,7 +95,7 @@ class LatePenaltyService
             ->map(fn (TicketSubtask $s) => [
                 'title' => $s->title,
                 'ticket' => $s->ticket->ticket_number,
-                'assignee' => $s->assignee?->name ?? 'â€”',
+                'assignee' => $s->assignee?->name ?? '—',
                 'due' => $s->due_date->toDateString(),
                 'points' => (float) $s->points,
                 'charged_before' => $s->point_transactions_count > 0,
@@ -107,14 +108,14 @@ class LatePenaltyService
      *
      * The lateness question is asked through TicketSubtask::finishedLate(), the
      * same method the resolve path and the ticket screen use, rather than
-     * inferred from the SQL filter. That filter is only a coarse net â€” a subtask
+     * inferred from the SQL filter. That filter is only a coarse net — a subtask
      * DONE ON TIME still has a due date in the past forever, so it keeps
      * matching "due before today" for the rest of its life. Trusting the net
      * alone would dock the people who delivered on time, every morning, until
      * the ticket was resolved.
      *
-     * Never charged â†’ yes, this is the one charge it gets.
-     * Charged before â†’ only when accumulation is on AND the work is still not
+     * Never charged → yes, this is the one charge it gets.
+     * Charged before → only when accumulation is on AND the work is still not
      * in. Accumulation stops the moment the subtask is done, or a
      * finished-but-late subtask on a long-running ticket would keep billing its
      * owner every morning for work already delivered.
@@ -163,7 +164,7 @@ class LatePenaltyService
                 'type' => 'penalty',
                 'charge_key' => 'penalty:' . $asOf->toDateString(),
                 // The month the deduction lands in is the month it was charged.
-                // Unlike an award it has no resolved_at to belong to â€” the work
+                // Unlike an award it has no resolved_at to belong to — the work
                 // is, by definition, not delivered.
                 'period' => $asOf->format('Y-m'),
                 'reason' => $this->reason($ticket, $subtask, $asOf),
@@ -196,7 +197,7 @@ class LatePenaltyService
 
     /**
      * The guards, in one place so the sweep and the resolve path cannot drift.
-     * Mirrors PointEngineService's own filters â€” a subtask that could never
+     * Mirrors PointEngineService's own filters — a subtask that could never
      * have earned must not be able to lose either.
      */
     private function isChargeable(Ticket $ticket, TicketSubtask $subtask): bool
@@ -220,7 +221,7 @@ class LatePenaltyService
      * until today is over, which is why the sweep runs in the morning and looks
      * backwards rather than at midnight and looks at itself.
      *
-     * Resolved tickets are excluded â€” their points were settled at resolve, and
+     * Resolved tickets are excluded — their points were settled at resolve, and
      * re-opening that is what a manual correction is for. Rows already carrying
      * a penalty are not filtered out in SQL: whether they owe another one is the
      * accumulation question, and the caller answers it with the count.
@@ -233,7 +234,7 @@ class LatePenaltyService
             ->whereDate('due_date', '<', $asOf->toDateString())
             ->whereNotNull('assignee_id')
             ->where('points', '>', 0)
-            // Coarse net only â€” owesChargeToday() makes the real call. This
+            // Coarse net only — owesChargeToday() makes the real call. This
             // keeps the finished-on-time majority out of memory rather than
             // loading every subtask that ever had a past due date. Late for a
             // done subtask means completed_at past the END of the due day, which
@@ -251,8 +252,8 @@ class LatePenaltyService
      * The ledger's sentence of explanation, in `reason` (VARCHAR 255).
      *
      * A bare negative number in a bonus run is an argument waiting to happen, so
-     * the row carries the date it was due, how far past it is, and â€” when this
-     * is a repeat charge â€” that it is a repeat and why more than one exists.
+     * the row carries the date it was due, how far past it is, and — when this
+     * is a repeat charge — that it is a repeat and why more than one exists.
      *
      * The subtask title is what gets trimmed when the sentence runs long, never
      * the explanation: titles are validated at max:255 on their own, so an
@@ -268,15 +269,15 @@ class LatePenaltyService
         $due = $subtask->due_date->translatedFormat('j M Y');
 
         $note = $this->wasCharged($subtask)
-            ? "Ø®ØµÙ… ØªØ£Ø®ÙŠØ± Ù…ØªØ±Ø§ÙƒÙ… ({$asOf->translatedFormat('j M')}): Ù„Ø³Ù‡ Ù…ØªØ£Ø®Ø±Ø© Ø¹Ù† {$due} Ø¨Ù€ {$days} ÙŠÙˆÙ… â€” Ø§Ù„ØªØ±Ø§ÙƒÙ… Ù…ÙØ¹Ù‘Ù„ ÙØ¨ÙŠØªØ®ØµÙ… ÙƒÙ„ ÙŠÙˆÙ…"
-            : "Ø®ØµÙ… ØªØ£Ø®ÙŠØ±: ÙƒØ§Ù†Øª Ù…Ø³ØªØ­Ù‚Ø© {$due} ÙˆÙ…ØªØ£Ø®Ø±Ø© {$days} ÙŠÙˆÙ…";
+            ? "خصم تأخير متراكم ({$asOf->translatedFormat('j M')}): لسه متأخرة عن {$due} بـ {$days} يوم — التراكم مفعّل فبيتخصم كل يوم"
+            : "خصم تأخير: كانت مستحقة {$due} ومتأخرة {$days} يوم";
 
-        $head = "{$ticket->type->label()} â€” {$earner} (";
-        $tail = ") â€” {$note}";
+        $head = "{$ticket->type->label()} — {$earner} (";
+        $tail = ") — {$note}";
 
         $room = 255 - mb_strlen($head) - mb_strlen($tail);
         $title = mb_strlen($subtask->title) > $room
-            ? mb_substr($subtask->title, 0, max(0, $room - 1)) . 'â€¦'
+            ? mb_substr($subtask->title, 0, max(0, $room - 1)) . '…'
             : $subtask->title;
 
         return $head . $title . $tail;
