@@ -27,6 +27,13 @@ class SettingSeeder extends Seeder
             ['key' => 'work_day_start', 'value' => '09:00', 'type' => 'string'],
             ['key' => 'work_day_end', 'value' => '17:00', 'type' => 'string'],
             ['key' => 'email_notifications_enabled', 'value' => '0', 'type' => 'bool'],
+            // ★ (2026-08-05) Off by default: being late is one event that costs
+            // its points once. Turned on, the 06:00 sweep docks the same subtask
+            // every morning it stays overdue and unfinished — standing still
+            // costs more than missing the date once. Deliberately an admin
+            // decision, because it changes how much money a slipped date is
+            // worth, not merely how it is displayed.
+            ['key' => 'late_penalty_accumulates', 'value' => '0', 'type' => 'bool'],
             ['key' => 'mail_from_address', 'value' => null, 'type' => 'string'],
             ['key' => 'mail_from_name', 'value' => null, 'type' => 'string'],
         ];

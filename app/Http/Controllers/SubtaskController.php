@@ -30,6 +30,13 @@ class SubtaskController extends Controller
             unset($data['points']);
         }
 
+        // ★ (2026-08-05) …and the due date the same way, for the same reason:
+        // a subtask finished after it now costs MINUS its points, so the date
+        // is a money field and TicketSubtaskPolicy::schedule owns it.
+        if (! $request->user()->can('schedule', TicketSubtask::class)) {
+            unset($data['due_date']);
+        }
+
         $subtask = $this->subtasks->create($ticket, $data, $request->user()->id);
 
         $this->notifications->notifyUser(
@@ -53,6 +60,12 @@ class SubtaskController extends Controller
 
         if (! $request->user()->can('updatePoints', TicketSubtask::class)) {
             unset($data['points']);
+        }
+
+        // ★ (2026-08-05) Moving your own deadline is how a penalty turns back
+        // into an award, so the date is dropped here exactly like points.
+        if (! $request->user()->can('schedule', TicketSubtask::class)) {
+            unset($data['due_date']);
         }
 
         // ★ (2026-08-02) Handing the subtask to someone else is its own

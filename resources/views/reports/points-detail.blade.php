@@ -54,8 +54,11 @@
             </select>
 
             <select name="kind" class="select filters__select" aria-label="نوع السطر">
-                <option value="">صرف وتصحيحات</option>
+                <option value="">كل السطور</option>
                 <option value="award" @selected(($filters['kind'] ?? '') === 'award')>صرف تلقائي بس</option>
+                {{-- ★ (2026-08-05) الخصم التلقائي على التأخير نوع تالت — سؤال
+                     «مين اتخصم منه الشهر ده» بقى فلتر واحد. --}}
+                <option value="penalty" @selected(($filters['kind'] ?? '') === 'penalty')>خصم تأخير بس</option>
                 <option value="correction" @selected(($filters['kind'] ?? '') === 'correction')>تصحيحات يدوية بس</option>
             </select>
 
@@ -140,6 +143,14 @@
 
                                 <td class="table__cell--muted">
                                     {{ $row->subtask?->title ?? '—' }}
+                                    {{-- ★ (2026-08-05) هنا مفيش عمود «السبب» زي
+                                         شاشة «نقاطي»، وسطر بالسالب من غير سبب
+                                         مكتوب هو بالظبط السطر الي بيتعمل عليه
+                                         خناقة. الخصم بس هو الي بيجيب سببه معاه —
+                                         الصرف العادي سببه واضح من باقي الصف. --}}
+                                    @if ($row->type === 'penalty' && $row->reason)
+                                        <span class="tickets__company">{{ $row->reason }}</span>
+                                    @endif
                                 </td>
 
                                 <td>{{ $row->side?->label() ?? $row->role?->name_ar ?? '—' }}</td>
@@ -151,6 +162,11 @@
                                     @if ($row->type === 'correction')
                                         <x-badge variant="amber" class="badge--sm">تصحيح يدوي</x-badge>
                                         <span class="tickets__company">{{ $row->creator?->name ?? '—' }}</span>
+                                    @elseif ($row->type === 'penalty')
+                                        {{-- ★ (2026-08-05) مفيش اسم جنبه زي
+                                             التصحيح اليدوي: محدش «عمل» الخصم ده
+                                             — تاريخ الاستحقاق هو الي عمله. --}}
+                                        <x-badge variant="urgent" class="badge--sm">خصم تأخير</x-badge>
                                     @else
                                         <span class="u-subtle">صرف تلقائي</span>
                                     @endif

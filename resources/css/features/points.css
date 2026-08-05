@@ -229,8 +229,9 @@
     --tile-color: var(--c-slate);
 }
 
-/* A correction that takes points away. Red is the only honest colour for a
-   negative number in a ledger. */
+/* A row that takes points away — a manual correction, or (2026-08-05) the
+   automatic penalty on a subtask finished after its due date. Red is the only
+   honest colour for a negative number in a ledger. */
 .points-cell--negative {
     color: var(--c-red);
 }

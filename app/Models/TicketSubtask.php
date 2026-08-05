@@ -63,12 +63,57 @@ class TicketSubtask extends Model
         return $this->hasOne(PointTransaction::class, 'subtask_id');
     }
 
+    /**
+     * ★ (2026-08-05) Every ledger row this subtask carries — which stopped
+     * being "at most one" when «تراكم التأخير» made a subtask dockable every
+     * morning it stays overdue. pointTransaction() above is still the right
+     * relation for the award, because there is still only ever one of those.
+     */
+    public function pointTransactions(): HasMany
+    {
+        return $this->hasMany(PointTransaction::class, 'subtask_id');
+    }
+
     /** F13: late means due before today and still not done. */
     public function isOverdue(): bool
     {
         return $this->due_date !== null
             && ! $this->status->isDone()
             && $this->due_date->isPast();
+    }
+
+    /**
+     * ★ (2026-08-05) Whether this subtask's points count AGAINST its owner.
+     *
+     * The one definition of "late" in the system. PointEngineService reads it
+     * to decide the sign of the ledger row it writes; the ticket page reads it
+     * to say so before the fact. Two copies of this rule that drifted apart
+     * would mean the screen promising points the payout doesn't give.
+     *
+     * Not the same question as isOverdue() above, which asks "is this sitting
+     * unfinished past its date" — a red flag on a plan. This asks "does
+     * finishing it earn or cost", and stays true after it is done: work
+     * delivered late is late forever, which is the entire rule.
+     *
+     * $finishedAt is the moment the work landed. Left out it means "as of now",
+     * which reads correctly in both places it is used: on a done subtask
+     * completed_at is the real answer, and on an open one now() says what the
+     * owner needs to hear — finish it today and it already costs you.
+     *
+     * No due date is never late. Nothing was promised, so nothing was missed.
+     */
+    public function finishedLate(?\Illuminate\Support\Carbon $finishedAt = null): bool
+    {
+        if ($this->due_date === null) {
+            return false;
+        }
+
+        $finished = $finishedAt ?? $this->completed_at ?? now();
+
+        // ->copy(): the date cast hands back the model's own cached Carbon, so
+        // endOfDay() on it would quietly move due_date to 23:59 for the rest of
+        // the request — including for whoever reads it after us.
+        return $finished->gt($this->due_date->copy()->endOfDay());
     }
 
     /** F09: estimated minus spent, never below zero. */

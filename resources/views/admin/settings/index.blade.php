@@ -27,6 +27,7 @@
 
             @include('admin.settings.partials._identity')
             @include('admin.settings.partials._capacity')
+            @include('admin.settings.partials._points')
             @include('admin.settings.partials._notifications')
 
             <div class="form-actions">

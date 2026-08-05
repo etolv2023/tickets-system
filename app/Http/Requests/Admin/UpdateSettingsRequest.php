@@ -27,6 +27,9 @@ class UpdateSettingsRequest extends FormRequest
             'work_day_start' => ['required', 'date_format:H:i'],
             'work_day_end' => ['required', 'date_format:H:i', 'after:work_day_start'],
             'email_notifications_enabled' => ['nullable', 'boolean'],
+            // ★ (2026-08-05) Whether the 06:00 late sweep docks the same subtask
+            // again every morning it stays overdue, or only once ever.
+            'late_penalty_accumulates' => ['nullable', 'boolean'],
             // Who the mail comes from. A setting, not a config constant, so it
             // changes without a deploy.
             'mail_from_address' => ['nullable', 'email', 'max:150'],
@@ -39,6 +42,7 @@ class UpdateSettingsRequest extends FormRequest
         // Unchecked boxes never reach the server; make their absence explicit.
         $this->merge([
             'email_notifications_enabled' => $this->boolean('email_notifications_enabled'),
+            'late_penalty_accumulates' => $this->boolean('late_penalty_accumulates'),
             'remove_logo' => $this->boolean('remove_logo'),
         ]);
 

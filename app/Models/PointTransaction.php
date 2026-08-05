@@ -17,6 +17,9 @@ class PointTransaction extends Model
 
     protected $fillable = [
         'user_id', 'ticket_id', 'subtask_id', 'side', 'role_id', 'points', 'type',
+        // ★ (2026-08-05) What UNIQUE(subtask_id, charge_key) counts as "the same
+        // charge": 'award' once ever, 'penalty:YYYY-MM-DD' once per day.
+        'charge_key',
         'created_by', 'period', 'reason',
     ];
 

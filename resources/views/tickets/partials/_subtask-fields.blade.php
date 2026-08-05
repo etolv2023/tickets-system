@@ -81,9 +81,21 @@
          sitting across 3 days. The subtask lands on the calendar on the day it
          is due, and the hours say how long it takes. --}}
     <div class="form-grid">
-        <x-field name="due_date" label="تاريخ الاستحقاق" type="date"
-                 :value="$subtask?->due_date?->toDateString()" :id="$prefix . 'due'"
-                 hint="اليوم الي الصب تاسك مستحقة فيه — ده اللي بيظهر في الكاليندر." />
+        @can('schedule', \App\Models\TicketSubtask::class)
+            <x-field name="due_date" label="تاريخ الاستحقاق" type="date"
+                     :value="$subtask?->due_date?->toDateString()" :id="$prefix . 'due'"
+                     hint="لو حطيت تاريخ وخلصت بعده، النقط بتتحسب بالسالب. سيبه فاضي لو مفيش ديدلاين." />
+        @else
+            {{-- التاريخ ليه صلاحية مستقلة (subtasks.schedule) من يوم ما بقى
+                 بيحدد النقط موجبة ولا سالبة — اللي شغال على التاسك مينفعش
+                 يحرّك الديدلاين اللي بيتحاسب بيه. قراءة بس، نفس نمط النقاط. --}}
+            <div class="field">
+                <label class="field__label" for="{{ $prefix }}due">تاريخ الاستحقاق</label>
+                <input type="text" id="{{ $prefix }}due" class="input input--locked" disabled
+                       value="{{ $subtask?->due_date?->translatedFormat('j M Y') ?? 'مفيش تاريخ' }}">
+                <p class="field__hint">التاريخ بيتحدد من مدير التيم — وهو اللي بيتحاسب عليه النقط.</p>
+            </div>
+        @endcan
     </div>
 
     <div x-show="reasonStatuses.includes(status)" x-cloak>

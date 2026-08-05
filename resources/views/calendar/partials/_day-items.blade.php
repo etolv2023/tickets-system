@@ -26,9 +26,13 @@
         data-due-date="{{ $key }}"
         data-original-due="{{ $key }}"
         {{-- ★ (2026-08-02) Only the owner can reschedule, so only the owner gets
-             a grabbable item. SubtaskScheduleController authorizes 'update'
-             either way; this stops the drag that was always going to 403. --}}
-        @can('update', [$subtask, $subtask->ticket]) draggable="true" @endcan
+             a grabbable item. SubtaskScheduleController authorizes either way;
+             this stops the drag that was always going to 403.
+
+             ★ (2026-08-05) …and now owning it isn't enough. A due date decides
+             whether its owner earns or loses the subtask's points, so dragging
+             one needs subtasks.schedule on top. --}}
+        @can('schedule', [$subtask, $subtask->ticket]) draggable="true" @endcan
         title="{{ $subtask->ticket->ticket_number }} — {{ $subtask->title }}{{ $subtask->estimated_hours ? ' (' . rtrim(rtrim($subtask->estimated_hours, '0'), '.') . ' س)' : '' }}"
     >
         {{-- A subtask says who and how long. A ticket deadline says neither —

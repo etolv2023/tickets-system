@@ -11,6 +11,7 @@ use App\Models\PriorityDefinition;
 use App\Models\Role;
 use App\Models\Ticket;
 use App\Models\TicketStatusDefinition;
+use App\Models\TicketSubtask;
 use App\Models\TicketTypeDefinition;
 use App\Models\User;
 use App\Services\ActivityLogger;
@@ -136,8 +137,18 @@ class TicketController extends Controller
         // nothing is written to that table until approval.
         $owners = $this->roleAssignmentsFromRequest($request);
 
+        // ★ (2026-08-05) The create form's rows carry a due date too, and a due
+        // date is now what decides whether its owner earns or loses the
+        // subtask's points (PointEngineService::isLate). Same silent drop as
+        // SubtaskController: the third write path can't be the open one.
+        $maySchedule = $request->user()->can('schedule', TicketSubtask::class);
+
         foreach ($request->validated('subtasks') ?? [] as $row) {
             $roleId = $row['role_id'] ?? null;
+
+            if (! $maySchedule) {
+                unset($row['due_date']);
+            }
 
             $this->subtasks->create($ticket, $row + [
                 'status' => 'todo',
