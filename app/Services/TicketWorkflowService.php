@@ -93,6 +93,18 @@ class TicketWorkflowService
         }
 
         return DB::transaction(function () use ($ticket, $from, $to, $userId, $note, $recipient) {
+            // Before the status is written and before award() runs: a waived
+            // person's open subtasks are closed now, so the point engine sees
+            // finished work and pays for it. See closeWaivedSubtasks().
+            $waivedClosed = in_array($to->value, self::SUBTASK_GATED, true)
+                ? $this->closeWaivedSubtasks($ticket)
+                : 0;
+
+            if ($waivedClosed > 0) {
+                $note = trim(($note ? $note . ' — ' : '')
+                    . "اتقفل {$waivedClosed} صب تاسك تلقائياً (إعفاء من «خلصت»)");
+            }
+
             $ticket->status = $to;
 
             if ($to === TicketStatusValue::for('resolved') && $ticket->resolved_at === null) {
@@ -576,10 +588,18 @@ class TicketWorkflowService
         // them. This makes the two gates agree: unfinishedSideBlocker already
         // only counts logs_work roles. A subtask with no role at all still
         // blocks — that's general work nobody has claimed.
+        // ★ (2026-08-05) A waived person's subtasks do not gate either.
+        //
+        // The waiver used to cover only the «خلصت» work log, which turned out to
+        // be the half nobody was blocked by: a ticket with 20 of 22 subtasks done
+        // sat open on the two that were not, and the waiver had nothing to say
+        // about them. Both gates now read the same rule, which is what "he does
+        // not have to mark it finished for me to move it" meant all along.
         $open = $ticket->subtasks()->reorder()
             ->where('status', '!=', 'done')
             ->where(fn ($q) => $q->whereNull('role_id')
                 ->orWhereIn('role_id', Role::workLoggingRoleIds()))
+            ->whereNotIn('assignee_id', $this->waivedAssigneeIds($ticket))
             ->count();
 
         if ($open === 0) {
@@ -702,6 +722,84 @@ class TicketWorkflowService
      *
      * @param  array<int, int>  $subtaskAssigneeIds  who holds a subtask on this ticket
      */
+    /**
+     * Everyone on this ticket whose obligation is waived here.
+     *
+     * A waiver is a pair, so "waived" is a question about this ticket: the
+     * counterpart has to be holding a subtask on it. Returns the ids of the
+     * people whose own subtasks and work log therefore stop gating.
+     *
+     * Never returns an empty-array-shaped surprise for whereNotIn: an empty
+     * list is fine there, it simply excludes nobody.
+     *
+     * @return array<int, int>
+     */
+    private function waivedAssigneeIds(Ticket $ticket): array
+    {
+        $holders = $this->subtaskAssigneeIds($ticket);
+        $map = WorklogCompletionWaiver::map();
+
+        $waived = [];
+
+        foreach ($holders as $userId) {
+            $waiver = $map[$userId] ?? null;
+
+            if ($waiver === null) {
+                continue;
+            }
+
+            if ($waiver['all'] || array_intersect($waiver['with'], $holders) !== []) {
+                $waived[] = $userId;
+            }
+        }
+
+        return $waived;
+    }
+
+    /**
+     * Closes the still-open subtasks of anyone waived on this ticket, at the
+     * moment the ticket is resolved or closed.
+     *
+     * ★ (2026-08-05) This is what makes "she still gets her points" true.
+     *
+     * PointEngineService pays for subtasks whose status is done and nothing
+     * else. Leaving a waived person's subtask sitting at «مستنية» would let the
+     * ticket close past them and quietly cost them the points for work the
+     * ticket is being closed on the strength of. Worse, LatePenaltyService docks
+     * an overdue subtask every morning it is still unfinished — so the row would
+     * have gone on bleeding points forever.
+     *
+     * Closing them here means the money path is untouched: the existing engine
+     * sees ordinary finished subtasks and pays them the ordinary way. The late
+     * penalty applies exactly as it would if they had pressed done themselves
+     * today, which is the deal — the waiver excuses saying "finished", not
+     * missing the date.
+     *
+     * @return int how many were closed, for the status-history note
+     */
+    private function closeWaivedSubtasks(Ticket $ticket): int
+    {
+        $waived = $this->waivedAssigneeIds($ticket);
+
+        if ($waived === []) {
+            return 0;
+        }
+
+        $open = $ticket->subtasks()->reorder()
+            ->where('status', '!=', 'done')
+            ->whereIn('assignee_id', $waived)
+            ->get();
+
+        foreach ($open as $subtask) {
+            // Through the service, so completed_at, the counters and every other
+            // rule that hangs off "a subtask became done" behave identically to
+            // the owner having clicked it.
+            $this->subtasks->update($subtask, ['status' => 'done']);
+        }
+
+        return $open->count();
+    }
+
     private function completionWaived(TicketWorkLog $log, array $subtaskAssigneeIds): bool
     {
         $waiver = WorklogCompletionWaiver::map()[$log->user_id] ?? null;
