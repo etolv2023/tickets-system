@@ -73,6 +73,8 @@
             <x-permission-picker :groups="$groups" :selected="$effectivePermissionIds"
                                  :inherited="$rolePermissionIds" name="permissions" id-prefix="uperm" />
         </x-card>
+
+        @include('admin.users.partials._waivers')
     @endisset
 
     @unless ($user)

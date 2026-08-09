@@ -8,6 +8,7 @@ use App\Models\Ticket;
 use App\Models\TicketRoleAssignment;
 use App\Models\TicketStatusDefinition;
 use App\Models\TicketWorkLog;
+use App\Models\WorklogCompletionWaiver;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -40,22 +41,6 @@ class TicketWorkflowService
      * depends on — is reading a different truth than the badge.
      */
     public const COMPUTED_STATUSES = ['in_progress', 'dev_done', 'testing'];
-
-    /**
-     * ★ (2026-08-05) The named exception to "every side must press «خلصت»".
-     *
-     * Held by a person, never by a role (permission_user, granted to no role —
-     * see PermissionSeeder). While they hold it their work log stops being a
-     * precondition for closing a ticket: it does not block resolved/closed, and
-     * it does not hold back the automatic move to «تم التطوير».
-     *
-     * What it deliberately does NOT do: it does not remove their بدأت/خلصت
-     * buttons, and it does not touch points. Points are awarded from finished
-     * SUBTASKS (PointEngineService reads ticket_subtasks and never reads a work
-     * log), so an exempt person earns exactly what they earned before. This is
-     * an obligation being lifted, not the work and not the reward.
-     */
-    public const COMPLETION_OPTIONAL = 'worklog.completion.optional';
 
     public function __construct(
         private readonly PointEngineService $points,
@@ -548,15 +533,14 @@ class TicketWorkflowService
         // ticket got stuck on an orphaned role that nobody is working any more
         // (2026-07-21, role-based since 2026-07-24).
         $assignedRoleIds = $ticket->roleAssignments()->pluck('role_id')->all();
+        $partners = $this->subtaskAssigneeIds($ticket);
 
         $unfinished = $ticket->workLogs()
             ->where('status', '!=', 'done')
             ->whereIn('role_id', $assignedRoleIds)
-            // user is loaded so the exemption can be read without a query per
-            // row; both maps hasPermission() consults are cached forever.
-            ->with(['role:id,name_ar', 'user:id,name,role_id,is_active'])
+            ->with('role:id,name_ar')
             ->get()
-            ->reject(fn (TicketWorkLog $log) => $this->completionOptional($log));
+            ->reject(fn (TicketWorkLog $log) => $this->completionWaived($log, $partners));
 
         if ($unfinished->isEmpty()) {
             return null;
@@ -668,32 +652,69 @@ class TicketWorkflowService
 
     private function allSidesDone(Ticket $ticket): bool
     {
-        $logs = $ticket->workLogs()
-            ->with('user:id,name,role_id,is_active')
-            ->get(['id', 'ticket_id', 'user_id', 'status']);
+        $logs = $ticket->workLogs()->get(['id', 'ticket_id', 'user_id', 'status']);
+        $partners = $this->subtaskAssigneeIds($ticket);
 
         // isNotEmpty() on ALL the logs, every() on the binding ones only. The
         // first still means what it always meant — a ticket nobody was ever
-        // assigned to has not "finished" — while the second lets an exempt
+        // assigned to has not "finished" — while the second lets a waived
         // person's open log stop holding «تم التطوير» back. With every side
-        // exempt the move happens on the first «خلصت» anyone presses, which is
+        // waived the move happens on the first «خلصت» anyone presses, which is
         // the only moment this is reached.
-        $binding = $logs->reject(fn (TicketWorkLog $log) => $this->completionOptional($log));
+        $binding = $logs->reject(fn (TicketWorkLog $log) => $this->completionWaived($log, $partners));
 
         return $logs->isNotEmpty() && $binding->every(fn ($log) => $log->status === 'done');
     }
 
     /**
-     * Is this person exempt from having to press «خلصت»? See COMPLETION_OPTIONAL.
+     * Everyone holding a subtask on this ticket. The set a waiver is matched
+     * against, read once per transition rather than once per work log.
      *
-     * Read through hasPermission() rather than off permission_user directly, so
-     * a grant that is later added to a role counts too, and so a per-person
-     * REVOKE of a role-granted key still wins — the override table carries both
-     * directions and only hasPermission() honours that.
+     * @return array<int, int>
      */
-    private function completionOptional(TicketWorkLog $log): bool
+    private function subtaskAssigneeIds(Ticket $ticket): array
     {
-        return $log->user?->hasPermission(self::COMPLETION_OPTIONAL) ?? false;
+        return DB::table('ticket_subtasks')
+            ->where('ticket_id', $ticket->id)
+            ->whereNull('deleted_at')
+            ->whereNotNull('assignee_id')
+            ->distinct()
+            ->pluck('assignee_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+    }
+
+    /**
+     * Is this person let off having to press «خلصت» on THIS ticket?
+     *
+     * ★ (2026-08-05) A waiver is a pair, not a flag. "Ahmed does not have to
+     * finish" was too blunt — it stopped his «خلصت» meaning anything anywhere.
+     * What was wanted is "…on the tickets he shares with Mahmoud", so the row
+     * names both people and this checks whether the counterpart is actually on
+     * the ticket in front of us.
+     *
+     * "Shares a ticket" is deliberately read as SUBTASKS, not assignments: a
+     * colleague who is assigned but has no subtask has no work here to wait on.
+     * That is a narrower rule than it first sounds — a waiver simply does not
+     * apply on a ticket where the counterpart holds nothing.
+     *
+     * A null counterpart in the table is the wildcard: waived with everyone.
+     *
+     * @param  array<int, int>  $subtaskAssigneeIds  who holds a subtask on this ticket
+     */
+    private function completionWaived(TicketWorkLog $log, array $subtaskAssigneeIds): bool
+    {
+        $waiver = WorklogCompletionWaiver::map()[$log->user_id] ?? null;
+
+        if ($waiver === null) {
+            return false;
+        }
+
+        if ($waiver['all']) {
+            return true;
+        }
+
+        return array_intersect($waiver['with'], $subtaskAssigneeIds) !== [];
     }
 
     /** F15 */

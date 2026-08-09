@@ -41,6 +41,14 @@ class UserRequest extends FormRequest
             // everything", which is why update() only acts when it is present.
             'permissions' => ['sometimes', 'array'],
             'permissions.*' => ['integer', 'exists:permissions,id'],
+
+            // F07 waivers — who this person may keep waiting. waivers_present is
+            // the hidden marker that says the card was on the form at all, so an
+            // empty selection reads as "none" instead of "leave them alone".
+            'waivers_present' => ['sometimes'],
+            'waiver_all' => ['sometimes', 'boolean'],
+            'waivers' => ['sometimes', 'array'],
+            'waivers.*' => ['integer', 'exists:users,id'],
         ];
     }
 

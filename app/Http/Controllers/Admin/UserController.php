@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\UserRequest;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\WorklogCompletionWaiver;
 use App\Services\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -51,7 +52,14 @@ class UserController extends Controller
         // No permission picker on the create form: the role isn't saved yet, so
         // there is no baseline to diff exceptions against. A new user starts on
         // exactly their role's set and is edited afterwards if they need one.
-        $user = User::create($request->safe()->except(['password_confirmation', 'permissions']));
+        // Waiver fields excluded here too. The create form does not render that
+        // card, so they should never arrive — but "should never arrive" and
+        // "cannot reach fill()" are different guarantees, and only the second
+        // one survives a hand-made POST.
+        $user = User::create($request->safe()->except([
+            'password_confirmation', 'permissions',
+            'waivers_present', 'waiver_all', 'waivers',
+        ]));
 
         $logger->log(
             action: 'user.created',
@@ -80,6 +88,17 @@ class UserController extends Controller
             // own exceptions already applied. The admin edits this, and
             // update() turns the difference back into exception rows.
             'effectivePermissionIds' => $this->effectivePermissionIds($user, $rolePermissionIds),
+            // F07 waivers: who this person may keep waiting. A null counterpart
+            // row is the "with everyone" wildcard.
+            'waiverAll' => $user->completionWaivers()->whereNull('counterpart_user_id')->exists(),
+            'waiverIds' => $user->completionWaivers()
+                ->whereNotNull('counterpart_user_id')
+                ->pluck('counterpart_user_id')->all(),
+            // Everyone but themselves — a waiver against yourself is a no-op the
+            // model drops anyway, so it should not be on the menu.
+            'waiverCandidates' => User::active()->without('role')
+                ->whereKeyNot($user->id)
+                ->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -98,6 +117,26 @@ class UserController extends Controller
             ->values()->all();
     }
 
+    /**
+     * A readable line for activity_logs. Letting one person keep another
+     * waiting is a workflow decision with a name on it, so it belongs in the
+     * audit trail next to the permission changes (§ 5).
+     */
+    private function waiverSummary(User $user): string
+    {
+        $rows = $user->completionWaivers()->with('counterpart:id,name')->get();
+
+        if ($rows->isEmpty()) {
+            return 'مفيش';
+        }
+
+        if ($rows->contains(fn ($r) => $r->counterpart_user_id === null)) {
+            return 'مع الكل';
+        }
+
+        return $rows->map(fn ($r) => $r->counterpart?->name)->filter()->implode('، ');
+    }
+
     public function update(UserRequest $request, User $user, ActivityLogger $logger): RedirectResponse
     {
         $this->authorize('update', $user);
@@ -108,15 +147,35 @@ class UserController extends Controller
         }
 
         $before = $user->only('name', 'email', 'role_id', 'is_active')
-            + ['permissions' => $this->overrideSummary($user)];
+            + ['permissions' => $this->overrideSummary($user)]
+            + ['waivers' => $this->waiverSummary($user)];
 
         // An edit never silently changes a password — that's resetPassword's job.
-        $user->update($request->safe()->except(['password', 'password_confirmation', 'permissions']));
+        // The waiver fields are excluded for the same reason `permissions` is:
+        // they are not columns on users, so letting them reach fill() trips
+        // mass-assignment protection ($fillable is doing its job, § 5). They are
+        // written to their own table below.
+        $user->update($request->safe()->except([
+            'password', 'password_confirmation', 'permissions',
+            'waivers_present', 'waiver_all', 'waivers',
+        ]));
 
         // Absent (the create form, or any caller that doesn't render the picker)
         // means "don't touch the exceptions" — NOT "revoke everything".
         if ($request->has('permissions')) {
             $this->syncOverrides($user->refresh(), $request->validated('permissions') ?? []);
+        }
+
+        // Same contract as the permissions above: the waiver card only renders
+        // on edit, so its absence means "this caller doesn't manage waivers",
+        // never "clear them". waiver_all is a checkbox, and an unticked checkbox
+        // posts nothing — so the card announces itself with a hidden marker.
+        if ($request->has('waivers_present')) {
+            WorklogCompletionWaiver::syncFor(
+                $user->id,
+                $request->boolean('waiver_all'),
+                $request->validated('waivers') ?? [],
+            );
         }
 
         $logger->log(
@@ -126,7 +185,8 @@ class UserController extends Controller
             changes: [
                 'from' => $before,
                 'to' => $user->only('name', 'email', 'role_id', 'is_active')
-                    + ['permissions' => $this->overrideSummary($user->refresh())],
+                    + ['permissions' => $this->overrideSummary($user->refresh())]
+                    + ['waivers' => $this->waiverSummary($user)],
             ],
             ip: $request->ip(),
             userAgent: $request->userAgent(),

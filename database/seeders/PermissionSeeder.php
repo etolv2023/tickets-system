@@ -57,18 +57,6 @@ class PermissionSeeder extends Seeder
             // by everyone who does it. Reading it is untouched: the date still
             // shows on every row and drives the calendar.
             'subtasks.schedule' => 'تحديد تاريخ استحقاق الصب تاسك',
-            // ★ (2026-08-05) A ticket cannot be closed while an assigned
-            // work-logging role still has an open work log. That default stays;
-            // this is the named exception to it — the holder's «خلصت» stops
-            // being a precondition for closing the ticket, on every ticket they
-            // are on. They keep the بدأت/خلصت buttons and keep earning their
-            // subtasks' points exactly as before: this removes an obligation,
-            // not the work and not the reward.
-            //
-            // Granted to NO role, like subtasks.manage.any and system.backup —
-            // it answers "is THIS person a bottleneck we accept", which is a
-            // fact about one tester, never about the job of testing.
-            'worklog.completion.optional' => 'مش ملزم يضغط «خلصت» لإقفال التذكرة',
             'time.log' => 'تسجيل الوقت',
             'links.manage' => 'ربط التذاكر ببعضها',
             'features.approve' => 'الموافقة على الفيتشرات والموديولات',

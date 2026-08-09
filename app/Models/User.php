@@ -146,6 +146,12 @@ class User extends Authenticatable
         return in_array($key, Role::permissionMap()[$this->role_id] ?? [], true);
     }
 
+    /** F07: who this person is allowed to keep waiting — see WorklogCompletionWaiver. */
+    public function completionWaivers(): HasMany
+    {
+        return $this->hasMany(WorklogCompletionWaiver::class);
+    }
+
     /** Deliberate exceptions to a user's role permissions (grant or revoke). */
     public function permissionOverrides(): BelongsToMany
     {
