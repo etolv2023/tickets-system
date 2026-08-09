@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Role;
 use App\Models\Ticket;
 use App\Models\TicketStatusDefinition;
+use App\Models\WorklogCompletionWaiver;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -115,10 +116,26 @@ class BoardController extends Controller
         // that cannot change mid-request.
         $gating = self::$gatingRoleIds ??= Role::workLoggingRoleIds();
 
+        // ★ (2026-08-05) …and whose owner is not waived on this ticket.
+        //
+        // This method exists to mirror subtaskBlocker() so a column the server
+        // would refuse is greyed out before the mouse is released. When the
+        // waiver taught that gate to ignore a waived person's subtasks and this
+        // copy was left behind, the mirror broke in the worse direction: the
+        // drop was legal and the column was dead, so «مغلقة» simply would not
+        // accept the card and nothing said why.
+        //
+        // waivedAmong() is array work over a cached map — no query, which
+        // matters on a board of hundreds of cards.
+        $waived = WorklogCompletionWaiver::waivedAmong(
+            $ticket->subtasks->pluck('assignee_id')->filter()->unique()->values()->all()
+        );
+
         // Same predicate as subtaskBlocker(): not done, and either untagged
         // (general work nobody claimed) or on a work-logging role.
         return $ticket->subtasks->contains(
             fn ($subtask) => ! $subtask->status->isDone()
+                && ! in_array((int) $subtask->assignee_id, $waived, true)
                 && ($subtask->role_id === null || $gating->contains($subtask->role_id))
         );
     }

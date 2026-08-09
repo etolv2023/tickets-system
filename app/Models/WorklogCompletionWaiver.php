@@ -76,6 +76,44 @@ class WorklogCompletionWaiver extends Model
         });
     }
 
+    /**
+     * Of the people holding subtasks on one ticket, which are waived there?
+     *
+     * ★ (2026-08-05) The matching rule lives here, in one place, because it has
+     * two callers that must never disagree: TicketWorkflowService, which
+     * decides whether the move is allowed, and BoardController, which greys out
+     * the columns the server would refuse. When only the first knew about
+     * waivers the board became STRICTER than the server — the drop was legal
+     * and the column was dead, which reads as a broken board.
+     *
+     * Pure array work over the cached map: no queries, so it is safe to call
+     * once per card on a large board.
+     *
+     * @param  array<int, int>  $assigneeIds  everyone holding a subtask there
+     * @return array<int, int>  the subset whose obligation is waived
+     */
+    public static function waivedAmong(array $assigneeIds): array
+    {
+        $map = static::map();
+        $waived = [];
+
+        foreach ($assigneeIds as $id) {
+            $waiver = $map[$id] ?? null;
+
+            if ($waiver === null) {
+                continue;
+            }
+
+            // "all" needs no counterpart. Otherwise one of the named people has
+            // to be on this ticket — that is what makes a waiver a pair.
+            if ($waiver['all'] || array_intersect($waiver['with'], $assigneeIds) !== []) {
+                $waived[] = (int) $id;
+            }
+        }
+
+        return $waived;
+    }
+
     /** Always write through here, or the cache above outlives the change. */
     public static function syncFor(int $userId, bool $withEveryone, array $counterpartIds): void
     {

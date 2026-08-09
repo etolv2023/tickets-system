@@ -795,24 +795,7 @@ class TicketWorkflowService
      */
     private function waivedAssigneeIds(Ticket $ticket): array
     {
-        $holders = $this->subtaskAssigneeIds($ticket);
-        $map = WorklogCompletionWaiver::map();
-
-        $waived = [];
-
-        foreach ($holders as $userId) {
-            $waiver = $map[$userId] ?? null;
-
-            if ($waiver === null) {
-                continue;
-            }
-
-            if ($waiver['all'] || array_intersect($waiver['with'], $holders) !== []) {
-                $waived[] = $userId;
-            }
-        }
-
-        return $waived;
+        return WorklogCompletionWaiver::waivedAmong($this->subtaskAssigneeIds($ticket));
     }
 
     /**
