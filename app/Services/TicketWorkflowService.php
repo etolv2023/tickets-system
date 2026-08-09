@@ -456,20 +456,7 @@ class TicketWorkflowService
 
             $ticket = $log->ticket->refresh();
 
-            if ($this->allSidesDone($ticket)) {
-                $this->transition($ticket, TicketStatusValue::for('dev_done'), $actorId, 'كل الجهات خلصت');
-
-                // No tester means nobody is going to verify it, so the ticket
-                // waits for support or a manager rather than sitting in limbo. F16
-                // "Has a tester" is now "holds an is_tester role assignment".
-                $hasTester = $ticket->roleAssignments()
-                    ->whereIn('role_id', Role::testerRoleIds())
-                    ->exists();
-
-                if ($hasTester) {
-                    $this->transition($ticket, TicketStatusValue::for('testing'), $actorId, 'في انتظار التيست');
-                }
-            }
+            $this->promoteIfSidesDone($ticket, $actorId, 'كل الجهات خلصت');
         });
     }
 
@@ -722,6 +709,78 @@ class TicketWorkflowService
      *
      * @param  array<int, int>  $subtaskAssigneeIds  who holds a subtask on this ticket
      */
+    /**
+     * Moves the ticket on if every side that still has to finish, has.
+     *
+     * ★ (2026-08-05) Split out of finish() so it can be run again later.
+     *
+     * dev_done is a computed status — it is never in the manual picker, and the
+     * only thing that used to compute it was somebody pressing «خلصت». That is
+     * fine while the last person to finish is the one who unblocks the ticket,
+     * and wrong the moment a waiver is what unblocks it: everyone who was ever
+     * going to press the button already had, so nothing re-ran the check and the
+     * ticket sat at «جاري العمل» forever. From there the machine offers no route
+     * to «تم الحل» at all — in_progress only leads to dev_done — so the ticket
+     * was unclosable and the status dropdown looked broken.
+     */
+    private function promoteIfSidesDone(Ticket $ticket, ?int $actorId, string $note): void
+    {
+        if (! $this->allSidesDone($ticket)) {
+            return;
+        }
+
+        $this->transition($ticket, TicketStatusValue::for('dev_done'), $actorId, $note);
+
+        // No tester means nobody is going to verify it, so the ticket waits for
+        // support or a manager rather than sitting in limbo. F16 — "has a
+        // tester" is "holds an is_tester role assignment".
+        $hasTester = $ticket->roleAssignments()
+            ->whereIn('role_id', Role::testerRoleIds())
+            ->exists();
+
+        if ($hasTester) {
+            $this->transition($ticket, TicketStatusValue::for('testing'), $actorId, 'في انتظار التيست');
+        }
+    }
+
+    /**
+     * Re-runs that check for every open ticket this person is holding up.
+     *
+     * Called after their waivers change: the waiver is what has just made those
+     * tickets finishable, and without this the change only takes effect on
+     * tickets where somebody presses «خلصت» afterwards — which, on a ticket
+     * everyone else has already finished, is nobody.
+     *
+     * @return int how many tickets moved on
+     */
+    public function reevaluateFor(int $userId, ?int $actorId = null): int
+    {
+        $tickets = Ticket::query()
+            ->where('status', 'in_progress')
+            ->whereHas('workLogs', fn ($q) => $q->where('user_id', $userId)->where('status', '!=', 'done'))
+            ->get();
+
+        $moved = 0;
+
+        foreach ($tickets as $ticket) {
+            $before = $ticket->status->value;
+
+            try {
+                $this->promoteIfSidesDone($ticket, $actorId, 'اتفك البلوك بإعفاء من «خلصت»');
+            } catch (DomainException) {
+                // One stuck ticket must not stop the rest — a feature awaiting
+                // approval, say, refuses to move and that is correct.
+                continue;
+            }
+
+            if ($ticket->fresh()?->status->value !== $before) {
+                $moved++;
+            }
+        }
+
+        return $moved;
+    }
+
     /**
      * Everyone on this ticket whose obligation is waived here.
      *

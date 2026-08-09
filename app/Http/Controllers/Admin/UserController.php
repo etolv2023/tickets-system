@@ -9,6 +9,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Models\WorklogCompletionWaiver;
 use App\Services\ActivityLogger;
+use App\Services\TicketWorkflowService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -137,7 +138,7 @@ class UserController extends Controller
         return $rows->map(fn ($r) => $r->counterpart?->name)->filter()->implode('، ');
     }
 
-    public function update(UserRequest $request, User $user, ActivityLogger $logger): RedirectResponse
+    public function update(UserRequest $request, User $user, ActivityLogger $logger, TicketWorkflowService $workflow): RedirectResponse
     {
         $this->authorize('update', $user);
 
@@ -176,6 +177,18 @@ class UserController extends Controller
                 $request->boolean('waiver_all'),
                 $request->validated('waivers') ?? [],
             );
+
+            // ★ (2026-08-05) A waiver has to reach the tickets it is about.
+            // dev_done is computed only when somebody presses «خلصت», so on a
+            // ticket everybody else already finished, the waiver would never
+            // have been read — it would sit at «جاري العمل» with no route to
+            // «تم الحل» in the picker at all. This asks the question again for
+            // the tickets this person is holding up.
+            $moved = $workflow->reevaluateFor($user->id, $request->user()->id);
+
+            if ($moved > 0) {
+                session()->flash('status', "تم حفظ التعديلات. و{$moved} تذكرة اتحرّكت بعد الإعفاء.");
+            }
         }
 
         $logger->log(
