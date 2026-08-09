@@ -138,10 +138,32 @@ export default function editor({ name, value = '', placeholder = '', simple = fa
          * themselves — there is one guarded way to ask this question.
          */
         caret() {
+            /**
+             * ★ (2026-08-05) Clamped to getLength() - 1, and that -1 is the
+             * whole fix for "the image went to the bottom and Enter pushes
+             * everything down from the top".
+             *
+             * getLength() counts the document's trailing newline, so it is one
+             * PAST the last position you may insert at. An empty editor has
+             * length 1, so the old fallback inserted the picture at index 1 —
+             * after the final newline — and Quill answered by creating a block
+             * for it and leaving an empty paragraph in front. The document came
+             * out as <p><br></p><p><img></p> with the caret at 0: cursor
+             * stranded above the picture, and every Enter adding another blank
+             * line at the top.
+             *
+             * Missed first time because every test typed something before
+             * pasting, which hid it — the fallback only runs when there is no
+             * readable selection, and an empty editor is exactly that case.
+             */
+            const end = Math.max(0, this.quill.getLength() - 1);
+
             try {
-                return this.quill.getSelection()?.index ?? this.quill.getLength();
+                const index = this.quill.getSelection()?.index;
+
+                return index == null ? end : Math.min(index, end);
             } catch {
-                return this.quill.getLength();
+                return end;
             }
         },
 
@@ -252,8 +274,35 @@ export default function editor({ name, value = '', placeholder = '', simple = fa
                 });
 
                 /**
-                 * ★ (2026-08-05) The caret goes immediately AFTER the picture,
-                 * and no blank line is manufactured for it.
+                 * ★ (2026-08-05) A single space after the picture, but ONLY when
+                 * the picture would otherwise be the last thing in the document.
+                 *
+                 * Quill will not hold a caret after a trailing embed: with the
+                 * document at [image][\n], asking for index 1 gives you index 0
+                 * back, so the cursor sits BEFORE the picture and everything you
+                 * type appears above it. That is the reported "بيكتب فوق الصورة".
+                 *
+                 * The obvious repair — insert a newline so there is a paragraph
+                 * below — does not work in this Quill build: the new block comes
+                 * out with no Break blot, so scroll.leaf() is null for every
+                 * index inside it, and setNativeRange answers a null node by
+                 * blurring the editor. Verified leaf-by-leaf, with insertText
+                 * and with an atomic Delta, and scroll.optimize() would not
+                 * repair it either.
+                 *
+                 * A space is a real text leaf. The caret can sit on it, typing
+                 * continues from it, and because the image is display:block in
+                 * the editor the text appears on the line below the picture —
+                 * which is what was actually asked for. It costs one invisible
+                 * character in the stored HTML.
+                 */
+                if (at >= this.quill.getLength() - 1) {
+                    this.quill.insertText(at, ' ', 'user');
+                    at += 1;
+                }
+
+                /**
+                 * The caret goes immediately after that.
                  *
                  * The obvious move — insertText(at, '\n') so there is a line
                  * waiting below — produces a paragraph Quill does not consider
@@ -297,9 +346,8 @@ export default function editor({ name, value = '', placeholder = '', simple = fa
                  * the tick it needs, and it always fires.
                  *
                  * root.focus() rather than quill.focus(): the latter restores
-                 * Quill's *saved* range, which is the one we just cleared, so it
-                 * puts the cursor back exactly where we did not want it. Focus
-                 * the element, then say where the caret goes.
+                 * Quill's own saved range, which is not the position we just
+                 * worked out. Focus the element, then say where the caret goes.
                  */
                 const caretAt = at;
 
