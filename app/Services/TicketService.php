@@ -54,6 +54,9 @@ class TicketService
                 'type' => $type,
                 'priority' => $priority,
                 'module' => $data['module'] ?? null,
+                // How to reproduce it: the login code and the page.
+                'client_user_code' => $data['client_user_code'] ?? null,
+                'page_url' => $data['page_url'] ?? null,
                 // A feature can't be worked on before an admin says yes. F15
                 'status' => $type->needsApproval() ? TicketStatusValue::for('pending_approval') : TicketStatusValue::for('new'),
                 'approval_status' => $type->needsApproval() ? 'pending' : 'not_required',
@@ -86,6 +89,11 @@ class TicketService
             'type' => $data['type'],
             'priority' => $priority,
             'module' => $data['module'] ?? null,
+            // Editable, unlike the company and the reporter: those are a record
+            // of who said what, these are where the work happens and the client
+            // moves the page or hands over a different account.
+            'client_user_code' => $data['client_user_code'] ?? null,
+            'page_url' => $data['page_url'] ?? null,
         ];
 
         // Re-prioritising moves the deadline; reported_at never changes.

@@ -20,8 +20,22 @@
 /* ---- Ratings ---- */
 
 .rating {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 4rem minmax(0, 1fr) auto;
+    /* ★ (2026-08-04) Wrapping flex, not a four-column grid.
+
+       It was `minmax(0,1fr) 4rem minmax(0,1fr) auto` — name, score, comment,
+       button — and it lived in the ticket aside, which is 296px wide. Four
+       columns in 296px gave the name about 80px and broke it across three
+       lines, with the select and the button touching. It only stacked below a
+       44rem VIEWPORT, and the viewport is not what constrains it: on a 2560px
+       monitor the screen is enormous and the aside is still 296px, so the
+       stacked layout never came and the card was at its worst exactly where
+       there was most room.
+
+       Flex-wrap needs no query at all: the person claims a full line, the three
+       controls share the next, and if the container ever does get wide enough
+       they sit on one. The layout answers to the space it is actually in. */
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--space-2);
     padding-block: var(--space-2);
@@ -33,6 +47,9 @@
 }
 
 .rating__who {
+    /* The whole first line — a person's name is the label for the row and must
+       not be the thing that gets squeezed. */
+    flex: 1 1 100%;
     display: flex;
     align-items: center;
     gap: var(--space-2);
@@ -46,8 +63,16 @@
 }
 
 .rating__score {
+    flex: 0 0 4rem;
     width: 4rem;
     text-align: center;
+}
+
+/* Takes what is left of the controls line, and is allowed to become quite
+   narrow before wrapping — a comment box is still usable at 8rem. */
+.rating__comment {
+    flex: 1 1 8rem;
+    min-width: 0;
 }
 
 /* ---- Leaderboard podium ----
@@ -194,12 +219,6 @@
     font-family: var(--font-mono);
     font-weight: var(--weight-bold);
     font-variant-numeric: tabular-nums;
-}
-
-@media (max-width: 44rem) {
-    .rating {
-        grid-template-columns: 1fr;
-    }
 }
 
 /* ---- Points report ---- */

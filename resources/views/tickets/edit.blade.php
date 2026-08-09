@@ -11,7 +11,11 @@
             </div>
         </div>
 
-        <form method="POST" action="{{ route('tickets.update', $ticket) }}">
+        {{-- enctype is not optional now that this form carries an uploader: a
+             multipart form posted as urlencoded arrives with no files at all,
+             silently. --}}
+        <form method="POST" action="{{ route('tickets.update', $ticket) }}"
+              enctype="multipart/form-data">
             @csrf
             @method('PUT')
             @include('tickets.partials._form')

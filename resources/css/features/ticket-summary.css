@@ -1,0 +1,95 @@
+/* Ticket summary bar — the answers you need before you can start work.
+
+   A strip, not a card and not a facts list: it sits between the title and the
+   body as one continuous band of context, and it must survive a phone without
+   turning into a column of eleven lines. So the items wrap against each other
+   rather than being laid out on a grid — a grid would reserve a column for the
+   page link on a screen where the link is the only thing that fits. */
+
+.ticket-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-3) var(--space-5);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background-color: var(--surface);
+}
+
+.ticket-summary__item {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    min-width: 0;
+}
+
+/* The link is the one item allowed to take the rest of the row — a URL has no
+   natural short form, and truncating it at a column boundary hides the part
+   that says which page it is. */
+.ticket-summary__item--wide {
+    flex: 1 1 22rem;
+}
+
+.ticket-summary__label {
+    flex-shrink: 0;
+    color: var(--text-subtle);
+    font-size: var(--text-sm);
+}
+
+.ticket-summary__value {
+    min-width: 0;
+    color: var(--text);
+    font-size: var(--text-md);
+    font-weight: var(--weight-medium);
+}
+
+/* A ticket past its deadline is the one thing in this strip allowed to shout.
+   Same treatment as .facts__value--overdue, which this replaced. */
+.ticket-summary__value--overdue {
+    color: var(--c-urgent);
+    font-weight: var(--weight-bold);
+}
+
+/* The ERP number riding after a reporter's name — present, but not competing
+   with it. */
+.ticket-summary__sub {
+    margin-inline-start: var(--space-1);
+    color: var(--text-subtle);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-normal);
+}
+
+.ticket-summary__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    max-width: 100%;
+    color: var(--action);
+}
+
+.ticket-summary__link:hover .ticket-summary__url {
+    text-decoration: underline;
+}
+
+/* Ellipsis rather than wrap: a wrapped URL turns the strip into a paragraph,
+   and the full value is on the title attribute and one click away anyway. */
+.ticket-summary__url {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+}
+
+/* On a phone the labels stop earning their horizontal space — the pairs stack,
+   and the strip reads as a short list instead of a wrapped ribbon. */
+@media (max-width: 40rem) {
+    .ticket-summary {
+        gap: var(--space-2) var(--space-4);
+    }
+
+    .ticket-summary__item--wide {
+        flex-basis: 100%;
+    }
+}

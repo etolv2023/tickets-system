@@ -41,6 +41,22 @@ class TicketWorkflowService
      */
     public const COMPUTED_STATUSES = ['in_progress', 'dev_done', 'testing'];
 
+    /**
+     * ★ (2026-08-05) The named exception to "every side must press «خلصت»".
+     *
+     * Held by a person, never by a role (permission_user, granted to no role —
+     * see PermissionSeeder). While they hold it their work log stops being a
+     * precondition for closing a ticket: it does not block resolved/closed, and
+     * it does not hold back the automatic move to «تم التطوير».
+     *
+     * What it deliberately does NOT do: it does not remove their بدأت/خلصت
+     * buttons, and it does not touch points. Points are awarded from finished
+     * SUBTASKS (PointEngineService reads ticket_subtasks and never reads a work
+     * log), so an exempt person earns exactly what they earned before. This is
+     * an obligation being lifted, not the work and not the reward.
+     */
+    public const COMPLETION_OPTIONAL = 'worklog.completion.optional';
+
     public function __construct(
         private readonly PointEngineService $points,
         private readonly NotificationService $notifications,
@@ -536,8 +552,11 @@ class TicketWorkflowService
         $unfinished = $ticket->workLogs()
             ->where('status', '!=', 'done')
             ->whereIn('role_id', $assignedRoleIds)
-            ->with('role:id,name_ar')
-            ->get();
+            // user is loaded so the exemption can be read without a query per
+            // row; both maps hasPermission() consults are cached forever.
+            ->with(['role:id,name_ar', 'user:id,name,role_id,is_active'])
+            ->get()
+            ->reject(fn (TicketWorkLog $log) => $this->completionOptional($log));
 
         if ($unfinished->isEmpty()) {
             return null;
@@ -649,9 +668,32 @@ class TicketWorkflowService
 
     private function allSidesDone(Ticket $ticket): bool
     {
-        $logs = $ticket->workLogs()->get(['status']);
+        $logs = $ticket->workLogs()
+            ->with('user:id,name,role_id,is_active')
+            ->get(['id', 'ticket_id', 'user_id', 'status']);
 
-        return $logs->isNotEmpty() && $logs->every(fn ($l) => $l->status === 'done');
+        // isNotEmpty() on ALL the logs, every() on the binding ones only. The
+        // first still means what it always meant — a ticket nobody was ever
+        // assigned to has not "finished" — while the second lets an exempt
+        // person's open log stop holding «تم التطوير» back. With every side
+        // exempt the move happens on the first «خلصت» anyone presses, which is
+        // the only moment this is reached.
+        $binding = $logs->reject(fn (TicketWorkLog $log) => $this->completionOptional($log));
+
+        return $logs->isNotEmpty() && $binding->every(fn ($log) => $log->status === 'done');
+    }
+
+    /**
+     * Is this person exempt from having to press «خلصت»? See COMPLETION_OPTIONAL.
+     *
+     * Read through hasPermission() rather than off permission_user directly, so
+     * a grant that is later added to a role counts too, and so a per-person
+     * REVOKE of a role-granted key still wins — the override table carries both
+     * directions and only hasPermission() honours that.
+     */
+    private function completionOptional(TicketWorkLog $log): bool
+    {
+        return $log->user?->hasPermission(self::COMPLETION_OPTIONAL) ?? false;
     }
 
     /** F15 */

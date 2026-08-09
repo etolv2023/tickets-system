@@ -31,12 +31,28 @@ class TicketCommentController extends Controller
 
         if ($request->hasFile('attachments')) {
             try {
-                $this->attachments->attachMany(
+                $saved = $this->attachments->attachMany(
                     $ticket,
                     $request->file('attachments'),
                     $request->user()->id,
                     $comment,
                 );
+
+                // ★ (2026-08-04) The description has done this since inline
+                // images existed; the comment box never did, and that only
+                // stopped mattering because the picture used to die in the
+                // browser before it could get here (editor.js). With that fixed
+                // the placeholder now arrives intact and PASSES the purifier —
+                // it is an ordinary https URL — so leaving it alone would store
+                // a live link to /attachments/pending/…, a route that does not
+                // exist. A silently broken image, on the app's commonest action.
+                $comment->forceFill([
+                    'body' => $this->attachments->resolveInlineImages(
+                        $comment->body,
+                        $saved,
+                        $request->input('attachment_tokens', [])
+                    ),
+                ])->saveQuietly();
             } catch (RuntimeException $e) {
                 return redirect()->route('tickets.show', $ticket)
                     ->withErrors(['attachments' => $e->getMessage()]);

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -21,6 +22,8 @@ class Role extends Model
     public const WORK_LOGGING_CACHE_KEY = 'roles.logs_work';
 
     public const TESTER_CACHE_KEY = 'roles.is_tester';
+
+    public const BY_ID_CACHE_KEY = 'roles.by_id';
 
     protected $fillable = ['key', 'name_ar', 'is_system', 'assignable_on_tickets', 'logs_work', 'is_tester'];
 
@@ -44,6 +47,7 @@ class Role extends Model
             Cache::forget(self::ASSIGNABLE_CACHE_KEY);
             Cache::forget(self::WORK_LOGGING_CACHE_KEY);
             Cache::forget(self::TESTER_CACHE_KEY);
+            Cache::forget(self::BY_ID_CACHE_KEY);
         });
 
         static::deleted(function () {
@@ -52,6 +56,7 @@ class Role extends Model
             Cache::forget(self::ASSIGNABLE_CACHE_KEY);
             Cache::forget(self::WORK_LOGGING_CACHE_KEY);
             Cache::forget(self::TESTER_CACHE_KEY);
+            Cache::forget(self::BY_ID_CACHE_KEY);
         });
     }
 
@@ -113,6 +118,23 @@ class Role extends Model
     public static function idByKey(string $key): ?int
     {
         return static::idMap()[$key] ?? null;
+    }
+
+    /**
+     * Every role, keyed by id.
+     *
+     * ★ (2026-08-04) The ticket page reads role names off three different
+     * relations — a work log's role, a subtask's role, an assignment's role —
+     * and each was its own eager load, so one ticket meant three queries
+     * against a table with under a dozen rows that changes twice a year. There
+     * are only ever a handful of roles; the whole table is smaller than the
+     * key list needed to fetch part of it.
+     *
+     * @return Collection<int, Role>
+     */
+    public static function byId(): Collection
+    {
+        return Cache::rememberForever(self::BY_ID_CACHE_KEY, fn () => static::query()->get()->keyBy('id'));
     }
 
     /**

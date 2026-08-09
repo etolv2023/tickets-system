@@ -11,14 +11,55 @@
     align-items: start;
 }
 
-/* Deliberately NOT sticky. The aside stacks seven fact cards and is always
-   taller than the viewport — a sticky element taller than the viewport pins at
-   its top and its lower cards become unreachable, which forced you to collapse
-   cards one by one just to see the next one. It scrolls with the page instead. */
+/* ★★ (2026-08-04) Sticky, and this reverses the note that used to sit here.
+
+   The old comment was right about the symptom and wrong about the cure: a
+   sticky element taller than the viewport pins at its top and its lower cards
+   become unreachable, so sticky was abandoned and the column was left to
+   scroll with the page. But the actual fault was that the aside held twelve
+   cards, and the fix for "too long" had been to fold every one of them by
+   default — which traded a long column for a column of grey title bars with no
+   information on it at all.
+
+   With the facts moved up to the summary strip and the leftovers merged, what
+   is left is short and is nearly all actions. So it can pin — and the
+   unreachable-lower-cards problem is answered directly, by giving the aside its
+   own scrollbar instead of pretending it will always fit.
+
+   overflow-y on a sticky element is safe for the dropdowns inside it: the
+   combobox list is position: fixed and re-measures on scroll with capture
+   (combobox.js), so it tracks rather than being clipped. */
 .ticket__side {
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
+    position: sticky;
+    /* Clears the sticky topbar, plus the page gutter. */
+    inset-block-start: calc(var(--topbar-height) + var(--space-4));
+    max-height: calc(100dvh - var(--topbar-height) - var(--space-5) * 2);
+    overflow-y: auto;
+    /* Room for the scrollbar so a card's border does not sit under it. */
+    padding-inline-end: var(--space-1);
+    /* The aside owns its overscroll: reaching its end must not start scrolling
+       the page underneath it mid-gesture. */
+    overscroll-behavior: contain;
+}
+
+/* ★ Without this the max-height above silently eats the cards instead of
+   scrolling them.
+
+   This is a flex column, so its children default to flex-shrink: 1. Given a
+   max-height they do exactly what that asks: every card shrinks a little to
+   make the total fit, and because .card carries overflow: hidden for its
+   rounded corners, each one quietly clips its own last row. The container then
+   reports scrollHeight === clientHeight — nothing overflows, so no scrollbar
+   appears and there is nothing to scroll to.
+
+   The result was five cards each cut off mid-row, which reads as broken
+   rendering rather than as a list that continues. Caught by looking at it; the
+   overflow measurement said everything was fine. */
+.ticket__side > * {
+    flex-shrink: 0;
 }
 
 .ticket__head {
@@ -169,105 +210,6 @@
     padding-block: var(--space-1);
 }
 
-/* ---- Tabs: timeline / subtasks / time / links ---- */
-
-/* The tab strip sits on a hairline and the active tab overdraws it with a 2px
-   rule in --action. Greyscale chrome: the underline is position, not colour. */
-/* Wraps rather than scrolls: four tabs on a narrow column produced a stray
-   scrollbar sliver beside the labels. Wrapping costs a row, a scrollbar costs
-   a confusing piece of chrome. */
-.tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1);
-    border-block-end: 1px solid var(--border);
-    margin-block-end: var(--space-5);
-}
-
-.tabs__tab {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding-block: var(--space-3);
-    padding-inline: var(--space-4);
-    margin-block-end: -1px;
-    border: 0;
-    border-block-end: 2px solid transparent;
-    background-color: transparent;
-    color: var(--text-subtle);
-    font-family: inherit;
-    font-size: var(--text-base);
-    font-weight: var(--weight-bold);
-    white-space: nowrap;
-    cursor: pointer;
-    transition: color var(--transition), border-color var(--transition);
-}
-
-.tabs__tab:hover {
-    color: var(--text-muted);
-}
-
-.tabs__tab--active {
-    color: var(--text);
-    border-block-end-color: var(--action);
-}
-
-.tabs__tab:focus-visible {
-    outline: 2px solid var(--focus);
-    outline-offset: -2px;
-}
-
-/* A count riding inside a tab — neutral by definition, never semantic. */
-.tabs__count {
-    padding-block: 1px;
-    padding-inline: 6px;
-    border-radius: var(--radius-full);
-    background-color: var(--chip);
-    color: var(--text-muted);
-    font-family: var(--font-mono);
-    font-size: var(--text-2xs);
-    font-weight: var(--weight-medium);
-}
-
-/* ---- Collapsible aside card ---- */
-
-/* A small square chevron in the card's corner. It is chrome, so it stays grey
-   and square — a .btn here would read as an action the card is offering. */
-.card__collapse {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.375rem;
-    height: 1.375rem;
-    flex-shrink: 0;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background-color: var(--bg);
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: color var(--transition), border-color var(--transition);
-}
-
-.card__collapse:hover {
-    color: var(--text);
-    border-color: var(--border-strong);
-}
-
-.card__collapse:focus-visible {
-    outline: 2px solid var(--focus);
-    outline-offset: 1px;
-}
-
-.card__collapse-icon {
-    transition: transform var(--transition);
-}
-
-/* The glyph is a chevron-up — "fold me away". Collapsed, it flips to point
-   down: "there is more here". */
-.card__collapse[aria-expanded='false'] .card__collapse-icon {
-    transform: rotate(180deg);
-}
-
 /* ---- Ticket form (create / edit) ---- */
 
 /* On edit, the reporter and company are a frozen snapshot of who said what.
@@ -282,13 +224,26 @@
 }
 
 @media (max-width: 64rem) {
+    /* minmax(0, 1fr), not 1fr — a grid track's automatic minimum is min-content,
+       so one wide child (the tab strip, a long URL, a table) pushes the track
+       past the screen and takes the whole page with it. The desktop rule above
+       has always guarded this; the phone rule, where it actually matters, said
+       a bare 1fr and quietly gave /tickets/{id} 424px of layout on a 375px
+       screen. Measured with mobile emulation OFF — with it on, Chrome scales
+       the viewport to fit and the overflow never shows up. */
     .ticket {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
-}
 
-@media (prefers-reduced-motion: reduce) {
-    .card__collapse-icon {
-        transition: none;
+    /* One column: the aside is now below the body, not beside it, so pinning it
+       would park a panel over the content the user scrolled to read. And a
+       max-height here would put a second scrollbar inside a page that already
+       scrolls — two nested scroll areas on a touch screen is a guess about
+       which one the finger meant. */
+    .ticket__side {
+        position: static;
+        max-height: none;
+        overflow-y: visible;
+        padding-inline-end: 0;
     }
 }

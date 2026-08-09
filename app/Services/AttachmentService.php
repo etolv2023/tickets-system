@@ -230,18 +230,35 @@ class AttachmentService
             // a 10MB string in memory.
             Storage::disk(self::DISK)->writeStream($stored, fopen($file->getRealPath(), 'rb'));
         } else {
-            $image = ImageManager::gd()->read($file->getRealPath());
+            // ★ (2026-08-04) Wrapped, because Intervention's own failure message
+            // is English and went straight to the user's screen — the upload
+            // panel would answer an Arabic form with "Unable to decode input"
+            // (§ 7.5). getimagesize() has already passed by this point, so a
+            // failure here means a file whose header is a valid image and whose
+            // body is not: truncated, or deliberately malformed.
+            try {
+                $image = ImageManager::gd()->read($file->getRealPath());
 
-            // Re-encoding is what kills a payload smuggled in EXIF or a comment
-            // segment: the bytes we write are ours, not the uploader's.
-            Storage::disk(self::DISK)->put($stored, (string) $image->encodeByExtension($extension, quality: 85));
+                // Re-encoding is what kills a payload smuggled in EXIF or a
+                // comment segment: the bytes we write are ours, not the
+                // uploader's.
+                $encoded = (string) $image->encodeByExtension($extension, quality: 85);
 
-            // The gallery renders thumbnails; a 4MB original never reaches a list. § 4.8
+                // The gallery renders thumbnails; a 4MB original never reaches
+                // a list. § 4.8
+                $thumbnail = (string) $image
+                    ->scaleDown(width: self::THUMB_WIDTH)
+                    ->encodeByExtension($extension, quality: 75);
+            } catch (\Throwable $e) {
+                throw new RuntimeException(
+                    "«{$file->getClientOriginalName()}» مقدرناش نقراها كصورة — الملف غالباً ناقص أو باظ."
+                );
+            }
+
+            Storage::disk(self::DISK)->put($stored, $encoded);
+
             $thumb = "{$dir}/thumb-" . Str::uuid() . ".{$extension}";
-            Storage::disk(self::DISK)->put(
-                $thumb,
-                (string) $image->scaleDown(width: self::THUMB_WIDTH)->encodeByExtension($extension, quality: 75)
-            );
+            Storage::disk(self::DISK)->put($thumb, $thumbnail);
         }
 
         try {

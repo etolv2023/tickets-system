@@ -81,6 +81,15 @@ class DemoTicketSeeder extends Seeder
                         'type' => $type,
                         'priority' => $priority,
                         'status' => $status,
+                        // How to reproduce it (2026-08-04). The host is built
+                        // from the company's own code so each customer's
+                        // tickets point at their own system, the way real ones
+                        // do — one shared example.com would hide the fact that
+                        // this is per-customer information.
+                        'client_user_code' => (string) random_int(10000, 99999),
+                        'page_url' => 'https://' . strtolower($company->code) . '.erp.example.com/'
+                            . ['invoices', 'stock', 'reports', 'users'][random_int(0, 3)]
+                            . '/' . random_int(100, 999),
                         'created_by' => $support->id,
                         'approval_status' => \App\Casts\TicketTypeValue::for($type)->needsApproval() ? 'pending' : 'not_required',
                         'reported_at' => $reportedAt,

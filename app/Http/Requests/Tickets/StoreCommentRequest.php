@@ -23,6 +23,11 @@ class StoreCommentRequest extends FormRequest
                 'mimes:jpg,jpeg,png,gif,webp,pdf,mp4,webm,mov',
                 'max:' . intdiv(AttachmentService::MAX_VIDEO_BYTES, 1024),
             ],
+
+            // One per file, positionally — which upload the body's inline <img>
+            // points at. See StoreTicketRequest for the full story.
+            'attachment_tokens' => ['nullable', 'array'],
+            'attachment_tokens.*' => ['nullable', 'string', 'regex:/^[A-Za-z0-9-]{0,64}$/'],
         ];
     }
 

@@ -1,7 +1,8 @@
 {{-- F06: the manual status change, with an optional "waiting on" recipient. --}}
 @can('changeStatus', $ticket)
     @if ($nextStatuses->isNotEmpty())
-        <x-collapsible-card title="غيّر الحالة">
+        {{-- Open by default: the single most-used control on this screen. --}}
+        <x-collapsible-card title="غيّر الحالة" name="status-change" :open="true">
             <form method="POST" action="{{ route('tickets.status.change', $ticket) }}"
                   class="form-stack" x-data="{ recipient: '' }">
                 @csrf

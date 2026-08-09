@@ -22,6 +22,7 @@
 @import './components/button.css';
 @import './components/badge.css';
 @import './components/card.css';
+@import './components/tabs.css';
 @import './components/modal.css';
 @import './components/copy-row.css';
 @import './components/combobox.css';
@@ -48,6 +49,7 @@
 @import './features/users.css';
 @import './features/ticket-list.css';
 @import './features/ticket-detail.css';
+@import './features/ticket-summary.css';
 @import './features/ticket-form.css';
 @import './features/board.css';
 @import './features/board-card.css';

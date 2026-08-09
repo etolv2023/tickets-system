@@ -1,53 +1,17 @@
 @php $ticket = $ticket ?? null; @endphp
 
-<div class="form-stack">
+{{-- On create the origin toggle decides which fields are obligatory, and it is
+     read by two cards that are not siblings — the reporter block and the access
+     block. So the state sits here, around both. On edit there is no toggle: the
+     ticket already knows what it is, and the answer comes from php. --}}
+<div class="form-stack"
+     @if (! $ticket) x-data="{ internal: @js((bool) old('is_internal', false)) }" @endif>
     <x-form-errors />
 
     <div class="ticket-form">
     <div class="ticket-form__col">
     @if ($ticket)
-        {{-- Company, contact and the reported time are the snapshot of who said
-             what and when. Rendered as locked fields rather than a facts list:
-             they sit in the same column as the editable ones, so the form reads
-             as one shape and the lock is the only difference. F03 --}}
-        <x-card title="المُبلغ">
-            <x-slot:actions>
-                <span class="field__snapshot">
-                    <x-icon name="lock" size="0.9em" />
-                    لقطة ثابتة
-                </span>
-            </x-slot:actions>
-
-            <div class="form-stack">
-                <div class="form-grid">
-                    <div class="field">
-                        <label class="field__label" for="locked-company">
-                            {{ $ticket->isInternal() ? 'طلبها' : 'الشركة' }}
-                        </label>
-                        <input id="locked-company" class="input input--locked" type="text"
-                               value="{{ $ticket->originLabel() }}" readonly>
-                    </div>
-
-                    @unless ($ticket->isInternal())
-                        <div class="field">
-                            <label class="field__label" for="locked-reporter">المُبلغ</label>
-                            <input id="locked-reporter" class="input input--locked" type="text"
-                                   value="{{ $ticket->reporter_name }}{{ $ticket->reporter_erp_id ? " ({$ticket->reporter_erp_id})" : '' }}"
-                                   readonly>
-                        </div>
-                    @endunless
-                </div>
-
-                <div class="field">
-                    <label class="field__label" for="locked-reported-at">وقت الإبلاغ</label>
-                    <input id="locked-reported-at" class="input input--locked u-mono u-ltr" type="text"
-                           value="{{ $ticket->reported_at->timezone(config('app.display_timezone'))->translatedFormat('j F Y — H:i') }}"
-                           readonly>
-                </div>
-
-                <p class="field__hint">الحقول دي بتتسجّل مرة واحدة وقت فتح التذكرة ومبتتغيّرش.</p>
-            </div>
-        </x-card>
+        @include('tickets.partials._snapshot')
     @else
         <x-card title="المُبلغ">
             @include('tickets.partials._reporter')
@@ -66,6 +30,9 @@
             </div>
         </div>
     </x-card>
+
+    @include('tickets.partials._access')
+
     </div>
 
     <div class="ticket-form__col">
@@ -158,11 +125,17 @@
                 </p>
             </x-card>
         @endisset
-
-        <x-card title="المرفقات">
-            <x-uploader />
-        </x-card>
     @endunless
+
+    {{-- ★ (2026-08-04) Outside the @unless: the edit form used to have no
+         uploader at all, so pasting a picture into the description while
+         editing hit "مفيش مرفقات في الصفحة دي" and did nothing. The editor
+         hands its images to whichever uploader shares its <form> (editor.js →
+         uploader.js), so no uploader on the page means no inline images on the
+         page. --}}
+    <x-card title="المرفقات">
+        <x-uploader />
+    </x-card>
     </div>
     </div>
 

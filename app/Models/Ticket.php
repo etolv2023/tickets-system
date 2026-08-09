@@ -24,6 +24,8 @@ class Ticket extends Model
     protected $fillable = [
         'ticket_number', 'company_id', 'requested_by', 'contact_id', 'reporter_name', 'reporter_erp_id',
         'title', 'description', 'type', 'priority', 'status', 'module',
+        // How to reach the problem: the client's login code and the page it happens on.
+        'client_user_code', 'page_url',
         'created_by',
         'approval_status', 'approved_by', 'approved_at',
         'reported_at', 'first_response_at', 'sla_due_at', 'resolved_at',

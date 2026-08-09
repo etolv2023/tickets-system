@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\Cache;
 
 class Label extends Model
 {
+    private const PICKER_CACHE_KEY = 'labels.picker';
+
     /**
      * The only colours a label may take. Names of semantic tokens, not hex —
      * a free picker would break "every coloured pixel means something" (§ 6).
@@ -43,6 +47,30 @@ class Label extends Model
     ];
 
     protected $fillable = ['name', 'color', 'created_by'];
+
+    protected static function booted(): void
+    {
+        // ★ (2026-08-04) Same treatment as Role/Priority/LinkType (§ 4.7): the
+        // picker is admin-managed reference data that changes a few times a
+        // year and was being re-read on every ticket page.
+        $bust = fn () => Cache::forget(self::PICKER_CACHE_KEY);
+
+        static::saved($bust);
+        static::deleted($bust);
+    }
+
+    /**
+     * The label picker on the ticket page — id, name and colour, nothing else.
+     *
+     * @return Collection<int, Label>
+     */
+    public static function pickerList(): Collection
+    {
+        return Cache::rememberForever(
+            self::PICKER_CACHE_KEY,
+            fn () => static::query()->orderBy('name')->get(['id', 'name', 'color'])
+        );
+    }
 
     public function tickets(): BelongsToMany
     {

@@ -61,6 +61,28 @@
     inline-size: auto;
 }
 
+/* ★ (2026-08-04) The date pair gets two tracks, and is allowed to shrink.
+
+   It is one cell of a repeat(auto-fit, minmax(11rem, 1fr)) grid, and its
+   content is two native date inputs plus an arrow — around 303px, against the
+   176px the track guarantees. A date input carries an intrinsic width and will
+   not shrink below it on its own, so the cell overflowed and took the document
+   with it: /tickets scrolled sideways at exactly 1920px, the commonest desktop
+   width there is. Not at 1440 and not at 2560 — auto-fit only lands on a narrow
+   enough column in between, which is why it went unnoticed.
+
+   Two tracks and min-width: 0, the same answer .filters__person already uses
+   for the same reason. */
+.filters__narrow .filters__group {
+    grid-column: span 2;
+    min-width: 0;
+}
+
+.filters__narrow .filters__group .input {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
 /* The saved view, marked as a state rather than a plain button — it is the one
    control here that is either on or off. */
 .filters__mine--on {
@@ -76,7 +98,8 @@
         grid-template-columns: 1fr;
     }
 
-    .filters__person {
+    .filters__person,
+    .filters__narrow .filters__group {
         grid-column: span 1;
     }
 }

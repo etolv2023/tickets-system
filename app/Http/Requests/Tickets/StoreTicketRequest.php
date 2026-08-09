@@ -4,6 +4,7 @@ namespace App\Http\Requests\Tickets;
 
 use App\Models\Company;
 use App\Models\Role;
+use App\Rules\ResolvableHost;
 use App\Services\AttachmentService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -73,6 +74,26 @@ class StoreTicketRequest extends FormRequest
             'type' => ['required', Rule::exists('ticket_types', 'key')],
             'priority' => ['required', Rule::exists('priorities', 'key')],
             'module' => ['nullable', 'string', 'max:100'],
+
+            // ★ (2026-08-04) How whoever picks this up reproduces it. Required
+            // on a client ticket and optional on an internal one — internal
+            // work is often a migration or a script with no customer-facing
+            // page and no client account to sign in with.
+            'client_user_code' => [
+                Rule::requiredIf(! $internal), 'nullable', 'digits_between:1,50',
+            ],
+            // ResolvableHost is active_url that knows about private networks:
+            // it checks DNS, but skips the check for an IP literal, a
+            // single-label host, or a private suffix like .local — a customer
+            // running their ERP on 192.168.x has no public record and never
+            // will. Deliberately NOT an HTTP request either: these pages sit
+            // behind the customer's login and answer 401. The scheme is pinned
+            // so a javascript: URL can never reach the href in the view.
+            'page_url' => [
+                Rule::requiredIf(! $internal), 'nullable',
+                'url:http,https', new ResolvableHost(), 'max:2048',
+            ],
+
             'attachments' => ['nullable', 'array'],
             // The real type is re-checked with finfo in AttachmentService;
             // this only keeps the obvious junk out early. The per-type size
@@ -83,6 +104,16 @@ class StoreTicketRequest extends FormRequest
                 'mimes:jpg,jpeg,png,gif,webp,pdf,mp4,webm,mov',
                 'max:' . intdiv(AttachmentService::MAX_VIDEO_BYTES, 1024),
             ],
+
+            // ★ (2026-08-04) One token per file, positionally, naming which
+            // upload the description's inline <img> points at. store() reads it
+            // with input() rather than validated(), so it was reaching the
+            // service as unvalidated array input — the shape was only checked
+            // deep inside AttachmentService. Checked here as well, where the
+            // rest of the request's contract lives. Empty for a file picked
+            // from disk: only a paste into the editor mints a token.
+            'attachment_tokens' => ['nullable', 'array'],
+            'attachment_tokens.*' => ['nullable', 'string', 'regex:/^[A-Za-z0-9-]{0,64}$/'],
 
             // F06.3: the role-based distribution block, offered at creation.
             // Ignored server-side for a feature/module ticket (needsApproval)
@@ -165,6 +196,8 @@ class StoreTicketRequest extends FormRequest
             'type' => 'النوع',
             'priority' => 'الأولوية',
             'module' => 'الموديول',
+            'client_user_code' => 'يوزر الدخول',
+            'page_url' => 'لينك الصفحة',
             'attachments' => 'المرفقات',
             'attachments.*' => 'المرفق',
             'subtasks' => 'الصب تاسكس',
@@ -179,6 +212,8 @@ class StoreTicketRequest extends FormRequest
         return [
             'subtasks.*.role_id.required' => 'لازم تحدد الصب تاسك دي بتاعة مين من اللي وزّعت عليهم.',
             'subtasks.*.role_id.in' => 'الصب تاسك لازم تبقى لواحد من اللي وزّعت عليهم التذكرة.',
+            'client_user_code.digits_between' => 'يوزر الدخول أرقام بس.',
+            'page_url.url' => 'اللينك لازم يبدأ بـ http:// أو https://.',
         ];
     }
 }

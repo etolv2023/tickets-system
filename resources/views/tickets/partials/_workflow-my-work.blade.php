@@ -1,6 +1,8 @@
 {{-- F07: the start / finish buttons, one per side this user owns. --}}
 @if ($myLogs->isNotEmpty())
-    <x-collapsible-card title="شغلي">
+    {{-- Open by default: this card only renders when there IS work of yours on
+         this ticket, and it is the بدأت / خلصت buttons. --}}
+    <x-collapsible-card title="شغلي" name="my-work" :open="true">
         <div class="stack stack--tight">
             @foreach ($myLogs as $log)
                 <div class="row row--between">

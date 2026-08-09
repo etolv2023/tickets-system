@@ -158,6 +158,14 @@ class DemoHistorySeeder extends Seeder
             'priority' => $priority,
             'status' => TicketStatusValue::for('new'),
             'module' => $item['module'],
+            // Left null on an internal ticket, which is exactly what the form
+            // allows — so the ticket page has real examples of both shapes and
+            // the summary strip gets exercised with the fields missing too.
+            'client_user_code' => $internal ? null : (string) mt_rand(10000, 99999),
+            'page_url' => $internal
+                ? null
+                : 'https://' . strtolower($company->code) . '.erp.example.com/'
+                    . $item['module'] . '/' . mt_rand(100, 999),
             'created_by' => $this->people['support']->id,
             'approval_status' => $type->needsApproval() ? 'pending' : 'not_required',
             'reported_at' => $reportedAt,

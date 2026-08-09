@@ -7,10 +7,11 @@
 
      The distinction is stored as the absence of a company, not as a flag, so
      the toggle below clears whichever side it is leaving. --}}
-<div x-data="{
-        internal: @js((bool) old('is_internal', false)),
-        contactChosen: @js((bool) old('contact_id')),
-     }" class="form-stack">
+{{-- `internal` is NOT declared here. It lives on the wrapper in _form.blade.php,
+     because the "الوصول للصفحة" card two cards down has to read it too, and a
+     scope that stops at this file cannot be seen from there. Alpine inherits
+     parent state, so everything below still reads it exactly as before. --}}
+<div x-data="{ contactChosen: @js((bool) old('contact_id')) }" class="form-stack">
 
     <div class="origin-toggle">
         <label class="origin-toggle__option" :class="{ 'is-active': ! internal }">

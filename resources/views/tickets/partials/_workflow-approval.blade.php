@@ -1,6 +1,8 @@
 {{-- F15: nothing happens on a feature until the admin decides. --}}
 @can('approve', $ticket)
-    <x-collapsible-card title="مستنية قرارك">
+    {{-- Open by default: an approval waiting on you is the reason the ticket
+         is in your queue at all. --}}
+    <x-collapsible-card title="مستنية قرارك" name="approval" :open="true">
         <div class="stack stack--tight">
             <p class="field__hint">
                 دي {{ $ticket->type->label() }} — متتوزعش قبل ما توافق.

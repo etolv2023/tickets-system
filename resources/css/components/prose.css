@@ -160,3 +160,27 @@
     color: var(--text-subtle);
     font-style: italic;
 }
+
+/* ---- Measure ----
+   ★★ (2026-08-04) The line, not the page, is what has a readable maximum.
+
+   --page-max used to carry this job: the whole layout was capped at 84rem so a
+   paragraph could never run too wide. That works, and it also leaves several
+   hundred pixels of empty gutter on a big monitor and starves the aside, which
+   is a worse trade than it looks.
+
+   Capping the text blocks instead puts the limit where the problem is. Images,
+   tables and code keep the full column — they are the things that actually want
+   the room, and a table squeezed to a text measure is unreadable in a different
+   way.
+
+   ch, not rem: the unit is the width of a character in the current font, which
+   is what "how many characters per line" means. */
+.prose > p,
+.prose > ul,
+.prose > ol,
+.prose > blockquote,
+.prose > h3,
+.prose > h4 {
+    max-width: 80ch;
+}

@@ -62,6 +62,30 @@ class PortalController extends Controller
                 ->orderBy('created_at')
                 ->get();
 
+            // ★ (2026-08-04) The description has been stripped since inline
+            // images existed (below); comment bodies never were, because until
+            // now a pasted image could not survive as far as the database.
+            //
+            // The <img> in a stored body points at route('attachments.view'),
+            // which is inside the authenticated group — a portal visitor has no
+            // session, so it would render as a broken image, every time. It is
+            // not a leak, just a hole in the reply.
+            //
+            // Stripped rather than repointed at the portal's own attachment
+            // route: the file is ALREADY shown to the client, as a card under
+            // this bubble, and that card is the F24 decision — a file reaches
+            // the customer because it hangs off a public reply. Rewriting the
+            // src would add a second, parallel path to the same bytes with its
+            // own authorisation to keep correct.
+            //
+            // Written to a separate attribute, not over body: these are real
+            // models, and a stripped body assigned back onto one is a saved
+            // comment away from destroying the staff's copy of the picture.
+            $comments->each(fn ($comment) => $comment->setAttribute(
+                'body_for_portal',
+                $this->attachments->stripInlineImagesForPortal($comment->body)
+            ));
+
             $upload = $this->attachments->portalUploadHint();
 
             return view('portal.show', [

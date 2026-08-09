@@ -24,7 +24,11 @@
                         {{ $comment->created_at->diffForHumans() }}
                     </time>
                 </div>
-                <div class="prose">{!! $comment->body !!}</div>
+                {{-- body_for_portal, not body: an inline image in a reply points
+                     at the staff-only attachment route, so PortalController
+                     swaps it for a marker. The file itself is still here — as a
+                     card below. --}}
+                <div class="prose">{!! $comment->body_for_portal !!}</div>
 
                 @if ($comment->attachments->isNotEmpty())
                     <ul class="portal-files">

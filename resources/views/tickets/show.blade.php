@@ -10,6 +10,7 @@
 @section('content')
     <div class="page">
         @include('tickets.partials._header')
+        @include('tickets.partials._summary')
 
         @if (session('status'))
             <x-alert variant="success">{{ session('status') }}</x-alert>

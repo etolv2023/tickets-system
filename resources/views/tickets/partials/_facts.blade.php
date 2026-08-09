@@ -1,48 +1,29 @@
-{{-- An internal ticket has no customer, so this card answers a different
-     question: who on the team asked for it. --}}
-<x-collapsible-card :title="$ticket->isInternal() ? 'طلب داخلي' : 'العميل'">
-    <div class="facts">
-        @if ($ticket->isInternal())
-            <div class="facts__row">
-                <span class="facts__label">طلبها</span>
-                <span class="facts__value">{{ $ticket->requester?->name ?? '—' }}</span>
-            </div>
-        @else
-            <div class="facts__row">
-                <span class="facts__label">الشركة</span>
-                <span class="facts__value">
-                    @can('companies.manage')
-                        <a href="{{ route('admin.companies.show', $ticket->company) }}">{{ $ticket->company->name }}</a>
-                    @else
-                        {{ $ticket->company->name }}
-                    @endcan
-                </span>
-            </div>
-            <div class="facts__row">
-                <span class="facts__label">المُبلغ</span>
-                <span class="facts__value">{{ $ticket->reporter_name }}</span>
-            </div>
-        @endif
-        @if ($ticket->reporter_erp_id)
-            <div class="facts__row">
-                <span class="facts__label">رقم الـ ERP</span>
-                <span class="facts__value u-mono u-ltr">{{ $ticket->reporter_erp_id }}</span>
-            </div>
-        @endif
-        @if ($ticket->contact?->email)
-            <div class="facts__row">
-                <span class="facts__label">إيميل</span>
-                <span class="facts__value u-ltr">{{ $ticket->contact->email }}</span>
-            </div>
-        @endif
-        @if ($ticket->contact?->phone)
-            <div class="facts__row">
-                <span class="facts__label">تليفون</span>
-                <span class="facts__value u-mono u-ltr">{{ $ticket->contact->phone }}</span>
-            </div>
-        @endif
-    </div>
-</x-collapsible-card>
+{{-- ★ (2026-08-04) The company, the reporter, their ERP number, the login code
+     and the page link all moved to the summary strip under the title — they are
+     what you need before you start, and a card that opens folded is the wrong
+     place for that.
+
+     What is left here is how to REACH the person, which you only want once you
+     have something to tell them. Rendered at all only when there is a contact
+     with contact details: an empty card is worse than no card. --}}
+@if ($ticket->contact?->email || $ticket->contact?->phone)
+    <x-collapsible-card title="التواصل مع المُبلغ" name="reporter-contact">
+        <div class="facts">
+            @if ($ticket->contact?->email)
+                <div class="facts__row">
+                    <span class="facts__label">إيميل</span>
+                    <span class="facts__value u-ltr">{{ $ticket->contact->email }}</span>
+                </div>
+            @endif
+            @if ($ticket->contact?->phone)
+                <div class="facts__row">
+                    <span class="facts__label">تليفون</span>
+                    <span class="facts__value u-mono u-ltr">{{ $ticket->contact->phone }}</span>
+                </div>
+            @endif
+        </div>
+    </x-collapsible-card>
+@endif
 
 {{-- F24: the link and password are only ever readable here, right after
      (re)generating — nobody, including the admin, can look up an old one. --}}
@@ -72,28 +53,18 @@
     </x-collapsible-card>
 @endcan
 
-<x-collapsible-card title="الوقت">
+{{-- ★ (2026-08-04) "الوقت" and "الفريق" merged into one card.
+
+     Between them they held seven rows, and four of those now live somewhere
+     better: priority, the age and the SLA deadline went to the summary strip
+     (they decide whether you open the ticket at all, so they cannot be behind
+     a fold), and "فتحها" was already printed in the "المشكلة" card's header —
+     the same name, twice, on one screen.
+
+     What was left was two cards of two or three rows each, which is what turns
+     an aside into a column of grey title bars. --}}
+<x-collapsible-card title="تفاصيل" name="ticket-details" :open="true">
     <div class="facts">
-        <div class="facts__row">
-            <span class="facts__label">الأولوية</span>
-            <span class="facts__value">
-                <x-badge :variant="$ticket->priority->variant()" :icon="$ticket->priority->icon()">{{ $ticket->priority->label() }}</x-badge>
-            </span>
-        </div>
-        <div class="facts__row">
-            <span class="facts__label">{{ $ticket->status->isOpen() ? 'العمر' : 'زمن الحل' }}</span>
-            <span @class(['facts__value', 'facts__value--num', 'facts__value--overdue' => $ticket->isOverdue()])>
-                {{ $ticket->ageLabel() }}
-            </span>
-        </div>
-        @if ($ticket->sla_due_at)
-            <div class="facts__row">
-                <span class="facts__label">مهلة الـ SLA</span>
-                <span @class(['facts__value', 'facts__value--num', 'facts__value--overdue' => $ticket->isOverdue()])>
-                    {{ $ticket->sla_due_at->timezone(config('app.display_timezone'))->translatedFormat('j M — H:i') }}
-                </span>
-            </div>
-        @endif
         <div class="facts__row">
             <span class="facts__label">أول رد</span>
             <span class="facts__value facts__value--num">
@@ -102,6 +73,7 @@
                     : 'لسه' }}
             </span>
         </div>
+
         @if ($ticket->resolved_at)
             <div class="facts__row">
                 <span class="facts__label">اتحلت</span>
@@ -110,15 +82,7 @@
                 </span>
             </div>
         @endif
-    </div>
-</x-collapsible-card>
 
-<x-collapsible-card title="الفريق">
-    <div class="facts">
-        <div class="facts__row">
-            <span class="facts__label">فتحها</span>
-            <span class="facts__value">{{ $ticket->creator->name }}</span>
-        </div>
         {{-- Fully role-based distribution (2026-07-24): one row per assigned
              role, no hardcoded frontend/backend/tester/devops. --}}
         @forelse ($ticket->roleAssignments as $assignment)
@@ -133,7 +97,4 @@
             </div>
         @endforelse
     </div>
-
-    {{-- Assignment, the start/finish buttons and the state machine arrive in
-         phase 3 (F06/F07). --}}
 </x-collapsible-card>

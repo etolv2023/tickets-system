@@ -10,6 +10,7 @@ use App\Models\Label;
 use App\Models\PriorityDefinition;
 use App\Models\Role;
 use App\Models\Ticket;
+use App\Models\TicketLink;
 use App\Models\TicketStatusDefinition;
 use App\Models\TicketSubtask;
 use App\Models\TicketTypeDefinition;
@@ -19,6 +20,7 @@ use App\Services\AttachmentService;
 use App\Services\SubtaskService;
 use App\Services\TicketService;
 use App\Services\TicketWorkflowService;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -26,6 +28,11 @@ use RuntimeException;
 
 class TicketController extends Controller
 {
+    /** Memos for activeUsers() / companyContacts(). Per-request, never cached across pages. */
+    private ?EloquentCollection $activeUsers = null;
+
+    private ?EloquentCollection $companyContacts = null;
+
     public function __construct(
         private readonly TicketService $tickets,
         private readonly AttachmentService $attachments,
@@ -91,26 +98,8 @@ class TicketController extends Controller
     {
         $ticket = $this->tickets->create($request->validated(), $request->user()->id);
 
-        if ($request->hasFile('attachments')) {
-            try {
-                $saved = $this->attachments->attachMany($ticket, $request->file('attachments'), $request->user()->id);
-
-                // An image pasted into the description was uploaded as an
-                // attachment but is still pointing at the editor's placeholder.
-                // Now that the rows exist, point it at the real file.
-                $ticket->forceFill([
-                    'description' => $this->attachments->resolveInlineImages(
-                        $ticket->description,
-                        $saved,
-                        $request->input('attachment_tokens', [])
-                    ),
-                ])->saveQuietly();
-            } catch (RuntimeException $e) {
-                // The ticket itself is already saved; say what didn't make it
-                // rather than throwing the whole thing away.
-                return redirect()->route('tickets.show', $ticket)
-                    ->withErrors(['attachments' => $e->getMessage()]);
-            }
+        if ($failed = $this->storeAttachments($request, $ticket)) {
+            return $failed;
         }
 
         $logger->log(
@@ -160,6 +149,52 @@ class TicketController extends Controller
 
         return redirect()->route('tickets.show', $ticket)
             ->with('status', "تم فتح التذكرة {$ticket->ticket_number}.");
+    }
+
+    /**
+     * Stores whatever the uploader posted and repoints the description's inline
+     * images at the rows that now exist.
+     *
+     * ★ (2026-08-04) Shared by store() and update(). It used to live inline in
+     * store() only, which is half of why editing a ticket could not save a
+     * pasted picture: even once the edit form had an uploader, update() had no
+     * code that looked at the files or at the placeholders in the text.
+     *
+     * The order matters and is the reverse of what it looks like it should be.
+     * TicketService has already run Purifier over the description by the time we
+     * get here, so this rewrites clean HTML — and it must, because the
+     * placeholder has to survive the whitelist to still be there to rewrite.
+     *
+     * @return RedirectResponse|null a redirect when an upload was rejected, null
+     *                               on success — the ticket is already saved
+     *                               either way, so a bad file reports itself
+     *                               rather than discarding the whole edit.
+     */
+    private function storeAttachments(Request $request, Ticket $ticket): ?RedirectResponse
+    {
+        if (! $request->hasFile('attachments')) {
+            return null;
+        }
+
+        try {
+            $saved = $this->attachments->attachMany($ticket, $request->file('attachments'), $request->user()->id);
+
+            // An image pasted into the description was uploaded as an
+            // attachment but is still pointing at the editor's placeholder.
+            // Now that the rows exist, point it at the real file.
+            $ticket->forceFill([
+                'description' => $this->attachments->resolveInlineImages(
+                    $ticket->description,
+                    $saved,
+                    $request->input('attachment_tokens', [])
+                ),
+            ])->saveQuietly();
+        } catch (RuntimeException $e) {
+            return redirect()->route('tickets.show', $ticket)
+                ->withErrors(['attachments' => $e->getMessage()]);
+        }
+
+        return null;
     }
 
     /**
@@ -223,35 +258,30 @@ class TicketController extends Controller
         // consults the relation when it's already eager-loaded.
         $ticket->load([
             'company:id,name,code',
-            'contact:id,name,erp_employee_id,email,phone',
-            // Neither bodyAttachments.uploader nor workLogs.user is rendered —
-            // eager-loading them was two queries paid for nothing.
-            'bodyAttachments',
-            // role: the my-work panel prints each log's role name (role-based
-            // work logs since 2026-07-24).
-            'workLogs.role:id,name_ar',
+            'workLogs',
             'statusHistory',
-            // F06 role-assignment extension: a subtask's badge shows the role
-            // name instead of "أخرى" when it's tagged to one.
-            'subtasks.role:id,name_ar',
+            'subtasks',
             'labels',
             'watchers:id',
-            'roleAssignments.role:id,name_ar,logs_work,is_tester',
-            'roleAssignments.user:id,name,avatar_path,is_active',
-            // Both directions in one query each; the related-ticket columns are
-            // shared, so a single constrained load covers the pair (F10).
-            'outgoingLinks.toTicket:id,ticket_number,title,status,priority',
-            'incomingLinks.fromTicket:id,ticket_number,title,status,priority',
+            'roleAssignments',
         ]);
 
         $this->authorize('view', $ticket);
 
+        // role names for work logs, subtasks and assignments — one cached
+        // lookup instead of three eager loads on a dozen-row table.
+        $this->hydrateRoles($ticket);
+
+        // The reporter, from the same read the recipient dropdown uses.
+        $ticket->setRelation('contact', $this->companyContacts($ticket)->get($ticket->contact_id));
+
         $comments = $ticket->comments()
-            ->with('attachments')
             ->unless(auth()->user()->hasPermission('comments.internal'), fn ($q) => $q->where('is_internal', false))
             ->orderBy('created_at')
             ->get();
 
+        $this->hydrateAttachments($ticket, $comments);
+        $this->hydrateLinks($ticket);
         $this->hydratePeople($ticket, $comments);
 
         return view('tickets.show', [
@@ -271,9 +301,13 @@ class TicketController extends Controller
                 ->limit(10)
                 ->get(),
             'isWatching' => $ticket->watchers->contains('id', auth()->id()),
-            // F17: only fetched for someone allowed to see or give them.
-            'ratings' => auth()->user()->hasPermission('ratings.give')
-                || auth()->user()->hasPermission('ratings.view.all')
+            // F17: only fetched for someone allowed to see or give them — and
+            // ★ (2026-08-04) only for a ticket that can actually show them.
+            // show.blade.php renders the panel for resolved/closed only, so on
+            // every open ticket this was a query whose result went nowhere.
+            'ratings' => in_array($ticket->status->value, ['resolved', 'closed'], true)
+                && (auth()->user()->hasPermission('ratings.give')
+                    || auth()->user()->hasPermission('ratings.view.all'))
                 ? $ticket->ratings()->get()
                 : collect(),
         ]);
@@ -291,6 +325,13 @@ class TicketController extends Controller
         $before = $ticket->only('title', 'type', 'priority', 'module');
 
         $this->tickets->update($ticket, $request->validated());
+
+        // Same pass as store(): files first, then the description's placeholders
+        // get pointed at them. Without this an image pasted while editing was
+        // uploaded and then dropped out of the text by the purifier.
+        if ($failed = $this->storeAttachments($request, $ticket)) {
+            return $failed;
+        }
 
         $logger->log(
             action: 'ticket.updated',
@@ -366,6 +407,128 @@ class TicketController extends Controller
      *
      * @param  \Illuminate\Support\Collection<int, \App\Models\TicketComment>  $comments
      */
+    /**
+     * The role behind every work log, subtask and assignment, from cache.
+     *
+     * ★ (2026-08-04) These were three eager loads — workLogs.role,
+     * subtasks.role, roleAssignments.role — each a query against `roles`, a
+     * table with under a dozen rows that an admin edits maybe twice a year.
+     * Role::byId() is cached forever and busted on write like every other
+     * reference list in this app (§ 4.7), so all three now cost nothing.
+     */
+    /**
+     * Every contact of this ticket's company, keyed by id, read once.
+     *
+     * ★ (2026-08-04) The page asked this table up to three separate times: the
+     * ticket's own reporter by id, the recipient dropdown's active list for the
+     * company, and whoever a status change or a portal reply named. Same
+     * company, overlapping rows.
+     *
+     * Not filtered to active here — the ticket's own reporter may have been
+     * deactivated since, and the reporter's name still has to appear on the
+     * ticket they opened. The dropdown does its own filtering below; a facts
+     * row must not lose a name because someone left the customer.
+     *
+     * An internal ticket has no company, so it costs nothing at all.
+     *
+     * @return EloquentCollection<int, CompanyContact>
+     */
+    private function companyContacts(Ticket $ticket): EloquentCollection
+    {
+        if ($this->companyContacts !== null) {
+            return $this->companyContacts;
+        }
+
+        if ($ticket->company_id === null) {
+            return $this->companyContacts = new EloquentCollection();
+        }
+
+        return $this->companyContacts = CompanyContact::query()
+            ->where('company_id', $ticket->company_id)
+            ->get(['id', 'name', 'erp_employee_id', 'email', 'phone', 'is_active'])
+            ->keyBy('id');
+    }
+
+    private function hydrateRoles(Ticket $ticket): void
+    {
+        $roles = Role::byId();
+
+        $ticket->workLogs->each(fn ($log) => $log->setRelation('role', $roles->get($log->role_id)));
+        $ticket->subtasks->each(fn ($s) => $s->setRelation('role', $roles->get($s->role_id)));
+        $ticket->roleAssignments->each(fn ($a) => $a->setRelation('role', $roles->get($a->role_id)));
+    }
+
+    /**
+     * Every file on the ticket in one read, then handed to the relations that
+     * would each have fetched their own slice.
+     *
+     * ★ (2026-08-04) bodyAttachments (comment_id IS NULL) and the comments'
+     * own attachments (comment_id IN …) are two queries against one table for
+     * one ticket. Same table, same ticket_id, disjoint halves.
+     *
+     * Scoped to the comments actually being rendered rather than "everything on
+     * the ticket": without that, a viewer without comments.internal would pull
+     * the internal comments' files into memory. They were never rendered, but
+     * not reading them is the version that stays true when someone later loops
+     * over the wrong collection.
+     */
+    private function hydrateAttachments(Ticket $ticket, $comments): void
+    {
+        $visible = $comments->pluck('id');
+
+        $files = $ticket->attachments()
+            ->where(fn ($q) => $q->whereNull('comment_id')->orWhereIn('comment_id', $visible))
+            ->get();
+
+        $ticket->setRelation('bodyAttachments', $files->whereNull('comment_id')->values());
+
+        $byComment = $files->whereNotNull('comment_id')->groupBy('comment_id');
+
+        $comments->each(fn ($c) => $c->setRelation(
+            'attachments',
+            $byComment->get($c->id) ?? new EloquentCollection()
+        ));
+    }
+
+    /**
+     * Both link directions, and the tickets on the other end, in two reads.
+     *
+     * ★ (2026-08-04) This was four: a query per direction, then a query per
+     * direction again for the related ticket rows. The columns wanted from the
+     * far side are identical either way, so direction is a property of the link
+     * row, not a reason to ask the database twice. F10
+     *
+     * Each link gets both sides set — including the one that resolves to null,
+     * because it points back at this ticket. A relation left unset would be a
+     * lazy load, and preventLazyLoading turns that into an exception.
+     */
+    private function hydrateLinks(Ticket $ticket): void
+    {
+        $links = TicketLink::query()
+            ->where('from_ticket_id', $ticket->id)
+            ->orWhere('to_ticket_id', $ticket->id)
+            ->get();
+
+        $otherIds = $links->pluck('from_ticket_id')
+            ->merge($links->pluck('to_ticket_id'))
+            ->reject(fn ($id) => (int) $id === (int) $ticket->id)
+            ->unique();
+
+        $others = $otherIds->isEmpty()
+            ? new EloquentCollection()
+            : Ticket::whereIn('id', $otherIds)
+                ->get(['id', 'ticket_number', 'title', 'status', 'priority'])
+                ->keyBy('id');
+
+        $links->each(function (TicketLink $link) use ($others) {
+            $link->setRelation('toTicket', $others->get($link->to_ticket_id));
+            $link->setRelation('fromTicket', $others->get($link->from_ticket_id));
+        });
+
+        $ticket->setRelation('outgoingLinks', $links->where('from_ticket_id', $ticket->id)->values());
+        $ticket->setRelation('incomingLinks', $links->where('to_ticket_id', $ticket->id)->values());
+    }
+
     private function hydratePeople(Ticket $ticket, $comments): void
     {
         $ids = collect([$ticket->created_by])
@@ -373,6 +536,10 @@ class TicketController extends Controller
             ->merge($ticket->statusHistory->pluck('user_id'))
             ->merge($ticket->statusHistory->pluck('recipient_user_id'))
             ->merge($comments->pluck('user_id'))
+            // ★ (2026-08-04) The assignees used to arrive via their own
+            // roleAssignments.user eager load — a second query over the same
+            // table, for people this one was already fetching.
+            ->merge($ticket->roleAssignments->pluck('user_id'))
             ->filter()
             ->unique();
 
@@ -388,12 +555,22 @@ class TicketController extends Controller
             ->filter()
             ->unique();
 
-        $contacts = $contactIds->isEmpty()
-            ? collect()
-            : CompanyContact::whereIn('id', $contactIds)->get(['id', 'name'])->keyBy('id');
+        // Anyone named here is a contact of this ticket's own company, so the
+        // shared read already has them. The fallback covers the one case it
+        // cannot: a company reassigned under a ticket that had already been
+        // handed to one of the old company's people.
+        $known = $this->companyContacts($ticket);
+        $missing = $contactIds->reject(fn ($id) => $known->has($id));
+
+        $contacts = $missing->isEmpty()
+            ? $known
+            : $known->merge(
+                CompanyContact::whereIn('id', $missing)->get(['id', 'name'])->keyBy('id')
+            );
 
         $ticket->setRelation('creator', $people->get($ticket->created_by));
 
+        $ticket->roleAssignments->each(fn ($a) => $a->setRelation('user', $people->get($a->user_id)));
         $ticket->subtasks->each(fn ($s) => $s->setRelation('assignee', $people->get($s->assignee_id)));
         $ticket->statusHistory->each(function ($h) use ($people, $contacts) {
             $h->setRelation('user', $people->get($h->user_id));
@@ -430,10 +607,43 @@ class TicketController extends Controller
 
         return [
             'nextStatuses' => collect($allowed)->map(fn ($key) => $statuses[$key])->filter(),
-            'recipientTeam' => User::active()->orderBy('name')->get(['id', 'name']),
-            'recipientContacts' => CompanyContact::where('company_id', $ticket->company_id)
-                ->active()->orderBy('name')->get(['id', 'name']),
+            'recipientTeam' => $this->activeUsers(),
+            // Filtered in php off the shared read: naming a deactivated contact
+            // as the recipient of a status change is not offered, even though
+            // the same list still has to be able to print one who already was.
+            'recipientContacts' => $this->companyContacts($ticket)
+                ->where('is_active', true)
+                ->sortBy('name')
+                ->values(),
         ];
+    }
+
+    /**
+     * Every active user, read once per request.
+     *
+     * ★ (2026-08-04) Three separate panels on the ticket page each wanted "the
+     * active users" and each went and got them: the subtask assignee dropdown
+     * (select *, so every column including the password hash), the status-change
+     * recipient dropdown (id, name), and the assignment dropdowns (id, name,
+     * role_id). Same rows, same order, up to three round trips — and the widest
+     * of them broke § 4.3 for a list that only ever renders a name.
+     *
+     * One query with the union of the columns anyone actually uses. role_id is
+     * in there for assignableUsers(), which partitions this list by role rather
+     * than asking the database to do it again.
+     *
+     * without('role'): User eager-loads its role for the chrome, and that join
+     * would be a query spent to learn something role_id already says.
+     *
+     * @return EloquentCollection<int, User>
+     */
+    private function activeUsers(): EloquentCollection
+    {
+        return $this->activeUsers ??= User::active()
+            ->without('role')
+            ->select(['id', 'name', 'role_id'])
+            ->orderBy('name')
+            ->get();
     }
 
     /**
@@ -458,7 +668,7 @@ class TicketController extends Controller
                 'assignable' => null,
                 'assignableAll' => collect(),
                 'assignableRoles' => collect(),
-                'labels' => $canLabel ? Label::orderBy('name')->get(['id', 'name', 'color']) : collect(),
+                'labels' => $canLabel ? Label::pickerList() : collect(),
             ];
         }
 
@@ -469,8 +679,8 @@ class TicketController extends Controller
             // same collection instead of a query each (CLAUDE.md § 4).
             'assignableRoles' => $canPlan ? Role::assignableList() : collect(),
             // A subtask may go to anyone — F08 puts no skills constraint on it.
-            'assignableAll' => $canPlan ? User::active()->without('role')->orderBy('name')->get() : collect(),
-            'labels' => $canLabel ? Label::orderBy('name')->get(['id', 'name', 'color']) : collect(),
+            'assignableAll' => $canPlan ? $this->activeUsers() : collect(),
+            'labels' => $canLabel ? Label::pickerList() : collect(),
         ];
     }
 
@@ -485,16 +695,10 @@ class TicketController extends Controller
      */
     private function assignableUsers(): array
     {
-        // without('role'): User eager-loads its role for the chrome, but the
-        // role id here comes from the row's own role_id — that join would be a
-        // query spent to learn something already selected.
-        $users = User::active()
-            ->without('role')
-            ->select(['id', 'name', 'role_id'])
-            ->orderBy('name')
-            ->get();
-
-        $roles = Role::query()->assignableOnTickets()->orderBy('name_ar')->get();
+        $users = $this->activeUsers();
+        // The cached copy of exactly this query — it already exists for the
+        // subtask form, and there is no reason this one paid for its own.
+        $roles = Role::assignableList();
 
         return [
             'roles' => $roles->map(fn (Role $role) => [

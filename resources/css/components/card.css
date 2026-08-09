@@ -99,3 +99,52 @@
     color: var(--text-muted);
     font-size: var(--text-md);
 }
+
+/* ---- The fold chevron ---- */
+
+/* ★ (2026-08-04) Moved here from features/ticket-detail.css. This is part of
+   <x-collapsible-card>, which is a component — the aside on the ticket page is
+   just its first caller. */
+
+/* A small square chevron in the card's corner. It is chrome, so it stays grey
+   and square — a .btn here would read as an action the card is offering. */
+.card__collapse {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.375rem;
+    height: 1.375rem;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background-color: var(--bg);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color var(--transition), border-color var(--transition);
+}
+
+.card__collapse:hover {
+    color: var(--text);
+    border-color: var(--border-strong);
+}
+
+.card__collapse:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+}
+
+.card__collapse-icon {
+    transition: transform var(--transition);
+}
+
+/* The glyph is a chevron-up — "fold me away". Collapsed, it flips to point
+   down: "there is more here". */
+.card__collapse[aria-expanded='false'] .card__collapse-icon {
+    transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .card__collapse-icon {
+        transition: none;
+    }
+}

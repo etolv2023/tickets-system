@@ -4,7 +4,7 @@
     $iAmTester = $ticket->roleAssignments->contains(fn ($a) => $a->user_id === $me->id && $a->role?->is_tester);
 @endphp
 @if ($iAmTester && in_array($ticket->status->value, ['dev_done', 'testing'], true))
-    <x-collapsible-card title="التيست">
+    <x-collapsible-card title="التيست" name="testing" :open="true">
         <div class="stack stack--tight">
             <form method="POST" action="{{ route('tickets.verify', $ticket) }}">
                 @csrf

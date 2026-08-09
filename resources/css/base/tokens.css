@@ -85,7 +85,14 @@
     --aside-width: 18.5rem;
     /* Page ceilings. --page-max was 110rem (1760px), which on a wide monitor
        stretched a single column of text across the whole screen and left the
-       lakes of empty space the layout was reported for. */
+       lakes of empty space the layout was reported for.
+
+       ★★ (2026-08-04) That ceiling is now a floor that lifts — see the two
+       media queries under this block. Capping at 84rem fixed the over-long
+       line but bought it with 988px of dead gutter on a 2560px monitor, which
+       is its own complaint. The width scales instead, and the prose measure is
+       capped where the problem actually was (components/prose.css) rather than
+       by starving the whole page. */
     --page-max: 84rem;
     --page-max-medium: 68rem;
     --page-max-narrow: 42rem;
@@ -96,4 +103,41 @@
     --z-dropdown: 40;
     --z-modal: 60;
     --z-toast: 80;
+}
+
+/* ---- Wide screens ----
+   ★★ (2026-08-04) The layout stopped growing at 84rem, so a 1920px monitor
+   left 348px of empty gutter and a 2560px one left 988px — measured, not
+   estimated. Both numbers are pure waste on the busiest screen in the app.
+
+   The aside grows FASTER than the page does, on purpose. It is the part that
+   was actually starving: at 18.5rem it held a ratings row of four controls, a
+   status form and a label picker, all of which had to wrap against themselves
+   no matter how big the monitor was. The reading column grows more slowly, and
+   the line length inside it is capped separately (components/prose.css), so
+   the extra width lands on the tables and the timeline rather than on a single
+   sentence of Arabic. */
+
+@media (min-width: 90rem) {
+    :root {
+        --page-max: 96rem;
+        --aside-width: 22rem;
+    }
+}
+
+@media (min-width: 120rem) {
+    :root {
+        --page-max: 112rem;
+        --aside-width: 26rem;
+    }
+}
+
+/* 2560px and up. The last step: past this the aside stops growing, because a
+   label/value list 30rem wide is already more room than its content wants, and
+   the reading column stops being the thing that benefits. */
+@media (min-width: 160rem) {
+    :root {
+        --page-max: 136rem;
+        --aside-width: 30rem;
+    }
 }
