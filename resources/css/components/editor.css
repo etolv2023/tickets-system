@@ -231,3 +231,51 @@
 .editor .ql-snow .ql-tooltip a.ql-remove {
     color: var(--action);
 }
+
+/* ---- Pasted images, while you are still writing ----
+
+   ★ (2026-08-05) A pasted screenshot is full-bleed by nature — the thing people
+   paste is a whole browser window — and at natural size it filled the editor,
+   pushed the text into the margins and left nowhere obvious to put the caret.
+   The description became unwritable the moment it had a picture in it.
+
+   Scoped to .ql-editor ONLY. The saved description still renders at full size
+   on the ticket page (components/prose.css) — this is about the editing
+   experience, not about the content. Someone writing needs to know a picture is
+   there and roughly which one; they do not need to read it.
+
+   display: block matters as much as the size. Inline, the image sat in the
+   middle of a text run and the line broke around it; on its own line the text
+   above and below stay two clean paragraphs, which is what makes the caret
+   land where you expect. */
+.editor .ql-editor img {
+    display: block;
+    max-height: 6rem;
+    width: auto;
+    max-width: 100%;
+    margin-block: var(--space-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    /* A picture is content, not a control — but in here it behaves like an
+       object you select, so it gets the affordance of one. */
+    cursor: pointer;
+    transition: max-height var(--transition);
+}
+
+/* Click to open it out, click again to fold it back. Quill marks the selected
+   embed for us, so this costs no javascript. */
+.editor .ql-editor img.ql-selected,
+.editor .ql-editor img:hover {
+    max-height: 22rem;
+}
+
+.editor .ql-editor img.ql-selected {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .editor .ql-editor img {
+        transition: none;
+    }
+}

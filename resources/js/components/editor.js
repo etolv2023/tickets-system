@@ -231,14 +231,45 @@ export default function editor({ name, value = '', placeholder = '', simple = fa
                  * branch is skipped entirely, and TEXT_CHANGE always fires.
                  * Nothing is left that can throw between the insert and sync().
                  */
-                window.getSelection()?.removeAllRanges();
-
+                /**
+                 * ★ (2026-08-05) The native range is NOT cleared here any more.
+                 *
+                 * It used to be, to stop insertEmbed dying on a caret Quill
+                 * could not map. The normalizedToRange guard installed in init()
+                 * now turns that same failure into a null selection, which
+                 * modify() already handles — so the clearing bought nothing and
+                 * cost the thing that matters: removeAllRanges() takes focus off
+                 * the contenteditable, and Quill's setNativeRange then refuses
+                 * to install a new range at all. Measured: rangeCount stayed 0
+                 * however the caret was set afterwards, so the editor was left
+                 * focused-looking and untypable.
+                 */
                 accepted.forEach((token) => {
                     const blob = URL.createObjectURL(files[tokens.indexOf(token)]);
                     this.pending.set(blob, token);
                     this.quill.insertEmbed(at, 'image', blob, 'user');
                     at += 1;
                 });
+
+                /**
+                 * ★ (2026-08-05) The caret goes immediately AFTER the picture,
+                 * and no blank line is manufactured for it.
+                 *
+                 * The obvious move — insertText(at, '\n') so there is a line
+                 * waiting below — produces a paragraph Quill does not consider
+                 * real: an empty block with no Break blot in it, so
+                 * scroll.leaf(index) returns null for every position inside it.
+                 * That matters because setNativeRange answers a null node by
+                 * calling root.blur() (quill/core/selection.js), so the call
+                 * meant to place the cursor was the call that made the editor
+                 * untypable. Measured leaf-by-leaf: text·text·text·text·image·
+                 * image·null — the line existed on screen and not in the model,
+                 * and scroll.optimize() did not repair it.
+                 *
+                 * Landing right after the image is a position Quill does own,
+                 * and Enter from there makes a proper paragraph the normal way —
+                 * which is what was asked for, minus the broken block.
+                 */
 
                 /**
                  * The caret, put back one frame later. Doing it synchronously
@@ -254,14 +285,48 @@ export default function editor({ name, value = '', placeholder = '', simple = fa
                 // is what keeps the form's copy of the description correct.
                 this.sync();
 
+                /**
+                 * Put the caret on that new line, and put the focus back.
+                 *
+                 * ★ (2026-08-05) setTimeout, not requestAnimationFrame. rAF does
+                 * not run while the page is hidden, so pasting and switching tab
+                 * left the caret unset and the editor unfocused — you came back
+                 * to a description you could not type into. Watched it happen in
+                 * a headless (never-painted) browser, which is the same
+                 * condition. A macrotask still gives Quill's MutationObserver
+                 * the tick it needs, and it always fires.
+                 *
+                 * root.focus() rather than quill.focus(): the latter restores
+                 * Quill's *saved* range, which is the one we just cleared, so it
+                 * puts the cursor back exactly where we did not want it. Focus
+                 * the element, then say where the caret goes.
+                 */
                 const caretAt = at;
-                requestAnimationFrame(() => {
+
+                setTimeout(() => {
                     try {
-                        this.quill.setSelection(caretAt, 0, 'silent');
+                        // Clamped: an index past the end makes rangeToNative
+                        // return null, and setNativeRange answers null by
+                        // calling root.blur() (quill/core/selection.js). That is
+                        // how "paste then type" ended up typing nowhere — the
+                        // editor was blurred by the very call meant to put the
+                        // cursor in it. Measured: focus was on .ql-editor
+                        // immediately after the paste and BODY one tick later.
+                        const end = Math.max(0, this.quill.getLength() - 1);
+                        const target = Math.min(caretAt, end);
+
+                        this.quill.setSelection(target, 0, 'silent');
+
+                        // And if it blurred anyway, put it back and try once
+                        // more — now with focus, setNativeRange takes.
+                        if (document.activeElement !== this.quill.root) {
+                            this.quill.root.focus({ preventScroll: true });
+                            this.quill.setSelection(target, 0, 'silent');
+                        }
                     } catch {
                         // The images are in and submitted; the caret is cosmetic.
                     }
-                });
+                }, 0);
             }
 
             this.notice = ! taken
