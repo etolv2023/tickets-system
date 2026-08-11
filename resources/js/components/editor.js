@@ -1,4 +1,4 @@
-import Quill from 'quill';
+import Quill, { Delta, Parchment } from 'quill';
 
 /**
  * ★ (2026-08-04) Quill refuses to hold a blob: URL, and that refusal is the
@@ -39,6 +39,42 @@ class InlineImage extends BaseImage {
 Quill.register(InlineImage, true);
 
 /**
+ * ★ (2026-08-11) Direction, rewritten as a `dir` attribute with LTR in the
+ * whitelist. Quill's own format is neither.
+ *
+ * quill.js:49 registers 'formats/direction' as DirectionClass, and
+ * formats/direction.js declares it
+ *
+ *     const config = { scope: Scope.BLOCK, whitelist: ['rtl'] };
+ *
+ * Two things wrong with that here. The class one — ql-direction-rtl — dies at
+ * the server: config/purifier.php allows no class attribute, so a direction
+ * the user pinned would vanish on save and come back as whatever the heuristic
+ * guesses. And a whitelist of ['rtl'] alone cannot say "this line is English":
+ * the root is already dir="rtl", so removing the format and setting it are the
+ * same picture. LTR has to be a value you can actually store.
+ *
+ * `dir` survives Purifier (it is on the I18N attribute collection as
+ * Enum#ltr,rtl — HTMLModule/Bdo.php:40) once *[dir] is in HTML.Allowed, it is
+ * what the browser reads without any CSS of ours, and getSemanticHTML keeps it
+ * because convertHTML rebuilds a block from its own outerHTML.
+ */
+const Direction = new Parchment.Attributor('direction', 'dir', {
+    scope: Parchment.Scope.BLOCK,
+    whitelist: ['rtl', 'ltr'],
+});
+
+Quill.register({ 'formats/direction': Direction }, true);
+
+// Snow ships both arrows already (ui/icons.js:11-12) — the left-to-right one is
+// filed under '' because upstream only ever toggles rtl off. The toolbar looks
+// icons up by value, so the ltr button needs it under its own key or it renders
+// as an empty square.
+const icons = Quill.import('ui/icons');
+
+icons.direction.ltr = icons.direction[''];
+
+/**
  * Rich text editor (F04.1). RTL by default, code blocks LTR.
  *
  * Whatever this produces is untrusted: the server runs Purifier over it before
@@ -49,6 +85,11 @@ const FULL = [
     ['bold', 'italic', 'underline'],
     [{ list: 'ordered' }, { list: 'bullet' }],
     [{ header: [3, 4, false] }],
+    // Two buttons, three states: pin the line RTL, pin it LTR, or press the lit
+    // one again to unpin and hand the line back to the automatic reading in
+    // editor.css. Nothing is pinned by default — an Arabic document should not
+    // carry a dir attribute on every paragraph just to say what it already is.
+    [{ direction: 'rtl' }, { direction: 'ltr' }],
     ['link', 'blockquote', 'code-block'],
     ['clean'],
 ];
@@ -83,6 +124,26 @@ function imagesFrom(dataTransfer) {
 }
 
 /**
+ * ★ (2026-08-11) Whether a clipboard carrying BOTH markup and an image file is
+ * really an image. Copied from quill/modules/clipboard.js:141-145 on purpose —
+ * this is the rule this file was missing, and matching it exactly is the point.
+ *
+ * Word, Excel, Outlook, Slack and Figma all put a picture of the selection on
+ * the clipboard next to the text. imagesFrom() sees that picture, and the
+ * handler used to claim the paste on the strength of it: the screenshot went
+ * into المرفقات and every word the user copied was thrown away. That is the
+ * reported "بيقبل الصور بس لكن التيكست مش بيقبله".
+ *
+ * A real image paste has no markup at all, or markup that is nothing but the
+ * <img>. Anything else is text that happens to travel with a picture.
+ */
+function htmlIsSingleImage(html) {
+    const body = new DOMParser().parseFromString(html, 'text/html').body;
+
+    return body.childElementCount === 1 && body.firstElementChild?.tagName === 'IMG';
+}
+
+/**
  * The placeholder src the editor writes for a pasted image, swapped for the real
  * attachment URL server-side once the row exists (AttachmentService::
  * resolveInlineImages). Absolute because the purifier only passes http(s).
@@ -97,12 +158,49 @@ function newToken() {
 }
 
 export default function editor({ name, value = '', placeholder = '', simple = false }) {
+    /**
+     * ★★ (2026-08-11) The Quill instance lives HERE, in the closure, and never
+     * on the Alpine component. This is the single most important line in the
+     * file: as a component property it was the reason nothing in the toolbar
+     * worked.
+     *
+     * Alpine wraps a component's data in a reactive Proxy, and reading a nested
+     * object through it hands you a Proxy of that object too. So `this.quill`
+     * was a Proxy, `this.quill.scroll` was a Proxy of the scroll blot — and
+     * parchment's lookup ends with an identity check (parchment ScrollBlot):
+     *
+     *     find(node, bubble = false) {
+     *         const blot = this.registry.find(node, bubble);
+     *         if (blot == null) return null;
+     *         if (blot.scroll === this) return blot;    // <- proxy !== raw
+     *         return bubble ? this.find(...) : null;
+     *     }
+     *
+     * `blot.scroll` is the raw scroll; `this` was the Proxy. Never equal, so
+     * find() answered null for every node in the document — including the
+     * editor's own root. Measured in the running app: find(root) false through
+     * the proxy, true through Alpine.raw() on the same instance.
+     *
+     * Everything downstream followed from that one false. normalizedToRange
+     * dies on `null.offset`, so getSelection() returns null, and every Quill
+     * entry point that starts by reading the selection quietly does nothing:
+     * Bold did nothing, the list buttons threw, and Clipboard.onPaste cancelled
+     * the event and returned before pasting. The comments above about "the
+     * selection reader throws from places no caller can catch" were all
+     * describing this, one symptom at a time.
+     *
+     * A closure variable is invisible to Alpine, so the instance stays raw. Only
+     * `notice` needs to be reactive — it is the one thing the template binds.
+     */
+    let quill = null;
+
+    /** blob URL -> token, for the swap in sync(). Internal; kept out of Alpine. */
+    const pending = new Map();
+
+    let noticeTimer = null;
+
     return {
-        quill: null,
         notice: '',
-        noticeTimer: null,
-        /** blob URL -> token, for the swap in sync(). */
-        pending: new Map(),
 
         /**
          * Hands the files to the attachment list and draws each accepted one
@@ -113,7 +211,7 @@ export default function editor({ name, value = '', placeholder = '', simple = fa
          * Where to put the picture. Never allowed to throw.
          *
          * ★ (2026-08-03) handOff used to end its fallback with
-         * `this.quill.getSelection(true)`. That runs getSelection → update →
+         * `quill.getSelection(true)`. That runs getSelection → update →
          * getRange → normalizedToRange, and the last step maps each selection
          * node back to a blot. During a paste the node it lands on is not
          * always one Quill owns, so the map yields null and it dies on
@@ -156,10 +254,10 @@ export default function editor({ name, value = '', placeholder = '', simple = fa
              * pasting, which hid it — the fallback only runs when there is no
              * readable selection, and an empty editor is exactly that case.
              */
-            const end = Math.max(0, this.quill.getLength() - 1);
+            const end = Math.max(0, quill.getLength() - 1);
 
             try {
-                const index = this.quill.getSelection()?.index;
+                const index = quill.getSelection()?.index;
 
                 return index == null ? end : Math.min(index, end);
             } catch {
@@ -188,21 +286,123 @@ export default function editor({ name, value = '', placeholder = '', simple = fa
          * Being callable means the paste path does not have to win that race.
          */
         sync() {
-            let html = this.quill.getSemanticHTML();
+            let html = quill.getSemanticHTML();
 
             // What's on screen is a blob: URL — meaningless to anyone else and
             // dead the moment this tab closes. What gets submitted is the
             // placeholder, which the server turns into the real attachment URL.
             // Any blob with no token left (image dragged in from another tab,
             // say) is dropped rather than saved as a broken link.
-            this.pending.forEach((token, blob) => {
+            pending.forEach((token, blob) => {
                 html = html.split(blob).join(pendingUrl(token));
             });
 
             html = html.replace(/<img[^>]*src="blob:[^"]*"[^>]*>/g, '');
 
             this.$refs.input.value =
-                this.quill.getText().trim() === '' && ! html.includes('<img') ? '' : html;
+                quill.getText().trim() === '' && ! html.includes('<img') ? '' : html;
+        },
+
+        /**
+         * Puts the caret at `index` and the focus back on the editor, one
+         * macrotask later. Never allowed to throw.
+         *
+         * Doing it synchronously races Quill's own MutationObserver: it rebuilds
+         * the blot tree after an insert, and a native range installed before
+         * that points at nodes which no longer exist by the time Quill's
+         * selectionchange handler reads it — an uncaught throw on every paste,
+         * in a stack we are not part of. After a tick the tree has settled and
+         * the index maps cleanly.
+         *
+         * ★ (2026-08-05) setTimeout, not requestAnimationFrame. rAF does not run
+         * while the page is hidden, so pasting and switching tab left the caret
+         * unset and the editor unfocused — you came back to a description you
+         * could not type into. Watched it happen in a headless (never-painted)
+         * browser, which is the same condition. A macrotask still gives the
+         * MutationObserver the tick it needs, and it always fires.
+         *
+         * root.focus() rather than quill.focus(): the latter restores Quill's
+         * own saved range, which is not the position we just worked out. Focus
+         * the element, then say where the caret goes.
+         */
+        placeCaret(index) {
+            setTimeout(() => {
+                try {
+                    // Clamped: an index past the end makes rangeToNative return
+                    // null, and setNativeRange answers null by calling
+                    // root.blur() (quill/core/selection.js). That is how "paste
+                    // then type" ended up typing nowhere — the editor was
+                    // blurred by the very call meant to put the cursor in it.
+                    // Measured: focus was on .ql-editor immediately after the
+                    // paste and BODY one tick later.
+                    const end = Math.max(0, quill.getLength() - 1);
+                    const target = Math.min(index, end);
+
+                    quill.setSelection(target, 0, 'silent');
+
+                    // And if it blurred anyway, put it back and try once more —
+                    // now with focus, setNativeRange takes.
+                    if (document.activeElement !== quill.root) {
+                        quill.root.focus({ preventScroll: true });
+                        quill.setSelection(target, 0, 'silent');
+                    }
+                } catch {
+                    // The content is in and submitted; the caret is cosmetic.
+                }
+            }, 0);
+        },
+
+        /**
+         * ★ (2026-08-11) Pasting text is done HERE rather than left to Quill,
+         * and that is the fix for "الوصف مش بياخد كوبي بيست".
+         *
+         * quill/modules/clipboard.js:123-127 is
+         *
+         *     onCapturePaste(e) {
+         *         if (e.defaultPrevented || !quill.isEnabled()) return;
+         *         e.preventDefault();
+         *         const range = quill.getSelection(true);
+         *         if (range == null) return;
+         *
+         * — the event is cancelled BEFORE the selection is read, and a null
+         * answer walks away from an already-dead event. Nothing is pasted, the
+         * console stays clean, and it looks like the keystroke never arrived.
+         *
+         * And null is exactly what that read now returns: getSelection reaches
+         * selection.normalizedToRange, which init() wraps to answer null instead
+         * of throwing (see there for why it throws — and the note in caret()
+         * recording it doing so on a first paste into an empty editor, which is
+         * the ticket-create screen). The guard turned a loud failure into a
+         * silent one.
+         *
+         * So the caret is worked out with caret(), which is guarded and clamped
+         * and cannot fail, and the delta is applied by hand. Same conversion
+         * Quill would have done — clipboard.convert() runs the same matchers, so
+         * the data:-URI block installed in init() still holds.
+         */
+        paste(html, text) {
+            const at = this.caret();
+
+            // By index, not by selection: getFormat's default argument is
+            // getSelection(true) — the very call this method exists to avoid.
+            // Passing a number goes straight to editor.getFormat (quill/core/
+            // quill.js). It carries the surrounding formatting, which is what
+            // makes a paste inside a code block stay code.
+            let formats = {};
+
+            try {
+                formats = quill.getFormat(at, 0);
+            } catch {
+                // Pasting unformatted is a worse paste. Not pasting is no paste.
+            }
+
+            const pasted = quill.clipboard.convert({ html, text }, formats);
+
+            quill.updateContents(new Delta().retain(at).concat(pasted), 'user');
+
+            // Explicitly, for the same reason handOff() does it — see sync().
+            this.sync();
+            this.placeCaret(at + pasted.length());
         },
 
         handOff(files) {
@@ -268,8 +468,8 @@ export default function editor({ name, value = '', placeholder = '', simple = fa
                  */
                 accepted.forEach((token) => {
                     const blob = URL.createObjectURL(files[tokens.indexOf(token)]);
-                    this.pending.set(blob, token);
-                    this.quill.insertEmbed(at, 'image', blob, 'user');
+                    pending.set(blob, token);
+                    quill.insertEmbed(at, 'image', blob, 'user');
                     at += 1;
                 });
 
@@ -296,8 +496,8 @@ export default function editor({ name, value = '', placeholder = '', simple = fa
                  * which is what was actually asked for. It costs one invisible
                  * character in the stored HTML.
                  */
-                if (at >= this.quill.getLength() - 1) {
-                    this.quill.insertText(at, ' ', 'user');
+                if (at >= quill.getLength() - 1) {
+                    quill.insertText(at, ' ', 'user');
                     at += 1;
                 }
 
@@ -320,61 +520,14 @@ export default function editor({ name, value = '', placeholder = '', simple = fa
                  * which is what was asked for, minus the broken block.
                  */
 
-                /**
-                 * The caret, put back one frame later. Doing it synchronously
-                 * races Quill's own MutationObserver: it rebuilds the blot tree
-                 * after the insert, and a native range installed before that
-                 * points at nodes which no longer exist by the time Quill's
-                 * selectionchange handler reads it — an uncaught throw on every
-                 * paste, in a stack we are not part of. After a frame the tree
-                 * has settled and the index maps cleanly.
-                 */
                 // Explicitly, not via the text-change the insert emits — see
                 // sync(). If Quill's own listener throws on the way there, this
                 // is what keeps the form's copy of the description correct.
                 this.sync();
 
-                /**
-                 * Put the caret on that new line, and put the focus back.
-                 *
-                 * ★ (2026-08-05) setTimeout, not requestAnimationFrame. rAF does
-                 * not run while the page is hidden, so pasting and switching tab
-                 * left the caret unset and the editor unfocused — you came back
-                 * to a description you could not type into. Watched it happen in
-                 * a headless (never-painted) browser, which is the same
-                 * condition. A macrotask still gives Quill's MutationObserver
-                 * the tick it needs, and it always fires.
-                 *
-                 * root.focus() rather than quill.focus(): the latter restores
-                 * Quill's own saved range, which is not the position we just
-                 * worked out. Focus the element, then say where the caret goes.
-                 */
-                const caretAt = at;
-
-                setTimeout(() => {
-                    try {
-                        // Clamped: an index past the end makes rangeToNative
-                        // return null, and setNativeRange answers null by
-                        // calling root.blur() (quill/core/selection.js). That is
-                        // how "paste then type" ended up typing nowhere — the
-                        // editor was blurred by the very call meant to put the
-                        // cursor in it. Measured: focus was on .ql-editor
-                        // immediately after the paste and BODY one tick later.
-                        const end = Math.max(0, this.quill.getLength() - 1);
-                        const target = Math.min(caretAt, end);
-
-                        this.quill.setSelection(target, 0, 'silent');
-
-                        // And if it blurred anyway, put it back and try once
-                        // more — now with focus, setNativeRange takes.
-                        if (document.activeElement !== this.quill.root) {
-                            this.quill.root.focus({ preventScroll: true });
-                            this.quill.setSelection(target, 0, 'silent');
-                        }
-                    } catch {
-                        // The images are in and submitted; the caret is cosmetic.
-                    }
-                }, 0);
+                // Right after the picture — a position Quill owns, so Enter from
+                // there makes a proper paragraph the normal way.
+                this.placeCaret(at);
             }
 
             this.notice = ! taken
@@ -383,8 +536,8 @@ export default function editor({ name, value = '', placeholder = '', simple = fa
                     ? `${accepted.length > 1 ? `${accepted.length} صور اتحطوا` : 'الصورة اتحطت'} هنا وكمان في المرفقات.`
                     : 'الصورة مادخلتش — شوف رسالة المرفقات تحت.';
 
-            clearTimeout(this.noticeTimer);
-            this.noticeTimer = setTimeout(() => { this.notice = ''; }, 5000);
+            clearTimeout(noticeTimer);
+            noticeTimer = setTimeout(() => { this.notice = ''; }, 5000);
 
             return taken;
         },
@@ -392,18 +545,56 @@ export default function editor({ name, value = '', placeholder = '', simple = fa
         init() {
             const holder = this.$refs.editor;
 
-            this.quill = new Quill(holder, {
+            quill = new Quill(holder, {
                 theme: 'snow',
                 placeholder,
                 modules: {
-                    toolbar: simple ? SIMPLE : FULL,
+                    toolbar: {
+                        container: simple ? SIMPLE : FULL,
+                        handlers: {
+                            /**
+                             * ★ (2026-08-11) Ours, replacing Quill's built-in
+                             * one (modules/toolbar.js, Toolbar.DEFAULTS), which
+                             * is wrong for this editor twice over.
+                             *
+                             * It opens with `const { align } = this.quill
+                             * .getFormat()` — no argument, so the default is
+                             * getSelection(true), the read that answers null the
+                             * moment anything upsets the caret. It then dies on
+                             * null.index, which is louder than the silent
+                             * no-op but no more useful.
+                             *
+                             * And it sets `align: right` alongside a right-to-
+                             * left direction. That is Quill assuming a left-to-
+                             * right document where RTL is the exception. Here it
+                             * is the base, alignment already follows the line's
+                             * own direction (components/editor.css), and align
+                             * is stored as a ql-align-* class which Purifier
+                             * drops on the way in — so it would be an invisible
+                             * format that survives one save and then does not.
+                             *
+                             * Toggling is decided from the line itself rather
+                             * than from the button's ql-active class, because
+                             * that class is painted by Toolbar.update() from the
+                             * same selection read and is not there when it is
+                             * needed.
+                             */
+                            direction: (value) => {
+                                const at = this.caret();
+                                const now = quill.getFormat(at, 0).direction;
+
+                                quill.formatLine(at, 0, 'direction', now === value ? false : value, 'user');
+                                this.sync();
+                            },
+                        },
+                    },
                     // Pasting from Word drags in a wall of inline styles. Taking
                     // only the text and the tags we allow keeps that out. F04.1
                     clipboard: { matchVisual: false },
                 },
             });
 
-            this.quill.root.setAttribute('dir', 'rtl');
+            quill.root.setAttribute('dir', 'rtl');
 
             /**
              * ★ (2026-08-04) Quill's selection reader is missing a null check,
@@ -434,7 +625,7 @@ export default function editor({ name, value = '', placeholder = '', simple = fa
              * "no caret". Patched per instance rather than on the prototype so
              * it cannot leak into anything else that imports Quill.
              */
-            const selection = this.quill.selection;
+            const selection = quill.selection;
             const normalizedToRange = selection.normalizedToRange.bind(selection);
 
             selection.normalizedToRange = (range) => {
@@ -464,27 +655,49 @@ export default function editor({ name, value = '', placeholder = '', simple = fa
              * Once the event is cancelled nothing later can undo it, so the
              * order — not the guard — is what makes this safe.
              */
-            const intercept = (event, transfer) => {
+            const intercept = (event, transfer, allowText) => {
                 const images = imagesFrom(transfer);
+                const html = transfer?.getData('text/html') ?? '';
+                const text = transfer?.getData('text/plain') ?? '';
 
-                if (! images.length) {
+                // An image paste is one with no markup beside it, or markup that
+                // is only the <img>. Quill's own rule, and the one this handler
+                // was missing — see htmlIsSingleImage().
+                if (images.length && (! html || htmlIsSingleImage(html))) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    // Cancelling does not move the caret, so reading it here is
+                    // the same answer, minus the chance of losing the whole
+                    // handler.
+                    this.handOff(images);
+
                     return;
                 }
 
-                event.preventDefault();
-                event.stopPropagation();
+                // Anything with words in it, we place ourselves. A clipboard
+                // carrying both — a Word selection, say — pastes as text and
+                // leaves the picture, which is the same call Quill makes.
+                if (allowText && (html || text)) {
+                    event.preventDefault();
+                    event.stopPropagation();
 
-                // Cancelling does not move the caret, so reading it here is the
-                // same answer, minus the chance of losing the whole handler.
-                this.handOff(images);
+                    this.paste(html, text);
+                }
+
+                // Everything else — a non-image file, an empty clipboard — is
+                // left alone for Quill to refuse in its own way.
             };
 
-            this.quill.root.addEventListener(
-                'paste', (event) => intercept(event, event.clipboardData), true
+            quill.root.addEventListener(
+                'paste', (event) => intercept(event, event.clipboardData, true), true
             );
 
-            this.quill.root.addEventListener(
-                'drop', (event) => intercept(event, event.dataTransfer), true
+            // A drop lands where the pointer is, not where the caret is, and
+            // caret() cannot know that. Text dropped into the editor stays
+            // Quill's job; only the image path is claimed here.
+            quill.root.addEventListener(
+                'drop', (event) => intercept(event, event.dataTransfer, false), true
             );
 
             // An <img> can also arrive inside pasted HTML (from another page, or
@@ -496,15 +709,15 @@ export default function editor({ name, value = '', placeholder = '', simple = fa
             // same matchers, so stripping every img would silently delete a
             // ticket's existing screenshots the moment someone opened it to edit
             // a typo.
-            this.quill.clipboard.addMatcher('IMG', (node, delta) => (
+            quill.clipboard.addMatcher('IMG', (node, delta) => (
                 (node.getAttribute?.('src') ?? '').startsWith('data:') ? { ops: [] } : delta
             ));
 
             if (value) {
-                this.quill.clipboard.dangerouslyPasteHTML(value, 'silent');
+                quill.clipboard.dangerouslyPasteHTML(value, 'silent');
             }
 
-            this.quill.on('text-change', () => this.sync());
+            quill.on('text-change', () => this.sync());
             this.sync();
         },
     };

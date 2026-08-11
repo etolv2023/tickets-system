@@ -1,6 +1,6 @@
 @php $done = $subtask->status->isDone(); @endphp
 
-<div class="subtask" data-subtask-id="{{ $subtask->id }}" x-data="{ editing: false }">
+<div class="subtask" data-subtask-id="{{ $subtask->id }}" x-data="subtaskRow">
     @can('update', [$subtask, $ticket])
         <span class="subtask__handle" data-drag-handle title="اسحب لإعادة الترتيب">
             <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -107,6 +107,22 @@
                     </span>
                 @endif
             </div>
+
+            {{-- ★ (2026-08-11) الوصف كان بيتكتب ومايتقراش — العمود موجود من أول
+                 migration والفورم بيحفظه، بس مفيش مكان في الواجهة كان بيعرضه.
+                 مهرّب مش خام: ده نص عادي من <textarea>، مامرّش على Purifier في
+                 أي مكان (على عكس وصف التذكرة) — عرضه بـ {!! !!} كان هيبقى ثغرة
+                 مخزّنة. نفس معاملة blocked_reason تحت. --}}
+            @if ($subtask->description)
+                {{-- Folded to two lines — see subtaskRow() in app.js for why the
+                     toggle is measured rather than always shown. --}}
+                <p class="subtask__description" :class="expanded && 'subtask__description--open'"
+                   x-init="$nextTick(() => measure($el))">{{ $subtask->description }}</p>
+
+                <button type="button" class="subtask__more" x-show="overflows" x-cloak
+                        @click="expanded = ! expanded" :aria-expanded="expanded"
+                        x-text="expanded ? 'أقل' : 'المزيد'"></button>
+            @endif
 
             @if ($subtask->blocked_reason)
                 <p class="subtask__reason">متوقفة: {{ $subtask->blocked_reason }}</p>

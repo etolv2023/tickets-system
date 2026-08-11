@@ -200,6 +200,51 @@ Alpine.data('copyValue', (value) => ({
     },
 }));
 
+/**
+ * A subtask row: the inline edit form, plus the folded description.
+ *
+ * ★ (2026-08-11) The description is clamped to two lines in CSS
+ * (features/subtasks.css) because the field takes 2000 characters and people
+ * paste whole JSON payloads into it — one of those at full height buries every
+ * other subtask on the page.
+ *
+ * `overflows` decides whether the «المزيد» toggle appears at all, and it is
+ * measured rather than guessed: on a one-line note the button would be a
+ * control that does nothing. The 4px slack is not cosmetic — a single clamped
+ * line reports scrollHeight 24 against clientHeight 22 in Chrome, so a strict
+ * `>` lights the toggle on every row.
+ *
+ * A method rather than an assignment inline in x-init: an expression that
+ * writes to the component scope from inside a $nextTick callback does not
+ * reach it, so the flag stayed false and the toggle never showed. Called with
+ * `this` bound to the component, it simply works.
+ *
+ * And a ResizeObserver rather than a single reading, because the first reading
+ * is taken on a box that does not exist yet: the subtasks list lives in a tab
+ * panel, and the page opens on الخط الزمني. A display:none element reports
+ * scrollHeight and clientHeight both 0, so every row measured "fits" and no
+ * toggle ever appeared. The observer fires when the panel is finally shown —
+ * and again on a resize or when the Arabic webfont swaps in and the line count
+ * changes underneath it.
+ */
+Alpine.data('subtaskRow', () => ({
+    editing: false,
+    expanded: false,
+    overflows: false,
+
+    measure(el) {
+        const read = () => {
+            this.overflows = el.scrollHeight - el.clientHeight > 4;
+        };
+
+        read();
+
+        // Safe against a feedback loop: the flag only shows a sibling button,
+        // which never changes this element's own box.
+        new ResizeObserver(read).observe(el);
+    },
+}));
+
 Alpine.data('editor', editor);
 Alpine.data('uploader', uploader);
 Alpine.data('lightbox', lightbox);

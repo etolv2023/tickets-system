@@ -21,9 +21,20 @@ return [
             'HTML.Doctype' => 'HTML 4.01 Transitional',
 
             // The F04.1 whitelist, verbatim. Nothing else survives.
+            //
+            // ★ (2026-08-11) *[dir] is the one addition, and it is the whole
+            // reason a pinned line direction survives a save. The editor writes
+            // direction as dir="rtl|ltr" on the block (resources/js/components/
+            // editor.js); without this the attribute is stripped here and an
+            // English paragraph comes back reordered the next time the ticket is
+            // opened. HTMLPurifier defines dir as Enum#ltr,rtl on the I18N
+            // attribute collection (HTMLModule/Bdo.php), so nothing else can be
+            // smuggled through it, and the `*` form applies it to every element
+            // already on the list rather than repeating it eighteen times.
             'HTML.Allowed' => 'p,br,strong,em,u,ul,ol,li,a[href|title|target],'
                 . 'code,pre,h3,h4,blockquote,img[src|alt|width|height],'
-                . 'table,thead,tbody,tr,td[colspan|rowspan],th[colspan|rowspan]',
+                . 'table,thead,tbody,tr,td[colspan|rowspan],th[colspan|rowspan],'
+                . '*[dir]',
 
             // No style attribute is allowed through, so no CSS property is either.
             'CSS.AllowedProperties' => '',

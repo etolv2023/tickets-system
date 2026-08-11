@@ -147,6 +147,21 @@
 }
 
 .editor .ql-editor {
+    /* ★ (2026-08-11) text-align, undoing Quill's own.
+       quill.snow.css sets `.ql-editor { text-align: left }` — a physical value,
+       hard-coded, on the element the whole document inherits from. So every
+       Arabic paragraph in this editor has been aligned to the LEFT since the day
+       it was installed: the letters ran right-to-left correctly and the block
+       they sat in did not, which is most of what "الكتابة واتجاهها متشقلبة"
+       looks like. `start` is what that declaration should have been, and it is
+       also what makes the per-paragraph rule below work — measured in Chrome:
+       under unicode-bidi: plaintext, `start` resolves against each paragraph's
+       own resolved direction, so the Arabic line goes right and the English line
+       goes left. Inherited `left` was overriding all of it.
+
+       On the container, not on the blocks: Quill's .ql-align-* classes live on
+       the blocks and have to keep winning. */
+    text-align: start;
     /* ★ (2026-08-02) 8rem is about three lines — it read as an afterthought
        next to the single-line title above it, on the field that carries the
        whole problem statement. It grows past this as you type; the floor just
@@ -155,6 +170,51 @@
     padding: var(--space-4);
     color: var(--text);
     line-height: var(--leading-relaxed);
+}
+
+/* ---- Direction, per paragraph ----
+
+   ★ (2026-08-11) The editor root is dir="rtl" and stays that way — Arabic is the
+   base. But a fixed base is what made an English line come out scrambled: the
+   words held their order and the punctuation, the numbers and the brackets all
+   jumped to the far side, because the paragraph was being laid out right-to-left
+   around them.
+
+   unicode-bidi: plaintext hands each paragraph its own base direction, taken
+   from the first strong character in it (rules P2/P3 of the Unicode bidi
+   algorithm) instead of from the element. A line that starts in Arabic reads
+   right-to-left, a line that starts in English reads left-to-right, and a line
+   with nothing strong in it yet — an empty one, or one holding only digits —
+   falls back to the element, which is rtl. That fallback is what keeps the
+   default Arabic without a single line of javascript.
+
+   No text-align here on purpose: the initial value is already `start`, and under
+   plaintext `start` resolves per paragraph too. Writing it out would out-specify
+   Quill's own .ql-align-* classes.
+
+   Applied to the children, not to .ql-editor: each block is its own containing
+   block, so plaintext on the wrapper would never reach them. */
+.editor .ql-editor > *,
+.editor .ql-editor li {
+    unicode-bidi: plaintext;
+}
+
+/* A direction the user pinned from the toolbar arrives as dir="rtl|ltr" on the
+   block. isolate makes the element's own direction the base again, so the
+   explicit answer beats the guess — under plaintext the attribute would simply
+   be ignored.
+
+   The empty line is the same exception for the opposite reason. Rule P3 of the
+   bidi algorithm answers LTR when it finds no strong character at all, so a
+   fresh <p><br></p> — the entire content of the create form before anyone types
+   — came out left-to-right and put the caret on the left of the box. Measured,
+   not assumed. Handing an empty block back to the element's own direction is
+   what keeps الأساس عربي; the moment a character is typed the <br> goes and the
+   plaintext rule above takes over on its own. */
+.editor .ql-editor > [dir],
+.editor .ql-editor li[dir],
+.editor .ql-editor > :has(> br:only-child) {
+    unicode-bidi: isolate;
 }
 
 .editor .ql-editor.ql-blank::before {

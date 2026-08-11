@@ -13,6 +13,24 @@
     margin-block-start: var(--space-3);
 }
 
+/* ---- Direction, per paragraph ----
+
+   ★ (2026-08-11) The same two rules the editor uses (components/editor.css), for
+   the same reason and so the saved description reads exactly as it did while it
+   was being written. Each block takes its base direction from its first strong
+   character; a block with none falls back to the page, which is rtl. A direction
+   pinned from the toolbar comes through as dir="rtl|ltr" — Purifier passes it,
+   see config/purifier.php — and isolate lets that explicit answer win. */
+.prose > *,
+.prose li {
+    unicode-bidi: plaintext;
+}
+
+.prose > [dir],
+.prose li[dir] {
+    unicode-bidi: isolate;
+}
+
 .prose p {
     margin: 0;
 }
