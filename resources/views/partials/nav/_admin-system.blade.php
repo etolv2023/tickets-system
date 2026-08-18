@@ -45,6 +45,14 @@
     </a>
 @endcan
 
+@can('settings.manage')
+    <a href="{{ route('admin.point-values.index') }}" class="nav__link" title="سعر النقطة والمستحقات"
+       @if (request()->routeIs('admin.point-values.*')) aria-current="page" @endif>
+        <x-icon name="trophy" class="nav__icon" />
+        <span class="nav__label">سعر النقطة</span>
+    </a>
+@endcan
+
 @can('points.rules.manage')
     <a href="{{ route('admin.point-rules.index') }}" class="nav__link" title="تصحيحات النقاط"
        @if (request()->routeIs('admin.point-rules.*')) aria-current="page" @endif>

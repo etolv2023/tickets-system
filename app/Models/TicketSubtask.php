@@ -17,7 +17,7 @@ class TicketSubtask extends Model
 
     protected $fillable = [
         'ticket_id', 'title', 'description', 'assignee_id', 'side', 'role_id', 'status',
-        'start_date', 'due_date', 'estimated_hours', 'points', 'blocked_reason',
+        'start_date', 'due_date', 'due_at', 'estimated_hours', 'points', 'blocked_reason',
         'position', 'created_by', 'started_at', 'completed_at',
     ];
 
@@ -28,6 +28,7 @@ class TicketSubtask extends Model
             'status' => SubtaskStatusCast::class,
             'start_date' => 'date',
             'due_date' => 'date',
+            'due_at' => 'datetime',
             'estimated_hours' => 'decimal:2',
             'spent_hours' => 'decimal:2',
             'points' => 'decimal:2',
@@ -74,12 +75,53 @@ class TicketSubtask extends Model
         return $this->hasMany(PointTransaction::class, 'subtask_id');
     }
 
-    /** F13: late means due before today and still not done. */
+    /**
+     * F13: late means due before today and still not done.
+     *
+     * ★ (2026-08-19) Reads `due_at` when the row has one and `due_date`
+     * otherwise — deliberately NOT deadline(), which normalises a due_date to
+     * 23:59. This flag has always gone red at midnight on the due day rather
+     * than at the end of it. That is a planning signal, not the payout rule,
+     * and routing it through deadline() would have silently moved the red
+     * marker on every subtask already in the database. finishedLate() is the
+     * one that decides money, and that one does use deadline().
+     */
     public function isOverdue(): bool
     {
-        return $this->due_date !== null
+        $due = $this->due_at ?? $this->due_date;
+
+        return $due !== null
             && ! $this->status->isDone()
-            && $this->due_date->isPast();
+            && $due->isPast();
+    }
+
+    /**
+     * ★ (2026-08-19) The exact moment this subtask stops being on time — the
+     * one place the two deadline columns are reconciled.
+     *
+     * `due_date` is a DATE and has always meant "by the end of that day", which
+     * is right for planned work: a subtask due «النهاردة» is not late at 4pm.
+     * F26's exception tickets need an hour on the clock (four WORKING hours
+     * from the error), and a DATE cannot carry one — so `due_at` was added as
+     * an optional, exact override.
+     *
+     * Precedence is `due_at` first because it is the more specific promise: a
+     * row that has one was given a moment on purpose, and falling back to
+     * end-of-day there would quietly hand back the hours it was meant to
+     * remove. A row without one behaves exactly as it did before this existed,
+     * which is every subtask a human has ever typed.
+     *
+     * ->copy(): the date cast hands back the model's own cached Carbon, so
+     * endOfDay() on it would quietly move due_date to 23:59 for the rest of the
+     * request — including for whoever reads it after us.
+     */
+    public function deadline(): ?\Illuminate\Support\Carbon
+    {
+        if ($this->due_at !== null) {
+            return $this->due_at;
+        }
+
+        return $this->due_date?->copy()->endOfDay();
     }
 
     /**
@@ -104,16 +146,15 @@ class TicketSubtask extends Model
      */
     public function finishedLate(?\Illuminate\Support\Carbon $finishedAt = null): bool
     {
-        if ($this->due_date === null) {
+        $deadline = $this->deadline();
+
+        if ($deadline === null) {
             return false;
         }
 
         $finished = $finishedAt ?? $this->completed_at ?? now();
 
-        // ->copy(): the date cast hands back the model's own cached Carbon, so
-        // endOfDay() on it would quietly move due_date to 23:59 for the rest of
-        // the request — including for whoever reads it after us.
-        return $finished->gt($this->due_date->copy()->endOfDay());
+        return $finished->gt($deadline);
     }
 
     /** F09: estimated minus spent, never below zero. */

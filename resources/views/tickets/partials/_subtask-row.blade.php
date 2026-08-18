@@ -71,9 +71,15 @@
                     <span class="u-subtle">مش مسندة</span>
                 @endif
 
-                @if ($subtask->due_date)
+                @if ($subtask->deadline())
+                    {{-- ★ (2026-08-19) بيقرا deadline() مش due_date، وبيوري
+                         الساعة لما يبقى فيه واحدة. تذكرة اكسبشن مهلتها أربع
+                         ساعات عمل، فعرض «استحقاق 19 أغسطس» لوحده كان هيقول
+                         لصاحبها إن قدامه اليوم كله وهو في الحقيقة قدامه للواحدة. --}}
                     <span @class(['subtask__date--overdue' => $subtask->isOverdue()])>
-                        استحقاق {{ $subtask->due_date->translatedFormat('j M') }}
+                        استحقاق {{ $subtask->due_at
+                            ? $subtask->due_at->translatedFormat('j M - H:i')
+                            : $subtask->due_date->translatedFormat('j M') }}
                         @if ($subtask->isOverdue())
                             <x-icon name="alert" size="0.9em" />
                         @endif

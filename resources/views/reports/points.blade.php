@@ -23,7 +23,32 @@
             </div>
         </div>
 
-        @include('reports.partials._month-picker', ['route' => 'reports.points'])
+        {{-- ★ (2026-08-19) الفلتر بالنوع جنب فلتر الشهر — فورم واحدة
+             عشان اختيار أي واحد فيهم ميضيّعش التاني. كل رقم في الصفحة
+             بيتفلتر مع بعض (ReportService::pointsReport)، غير جدول
+             «النقاط بالنوع» نفسه — ده الخريطة اللي بتوريك إنت فين. --}}
+        <form method="GET" action="{{ route('reports.points') }}" class="filters">
+            <select name="period" class="select filters__select" onchange="this.form.submit()">
+                @foreach ($months as $value => $label)
+                    <option value="{{ $value }}" @selected($period === $value)>{{ $label }}</option>
+                @endforeach
+            </select>
+            <select name="type" class="select filters__select" onchange="this.form.submit()"
+                    aria-label="نوع التذكرة">
+                <option value="">كل الأنواع</option>
+                @foreach ($types as $value => $label)
+                    <option value="{{ $value }}" @selected(($type ?? '') === $value)>{{ $label }}</option>
+                @endforeach
+            </select>
+            <noscript><x-button variant="secondary">اعرض</x-button></noscript>
+        </form>
+
+        @if ($type)
+            <x-alert variant="info">
+                الأرقام دي لنوع «{{ $types[$type] }}» بس.
+                <a href="{{ route('reports.points', ['period' => $period]) }}">اعرض كل الأنواع</a>
+            </x-alert>
+        @endif
 
         {{-- The headline. Four numbers that frame everything under them. --}}
         <div class="today-stats">
