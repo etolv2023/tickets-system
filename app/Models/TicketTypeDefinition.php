@@ -39,11 +39,11 @@ class TicketTypeDefinition extends Model
         'link' => 'رابط',
     ];
 
-    protected $fillable = ['key', 'name_ar', 'color', 'icon', 'needs_approval', 'default_points', 'is_system', 'position'];
+    protected $fillable = ['key', 'name_ar', 'color', 'icon', 'needs_approval', 'default_points', 'point_value', 'is_system', 'position'];
 
     protected function casts(): array
     {
-        return ['needs_approval' => 'boolean', 'is_system' => 'boolean', 'default_points' => 'decimal:2'];
+        return ['needs_approval' => 'boolean', 'is_system' => 'boolean', 'default_points' => 'decimal:2', 'point_value' => 'decimal:2'];
     }
 
     protected static function booted(): void

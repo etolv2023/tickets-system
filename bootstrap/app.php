@@ -14,6 +14,11 @@ use Illuminate\Foundation\Configuration\Middleware;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+        // F26 — machine-to-machine only, and deliberately a separate group: the
+        // api group has no session and no CSRF, which is what lets a queue
+        // worker on another server call in. It authenticates by signature
+        // instead (VerifyWebhookSignature), applied per-route in api.php.
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )

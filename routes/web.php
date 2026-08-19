@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\ContactController;
 use App\Http\Controllers\Admin\ImportController;
 use App\Http\Controllers\Admin\LabelController;
 use App\Http\Controllers\Admin\PointRuleController;
+use App\Http\Controllers\Admin\PointValueController;
 use App\Http\Controllers\Admin\PriorityController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingController;
@@ -254,6 +255,13 @@ Route::middleware('auth')->group(function () {
         Route::middleware('permission:settings.manage')->group(function () {
             Route::get('/settings', [SettingController::class, 'edit'])->name('settings');
             Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+
+            // ★ (2026-08-19) F18.2 — what a point is worth per ticket type, and
+            // what that makes everyone's month. settings.manage rather than
+            // points.rules.manage: pricing everyone's work is a different
+            // authority from correcting one person's ledger row.
+            Route::get('point-values', [PointValueController::class, 'index'])->name('point-values.index');
+            Route::put('point-values', [PointValueController::class, 'update'])->name('point-values.update');
 
             // F06.1 — the status list and the transition graph between them.
             Route::get('ticket-statuses', [TicketStatusController::class, 'index'])->name('ticket-statuses.index');

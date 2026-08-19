@@ -120,9 +120,37 @@ class ReportService
      *
      * @return array<string, mixed>
      */
-    public function pointsReport(string $period): array
+    /**
+     * ★ (2026-08-19) $type narrows the whole screen to one ticket type.
+     *
+     * Every figure moves together or the page lies: filtering the per-person
+     * table while leaving the headline total counting every type would put two
+     * numbers on one screen that cannot both be right. So the constraint is a
+     * closure applied to each query rather than a WHERE written six times —
+     * one definition of "this type", and no query can quietly miss it.
+     *
+     * The join is on the TICKET's type, not on anything stored in the ledger.
+     * point_transactions has no type column and should not get one: a ticket
+     * retyped from بج to فيتشر must move its history with it, and a copy
+     * frozen at award time would strand it.
+     *
+     * A manual correction with no ticket (F18 allows one) drops out of every
+     * type-filtered figure, which is correct — it belongs to no type. It is
+     * still in the unfiltered view, which is the one that claims to be complete.
+     */
+    public function pointsReport(string $period, ?string $type = null): array
     {
+        $ofType = fn ($query) => $query->when(
+            filled($type),
+            fn ($q) => $q->whereExists(fn ($sub) => $sub
+                ->selectRaw(1)
+                ->from('tickets')
+                ->whereColumn('tickets.id', 'point_transactions.ticket_id')
+                ->where('tickets.type', $type))
+        );
+
         $byPerson = PointTransaction::query()
+            ->tap($ofType)
             ->selectRaw('user_id, SUM(points) total, COUNT(*) awards')
             ->selectRaw("SUM(CASE WHEN side = 'support'  THEN points ELSE 0 END) support")
             ->selectRaw("SUM(CASE WHEN side = 'frontend' THEN points ELSE 0 END) frontend")
@@ -139,6 +167,7 @@ class ReportService
         // $points above — role_id joins side in the grouping so a role-based
         // award gets its own row instead of collapsing into side = null.
         $bySide = PointTransaction::query()
+            ->tap($ofType)
             ->selectRaw('side, role_id, SUM(points) total, COUNT(*) awards')
             ->forPeriod($period)
             ->groupBy('side', 'role_id')
@@ -147,6 +176,9 @@ class ReportService
             ->get();
 
         // Where the points came from, broken down by the ticket's type.
+        // Left unfiltered on purpose even when $type is set: this table IS the
+        // type breakdown, and filtering it would reduce it to the single row
+        // the user already chose. It stays the map that shows where they are.
         $byType = PointTransaction::query()
             ->join('tickets', 'tickets.id', '=', 'point_transactions.ticket_id')
             ->selectRaw('tickets.type, SUM(point_transactions.points) total, COUNT(*) awards')
@@ -157,6 +189,7 @@ class ReportService
             ->get();
 
         $topTickets = PointTransaction::query()
+            ->tap($ofType)
             ->selectRaw('ticket_id, SUM(points) total, COUNT(*) people')
             // A manual correction may not reference a ticket at all (ticket_id
             // nullable since F18's rework); this table is about tickets.
@@ -173,6 +206,7 @@ class ReportService
         // an admin scanning the total should be able to tell how much of it
         // was typed in by hand.
         $corrections = PointTransaction::query()
+            ->tap($ofType)
             ->selectRaw('COUNT(*) awards, SUM(points) total')
             ->where('type', 'correction')
             ->forPeriod($period)
@@ -185,15 +219,133 @@ class ReportService
             'topTickets' => $topTickets,
             'total' => (float) $byPerson->sum('total'),
             'people' => $byPerson->count(),
-            'tickets' => (int) PointTransaction::query()->forPeriod($period)
+            'tickets' => (int) PointTransaction::query()->tap($ofType)->forPeriod($period)
                 ->whereNotNull('ticket_id')->distinct()->count('ticket_id'),
             'correctionsTotal' => (float) ($corrections->total ?? 0),
             'correctionsCount' => (int) ($corrections->awards ?? 0),
             // Last month, so the headline number has something to mean.
+            // Same filter as everything above — comparing one type's month
+            // against last month's grand total would read as a collapse.
             'previous' => (float) PointTransaction::query()
+                ->tap($ofType)
                 ->forPeriod(\Carbon\CarbonImmutable::createFromFormat('Y-m', $period)
                     ->subMonth()->format('Y-m'))
                 ->sum('points'),
+            'type' => $type,
+        ];
+    }
+
+    /**
+     * ★ (2026-08-19) F18.3 — what the month's points are worth in money.
+     *
+     * One GROUP BY over (person, ticket type), multiplied by the type's rate on
+     * the way out. The multiplication happens in PHP rather than in SQL on
+     * purpose: the rate lives on ticket_types and is cached
+     * (TicketTypeDefinition::map()), so joining it into the aggregate would add
+     * a join to every row to fetch a handful of values the process already
+     * holds. There are never more than a dozen types.
+     *
+     * Money is COMPUTED, never stored. point_transactions records points and
+     * F18 forbids rewriting it, so the only place a rate can live is the type
+     * row — which means repricing a type reprices its history too. That is what
+     * a rate card is: the figure this screen shows is always "what this month
+     * is worth at today's rates", not "what was promised in April".
+     *
+     * PENALTIES COUNT, and they count negative. A docked subtask is a negative
+     * points row (F18.1), so it flows through the same multiplication and comes
+     * out as money taken off. Filtering penalties out here would produce a
+     * payout figure higher than the ledger behind it — the exact discrepancy
+     * this screen exists to prevent.
+     *
+     * Rows whose ticket has no type, and manual corrections with no ticket at
+     * all, are grouped under a null type and priced at zero. They are shown
+     * rather than dropped: money that cannot be attributed to a rate is
+     * information an admin needs, and silently omitting it would make the
+     * columns fail to add up.
+     *
+     * `unpriced` counts TYPES that earned points this month and still have no
+     * rate — not the points themselves. Summing the points was the first
+     * version and it was wrong: penalties are negative, so a month with real
+     * unpriced work could total to a negative figure, or to zero, and the
+     * warning would either read as nonsense or vanish entirely at exactly the
+     * moment it mattered. A count of types is never negative and is the number
+     * the admin can actually act on — it is how many rows above need filling in.
+     *
+     * @return array{rows: Collection<int, array<string, mixed>>, byType: Collection<int, array<string, mixed>>, total: float, unpriced: int}
+     */
+    public function moneyReport(string $period): array
+    {
+        $rates = collect(\App\Models\TicketTypeDefinition::map())
+            ->map(fn ($t) => ['name' => $t->name_ar, 'rate' => (float) $t->point_value]);
+
+        $grouped = PointTransaction::query()
+            ->leftJoin('tickets', 'tickets.id', '=', 'point_transactions.ticket_id')
+            ->join('users', 'users.id', '=', 'point_transactions.user_id')
+            ->forPeriod($period)
+            ->groupBy('point_transactions.user_id', 'users.name', 'tickets.type')
+            ->orderBy('users.name')
+            ->get([
+                DB::raw('point_transactions.user_id AS user_id'),
+                DB::raw('users.name AS user_name'),
+                DB::raw('tickets.type AS ticket_type'),
+                DB::raw('SUM(point_transactions.points) AS points'),
+                DB::raw('COUNT(*) AS entries'),
+            ]);
+
+        $people = [];
+        $byType = [];
+
+        foreach ($grouped as $row) {
+            $type = $row->ticket_type;
+            $rate = $type !== null ? ($rates[$type]['rate'] ?? 0.0) : 0.0;
+            $points = (float) $row->points;
+            $money = $points * $rate;
+
+            $people[$row->user_id] ??= [
+                'user_id' => (int) $row->user_id,
+                'name' => $row->user_name,
+                'points' => 0.0,
+                'money' => 0.0,
+                'types' => [],
+            ];
+
+            $people[$row->user_id]['points'] += $points;
+            $people[$row->user_id]['money'] += $money;
+            $people[$row->user_id]['types'][] = [
+                'type' => $type,
+                'label' => $type !== null ? ($rates[$type]['name'] ?? $type) : 'غير منسوبة',
+                'rate' => $rate,
+                'points' => $points,
+                'money' => $money,
+                'entries' => (int) $row->entries,
+            ];
+
+            $key = $type ?? '—';
+            $byType[$key] ??= [
+                'label' => $type !== null ? ($rates[$type]['name'] ?? $type) : 'غير منسوبة',
+                'rate' => $rate,
+                'points' => 0.0,
+                'money' => 0.0,
+            ];
+            $byType[$key]['points'] += $points;
+            $byType[$key]['money'] += $money;
+
+        }
+
+        $rows = collect($people)->sortByDesc('money')->values();
+
+        // Types that earned something this month and are still priced at zero.
+        // Surfaced so a zero total on a busy month reads as "nobody set the
+        // rates" rather than as "nobody worked".
+        $unpriced = collect($byType)
+            ->filter(fn (array $t) => $t['rate'] === 0.0 && $t['points'] != 0.0)
+            ->count();
+
+        return [
+            'rows' => $rows,
+            'byType' => collect($byType)->sortByDesc('money')->values(),
+            'total' => (float) $rows->sum('money'),
+            'unpriced' => $unpriced,
         ];
     }
 

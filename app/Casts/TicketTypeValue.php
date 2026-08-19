@@ -26,6 +26,7 @@ final class TicketTypeValue
         private readonly string $iconName,
         private readonly bool $needsApproval,
         private readonly float $defaultPoints,
+        private readonly float $pointValue,
     ) {
     }
 
@@ -48,6 +49,10 @@ final class TicketTypeValue
             // A type deleted out from under old tickets falls back to the flat
             // 1.0 the whole system used before types carried a weight.
             defaultPoints: (float) ($row->default_points ?? 1.0),
+            // Unpriced is the honest fallback for a type nobody has costed —
+            // and for one deleted out from under old tickets. Never a guess:
+            // an invented rate would print as somebody's pay.
+            pointValue: (float) ($row->point_value ?? 0.0),
         );
     }
 
@@ -88,6 +93,18 @@ final class TicketTypeValue
     public function defaultPoints(): float
     {
         return $this->defaultPoints;
+    }
+
+    /**
+     * ★ (2026-08-19) F18.3 — the money one point earns on this type.
+     *
+     * Read at report time, never stored on a ledger row: point_transactions
+     * records points, and F18 forbids rewriting it. So repricing a type
+     * reprices its history too, which is what a rate card is supposed to do.
+     */
+    public function pointValue(): float
+    {
+        return $this->pointValue;
     }
 
     public function __toString(): string

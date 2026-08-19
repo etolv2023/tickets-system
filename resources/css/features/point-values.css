@@ -1,0 +1,63 @@
+/*
+ * F18.3 — the rate card and the money it comes to (/admin/point-values).
+ *
+ * Two small patterns only. Everything else on that screen is .table, .card and
+ * .stat-tile, which already exist — a new page that needs a new layout system
+ * is usually a page that should have reused one.
+ */
+
+/* The price field and its unit, kept on one line so the number and «للنقطة»
+   read as a single value rather than as two stacked cells. */
+.rate-cell {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.rate-cell__input {
+    /* Wide enough for a five-figure rate with decimals, narrow enough that the
+       column does not eat the table. */
+    inline-size: 8rem;
+    text-align: start;
+    font-variant-numeric: tabular-nums;
+}
+
+/*
+ * One person's month, split by ticket type: «بج ٤ × ٢٠٫٠٠ = ٨٠٫٠٠».
+ *
+ * A list rather than a nested table. The rows belong to the person's row above
+ * them, and a table inside a table gives them borders and a header that argue
+ * with the outer one for the reader's attention.
+ */
+.rate-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.rate-breakdown li {
+    display: grid;
+    /* The label takes what it needs; the two numeric columns are fixed so the
+       × and = line up down the list instead of stepping in and out. */
+    grid-template-columns: minmax(6rem, 1fr) 9rem 8rem;
+    gap: var(--space-2);
+    align-items: baseline;
+    font-size: var(--text-sm);
+    color: var(--text-subtle);
+}
+
+.rate-breakdown li > span:not(:first-child) {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Narrow screens: the three columns stop fitting long before the table does,
+   and a squeezed grid is less readable than a wrapped line. */
+@media (max-width: 40rem) {
+    .rate-breakdown li {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+}

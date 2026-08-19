@@ -26,6 +26,9 @@ class Ticket extends Model
         'title', 'description', 'type', 'priority', 'status', 'module',
         // How to reach the problem: the client's login code and the page it happens on.
         'client_user_code', 'page_url',
+        // F26 — set only on a ticket the error reporter opened. The fingerprint
+        // is how a later report of the same error finds this ticket again.
+        'exception_fingerprint', 'exception_count', 'exception_server',
         'created_by',
         'approval_status', 'approved_by', 'approved_at',
         'reported_at', 'first_response_at', 'sla_due_at', 'resolved_at',
@@ -50,6 +53,7 @@ class Ticket extends Model
             'start_date' => 'date',
             'due_date' => 'date',
             'original_estimate_hours' => 'decimal:2',
+            'exception_count' => 'integer',
             'spent_hours' => 'decimal:2',
         ];
     }

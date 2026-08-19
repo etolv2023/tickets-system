@@ -96,7 +96,7 @@ class LatePenaltyService
                 'title' => $s->title,
                 'ticket' => $s->ticket->ticket_number,
                 'assignee' => $s->assignee?->name ?? '—',
-                'due' => $s->due_date->toDateString(),
+                'due' => $s->deadline()->toDateTimeString(),
                 'points' => (float) $s->points,
                 'charged_before' => $s->point_transactions_count > 0,
             ])
@@ -209,7 +209,10 @@ class LatePenaltyService
 
         return $subtask->assignee_id !== null
             && (float) $subtask->points > 0
-            && $subtask->due_date !== null
+            // ★ (2026-08-19) Either column counts as a promise. An F26
+            // exception subtask carries an exact due_at; a planned one carries
+            // a due_date. deadline() is the one that reconciles them.
+            && $subtask->deadline() !== null
             // 'other' names no earner, so there is nobody to charge.
             && ($subtask->role_id !== null || $subtask->side->toPointSide() !== null);
     }
@@ -230,19 +233,34 @@ class LatePenaltyService
     {
         return TicketSubtask::query()
             ->whereNull('deleted_at')
-            ->whereNotNull('due_date')
-            ->whereDate('due_date', '<', $asOf->toDateString())
+            // ★ (2026-08-19) Two shapes of deadline, and the net has to catch
+            // both. A due_at row is late the moment that timestamp passes —
+            // possibly within the same morning, which is exactly why F26's
+            // four-hour tickets exist — while a due_date row is not late until
+            // its whole day is over. Filtering on due_date alone would have
+            // missed every exception subtask, since those carry an hour and the
+            // sweep would keep saying "due today, not late yet" until midnight.
+            ->where(fn ($q) => $q
+                ->where(fn ($e) => $e
+                    ->whereNotNull('due_at')
+                    ->where('due_at', '<', $asOf))
+                ->orWhere(fn ($d) => $d
+                    ->whereNull('due_at')
+                    ->whereNotNull('due_date')
+                    ->whereDate('due_date', '<', $asOf->toDateString())))
             ->whereNotNull('assignee_id')
             ->where('points', '>', 0)
             // Coarse net only — owesChargeToday() makes the real call. This
             // keeps the finished-on-time majority out of memory rather than
             // loading every subtask that ever had a past due date. Late for a
             // done subtask means completed_at past the END of the due day, which
-            // is the same as on or after the next day at 00:00.
+            // is the same as on or after the next day at 00:00 — or, for a
+            // due_at row, simply past the timestamp itself.
             ->where(fn ($q) => $q
                 ->where('status', '!=', 'done')
                 ->orWhereNull('completed_at')
-                ->orWhereRaw('completed_at >= DATE_ADD(due_date, INTERVAL 1 DAY)'))
+                ->orWhereRaw('(due_at IS NOT NULL AND completed_at > due_at)')
+                ->orWhereRaw('(due_at IS NULL AND completed_at >= DATE_ADD(due_date, INTERVAL 1 DAY))'))
             ->whereHas('ticket', fn ($q) => $q->whereNull('resolved_at'))
             ->withCount(['pointTransactions as point_transactions_count' => fn ($q) => $q->where('type', 'penalty')])
             ->with(['ticket', 'role:id,name_ar']);
@@ -265,12 +283,23 @@ class LatePenaltyService
             ? $subtask->role->name_ar
             : $subtask->side->toPointSide()->label();
 
-        $days = (int) $subtask->due_date->copy()->startOfDay()->diffInDays($asOf->copy()->startOfDay());
-        $due = $subtask->due_date->translatedFormat('j M Y');
+        $deadline = $subtask->deadline();
+
+        // ★ (2026-08-19) An exact deadline prints its hour and is measured in
+        // hours; a whole-day one keeps the day-count wording it always had.
+        // Saying "متأخرة 0 يوم" to somebody who blew a four-hour
+        // deadline by ninety minutes is how a payout row starts an argument.
+        $exact = $subtask->due_at !== null;
+        $due = $exact
+            ? $deadline->translatedFormat('j M Y - H:i')
+            : $deadline->translatedFormat('j M Y');
+        $late = $exact
+            ? $this->lateness($deadline, $asOf)
+            : ((int) $deadline->copy()->startOfDay()->diffInDays($asOf->copy()->startOfDay())) . ' يوم';
 
         $note = $this->wasCharged($subtask)
-            ? "خصم تأخير متراكم ({$asOf->translatedFormat('j M')}): لسه متأخرة عن {$due} بـ {$days} يوم — التراكم مفعّل فبيتخصم كل يوم"
-            : "خصم تأخير: كانت مستحقة {$due} ومتأخرة {$days} يوم";
+            ? "خصم تأخير متراكم ({$asOf->translatedFormat('j M')}): لسه متأخرة عن {$due} بـ {$late} — التراكم مفعّل فبيتخصم كل يوم"
+            : "خصم تأخير: كانت مستحقة {$due} ومتأخرة {$late}";
 
         $head = "{$ticket->type->label()} — {$earner} (";
         $tail = ") — {$note}";
@@ -281,5 +310,28 @@ class LatePenaltyService
             : $subtask->title;
 
         return $head . $title . $tail;
+    }
+
+    /**
+     * ★ (2026-08-19) How late, in the largest unit that is still honest.
+     *
+     * Under a day reads in hours (and under an hour, in minutes), because a
+     * four-hour deadline missed by two hours is a real miss and "0 يوم" hides
+     * it. Past a day it reads in days, which is how the accumulating charge has
+     * always described itself.
+     */
+    private function lateness(Carbon $deadline, Carbon $asOf): string
+    {
+        $minutes = (int) $deadline->diffInMinutes($asOf, absolute: true);
+
+        if ($minutes < 60) {
+            return max(1, $minutes) . ' دقيقة';
+        }
+
+        if ($minutes < 60 * 24) {
+            return intdiv($minutes, 60) . ' ساعة';
+        }
+
+        return intdiv($minutes, 60 * 24) . ' يوم';
     }
 }

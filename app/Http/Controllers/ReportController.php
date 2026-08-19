@@ -87,10 +87,18 @@ class ReportController extends Controller
 
         $period = $this->period($request);
 
+        // ★ (2026-08-19) An unknown key would silently filter the whole screen
+        // down to nothing and read as "a quiet month" rather than as a typo, so
+        // anything not in the type list is dropped back to "all types".
+        $type = (string) $request->query('type', '');
+        $types = TicketTypeDefinition::options();
+        $type = array_key_exists($type, $types) ? $type : null;
+
         return view('reports.points', [
             'period' => $period,
             'months' => $this->months(),
-        ] + $this->reports->pointsReport($period));
+            'types' => $types,
+        ] + $this->reports->pointsReport($period, $type));
     }
 
     /**
