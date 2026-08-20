@@ -50,6 +50,10 @@ class ExceptionWebhookController extends Controller
             'ticket_url' => $result['ticket_id'] === null
                 ? null
                 : route('tickets.show', $result['ticket_id']),
+            // ★ (2026-08-19) F26.1 — who it landed on, so the Discord message
+            // announcing the error can mention them by id instead of shouting
+            // into a channel. Null when nothing was assigned.
+            'assignee' => $result['assignee'] ?? null,
         ]);
     }
 }

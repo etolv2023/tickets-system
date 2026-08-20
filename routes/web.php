@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\LookupController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PortalController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SubtaskController;
@@ -102,6 +103,12 @@ Route::middleware('auth')->group(function () {
 
     // Stays reachable while must_change_password is set — ForcePasswordChange
     // lets exactly these through and redirects everything else here.
+    // ★ (2026-08-19) F26.1 — the facts a person supplies about themselves.
+    // No route parameter: the row edited is always the signed-in user, so the
+    // shape of the route is the authorisation.
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
     Route::get('/password/change', [PasswordChangeController::class, 'edit'])->name('password.change');
     Route::put('/password/change', [PasswordChangeController::class, 'update'])->name('password.change.store');
 

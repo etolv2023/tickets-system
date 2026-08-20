@@ -1,0 +1,83 @@
+/*
+ * A collapsed block of instructions that sits under the field it explains.
+ *
+ * Native <details>, so it opens with no JavaScript and is keyboard-accessible
+ * for free — the same reasoning board-card.css gives for the subtask list.
+ *
+ * Collapsed by default because these steps are needed exactly once, by each
+ * person, on the day they fill the field in. Expanded, they would be permanent
+ * clutter on a form with one input.
+ *
+ * NOT components/fold.css, which was the first thing checked. That one is a
+ * section: a bordered box with its own header bar, a title, a meta slot, an
+ * actions slot and Alpine state persisted to localStorage. Wrapping four lines
+ * of instructions in it would give the explanation more visual weight than the
+ * field it explains. This is field-level help that hangs off the bottom of a
+ * form, which is a different thing at a different scale.
+ */
+
+.help-note {
+    margin-block-start: var(--space-4);
+    border-top: 1px solid var(--border-subtle);
+    padding-block-start: var(--space-3);
+}
+
+.help-note__summary {
+    cursor: pointer;
+    font-size: var(--text-sm);
+    color: var(--action);
+    /* The default disclosure triangle is drawn on the wrong side in RTL and
+       cannot be moved; ::before below replaces it with one that follows the
+       writing direction. */
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.help-note__summary::-webkit-details-marker {
+    display: none;
+}
+
+.help-note__summary::before {
+    content: '';
+    inline-size: 0;
+    block-size: 0;
+    /* A triangle pointing along the inline direction, flipped to point down
+       when open. Borders rather than a glyph so it inherits currentColor. */
+    border-block: 0.3em solid transparent;
+    border-inline-start: 0.4em solid currentColor;
+    transition: transform 0.15s ease;
+}
+
+[dir='rtl'] .help-note__summary::before {
+    transform: scaleX(-1);
+}
+
+.help-note[open] .help-note__summary::before {
+    transform: rotate(90deg);
+}
+
+[dir='rtl'] .help-note[open] .help-note__summary::before {
+    transform: scaleX(-1) rotate(-90deg);
+}
+
+.help-note__body {
+    margin-block-start: var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--text-subtle);
+}
+
+.help-note__body ol {
+    /* padding-inline-start, never padding-left: the marker has to sit on the
+       start edge in both directions (§ 6). */
+    margin-block: var(--space-2);
+    padding-inline-start: var(--space-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.help-note__body p {
+    margin-block: var(--space-2);
+}

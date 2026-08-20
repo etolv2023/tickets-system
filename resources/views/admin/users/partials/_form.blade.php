@@ -35,6 +35,19 @@
                 hint="ساعات إنتاجية في اليوم. الكاليندر بيحسب منها الحمل."
             />
 
+            {{-- ★ (2026-08-19) F26.1 — الشخص نفسه بيقدر يحطها من /profile،
+                 والأدمن بيقدر يحطها له من هنا — مفيش تعارض، نفس الخانة ونفس
+                 التحقق. فاضية = مفيش منشن، والاسم بيتكتب نص عادي. --}}
+            <x-field
+                name="discord_user_id"
+                label="الـ Discord User ID"
+                :value="$user?->discord_user_id"
+                inputmode="numeric"
+                autocomplete="off"
+                placeholder="709211234567890123"
+                hint="الـ ID الرقمي مش اسم المستخدم — عشان الاكسبشن يعمله منشن على ديسكورد. سيبها فاضية والشخص نفسه يحطها من صفحة «حسابي»."
+            />
+
             <label class="checkbox-row">
                 <input type="checkbox" name="is_active" value="1" class="checkbox"
                        @checked(old('is_active', $user?->is_active ?? true))>

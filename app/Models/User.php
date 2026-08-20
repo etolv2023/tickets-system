@@ -30,6 +30,10 @@ class User extends Authenticatable
         'daily_capacity_hours',
         'must_change_password',
         'avatar_path',
+        // F26.1 — the numeric Discord snowflake, so an exception ticket can
+        // actually ping the person it landed on. Set by the person themselves
+        // at /profile, or by an admin on the user form.
+        'discord_user_id',
         'is_active',
         'email_notifications',
     ];

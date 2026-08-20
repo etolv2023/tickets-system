@@ -71,10 +71,13 @@
         <div class="nav__user">
             <x-avatar :user="$user" />
 
-            <div class="nav__user-meta">
+            {{-- ★ (2026-08-19) الاسم بقى لينك للبروفايل — المكان اللي
+                 أي حد هيدور فيه أول ما يدور على بياناته. --}}
+            <a href="{{ route('profile.edit') }}" class="nav__user-meta" title="حسابي"
+               @if (request()->routeIs('profile.*')) aria-current="page" @endif>
                 <div class="nav__user-name">{{ $user->name }}</div>
                 <div class="nav__user-role">{{ $user->role->name_ar }}</div>
-            </div>
+            </a>
 
             <form method="POST" action="{{ route('logout') }}">
                 @csrf

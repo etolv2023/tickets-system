@@ -99,7 +99,7 @@ class ExceptionIntakeService
 
     /**
      * @param  array<string, mixed>  $data  a validated ExceptionWebhookRequest
-     * @return array{action: string, ticket_number: string|null, ticket_id: int|null}
+     * @return array{action: string, ticket_number: string|null, ticket_id: int|null, assignee: array{name: string, discord_user_id: string|null}|null}
      */
     public function handle(array $data): array
     {
@@ -189,6 +189,7 @@ class ExceptionIntakeService
             'action' => $previous === null ? 'created' : 'recreated',
             'ticket_number' => $ticket->ticket_number,
             'ticket_id' => $ticket->id,
+            'assignee' => $this->describe($assignee),
         ];
     }
 
@@ -229,6 +230,9 @@ class ExceptionIntakeService
             'action' => 'commented',
             'ticket_number' => $ticket->ticket_number,
             'ticket_id' => $ticket->id,
+            // Whoever is already holding it — a repeat does not reassign, so
+            // the name the sender mentions is the name from the first report.
+            'assignee' => $this->describe($this->currentAssignee($ticket)),
         ];
     }
 
@@ -277,6 +281,53 @@ class ExceptionIntakeService
             'type' => self::LINK_TYPE,
             'created_by' => $actorId,
         ]);
+    }
+
+    /**
+     * ★ (2026-08-19) F26.1 — the assignee as the sender needs to hear it.
+     *
+     * The sending system announces the error on Discord and wants to mention
+     * the person it landed on. It cannot look them up: it has no users table,
+     * and the choice was made here. So the answer travels back with the ticket
+     * number in the same reply.
+     *
+     * The name always goes; the Discord id only if the person supplied one.
+     * Both are needed because they are used for different things — the id
+     * builds the mention, and the name is what the message falls back to when
+     * there is no id, and what it reads as to anyone without Discord open.
+     */
+    private function describe(?User $user): ?array
+    {
+        if ($user === null) {
+            return null;
+        }
+
+        return [
+            'name' => $user->name,
+            // Never invented, never guessed. An empty value here means the
+            // sender writes a plain name and nobody gets pinged, which is the
+            // correct outcome for somebody who has not given us their id.
+            'discord_user_id' => $user->discord_user_id ?: null,
+        ];
+    }
+
+    /**
+     * Who is holding this ticket right now.
+     *
+     * Read off the subtask, the same place lastExceptionAssigneeId() reads:
+     * the ticket has no owner column, and the subtask is where the assignee
+     * actually lives.
+     */
+    private function currentAssignee(Ticket $ticket): ?User
+    {
+        $id = TicketSubtask::query()
+            ->where('ticket_id', $ticket->id)
+            ->where('role_id', $this->assignRoleId())
+            ->whereNotNull('assignee_id')
+            ->orderBy('id')
+            ->value('assignee_id');
+
+        return $id === null ? null : User::find($id);
     }
 
     /**

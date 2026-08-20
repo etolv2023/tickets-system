@@ -28,6 +28,10 @@ class UserRequest extends FormRequest
             'role_id' => ['required', 'integer', 'exists:roles,id'],
             'daily_capacity_hours' => ['required', 'numeric', 'min:0.5', 'max:24'],
             'is_active' => ['boolean'],
+            // ★ (2026-08-19) F26.1 — same rule as ProfileRequest, because it is
+            // the same field: an admin filling it in for somebody must not be
+            // able to store a value the person themselves would be refused.
+            'discord_user_id' => ['nullable', 'string', 'regex:/^\d{17,20}$/'],
             // Only offered when creating; an edit never touches the password.
             // Resetting is its own explicit action. F22.3
             'password' => [
@@ -55,5 +59,22 @@ class UserRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge(['is_active' => $this->boolean('is_active')]);
+
+        // A pasted Discord id often arrives wrapped as <@123…>. Same
+        // normalisation ProfileRequest does — see the reasoning there.
+        $id = $this->input('discord_user_id');
+
+        if (is_string($id)) {
+            $id = preg_replace('/^<@!?(\d+)>$/', '$1', trim($id));
+            $this->merge(['discord_user_id' => $id === '' ? null : $id]);
+        }
+    }
+
+    /** @return array<string, string> */
+    public function messages(): array
+    {
+        return [
+            'discord_user_id.regex' => 'الـ Discord ID لازم يكون رقم (17 لـ 20 رقم)، مش اسم المستخدم.',
+        ];
     }
 }
