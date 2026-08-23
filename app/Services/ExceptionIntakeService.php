@@ -94,6 +94,7 @@ class ExceptionIntakeService
         private readonly SlaService $sla,
         private readonly TicketWorkflowService $workflow,
         private readonly TicketService $tickets,
+        private readonly DiscordNotificationService $discord,
     ) {
     }
 
@@ -177,13 +178,18 @@ class ExceptionIntakeService
         // and the notification all happen exactly as they do for a human
         // assignment (F06.3) — and so F18 sees an ordinary subtask to pay.
         $roleId = $this->assignRoleId();
-        $this->workflow->assign($ticket, [$roleId => $assignee->id], $assignee->id);
+        $this->workflow->assign($ticket, [$roleId => $assignee->id], $assignee->id, activation: true);
 
         $this->setDeadline($ticket, $roleId, $reportedAt);
 
         if ($previous !== null) {
             $this->linkToPrevious($ticket, $previous, $assignee->id);
         }
+
+        // An exception ticket belongs on the feed like any other. Announced after
+        // the assignment so the embed names whoever caught it; the exception type
+        // needs no approval, so nothing gates this.
+        $this->discord->announceCreated($ticket->refresh());
 
         return [
             'action' => $previous === null ? 'created' : 'recreated',

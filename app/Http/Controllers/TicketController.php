@@ -17,6 +17,7 @@ use App\Models\TicketTypeDefinition;
 use App\Models\User;
 use App\Services\ActivityLogger;
 use App\Services\AttachmentService;
+use App\Services\DiscordNotificationService;
 use App\Services\SubtaskService;
 use App\Services\TicketService;
 use App\Services\TicketWorkflowService;
@@ -38,6 +39,7 @@ class TicketController extends Controller
         private readonly AttachmentService $attachments,
         private readonly TicketWorkflowService $workflow,
         private readonly SubtaskService $subtasks,
+        private readonly DiscordNotificationService $discord,
     ) {
     }
 
@@ -147,6 +149,11 @@ class TicketController extends Controller
 
         $this->assignAtCreation($ticket, $request);
 
+        // After the distribution, so the announcement names whoever it landed on.
+        // A ticket that needs approving is silent here — it has not become real
+        // work yet — and gets announced by approve() instead.
+        $this->discord->announceCreated($ticket->refresh());
+
         return redirect()->route('tickets.show', $ticket)
             ->with('status', "تم فتح التذكرة {$ticket->ticket_number}.");
     }
@@ -237,7 +244,7 @@ class TicketController extends Controller
             return;
         }
 
-        $this->workflow->assign($ticket, $roleAssignments, $request->user()->id);
+        $this->workflow->assign($ticket, $roleAssignments, $request->user()->id, activation: true);
     }
 
     /**

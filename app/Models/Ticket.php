@@ -159,6 +159,12 @@ class Ticket extends Model
         return $this->hasMany(TicketRoleAssignment::class);
     }
 
+    /** Every Discord message this ticket has caused, sent or not. */
+    public function discordMessages(): HasMany
+    {
+        return $this->hasMany(TicketDiscordMessage::class);
+    }
+
     /**
      * The user assigned to this ticket under a given role, or null. Reads the
      * eager-loaded relation when it's there (the ticket page loads it), and

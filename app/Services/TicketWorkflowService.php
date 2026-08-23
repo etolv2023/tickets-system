@@ -46,6 +46,7 @@ class TicketWorkflowService
         private readonly PointEngineService $points,
         private readonly NotificationService $notifications,
         private readonly SubtaskService $subtasks,
+        private readonly DiscordNotificationService $discord,
     ) {
     }
 
@@ -200,6 +201,11 @@ class TicketWorkflowService
     /** F20: the events worth interrupting someone for — and only those. */
     private function announce(Ticket $ticket, TicketStatusValue $from, TicketStatusValue $to, ?int $actorId, ?string $note): void
     {
+        // Discord hears about every move, including the reopened case the bell
+        // treats specially below. It applies its own gates: a ticket still
+        // awaiting approval, or one with no announcement yet, is silent.
+        $this->discord->statusChanged($ticket, $from->label(), $to->label(), $actorId, $note);
+
         // A bounced ticket is the one event a developer must not miss. F16
         if ($to === TicketStatusValue::for('reopened')) {
             // Every work-logging role's holder — the role-based "the developers".
@@ -244,8 +250,14 @@ class TicketWorkflowService
      *     done (F16), handled in finish().
      *
      * @param  array<int, int|null>  $roleAssignments  role_id => user_id (null = unassign)
+     * @param  bool  $activation  true when this is the ticket's first distribution
+     *         — approval, creation, or the exception intake. Discord uses it to
+     *         key the initial DMs so a repeated approval cannot send them twice.
+     *         Passed explicitly rather than inferred: a ticket that predates the
+     *         Discord integration also looks "not yet announced", and guessing
+     *         from that would wrongly de-duplicate a real hand-off on it.
      */
-    public function assign(Ticket $ticket, array $roleAssignments, int $actorId): Ticket
+    public function assign(Ticket $ticket, array $roleAssignments, int $actorId, bool $activation = false): Ticket
     {
         // A feature can't be worked on before it's approved — the Policy blocks
         // the button, and this blocks everything else. F15
@@ -253,8 +265,8 @@ class TicketWorkflowService
             throw new DomainException('الفيتشر لازم توافق عليه الأول قبل ما يتوزع.');
         }
 
-        return DB::transaction(function () use ($ticket, $roleAssignments, $actorId) {
-            $this->assignRoles($ticket, $roleAssignments, $actorId);
+        return DB::transaction(function () use ($ticket, $roleAssignments, $actorId, $activation) {
+            $this->assignRoles($ticket, $roleAssignments, $actorId, $activation);
 
             if ($ticket->status === TicketStatusValue::for('new') || $ticket->status === TicketStatusValue::for('pending_approval')) {
                 $this->transition($ticket, TicketStatusValue::for('assigned'), $actorId, 'تم التوزيع');
@@ -286,16 +298,33 @@ class TicketWorkflowService
      *
      * @param  array<int, int|null>  $roleAssignments  role_id => user_id
      */
-    private function assignRoles(Ticket $ticket, array $roleAssignments, int $actorId): void
+    private function assignRoles(Ticket $ticket, array $roleAssignments, int $actorId, bool $activation = false): void
     {
         if ($roleAssignments === []) {
             return;
         }
 
+        // Collected rather than announced inline: Discord wants one call with
+        // every role that moved, so a three-role hand-off is one pass instead of
+        // three, and the loop below keeps reading as the assignment logic it is.
+        $diffs = [];
+
         $roles = Role::query()->assignableOnTickets()->whereIn('id', array_keys($roleAssignments))->get()->keyBy('id');
         $existing = $ticket->roleAssignments()->get()->keyBy('role_id');
 
         foreach ($roleAssignments as $roleId => $userId) {
+            // ★ (2026-08-23) Normalised before anything compares it.
+            //
+            // The form posts "4", not 4 — 'integer' in AssignTicketRequest is a
+            // validation rule, not a cast, so validated() hands back the string.
+            // The no-op guard below is a strict ===, so against an int column it
+            // was never true over HTTP: re-saving the distribution unchanged
+            // rewrote every row and re-notified every assignee, every time.
+            // Invisible while the only consequence was a duplicate bell; not
+            // invisible once it means a Discord DM saying the ticket moved when
+            // it did not.
+            $userId = ($userId === null || $userId === '') ? null : (int) $userId;
+
             $role = $roles->get($roleId);
 
             // Ignore an id that isn't (or is no longer) opted into assignment —
@@ -307,6 +336,15 @@ class TicketWorkflowService
             $before = $existing->get($roleId);
 
             if ($userId === null) {
+                if ($before !== null) {
+                    $diffs[] = [
+                        'role_id' => $roleId,
+                        'role_name' => $role->name_ar,
+                        'from' => $before->user_id,
+                        'to' => null,
+                    ];
+                }
+
                 $before?->delete();
 
                 // Un-assigning a work-logging role drops its commitment, but only
@@ -329,6 +367,16 @@ class TicketWorkflowService
                 ['ticket_id' => $ticket->id, 'role_id' => $roleId],
                 ['user_id' => $userId]
             );
+
+            // Reached only for a real change — the guard above returns early when
+            // the same person is saved again, which is why re-submitting the
+            // distribution form unchanged tells Discord nothing.
+            $diffs[] = [
+                'role_id' => $roleId,
+                'role_name' => $role->name_ar,
+                'from' => $before?->user_id,
+                'to' => $userId,
+            ];
 
             $this->notifications->notifyUser(
                 $userId,
@@ -360,6 +408,8 @@ class TicketWorkflowService
                 ], $actorId);
             }
         }
+
+        $this->discord->assignmentsChanged($ticket, $diffs, $actorId, $activation);
     }
 
     /**
@@ -905,10 +955,28 @@ class TicketWorkflowService
 
             if ($planned !== []) {
                 $ticket->roleAssignments()->delete();
-                $this->assign($ticket->refresh(), $planned, $adminId);
+                $this->assign($ticket->refresh(), $planned, $adminId, activation: true);
             }
 
-            return $ticket->refresh();
+            $ticket->refresh();
+
+            // ★ Discord goes live here, and last.
+            //
+            // Everything before this point was planning: the distribution could
+            // be typed, retyped and handed between three people while the ticket
+            // sat pending, and none of it was real work anybody should have been
+            // pinged about. assign() above has just turned the FINAL plan into
+            // actual assignments, so each of those people has a first-assignment
+            // DM queued — and none of the discarded ones do.
+            //
+            // The announcement comes after them on purpose. While it does not
+            // exist the ticket counts as un-announced, which is what keeps the
+            // status moves assign() just made from posting a thread update about
+            // a ticket nobody has seen yet. It carries the current distribution
+            // in its own embed instead.
+            $this->discord->announceCreated($ticket);
+
+            return $ticket;
         });
     }
 
