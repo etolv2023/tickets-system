@@ -370,10 +370,17 @@ class DiscordNotificationService
             return;
         }
 
+        // onQueue: Discord waits on somebody else's server — rate limits,
+        // back-offs, timeouts, recovery scans. None of that may ever hold up the
+        // default queue, so these jobs live on their own and are drained by
+        // their own worker.
+        //
         // afterCommit: the row and the job both belong to the assignment's
         // transaction. A rolled-back assignment must not leave a worker holding
         // a message about something that never happened.
-        SendDiscordMessage::dispatch($record->id)->afterCommit();
+        SendDiscordMessage::dispatch($record->id)
+            ->onQueue(config('discord.queue', 'discord'))
+            ->afterCommit();
     }
 
     // ------------------------------------------------------------- snapshots

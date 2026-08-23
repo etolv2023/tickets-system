@@ -100,11 +100,43 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-echo "==> restarting the queue worker so it picks up the new code"
-# Only ends the CURRENT worker process cleanly on its next iteration; the
+echo "==> restarting the queue workers so they pick up the new code"
+# Only ends the CURRENT worker processes cleanly on their next iteration; the
 # process supervisor (systemd, Supervisor, whatever is used for this
-# install) is what actually starts a replacement — this script does not
+# install) is what actually starts replacements — this script does not
 # assume a specific one exists or know its name.
+#
+# ★ (2026-08-23) There are TWO workers to supervise, not one:
+#
+#   php artisan queue:work --queue=default   application jobs (imports, push)
+#   php artisan queue:work --queue=discord   Discord notifications only
+#
+# Same connection and same `jobs` table — only the queue name differs, so this
+# needs no new table and no new connection. They are split because Discord jobs
+# are the only ones that wait on an external service: they get rate limited,
+# back off for as long as Discord tells them to, time out, and may scan a
+# channel before sending. Behind a single worker each of those pauses would also
+# be a pause for a password-reset email or a stuck import.
+#
+# Consequences worth knowing:
+#   - Stop the discord worker and the application is unaffected; its jobs simply
+#     queue up and deliver when it comes back.
+#   - Neither worker waits on the other. A queue:restart during a Discord
+#     back-off does not delay the default worker.
+#   - `queue:restart` below signals BOTH, since the flag is connection-wide.
+#
+# A Supervisor program per queue, e.g.:
+#
+#   [program:tickets-worker-default]
+#   command=php /path/to/artisan queue:work --queue=default --tries=3 --sleep=1
+#   numprocs=1 ; autostart=true ; autorestart=true
+#
+#   [program:tickets-worker-discord]
+#   command=php /path/to/artisan queue:work --queue=discord --tries=4 --sleep=3
+#   numprocs=1 ; autostart=true ; autorestart=true
+#
+# --tries on the command line is a ceiling; SendDiscordMessage sets its own
+# $tries/$backoff and those win.
 php artisan queue:restart
 
 echo "==> done."

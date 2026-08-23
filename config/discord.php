@@ -40,6 +40,29 @@ return [
      */
     'tickets_channel_id' => env('DISCORD_TICKETS_CHANNEL_ID'),
 
+    /*
+     * The queue Discord jobs go on — deliberately NOT the one the rest of the
+     * application uses.
+     *
+     * These jobs are the only ones in the system that wait on somebody else's
+     * server. They get rate limited, they back off for whatever number of
+     * seconds Discord names, they sit through timeouts, and a recovery pass may
+     * scan a channel before it will send. On a shared queue every one of those
+     * pauses is a pause for password resets, imports and push pings queued
+     * behind them — the ticket system would be held up by an outage in a chat
+     * service it does not depend on.
+     *
+     * Same connection, same jobs table; only the queue name differs. Run one
+     * worker per queue:
+     *
+     *   php artisan queue:work --queue=default
+     *   php artisan queue:work --queue=discord
+     *
+     * Nothing here is required for correctness — a single worker on both queues
+     * still delivers everything. It is isolation of slowness, not of data.
+     */
+    'queue' => env('DISCORD_QUEUE', 'discord'),
+
     'api_base' => env('DISCORD_API_BASE', 'https://discord.com/api/v10'),
 
     'timeout' => (int) env('DISCORD_TIMEOUT', 10),
