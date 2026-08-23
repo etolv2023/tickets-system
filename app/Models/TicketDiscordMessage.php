@@ -103,7 +103,7 @@ class TicketDiscordMessage extends Model
     public const STATUS_UNVERIFIED = 'unverified';
 
     protected $fillable = [
-        'ticket_id', 'user_id', 'role_id', 'type', 'dedupe_key', 'nonce',
+        'ticket_id', 'user_id', 'role_id', 'type', 'business_date', 'dedupe_key', 'nonce',
         'channel_id', 'message_id', 'thread_id', 'reply_to_message_id',
         'payload', 'status', 'claimed_at', 'error', 'attempts', 'sent_at',
     ];
@@ -112,6 +112,7 @@ class TicketDiscordMessage extends Model
     {
         return [
             'payload' => 'array',
+            'business_date' => 'date',
             'claimed_at' => 'datetime',
             'sent_at' => 'datetime',
             'attempts' => 'integer',

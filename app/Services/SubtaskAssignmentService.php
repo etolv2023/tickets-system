@@ -175,6 +175,9 @@ class SubtaskAssignmentService
             [$roleId => $assignee],
             $actorId,
             source: DiscordNotificationService::SOURCE_SUBTASK,
+            // assertNoRivalSubtask ran a few lines up, under the ticket lock we
+            // are still holding. Asking again cannot change the answer.
+            conflictsChecked: true,
         );
 
         return true;

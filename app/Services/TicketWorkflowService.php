@@ -265,7 +265,7 @@ class TicketWorkflowService
      *         not DMed twice about one click; the work log, the bell and the
      *         activity log are untouched.
      */
-    public function assign(Ticket $ticket, array $roleAssignments, int $actorId, bool $activation = false, ?string $source = null): Ticket
+    public function assign(Ticket $ticket, array $roleAssignments, int $actorId, bool $activation = false, ?string $source = null, bool $conflictsChecked = false): Ticket
     {
         // A feature can't be worked on before it's approved — the Policy blocks
         // the button, and this blocks everything else. F15
@@ -273,8 +273,8 @@ class TicketWorkflowService
             throw new DomainException('الفيتشر لازم توافق عليه الأول قبل ما يتوزع.');
         }
 
-        return DB::transaction(function () use ($ticket, $roleAssignments, $actorId, $activation, $source) {
-            $this->assignRoles($ticket, $roleAssignments, $actorId, $activation, $source);
+        return DB::transaction(function () use ($ticket, $roleAssignments, $actorId, $activation, $source, $conflictsChecked) {
+            $this->assignRoles($ticket, $roleAssignments, $actorId, $activation, $source, $conflictsChecked);
 
             if ($ticket->status === TicketStatusValue::for('new') || $ticket->status === TicketStatusValue::for('pending_approval')) {
                 $this->transition($ticket, TicketStatusValue::for('assigned'), $actorId, 'تم التوزيع');
@@ -306,7 +306,7 @@ class TicketWorkflowService
      *
      * @param  array<int, int|null>  $roleAssignments  role_id => user_id
      */
-    private function assignRoles(Ticket $ticket, array $roleAssignments, int $actorId, bool $activation = false, ?string $source = null): void
+    private function assignRoles(Ticket $ticket, array $roleAssignments, int $actorId, bool $activation = false, ?string $source = null, bool $conflictsChecked = false): void
     {
         if ($roleAssignments === []) {
             return;
@@ -338,7 +338,15 @@ class TicketWorkflowService
 
         // Everything is checked before anything is written, so a refusal leaves
         // no half-applied distribution behind.
-        $this->assertNoOpenSubtaskConflict($ticket, $roleAssignments, $roles, $existing);
+        //
+        // Skipped when the caller has already asked the same question under the
+        // same ticket lock — SubtaskAssignmentService does exactly that before
+        // it syncs. Re-running it there would take the same locking reads twice
+        // in one transaction and could not reach a different answer, because the
+        // lock has been held throughout.
+        if (! $conflictsChecked) {
+            $this->assertNoOpenSubtaskConflict($ticket, $roleAssignments, $roles, $existing);
+        }
 
         foreach ($roleAssignments as $roleId => $userId) {
             // ★ (2026-08-23) Normalised before anything compares it.
@@ -455,11 +463,17 @@ class TicketWorkflowService
             // hand-off already tells both people what happened. Firing subtask
             // DMs here would send everybody a second message about one click.
             // Finished starters are history and stay where they are.
-            $ticket->subtasks()
-                ->where('role_id', $roleId)
-                ->generatedStarter()
-                ->where('status', '!=', 'done')
-                ->update(['assignee_id' => $userId]);
+            // Only when the role already had a holder. On a FIRST assignment
+            // there is no starter yet — one is created a few lines down, already
+            // pointing at the right person — so the update would touch nothing
+            // and cost a round trip per role on every ticket created.
+            if ($before !== null) {
+                $ticket->subtasks()
+                    ->where('role_id', $roleId)
+                    ->generatedStarter()
+                    ->where('status', '!=', 'done')
+                    ->update(['assignee_id' => $userId]);
+            }
 
             if ($before === null && ! $ticket->subtasks()->where('role_id', $roleId)->exists()) {
                 $this->subtasks->create($ticket, [
@@ -511,6 +525,24 @@ class TicketWorkflowService
     {
         $problems = [];
 
+        // ★ One locking read for the whole distribution, not one per role.
+        //
+        // Distributing a ticket touches several roles at once, and asking the
+        // same table the same shape of question three times in one transaction
+        // is three round trips to a database that lives in another container.
+        // The unfinished real work on a ticket is a small set; fetch it once and
+        // group it here.
+        $openWork = $ticket->subtasks()
+            ->where('status', '!=', 'done')
+            ->whereNotNull('assignee_id')
+            // The generated starter is deliberately NOT a blocker. It is the
+            // role's own placeholder, not work somebody chose to hand out, and
+            // it follows the holder instead. Only real work can strand.
+            ->realWork()
+            ->lockForUpdate()
+            ->get(['id', 'title', 'assignee_id', 'role_id'])
+            ->groupBy('role_id');
+
         foreach ($roleAssignments as $roleId => $userId) {
             $userId = ($userId === null || $userId === '') ? null : (int) $userId;
             $role = $roles->get($roleId);
@@ -532,21 +564,12 @@ class TicketWorkflowService
                 continue;
             }
 
-            $stranded = $ticket->subtasks()
-                ->where('role_id', $roleId)
-                ->where('status', '!=', 'done')
-                ->whereNotNull('assignee_id')
-                // ★ The generated starter is deliberately NOT a blocker. It is
-                // the role's own placeholder, not work somebody chose to hand
-                // out, and it follows the holder a few lines further down. Only
-                // real work can strand.
-                ->realWork()
-                // Unassigning strands EVERY open owner, not just a different
-                // one — leaving the role empty while somebody is still on the
-                // work is the same inconsistency by another route.
-                ->when($userId !== null, fn ($q) => $q->where('assignee_id', '!=', $userId))
-                ->lockForUpdate()
-                ->get(['id', 'title', 'assignee_id']);
+            // Unassigning strands EVERY open owner, not just a different one —
+            // leaving the role empty while somebody is still on the work is the
+            // same inconsistency by another route.
+            $stranded = ($openWork[$roleId] ?? collect())
+                ->when($userId !== null, fn ($rows) => $rows->where('assignee_id', '!=', $userId))
+                ->values();
 
             if ($stranded->isEmpty()) {
                 continue;

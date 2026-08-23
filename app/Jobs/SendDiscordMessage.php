@@ -100,6 +100,19 @@ class SendDiscordMessage implements ShouldQueue
 
         $body = $notifier->renderBody($record);
 
+        // ★ The card-unchanged check, moved here from the web request.
+        //
+        // It used to compare payloads before writing the row, which forced the
+        // request to build the whole card just to decide whether to skip. Now
+        // the worker compares what it is about to send against a fingerprint of
+        // what it last sent — the same decision, made where it is free.
+        if ($record->type === TicketDiscordMessage::TYPE_ROOT_SYNC
+            && $this->cardUnchanged($record, $body)) {
+            $this->finish($record, TicketDiscordMessage::STATUS_SKIPPED, 'الكارت زي ما هو — مفيش داعي نعدّله');
+
+            return;
+        }
+
         if ($reference = $this->replyReference($record, $notifier)) {
             $body['message_reference'] = $reference;
             // Kept on the row too, so the ledger shows which ticket card an
@@ -136,6 +149,8 @@ class SendDiscordMessage implements ShouldQueue
             'sent_at' => now(),
             'error' => null,
         ])->saveQuietly();
+
+        $this->rememberCard($record, $body);
 
         $this->openThread($record, $discord, $notifier, $channelId);
     }
@@ -230,7 +245,7 @@ class SendDiscordMessage implements ShouldQueue
         // forum post's starter the SAME id as the post, which is why both halves
         // of the target are the one value.
         if ($record->type === TicketDiscordMessage::TYPE_DAILY_SUMMARY) {
-            $date = $record->payload['business_date'] ?? null;
+            $date = $record->business_date?->toDateString();
             $day = $date === null ? null : TicketDiscordMessage::where('dedupe_key', TicketDiscordMessage::dailyPostKey($date))->first();
 
             if ($day === null || $day->status !== TicketDiscordMessage::STATUS_SENT || blank($day->message_id)) {
@@ -478,7 +493,7 @@ class SendDiscordMessage implements ShouldQueue
             return $discord->ticketsChannelId();
         }
 
-        $date = $record->payload['business_date'] ?? null;
+        $date = $record->business_date?->toDateString() ?? ($record->payload['business_date'] ?? null);
 
         if ($date === null) {
             // ★ Queued before forum mode was switched on, so it never got a
@@ -489,9 +504,7 @@ class SendDiscordMessage implements ShouldQueue
             // exists, and come back once it does.
             $date = now()->timezone(config('app.display_timezone'))->toDateString();
 
-            $payload = $record->payload ?? [];
-            $payload['business_date'] = $date;
-            $record->forceFill(['payload' => $payload])->saveQuietly();
+            $record->forceFill(['business_date' => $date])->saveQuietly();
 
             $notifier->ensureDailyPost($date);
         }
@@ -538,7 +551,7 @@ class SendDiscordMessage implements ShouldQueue
         string $forumChannelId,
         array $body,
     ): DiscordResult {
-        $name = $notifier->dailyPostName((string) ($record->payload['business_date'] ?? ''));
+        $name = $notifier->dailyPostName((string) ($record->business_date?->toDateString() ?? ''));
 
         if ($existing = $discord->findForumPost($forumChannelId, $name)) {
             Log::info('discord daily post adopted', ['record_id' => $record->id, 'post_id' => $existing, 'name' => $name]);
@@ -547,6 +560,60 @@ class SendDiscordMessage implements ShouldQueue
         }
 
         return $discord->createForumPost($forumChannelId, $name, $body);
+    }
+
+    /**
+     * Whether the card already says exactly this.
+     *
+     * The fingerprint of the last card we sent lives on the announcement row.
+     * A rewrite that would produce the identical body is a wasted API call and a
+     * pointless "edited" marker in Discord, so it is dropped.
+     *
+     * @param  array<string, mixed>  $body
+     */
+    private function cardUnchanged(TicketDiscordMessage $record, array $body): bool
+    {
+        $root = TicketDiscordMessage::where('ticket_id', $record->ticket_id)->root()->first();
+
+        return $root !== null
+            && ($root->payload['card_hash'] ?? null) === $this->fingerprint($body);
+    }
+
+    /**
+     * Remembers what the card now says, on the announcement row.
+     *
+     * Written for the announcement itself and for every rewrite of it, so the
+     * comparison above always has the latest truth to check against.
+     *
+     * @param  array<string, mixed>  $body
+     */
+    private function rememberCard(TicketDiscordMessage $record, array $body): void
+    {
+        if (! in_array($record->type, [
+            TicketDiscordMessage::TYPE_CREATED_GENERAL,
+            TicketDiscordMessage::TYPE_ROOT_SYNC,
+        ], true)) {
+            return;
+        }
+
+        $root = $record->type === TicketDiscordMessage::TYPE_CREATED_GENERAL
+            ? $record
+            : TicketDiscordMessage::where('ticket_id', $record->ticket_id)->root()->first();
+
+        if ($root === null) {
+            return;
+        }
+
+        $payload = $root->payload ?? [];
+        $payload['card_hash'] = $this->fingerprint($body);
+
+        $root->forceFill(['payload' => $payload])->saveQuietly();
+    }
+
+    /** @param array<string, mixed> $body */
+    private function fingerprint(array $body): string
+    {
+        return md5(json_encode($body, JSON_UNESCAPED_UNICODE));
     }
 
     private function handleFailure(TicketDiscordMessage $record, DiscordResult $result): void

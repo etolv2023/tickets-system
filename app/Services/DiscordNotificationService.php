@@ -87,14 +87,15 @@ class DiscordNotificationService
                 $this->ensureDailyPost($businessDate);
             }
 
+            // No snapshot here. The card is defined as CURRENT state, so it is
+            // built when the message is actually sent — see renderBody(). Doing
+            // it in the request cost five queries for something the worker can
+            // read more accurately a moment later.
             $this->record([
                 'ticket_id' => $ticket->id,
                 'type' => TicketDiscordMessage::TYPE_CREATED_GENERAL,
                 'dedupe_key' => 'created:' . $ticket->id,
-                'payload' => [
-                    'ticket' => $this->snapshot($ticket),
-                    'business_date' => $businessDate,
-                ],
+                'business_date' => $businessDate,
             ]);
         });
     }
@@ -120,7 +121,7 @@ class DiscordNotificationService
             'ticket_id' => null,
             'type' => TicketDiscordMessage::TYPE_DAILY_FORUM_POST,
             'dedupe_key' => TicketDiscordMessage::dailyPostKey($businessDate),
-            'payload' => ['business_date' => $businessDate],
+            'business_date' => $businessDate,
         ]);
     }
 
@@ -136,53 +137,41 @@ class DiscordNotificationService
      * is replaced with the newer snapshot. Five changes in a minute are one
      * PATCH of the final state, not five PATCHes racing to be last.
      */
-    /**
-     * @param  array<string, mixed>|null  $snapshot  a snapshot the caller has
-     *         already taken. Building one walks the ticket's company, creator and
-     *         whole distribution, so the status and assignment paths — which have
-     *         just built one for their own message — hand it over rather than
-     *         paying for it twice on the same request.
-     */
-    public function syncRoot(Ticket $ticket, ?array $snapshot = null): void
+    public function syncRoot(Ticket $ticket): void
     {
-        $this->guard($ticket, function () use ($ticket, $snapshot) {
+        $this->guard($ticket, function () use ($ticket) {
             $root = $this->rootRecord($ticket);
 
             if ($root === null) {
                 return;
             }
 
-            $payload = ['ticket' => $snapshot ?? $this->snapshot($ticket)];
-
-            // Nothing on the card moved, so there is nothing to rewrite. This is
-            // what keeps a repeated approval — which rebuilds the same
-            // assignments from scratch — from queueing an edit that would set
-            // the card to exactly what it already says.
-            if ($this->cardMatches($ticket, $payload)) {
-                return;
-            }
-
+            // Coalesced by EXISTENCE, not by content. A pending rewrite already
+            // means "re-read the ticket and edit the card", and since the worker
+            // now reads the ticket itself there is nothing to update on the row —
+            // whatever it finds at send time is the state we wanted.
+            //
+            // The old version compared payloads here, which is what forced a
+            // snapshot to be built in the request just to decide whether to skip.
+            // That decision moved to the worker, which can compare what it is
+            // about to send against what it last sent.
             $pending = TicketDiscordMessage::where('ticket_id', $ticket->id)
                 ->where('type', TicketDiscordMessage::TYPE_ROOT_SYNC)
-                ->whereIn('status', [TicketDiscordMessage::STATUS_PENDING])
-                ->latest('id')
-                ->first();
+                ->where('status', TicketDiscordMessage::STATUS_PENDING)
+                ->exists();
 
-            if ($pending !== null) {
-                $pending->forceFill(['payload' => $payload])->saveQuietly();
-
+            if ($pending) {
                 return;
             }
 
             $this->record([
                 'ticket_id' => $ticket->id,
                 'type' => TicketDiscordMessage::TYPE_ROOT_SYNC,
-                'payload' => $payload,
             ]);
 
             // The day's header counts open versus done, so it goes stale for the
             // same reasons the card does.
-            $this->refreshDailySummary($root->payload['business_date'] ?? null);
+            $this->refreshDailySummary($root->business_date?->toDateString());
         });
     }
 
@@ -198,9 +187,12 @@ class DiscordNotificationService
             return;
         }
 
+        // An indexed column, not whereJsonContains — that scanned a table which
+        // grows by several rows per ticket and can never be indexed, inside a
+        // web request.
         $exists = TicketDiscordMessage::where('type', TicketDiscordMessage::TYPE_DAILY_SUMMARY)
             ->where('status', TicketDiscordMessage::STATUS_PENDING)
-            ->whereJsonContains('payload->business_date', $businessDate)
+            ->where('business_date', $businessDate)
             ->exists();
 
         if ($exists) {
@@ -210,37 +202,8 @@ class DiscordNotificationService
         $this->record([
             'ticket_id' => null,
             'type' => TicketDiscordMessage::TYPE_DAILY_SUMMARY,
-            'payload' => ['business_date' => $businessDate],
+            'business_date' => $businessDate,
         ]);
-    }
-
-    /**
-     * Whether the card already shows this exact state.
-     *
-     * Compares against the newest rewrite if one is queued or done, else the
-     * announcement itself — whichever last described the card.
-     *
-     * @param  array<string, mixed>  $payload
-     */
-    private function cardMatches(Ticket $ticket, array $payload): bool
-    {
-        $latest = TicketDiscordMessage::where('ticket_id', $ticket->id)
-            ->whereIn('type', [TicketDiscordMessage::TYPE_ROOT_SYNC, TicketDiscordMessage::TYPE_CREATED_GENERAL])
-            ->whereIn('status', [
-                TicketDiscordMessage::STATUS_PENDING,
-                TicketDiscordMessage::STATUS_PROCESSING,
-                TicketDiscordMessage::STATUS_SENT,
-            ])
-            ->latest('id')
-            ->first();
-
-        if ($latest === null) {
-            return false;
-        }
-
-        // business_date rides along on the announcement and is not part of what
-        // the card displays, so it is left out of the comparison.
-        return ($latest->payload['ticket'] ?? null) == ($payload['ticket'] ?? null);
     }
 
     /** The ticket's card row, whatever state it is in. */
@@ -275,8 +238,8 @@ class DiscordNotificationService
         }
 
         $this->guard($ticket, function () use ($ticket, $diffs, $actorId, $activation) {
-            $snapshot = $this->snapshot($ticket);
-            $names = $this->names($diffs, $actorId);
+            // Ids only. Names are looked up when the message is rendered — the
+            // id is the fact that has to be frozen, the name is presentation.
             $activated = $this->activated($ticket);
 
             foreach ($diffs as $diff) {
@@ -297,9 +260,9 @@ class DiscordNotificationService
                             ? "activation-assignment:{$ticket->id}:{$diff['role_id']}:{$to}"
                             : null,
                         'payload' => [
-                            'ticket' => $snapshot,
                             'role' => $diff['role_name'],
-                            'previous' => $from === null ? null : ($names[$from] ?? null),
+                            'role_key' => $diff['role_key'] ?? null,
+                            'previous_id' => $from,
                             'initial' => $activation,
                         ],
                     ]);
@@ -313,9 +276,9 @@ class DiscordNotificationService
                         'type' => TicketDiscordMessage::TYPE_UNASSIGNED,
                         'dedupe_key' => null,
                         'payload' => [
-                            'ticket' => $snapshot,
                             'role' => $diff['role_name'],
-                            'successor' => $to === null ? null : ($names[$to] ?? null),
+                            'role_key' => $diff['role_key'] ?? null,
+                            'successor_id' => $to,
                         ],
                     ]);
                 }
@@ -335,7 +298,7 @@ class DiscordNotificationService
                 // team on it changes — including during activation, where the
                 // card is about to be written for the first time anyway and
                 // syncRoot simply finds nothing to do.
-                $this->syncRoot($ticket, $snapshot);
+                $this->syncRoot($ticket);
 
                 if ($activated && ! $activation) {
                     $this->record([
@@ -343,12 +306,11 @@ class DiscordNotificationService
                         'role_id' => $diff['role_id'],
                         'type' => TicketDiscordMessage::TYPE_REASSIGNED_GENERAL,
                         'payload' => [
-                            'ticket' => $snapshot,
                             'role' => $diff['role_name'],
                             'role_key' => $diff['role_key'] ?? null,
-                            'from' => $from === null ? null : ($names[$from] ?? null),
-                            'to' => $to === null ? null : ($names[$to] ?? null),
-                            'actor' => $actorId === null ? null : ($names[$actorId] ?? null),
+                            'from_id' => $from,
+                            'to_id' => $to,
+                            'actor_id' => $actorId,
                         ],
                     ]);
                 }
@@ -368,11 +330,9 @@ class DiscordNotificationService
                 return;
             }
 
-            $snapshot = $this->snapshot($ticket);
-
             // Same reason as the assignment path: the card shows where the
             // ticket stands now, the message under it records that it moved.
-            $this->syncRoot($ticket, $snapshot);
+            $this->syncRoot($ticket);
 
             $resolved = ! $ticket->status->isOpen();
 
@@ -382,7 +342,6 @@ class DiscordNotificationService
                     ? TicketDiscordMessage::TYPE_RESOLVED
                     : TicketDiscordMessage::TYPE_STATUS_CHANGED,
                 'payload' => [
-                    'ticket' => $snapshot,
                     'from' => $from->label(),
                     'from_key' => $from->value,
                     'from_variant' => $from->variant(),
@@ -392,7 +351,7 @@ class DiscordNotificationService
                     'to_variant' => $to->variant(),
                     'to_open' => $to->isOpen(),
                     'note' => $note,
-                    'actor' => $actorId === null ? null : (User::find($actorId)?->name),
+                    'actor_id' => $actorId,
                 ],
             ]);
         });
@@ -424,19 +383,20 @@ class DiscordNotificationService
             // Explicit: preventLazyLoading is on in development.
             $subtask->loadMissing('role:id,key,name_ar');
 
-            $names = $this->names([['from' => $from, 'to' => $to]], $actorId);
-
+            // The subtask's own title and role are already in memory, so they
+            // cost nothing to freeze — and freezing them is right: a step
+            // renamed later should not rewrite the history of when it moved.
+            // People are stored as ids and named at render.
             $context = [
-                'ticket' => $this->snapshot($ticket),
                 'subtask' => [
                     'id' => $subtask->id,
                     'title' => $subtask->title,
                     'role' => $subtask->role?->name_ar,
                     'role_key' => $subtask->role?->key,
                 ],
-                'from' => $from === null ? null : ($names[$from] ?? null),
-                'to' => $to === null ? null : ($names[$to] ?? null),
-                'actor' => $actorId === null ? null : ($names[$actorId] ?? null),
+                'from_id' => $from,
+                'to_id' => $to,
+                'actor_id' => $actorId,
                 'created' => $created,
                 'synced' => $synced,
             ];
@@ -503,7 +463,6 @@ class DiscordNotificationService
                 'role_id' => $subtask->role_id,
                 'type' => TicketDiscordMessage::TYPE_SUBTASK_STATUS,
                 'payload' => [
-                    'ticket' => $this->snapshot($ticket),
                     'subtask' => [
                         'id' => $subtask->id,
                         'title' => $subtask->title,
@@ -515,7 +474,7 @@ class DiscordNotificationService
                     'to' => $subtask->status->label(),
                     'to_key' => $subtask->status->value,
                     'to_variant' => $subtask->status->variant(),
-                    'actor' => $actorId === null ? null : (User::whereKey($actorId)->value('name')),
+                    'actor_id' => $actorId,
                 ],
             ]);
         });
@@ -532,7 +491,24 @@ class DiscordNotificationService
     public function renderBody(TicketDiscordMessage $record): array
     {
         $payload = $record->payload ?? [];
-        $ticket = $payload['ticket'] ?? [];
+
+        // ★ Built HERE, on the worker, not in the web request.
+        //
+        // The card is the ticket's current state by definition, so reading it at
+        // send time is both cheaper for the person clicking save and more
+        // accurate than a copy taken minutes earlier in a queue.
+        //
+        // A stored 'ticket' still wins: rows queued before this change carry the
+        // old fat payload, and a deploy must not blank them.
+        // Explicit load: preventLazyLoading is on in development, and this is
+        // the first time the row's ticket is touched.
+        $record->loadMissing('ticket');
+
+        $ticket = $payload['ticket'] ?? ($record->ticket === null ? [] : $this->snapshot($record->ticket));
+
+        // Ids became names here rather than in the request. One query for
+        // everybody the message mentions, and only when it is actually sent.
+        $payload = $this->withNames($payload);
 
         return match ($record->type) {
             TicketDiscordMessage::TYPE_DAILY_FORUM_POST,
@@ -667,11 +643,12 @@ class DiscordNotificationService
         $counts = ['total' => 0, 'open' => 0, 'done' => 0];
 
         if ($businessDate !== '') {
+            // An indexed lookup, not "load every announcement ever and filter in
+            // PHP". That worked on day one and got slower every day after.
             $ids = TicketDiscordMessage::query()
                 ->root()
                 ->whereNotNull('ticket_id')
-                ->get(['ticket_id', 'payload'])
-                ->filter(fn ($r) => ($r->payload['business_date'] ?? null) === $businessDate)
+                ->where('business_date', $businessDate)
                 ->pluck('ticket_id');
 
             if ($ids->isNotEmpty()) {
@@ -911,6 +888,45 @@ class DiscordNotificationService
             'reported_at' => $ticket->reported_at?->toIso8601String(),
             'url' => route('tickets.show', $ticket),
         ];
+    }
+
+    /**
+     * Turns the *_id keys a message stored into the names it displays.
+     *
+     * The request writes ids because that is the durable fact; the name is how
+     * it is shown, and showing is this class's job at render time. One query for
+     * however many people the message mentions.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private function withNames(array $payload): array
+    {
+        $map = ['from_id' => 'from', 'to_id' => 'to', 'actor_id' => 'actor',
+                'previous_id' => 'previous', 'successor_id' => 'successor'];
+
+        $ids = [];
+
+        foreach ($map as $idKey => $_) {
+            if (filled($payload[$idKey] ?? null)) {
+                $ids[] = (int) $payload[$idKey];
+            }
+        }
+
+        if ($ids === []) {
+            return $payload;
+        }
+
+        $names = User::whereIn('id', array_unique($ids))->pluck('name', 'id');
+
+        foreach ($map as $idKey => $nameKey) {
+            // An explicitly stored name (an old queued row) is left alone.
+            if (! array_key_exists($nameKey, $payload) && filled($payload[$idKey] ?? null)) {
+                $payload[$nameKey] = $names[(int) $payload[$idKey]] ?? null;
+            }
+        }
+
+        return $payload;
     }
 
     /**
