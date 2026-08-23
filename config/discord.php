@@ -36,9 +36,28 @@ return [
     'guild_id' => env('DISCORD_GUILD_ID'),
 
     /*
-     * The channel every ticket is announced in.
+     * Where tickets are announced.
+     *
+     * In forum mode this is a FORUM channel (Discord type 15) and the system
+     * opens one post per business day inside it, each holding that day's ticket
+     * cards. Otherwise it is an ordinary text channel and the previous
+     * behaviour applies unchanged.
      */
     'tickets_channel_id' => env('DISCORD_TICKETS_CHANNEL_ID'),
+
+    /*
+     * Group tickets into one forum post per day.
+     *
+     * The forum itself is never created here — a bot would need Manage Channels
+     * for that, and it does not have it. Opening posts inside an existing forum
+     * needs only Send Messages, which Discord labels "Create Posts" there.
+     *
+     * Turning this off falls back to a plain text channel with a thread per
+     * ticket, which is what the integration did before. That is the rollback
+     * path, not a second feature: tickets already announced keep using the ids
+     * stored on their own ledger rows either way.
+     */
+    'forum_mode' => (bool) env('DISCORD_FORUM_MODE', true),
 
     /*
      * The queue Discord jobs go on — deliberately NOT the one the rest of the

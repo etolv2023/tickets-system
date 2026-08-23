@@ -20,6 +20,7 @@
         <option value="">كل الحالات</option>
         <option value="active" @selected(($filters['status'] ?? '') === 'active')>مفعّل</option>
         <option value="inactive" @selected(($filters['status'] ?? '') === 'inactive')>موقوف</option>
+        <option value="deleted" @selected(($filters['status'] ?? '') === 'deleted')>محذوف</option>
     </select>
 
     <x-button variant="secondary">فلترة</x-button>

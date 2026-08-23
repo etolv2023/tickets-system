@@ -195,7 +195,13 @@ class ImportService
             ],
             ImportType::Users => [
                 'roles' => Role::pluck('id', 'key')->all(),
+                // Deleted users are included on purpose: the email index still
+                // covers them, so a sheet row carrying one is an UPDATE, not an
+                // insert, and pretending otherwise would fail at the database.
                 'existing' => User::pluck('id', 'email')->all(),
+                // …and singled out here, because updating one is the one case
+                // that must not go through. See validateReferences().
+                'deleted' => User::deletedOnly()->pluck('id', 'email')->all(),
             ],
         };
     }
@@ -276,6 +282,19 @@ class ImportService
         }
 
         if ($type === ImportType::Users) {
+            // ★ (2026-08-23) A deleted account still owns its email, and
+            // writeUser() sets is_active straight from the sheet — so without
+            // this an import would leave deleted_at set AND is_active true: a
+            // deleted person who can log in and be assigned work again. Bringing
+            // somebody back is a deliberate act with its own button, not a side
+            // effect of a spreadsheet.
+            if (isset($context['deleted'][$row['email']])) {
+                return [
+                    'column' => 'email',
+                    'reason' => "الإيميل ده بتاع مستخدم متحذف. رجّعه من صفحة المستخدمين الأول لو عايزه يرجع.",
+                ];
+            }
+
             if (! isset($context['roles'][$row['role_key']])) {
                 $known = implode('، ', array_keys($context['roles']));
 

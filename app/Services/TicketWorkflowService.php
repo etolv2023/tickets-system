@@ -7,7 +7,9 @@ use App\Models\Role;
 use App\Models\Ticket;
 use App\Models\TicketRoleAssignment;
 use App\Models\TicketStatusDefinition;
+use App\Models\TicketSubtask;
 use App\Models\TicketWorkLog;
+use App\Models\User;
 use App\Models\WorklogCompletionWaiver;
 use DomainException;
 use Illuminate\Support\Facades\DB;
@@ -204,7 +206,7 @@ class TicketWorkflowService
         // Discord hears about every move, including the reopened case the bell
         // treats specially below. It applies its own gates: a ticket still
         // awaiting approval, or one with no announcement yet, is silent.
-        $this->discord->statusChanged($ticket, $from->label(), $to->label(), $actorId, $note);
+        $this->discord->statusChanged($ticket, $from, $to, $actorId, $note);
 
         // A bounced ticket is the one event a developer must not miss. F16
         if ($to === TicketStatusValue::for('reopened')) {
@@ -256,8 +258,14 @@ class TicketWorkflowService
      *         Passed explicitly rather than inferred: a ticket that predates the
      *         Discord integration also looks "not yet announced", and guessing
      *         from that would wrongly de-duplicate a real hand-off on it.
+     * @param  string|null  $source  who caused this. 'subtask' means a subtask
+     *         hand-off dragged the distribution with it — see
+     *         DiscordNotificationService::SOURCE_SUBTASK. It suppresses the
+     *         generic ticket-level Discord messages ONLY, so the same person is
+     *         not DMed twice about one click; the work log, the bell and the
+     *         activity log are untouched.
      */
-    public function assign(Ticket $ticket, array $roleAssignments, int $actorId, bool $activation = false): Ticket
+    public function assign(Ticket $ticket, array $roleAssignments, int $actorId, bool $activation = false, ?string $source = null): Ticket
     {
         // A feature can't be worked on before it's approved — the Policy blocks
         // the button, and this blocks everything else. F15
@@ -265,8 +273,8 @@ class TicketWorkflowService
             throw new DomainException('الفيتشر لازم توافق عليه الأول قبل ما يتوزع.');
         }
 
-        return DB::transaction(function () use ($ticket, $roleAssignments, $actorId, $activation) {
-            $this->assignRoles($ticket, $roleAssignments, $actorId, $activation);
+        return DB::transaction(function () use ($ticket, $roleAssignments, $actorId, $activation, $source) {
+            $this->assignRoles($ticket, $roleAssignments, $actorId, $activation, $source);
 
             if ($ticket->status === TicketStatusValue::for('new') || $ticket->status === TicketStatusValue::for('pending_approval')) {
                 $this->transition($ticket, TicketStatusValue::for('assigned'), $actorId, 'تم التوزيع');
@@ -298,7 +306,7 @@ class TicketWorkflowService
      *
      * @param  array<int, int|null>  $roleAssignments  role_id => user_id
      */
-    private function assignRoles(Ticket $ticket, array $roleAssignments, int $actorId, bool $activation = false): void
+    private function assignRoles(Ticket $ticket, array $roleAssignments, int $actorId, bool $activation = false, ?string $source = null): void
     {
         if ($roleAssignments === []) {
             return;
@@ -309,8 +317,28 @@ class TicketWorkflowService
         // three, and the loop below keeps reading as the assignment logic it is.
         $diffs = [];
 
+        // ★ (2026-08-23) Same lock, same order, as SubtaskAssignmentService.
+        //
+        // Distribution can now be changed from two directions — this panel, and
+        // a subtask hand-off that drags the role with it — and they can collide:
+        // one admin moves the role to Ahmed while another opens a subtask for
+        // Omar. Each checks, each sees nothing in its way, and both commit,
+        // leaving the ticket naming one person and the only open subtask
+        // another.
+        //
+        // Both paths take THIS row first, before touching anything else, so they
+        // serialise instead of deadlocking. The reads below take their own lock
+        // for the same reason SubtaskAssignmentService's do: under REPEATABLE
+        // READ a plain SELECT answers from this transaction's snapshot and would
+        // not see the other admin's freshly committed work at all.
+        Ticket::whereKey($ticket->id)->lockForUpdate()->first();
+
         $roles = Role::query()->assignableOnTickets()->whereIn('id', array_keys($roleAssignments))->get()->keyBy('id');
-        $existing = $ticket->roleAssignments()->get()->keyBy('role_id');
+        $existing = $ticket->roleAssignments()->lockForUpdate()->get()->keyBy('role_id');
+
+        // Everything is checked before anything is written, so a refusal leaves
+        // no half-applied distribution behind.
+        $this->assertNoOpenSubtaskConflict($ticket, $roleAssignments, $roles, $existing);
 
         foreach ($roleAssignments as $roleId => $userId) {
             // ★ (2026-08-23) Normalised before anything compares it.
@@ -340,10 +368,24 @@ class TicketWorkflowService
                     $diffs[] = [
                         'role_id' => $roleId,
                         'role_name' => $role->name_ar,
+                        'role_key' => $role->key,
                         'from' => $before->user_id,
                         'to' => null,
                     ];
                 }
+
+                // The starter follows the role into being unowned too, for the
+                // same reason it follows a hand-off: it is the role's
+                // placeholder, and a placeholder pointing at somebody the ticket
+                // no longer lists is the inconsistency this all exists to stop.
+                // It is emptied rather than deleted or completed — deleting
+                // would destroy a row F18 may already have paid on, and
+                // completing it would claim work finished that nobody did.
+                $ticket->subtasks()
+                    ->where('role_id', $roleId)
+                    ->generatedStarter()
+                    ->where('status', '!=', 'done')
+                    ->update(['assignee_id' => null]);
 
                 $before?->delete();
 
@@ -374,6 +416,7 @@ class TicketWorkflowService
             $diffs[] = [
                 'role_id' => $roleId,
                 'role_name' => $role->name_ar,
+                'role_key' => $role->key,
                 'from' => $before?->user_id,
                 'to' => $userId,
             ];
@@ -400,16 +443,133 @@ class TicketWorkflowService
             // never repeats it (F06.3). The starter means a newly-assigned role
             // is never an empty list, and gives F18 something to pay. Skipped
             // only for a role the creator already wrote a subtask for.
+            // ★ The generated starter follows the role it belongs to.
+            //
+            // It is the distribution's own placeholder, so leaving it with the
+            // previous holder would be the very inconsistency the conflict check
+            // above exists to prevent — and it is why the starter is exempt from
+            // that check rather than simply ignored. Same transaction as the
+            // assignment write, so the two can never disagree.
+            //
+            // Deliberately silent: this is internal bookkeeping, and the ticket
+            // hand-off already tells both people what happened. Firing subtask
+            // DMs here would send everybody a second message about one click.
+            // Finished starters are history and stay where they are.
+            $ticket->subtasks()
+                ->where('role_id', $roleId)
+                ->generatedStarter()
+                ->where('status', '!=', 'done')
+                ->update(['assignee_id' => $userId]);
+
             if ($before === null && ! $ticket->subtasks()->where('role_id', $roleId)->exists()) {
                 $this->subtasks->create($ticket, [
                     'title' => $ticket->title,
                     'assignee_id' => $userId,
                     'role_id' => $roleId,
+                    // Stamped so the distribution rules can tell this placeholder
+                    // from work a person assigned — it must follow the role
+                    // holder rather than block them. See TicketSubtask::ORIGIN_*.
+                    'origin' => TicketSubtask::ORIGIN_DISTRIBUTION_STARTER,
                 ], $actorId);
             }
         }
 
-        $this->discord->assignmentsChanged($ticket, $diffs, $actorId, $activation);
+        $this->discord->assignmentsChanged($ticket, $diffs, $actorId, $activation, $source);
+    }
+
+    /**
+     * Refuses a distribution change that would strand an unfinished subtask.
+     *
+     * ★ (2026-08-23) The other half of the rule SubtaskAssignmentService
+     * enforces. That one keeps the ticket in step when a SUBTASK moves; this one
+     * stops the ticket moving out from under a subtask that is still open.
+     * Without it the invariant only held in one direction: handing the back-end
+     * role to somebody else left «Fix API» sitting with the previous owner while
+     * the ticket said the work belonged to the new one, and the finish gate,
+     * the board and the points ledger disagreed about which was true.
+     *
+     * Silently reassigning those subtasks would move work nobody asked us to
+     * touch; silently closing them would pay out or void points on somebody's
+     * behalf. Naming them and stopping is the only option that does not decide
+     * something for the admin.
+     *
+     * Finished subtasks are history and never block. Unassigning a role (null)
+     * does not block either — that mirrors the subtask side, which deliberately
+     * does not strip a ticket role when a step is parked.
+     *
+     * The subtask-driven path reaches this too and passes cleanly: by the time
+     * SubtaskAssignmentService calls assign(), the subtask in question already
+     * belongs to the incoming user, and any rival was refused before that.
+     *
+     * @param  array<int, int|null>  $roleAssignments
+     * @param  \Illuminate\Support\Collection<int, Role>  $roles
+     * @param  \Illuminate\Support\Collection<int, TicketRoleAssignment>  $existing
+     *
+     * @throws DomainException
+     */
+    private function assertNoOpenSubtaskConflict(Ticket $ticket, array $roleAssignments, $roles, $existing): void
+    {
+        $problems = [];
+
+        foreach ($roleAssignments as $roleId => $userId) {
+            $userId = ($userId === null || $userId === '') ? null : (int) $userId;
+            $role = $roles->get($roleId);
+
+            if ($role === null) {
+                continue;
+            }
+
+            $before = $existing->get($roleId);
+
+            // The same three guards the write loop applies, in the same order,
+            // so this can never refuse something the loop would have skipped —
+            // re-saving a distribution unchanged stays a true no-op.
+            if ($before !== null && $before->user_id === $userId) {
+                continue;
+            }
+
+            if ($userId === null && $before === null) {
+                continue;
+            }
+
+            $stranded = $ticket->subtasks()
+                ->where('role_id', $roleId)
+                ->where('status', '!=', 'done')
+                ->whereNotNull('assignee_id')
+                // ★ The generated starter is deliberately NOT a blocker. It is
+                // the role's own placeholder, not work somebody chose to hand
+                // out, and it follows the holder a few lines further down. Only
+                // real work can strand.
+                ->realWork()
+                // Unassigning strands EVERY open owner, not just a different
+                // one — leaving the role empty while somebody is still on the
+                // work is the same inconsistency by another route.
+                ->when($userId !== null, fn ($q) => $q->where('assignee_id', '!=', $userId))
+                ->lockForUpdate()
+                ->get(['id', 'title', 'assignee_id']);
+
+            if ($stranded->isEmpty()) {
+                continue;
+            }
+
+            $owners = User::whereIn('id', $stranded->pluck('assignee_id')->unique())->pluck('name', 'id');
+
+            // Every conflicting subtask is listed, not just the first: being
+            // told about them one at a time is the slowest way to clear a role.
+            $list = $stranded
+                ->map(fn ($t) => "«{$t->title}» مع " . ($owners[$t->assignee_id] ?? "#{$t->assignee_id}"))
+                ->implode('، ');
+
+            $problems[] = $userId === null
+                ? "مينفعش تشيل التوزيع عن دور «{$role->name_ar}» لأن فيه صب تاسك لسه مفتوحة: {$list}."
+                : "مينفعش تغيّر توزيع دور «{$role->name_ar}» لـ"
+                    . (User::whereKey($userId)->value('name') ?? "#{$userId}")
+                    . " لأن فيه صب تاسك لسه مفتوحة ومع حد تاني: {$list}.";
+        }
+
+        if ($problems !== []) {
+            throw new DomainException(implode(' ', $problems) . ' سلّمها أو قفلها الأول.');
+        }
     }
 
     /**

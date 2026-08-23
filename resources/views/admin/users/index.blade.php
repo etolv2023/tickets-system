@@ -59,7 +59,9 @@
                                 </td>
                                 <td>
                                     <div class="row">
-                                        @if ($user->is_active)
+                                        @if ($user->deleted_at)
+                                            <x-badge variant="urgent" dot>محذوف</x-badge>
+                                        @elseif ($user->is_active)
                                             <x-badge variant="resolved" dot>مفعّل</x-badge>
                                         @else
                                             <x-badge variant="neutral" dot>موقوف</x-badge>
@@ -70,7 +72,25 @@
                                     </div>
                                 </td>
                                 <td class="table__cell--actions">
-                                    <x-button variant="ghost" size="sm" :href="route('admin.users.edit', $user)">تعديل</x-button>
+                                    @if ($user->deleted_at)
+                                        <form method="POST" action="{{ route('admin.users.restore', $user->id) }}"
+                                              onsubmit="return confirm('ترجّع «{{ $user->name }}»؟ هيرجع موقوف لحد ما تفعّله.')">
+                                            @csrf
+                                            <x-button variant="ghost" size="sm">رجّعه</x-button>
+                                        </form>
+                                    @else
+                                        <div class="row">
+                                            <x-button variant="ghost" size="sm" :href="route('admin.users.edit', $user)">تعديل</x-button>
+                                            {{-- The name is in the prompt on purpose: a delete button in a
+                                                 paginated table is the easiest thing in the app to misfire. --}}
+                                            <form method="POST" action="{{ route('admin.users.destroy', $user) }}"
+                                                  onsubmit="return confirm('متأكد إنك عايز تحذف «{{ $user->name }}»؟ تاريخه على التذاكر والنقاط هيفضل زي ما هو، والحساب هيتقفل.')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <x-button variant="ghost" size="sm">حذف</x-button>
+                                            </form>
+                                        </div>
+                                    @endif
                                 </td>
                             </tr>
                         @empty

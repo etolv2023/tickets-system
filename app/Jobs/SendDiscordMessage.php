@@ -84,7 +84,7 @@ class SendDiscordMessage implements ShouldQueue
             return;
         }
 
-        $channelId = $this->resolveChannel($record, $discord);
+        $channelId = $this->resolveChannel($record, $discord, $notifier);
 
         if ($channelId === null) {
             return; // resolveChannel has already settled or released the row
@@ -100,11 +100,26 @@ class SendDiscordMessage implements ShouldQueue
 
         $body = $notifier->renderBody($record);
 
-        if ($reference = $this->replyReference($record)) {
+        if ($reference = $this->replyReference($record, $notifier)) {
             $body['message_reference'] = $reference;
+            // Kept on the row too, so the ledger shows which ticket card an
+            // update was hung off without re-deriving it later.
+            $record->forceFill(['reply_to_message_id' => $reference['message_id']])->saveQuietly();
         }
 
-        $result = $discord->postMessage($channelId, $body, $record->nonceValue());
+        $result = match (true) {
+            // Rewrites the ticket's existing card in place. No nonce: this is an
+            // edit of a known message, not a create that could be duplicated.
+            $record->type === TicketDiscordMessage::TYPE_ROOT_SYNC,
+            $record->type === TicketDiscordMessage::TYPE_DAILY_SUMMARY
+                => $discord->editMessage($channelId, (string) $record->message_id, $body),
+
+            // A day's container. Opening it IS the message, so it is one call.
+            $record->type === TicketDiscordMessage::TYPE_DAILY_FORUM_POST
+                => $this->openDailyPost($record, $discord, $notifier, $channelId, $body),
+
+            default => $discord->postMessage($channelId, $body, $record->nonceValue()),
+        };
 
         if (! $result->ok) {
             $this->handleFailure($record, $result);
@@ -157,7 +172,14 @@ class SendDiscordMessage implements ShouldQueue
                 ->where('status', TicketDiscordMessage::STATUS_PENDING)
                 ->orWhere(fn ($s) => $s
                     ->where('status', TicketDiscordMessage::STATUS_PROCESSING)
-                    ->where('claimed_at', '<', $staleBefore)))
+                    ->where(fn ($w) => $w
+                        ->where('claimed_at', '<', $staleBefore)
+                        // A processing row with no claim time cannot be matched
+                        // by the comparison above — NULL is never "<" anything —
+                        // so it would sit unclaimable forever. Nothing writes
+                        // that state today, but a row that can never be picked
+                        // up again is the wrong thing to be one bug away from.
+                        ->orWhereNull('claimed_at'))))
             ->update([
                 'status' => TicketDiscordMessage::STATUS_PROCESSING,
                 'claimed_at' => now(),
@@ -172,8 +194,11 @@ class SendDiscordMessage implements ShouldQueue
      * Returns null when the row has been settled or put back for later, in which
      * case the caller must stop.
      */
-    private function resolveChannel(TicketDiscordMessage $record, DiscordService $discord): ?string
-    {
+    private function resolveChannel(
+        TicketDiscordMessage $record,
+        DiscordService $discord,
+        DiscordNotificationService $notifier,
+    ): ?string {
         if ($record->isDirectMessage()) {
             $discordUserId = User::whereKey($record->user_id)->value('discord_user_id');
 
@@ -196,10 +221,49 @@ class SendDiscordMessage implements ShouldQueue
             return $dm->messageId;
         }
 
+        // A day's post is opened in the forum channel itself.
+        if ($record->type === TicketDiscordMessage::TYPE_DAILY_FORUM_POST) {
+            return $discord->ticketsChannelId();
+        }
+
+        // A header refresh edits the post's own starter message. Discord gives a
+        // forum post's starter the SAME id as the post, which is why both halves
+        // of the target are the one value.
+        if ($record->type === TicketDiscordMessage::TYPE_DAILY_SUMMARY) {
+            $date = $record->payload['business_date'] ?? null;
+            $day = $date === null ? null : TicketDiscordMessage::where('dedupe_key', TicketDiscordMessage::dailyPostKey($date))->first();
+
+            if ($day === null || $day->status !== TicketDiscordMessage::STATUS_SENT || blank($day->message_id)) {
+                $this->finish($record, TicketDiscordMessage::STATUS_SKIPPED, 'بوست اليوم مش جاهز');
+
+                return null;
+            }
+
+            $record->forceFill(['message_id' => $day->message_id])->saveQuietly();
+
+            return $day->message_id;
+        }
+
         $root = TicketDiscordMessage::where('ticket_id', $record->ticket_id)->root()->first();
 
+        // The ticket's own card goes inside the day it belongs to.
         if ($record->type === TicketDiscordMessage::TYPE_CREATED_GENERAL) {
-            return $discord->ticketsChannelId();
+            return $this->dailyPostChannel($record, $discord, $notifier);
+        }
+
+        // A rewrite goes wherever the card already is — never re-resolved from
+        // today's date, because a ticket announced on the 23rd keeps its card in
+        // the 23rd's post however long it stays open.
+        if ($record->type === TicketDiscordMessage::TYPE_ROOT_SYNC) {
+            if ($root === null || $root->status !== TicketDiscordMessage::STATUS_SENT || blank($root->message_id)) {
+                $this->finish($record, TicketDiscordMessage::STATUS_SKIPPED, 'التذكرة ملهاش كارت متبعوت لسه');
+
+                return null;
+            }
+
+            $record->forceFill(['message_id' => $root->message_id])->saveQuietly();
+
+            return $root->channel_id;
         }
 
         if ($root === null) {
@@ -236,6 +300,12 @@ class SendDiscordMessage implements ShouldQueue
             );
 
             return null;
+        }
+
+        // Forum mode has no per-ticket thread: history lives in the day's post,
+        // as replies to the ticket's card. Otherwise the old thread applies.
+        if (config('discord.forum_mode')) {
+            return $root->channel_id;
         }
 
         return config('discord.use_threads') && filled($root->thread_id)
@@ -313,8 +383,32 @@ class SendDiscordMessage implements ShouldQueue
      *
      * @return array<string, mixed>|null
      */
-    private function replyReference(TicketDiscordMessage $record): ?array
+    private function replyReference(TicketDiscordMessage $record, DiscordNotificationService $notifier): ?array
     {
+        // In a day's post many tickets share one space, so every lifecycle
+        // message hangs off its own ticket's card. That is what makes it obvious
+        // which ticket an update belongs to, and it is the closest Discord gets
+        // to a per-ticket thread inside a forum post — nesting is not allowed.
+        if (! $record->isDirectMessage()
+            && $record->type !== TicketDiscordMessage::TYPE_CREATED_GENERAL
+            && $record->type !== TicketDiscordMessage::TYPE_DAILY_FORUM_POST
+            && $record->type !== TicketDiscordMessage::TYPE_ROOT_SYNC
+            && config('discord.forum_mode')) {
+            $root = TicketDiscordMessage::where('ticket_id', $record->ticket_id)->root()->first();
+
+            if ($root === null || blank($root->message_id)) {
+                return null;
+            }
+
+            return [
+                'message_id' => $root->message_id,
+                'channel_id' => $root->channel_id,
+                // A card somebody deleted must not take the whole update with
+                // it — the message just arrives unattached instead.
+                'fail_if_not_exists' => false,
+            ];
+        }
+
         if ($record->type !== TicketDiscordMessage::TYPE_UNASSIGNED) {
             return null;
         }
@@ -349,6 +443,7 @@ class SendDiscordMessage implements ShouldQueue
         string $channelId,
     ): void {
         if ($record->type !== TicketDiscordMessage::TYPE_CREATED_GENERAL
+            || config('discord.forum_mode')   // the day's post already is the thread
             || ! config('discord.use_threads')
             || filled($record->thread_id)) {
             return;
@@ -365,6 +460,93 @@ class SendDiscordMessage implements ShouldQueue
         }
 
         $record->forceFill(['thread_id' => $threadId])->saveQuietly();
+    }
+
+    /**
+     * The day-post id a ticket's card belongs in.
+     *
+     * Waits rather than improvising: if the day's post has not been opened yet
+     * the card is put back for a few seconds. Dropping it into the forum root
+     * instead would leave an orphan card outside every day.
+     */
+    private function dailyPostChannel(
+        TicketDiscordMessage $record,
+        DiscordService $discord,
+        DiscordNotificationService $notifier,
+    ): ?string {
+        if (! config('discord.forum_mode')) {
+            return $discord->ticketsChannelId();
+        }
+
+        $date = $record->payload['business_date'] ?? null;
+
+        if ($date === null) {
+            // ★ Queued before forum mode was switched on, so it never got a
+            // business date. The configured channel is a FORUM now, and Discord
+            // refuses a plain message posted straight into one — it only holds
+            // posts. Rather than fail an announcement that is simply older than
+            // the feature, adopt today: stamp the date, make sure the day's post
+            // exists, and come back once it does.
+            $date = now()->timezone(config('app.display_timezone'))->toDateString();
+
+            $payload = $record->payload ?? [];
+            $payload['business_date'] = $date;
+            $record->forceFill(['payload' => $payload])->saveQuietly();
+
+            $notifier->ensureDailyPost($date);
+        }
+
+        $day = TicketDiscordMessage::where('dedupe_key', TicketDiscordMessage::dailyPostKey($date))->first();
+
+        if ($day === null) {
+            $this->finish($record, TicketDiscordMessage::STATUS_SKIPPED, "مفيش بوست ليوم {$date}");
+
+            return null;
+        }
+
+        // ensureDailyPost above dispatches afterCommit, so on the pass that just
+        // created it the row exists but its own job has not run — wait, do not
+        // improvise a channel.
+
+        if ($day->status === TicketDiscordMessage::STATUS_PENDING || $day->status === TicketDiscordMessage::STATUS_PROCESSING) {
+            $record->forceFill(['status' => TicketDiscordMessage::STATUS_PENDING, 'claimed_at' => null])->saveQuietly();
+            $this->release(5);
+
+            return null;
+        }
+
+        if ($day->status !== TicketDiscordMessage::STATUS_SENT || blank($day->message_id)) {
+            $this->finish($record, TicketDiscordMessage::STATUS_SKIPPED, "بوست يوم {$date} حالته «{$day->status}»");
+
+            return null;
+        }
+
+        return $day->message_id;
+    }
+
+    /**
+     * Opens the day's post, adopting one that already exists.
+     *
+     * The unique dedupe key already stops two rows for a date, so this lookup is
+     * for the cases the database cannot see: a row lost, or somebody opening the
+     * day by hand. Adopting beats opening a rival with the same name.
+     */
+    private function openDailyPost(
+        TicketDiscordMessage $record,
+        DiscordService $discord,
+        DiscordNotificationService $notifier,
+        string $forumChannelId,
+        array $body,
+    ): DiscordResult {
+        $name = $notifier->dailyPostName((string) ($record->payload['business_date'] ?? ''));
+
+        if ($existing = $discord->findForumPost($forumChannelId, $name)) {
+            Log::info('discord daily post adopted', ['record_id' => $record->id, 'post_id' => $existing, 'name' => $name]);
+
+            return DiscordResult::ok($existing);
+        }
+
+        return $discord->createForumPost($forumChannelId, $name, $body);
     }
 
     private function handleFailure(TicketDiscordMessage $record, DiscordResult $result): void

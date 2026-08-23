@@ -10,6 +10,8 @@ use App\Models\User;
 use App\Models\WorklogCompletionWaiver;
 use App\Services\ActivityLogger;
 use App\Services\TicketWorkflowService;
+use App\Services\UserDeletionService;
+use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -23,7 +25,12 @@ class UserController extends Controller
 
         return view('admin.users.index', [
             'users' => User::query()
-                ->select(['id', 'name', 'email', 'role_id', 'is_active', 'must_change_password', 'last_login_at', 'avatar_path'])
+                // Deleted people are hidden unless asked for. User carries no
+                // soft-delete global scope on purpose (see the model), so the
+                // filtering is explicit here rather than automatic.
+                ->when($request->query('status') !== 'deleted', fn ($q) => $q->present())
+                ->when($request->query('status') === 'deleted', fn ($q) => $q->deletedOnly())
+                ->select(['id', 'name', 'email', 'role_id', 'is_active', 'must_change_password', 'last_login_at', 'avatar_path', 'deleted_at'])
                 ->when($request->query('q'), fn ($q, $term) => $q->where(fn ($w) => $w
                     ->where('name', 'like', "%{$term}%")
                     ->orWhere('email', 'like', "%{$term}%")))
@@ -206,6 +213,62 @@ class UserController extends Controller
         );
 
         return redirect()->route('admin.users.index')->with('status', 'تم حفظ التعديلات.');
+    }
+
+    /**
+     * ★ (2026-08-24) Soft-deletes a user.
+     *
+     * Nothing is removed: the row keeps its place so every ticket, comment,
+     * work log and points entry it is referenced by still renders a name. What
+     * changes is that is_active goes down alongside deleted_at, which is what
+     * takes the person out of the assignment pickers and refuses their login.
+     *
+     * Refuses outright while they still hold live work — UserDeletionService
+     * says which tickets and subtasks have to be handed over first, rather than
+     * silently un-assigning a leaver and firing a round of notifications about
+     * somebody on their way out.
+     */
+    public function destroy(Request $request, User $user, ActivityLogger $logger, UserDeletionService $deletion): RedirectResponse
+    {
+        $this->authorize('delete', $user);
+
+        try {
+            $deletion->delete($user);
+        } catch (DomainException $e) {
+            return back()->withErrors(['delete' => $e->getMessage()]);
+        }
+
+        $logger->log(
+            action: 'user.deleted',
+            userId: $request->user()->id,
+            subject: $user,
+            changes: ['name' => $user->name, 'email' => $user->email],
+            ip: $request->ip(),
+            userAgent: $request->userAgent(),
+        );
+
+        return redirect()->route('admin.users.index')
+            ->with('status', "تم حذف «{$user->name}». تاريخه على التذاكر زي ما هو.");
+    }
+
+    /** Puts a deleted user back — still deactivated, so nobody is re-armed by surprise. */
+    public function restore(Request $request, int $user, ActivityLogger $logger, UserDeletionService $deletion): RedirectResponse
+    {
+        $target = User::deletedOnly()->findOrFail($user);
+
+        $this->authorize('restore', $target);
+
+        $deletion->restore($target);
+
+        $logger->log(
+            action: 'user.restored',
+            userId: $request->user()->id,
+            subject: $target,
+            ip: $request->ip(),
+            userAgent: $request->userAgent(),
+        );
+
+        return back()->with('status', "تم رجوع «{$target->name}». لسه موقوف — فعّله من صفحة التعديل.");
     }
 
     /**

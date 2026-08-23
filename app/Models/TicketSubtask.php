@@ -15,8 +15,11 @@ class TicketSubtask extends Model
 {
     use SoftDeletes;
 
+    /** Written by the distribution, not by a person. See the 2026_08_23_000003 migration. */
+    public const ORIGIN_DISTRIBUTION_STARTER = 'distribution_starter';
+
     protected $fillable = [
-        'ticket_id', 'title', 'description', 'assignee_id', 'side', 'role_id', 'status',
+        'ticket_id', 'title', 'description', 'assignee_id', 'side', 'role_id', 'origin', 'status',
         'start_date', 'due_date', 'due_at', 'estimated_hours', 'points', 'blocked_reason',
         'position', 'created_by', 'started_at', 'completed_at',
     ];
@@ -51,6 +54,32 @@ class TicketSubtask extends Model
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
+    }
+
+    /**
+     * Work a person deliberately assigned, as opposed to the placeholder the
+     * distribution creates for itself.
+     *
+     * Null counts as real: rows that predate the column get the protective
+     * answer rather than the convenient one.
+     */
+    public function isGeneratedStarter(): bool
+    {
+        return $this->origin === self::ORIGIN_DISTRIBUTION_STARTER;
+    }
+
+    /** @param  \Illuminate\Database\Eloquent\Builder<TicketSubtask>  $query */
+    public function scopeRealWork(Builder $query): Builder
+    {
+        return $query->where(fn ($q) => $q
+            ->whereNull('origin')
+            ->orWhere('origin', '!=', self::ORIGIN_DISTRIBUTION_STARTER));
+    }
+
+    /** @param  \Illuminate\Database\Eloquent\Builder<TicketSubtask>  $query */
+    public function scopeGeneratedStarter(Builder $query): Builder
+    {
+        return $query->where('origin', self::ORIGIN_DISTRIBUTION_STARTER);
     }
 
     public function timeEntries(): HasMany
