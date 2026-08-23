@@ -139,7 +139,18 @@ echo "==> restarting the queue workers so they pick up the new code"
 # $tries/$backoff and those win.
 php artisan queue:restart
 
+echo "==> verifying the Discord integration against the real server"
+# Read-only: it checks the token, the guild, that the configured channel really
+# is a forum, and that the bot holds the permissions it needs. It posts nothing.
+# Non-fatal on purpose — a Discord misconfiguration must not fail a deploy of the
+# ticket system itself, which works without it.
+php artisan discord:check || echo "    (discord:check reported problems — the ticket system still works; fix Discord separately)"
+
 echo "==> done."
+echo "    Reminder: TWO queue workers must be supervised —"
+echo "      php artisan queue:work --queue=default"
+echo "      php artisan queue:work --queue=discord"
+echo ""
 echo "    If PHP is running under opcache with validate_timestamps=0"
 echo "    (deploy/php-production.ini's comment covers the default, on), reload"
 echo "    PHP-FPM/Apache here — this script doesn't guess your service manager's name."

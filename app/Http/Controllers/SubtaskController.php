@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Tickets\SubtaskRequest;
 use App\Models\Ticket;
 use App\Models\TicketSubtask;
-use App\Services\NotificationService;
+use App\Services\SubtaskAssignmentService;
 use App\Services\SubtaskService;
+use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,7 +16,7 @@ class SubtaskController extends Controller
 {
     public function __construct(
         private readonly SubtaskService $subtasks,
-        private readonly NotificationService $notifications,
+        private readonly SubtaskAssignmentService $assignment,
     ) {
     }
 
@@ -37,15 +38,14 @@ class SubtaskController extends Controller
             unset($data['due_date']);
         }
 
-        $subtask = $this->subtasks->create($ticket, $data, $request->user()->id);
-
-        $this->notifications->notifyUser(
-            $subtask->assignee_id,
-            $ticket,
-            'subtask.assigned',
-            "اتسندت لك صب تاسك على {$ticket->ticket_number}: {$subtask->title}",
-            $request->user()->id,
-        );
+        // Creating the step and putting its owner on the parent ticket are one
+        // operation — SubtaskAssignmentService keeps them in a single
+        // transaction and owns the bell and Discord for both.
+        try {
+            $this->assignment->create($ticket, $data, $request->user()->id);
+        } catch (DomainException $e) {
+            return back()->withErrors(['assignee_id' => $e->getMessage()])->withInput();
+        }
 
         return back()->with('status', 'تم إضافة الصب تاسك.');
     }
@@ -53,8 +53,6 @@ class SubtaskController extends Controller
     public function update(SubtaskRequest $request, Ticket $ticket, TicketSubtask $subtask): RedirectResponse
     {
         $this->assertBelongs($ticket, $subtask);
-
-        $before = $subtask->assignee_id;
 
         $data = $request->validated();
 
@@ -82,16 +80,10 @@ class SubtaskController extends Controller
             unset($data['assignee_id'], $data['role_id']);
         }
 
-        $this->subtasks->update($subtask, $data);
-
-        if ($subtask->assignee_id !== null && $subtask->assignee_id !== $before) {
-            $this->notifications->notifyUser(
-                $subtask->assignee_id,
-                $ticket,
-                'subtask.assigned',
-                "اتسندت لك صب تاسك على {$ticket->ticket_number}: {$subtask->title}",
-                $request->user()->id,
-            );
+        try {
+            $this->assignment->update($ticket, $subtask, $data, $request->user()->id);
+        } catch (DomainException $e) {
+            return back()->withErrors(['assignee_id' => $e->getMessage()])->withInput();
         }
 
         return back()->with('status', 'تم حفظ الصب تاسك.');

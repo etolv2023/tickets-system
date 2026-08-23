@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Cache;
@@ -17,7 +18,37 @@ use Illuminate\Support\Str;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
+
+    /**
+     * ★ (2026-08-24) SoftDeletes WITHOUT its global scope. This override is the
+     * whole design, so it gets the whole explanation.
+     *
+     * The trait normally registers SoftDeletingScope, which hides deleted rows
+     * from every query. For most models that is exactly right. For User it is
+     * destructive: twenty-five belongsTo(User::class) relations exist across the
+     * app — ticket creator, comment author, work-log owner, points earner,
+     * rating subject, audit actor — and each one would start resolving to null
+     * the moment somebody left. Ticket history would render «—» where a name
+     * used to be. That is the precise data loss deleting a user is supposed to
+     * avoid, so the scope is not applied and identity keeps resolving forever.
+     *
+     * Hiding a deleted user from LIVE workflow is handled by is_active instead,
+     * which UserService::delete sets at the same time. Every guard already reads
+     * it: the login attempt, hasPermission(), scopeActive(), and the assignment
+     * pickers built on top of it. Nothing had to be rewritten to respect
+     * deletion, which is the reason this shape was chosen over adding
+     * ->withTrashed() to twenty models.
+     *
+     * The trait's own behaviour is untouched: delete() still stamps deleted_at,
+     * restore() still clears it, trashed() still answers. Only the query macros
+     * that the scope installs (withTrashed/onlyTrashed) are unavailable, so the
+     * two explicit scopes below take their place.
+     */
+    protected static function bootSoftDeletes(): void
+    {
+        // Intentionally empty — see the note above.
+    }
 
     /** Every user's permission exceptions in one cached array — see overrideMap(). */
     public const OVERRIDES_CACHE_KEY = 'users.permission_overrides';
@@ -204,6 +235,18 @@ class User extends Authenticatable
         $words = preg_split('/\s+/u', trim($this->name), -1, PREG_SPLIT_NO_EMPTY) ?: [];
 
         return Str::upper(mb_substr($words[0] ?? '؟', 0, 1) . mb_substr($words[1] ?? '', 0, 1));
+    }
+
+    /** Users who have not been deleted — the default for any admin listing. */
+    public function scopePresent(Builder $query): Builder
+    {
+        return $query->whereNull('deleted_at');
+    }
+
+    /** Only the deleted ones, for an admin who wants to see or restore them. */
+    public function scopeDeletedOnly(Builder $query): Builder
+    {
+        return $query->whereNotNull('deleted_at');
     }
 
     public function scopeActive(Builder $query): Builder

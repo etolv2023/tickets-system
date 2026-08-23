@@ -32,6 +32,8 @@ class CheckDiscord extends Command
         $this->line('  GUILD_ID             : ' . (config('discord.guild_id') ?: '— ناقص —'));
         $this->line('  TICKETS_CHANNEL_ID   : ' . (config('discord.tickets_channel_id') ?: '— ناقص —'));
         $this->line('  DRY_RUN              : ' . (config('discord.dry_run') ? 'true' : 'false'));
+        $this->line('  FORUM_MODE           : ' . (config('discord.forum_mode') ? 'true' : 'false'));
+        $this->line('  QUEUE                : ' . config('discord.queue'));
 
         if (! $discord->configured()) {
             $this->components->warn('التكامل مقفول — النظام هيشتغل عادي من غير أي نداء لديسكورد.');
@@ -63,7 +65,15 @@ class CheckDiscord extends Command
             return self::FAILURE;
         }
 
-        $this->components->info("القناة: #{$channel['name']}");
+        $this->components->info("القناة: #{$channel['name']}  (type {$channel['type']})");
+
+        if (! $this->channelShapeOk($channel)) {
+            return self::FAILURE;
+        }
+
+        if (! $this->permissionReport($discord)) {
+            return self::FAILURE;
+        }
 
         $this->mappingReport($discord);
         $this->unverifiedReport();
@@ -84,6 +94,92 @@ class CheckDiscord extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Forum mode needs a forum channel. Anything else and posts cannot be
+     * opened at all, so it is better said here than discovered by a queue full
+     * of failures.
+     *
+     * @param  array<string, mixed>  $channel
+     */
+    private function channelShapeOk(array $channel): bool
+    {
+        $isForum = (int) ($channel['type'] ?? -1) === DiscordService::CHANNEL_FORUM;
+
+        if (config('discord.forum_mode') && ! $isForum) {
+            $this->components->error(
+                'وضع الفوروم مفعّل بس القناة دي مش Forum Channel (النوع لازم يكون '
+                . DiscordService::CHANNEL_FORUM . '). غيّر DISCORD_TICKETS_CHANNEL_ID لقناة فوروم، '
+                . 'أو اقفل DISCORD_FORUM_MODE.'
+            );
+
+            return false;
+        }
+
+        if (! config('discord.forum_mode') && $isForum) {
+            $this->components->error('القناة دي فوروم بس وضع الفوروم مقفول — شغّل DISCORD_FORUM_MODE.');
+
+            return false;
+        }
+
+        // A forum that demands a tag on every post would refuse ours.
+        if ($isForum && ((int) ($channel['flags'] ?? 0) & 16) === 16) {
+            $this->components->warn('الفوروم بيطلب Tag إجباري على كل بوست — البوستات هتترفض. شيل الإلزام أو ضيف tag افتراضي.');
+        }
+
+        return true;
+    }
+
+    /**
+     * What the bot may actually do here.
+     *
+     * Manage Channels is reported but never required: the forum is created by a
+     * person, and opening posts inside it does not need it.
+     */
+    private function permissionReport(DiscordService $discord): bool
+    {
+        $perms = $discord->channelPermissions((string) config('discord.tickets_channel_id'));
+
+        if ($perms === null) {
+            $this->components->warn('مقدرناش نحسب صلاحيات البوت على القناة — راجع GUILD_ID.');
+
+            return true;
+        }
+
+        $required = ['View Channels', 'Send Messages', 'Embed Links', 'Read Message History'];
+
+        if (config('discord.forum_mode')) {
+            $required[] = 'Send Messages in Threads';
+        } else {
+            $required[] = 'Create Public Threads';
+            $required[] = 'Send Messages in Threads';
+        }
+
+        $this->newLine();
+        $this->components->info('صلاحيات البوت على القناة');
+
+        $missing = [];
+
+        foreach ($required as $label) {
+            $ok = $perms[$label] ?? false;
+            $this->line(sprintf('  %-28s %s', $label, $ok ? '✔' : '✘ ناقصة'));
+
+            if (! $ok) {
+                $missing[] = $label;
+            }
+        }
+
+        $this->line(sprintf('  %-28s %s', 'Manage Channels', ($perms['Manage Channels'] ?? false) ? 'موجودة (مش مطلوبة)' : 'مش موجودة — وده تمام'));
+        $this->line(sprintf('  %-28s %s', 'Administrator', ($perms['Administrator'] ?? false) ? '⚠ موجودة — مش مطلوبة' : 'مش موجودة — وده تمام'));
+
+        if ($missing !== []) {
+            $this->components->error('صلاحيات ناقصة: ' . implode('، ', $missing));
+
+            return false;
+        }
+
+        return true;
     }
 
     /** Who can actually be reached, and who cannot. */

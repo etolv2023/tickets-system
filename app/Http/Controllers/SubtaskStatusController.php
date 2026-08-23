@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Tickets\SubtaskStatusRequest;
 use App\Models\TicketSubtask;
+use App\Services\DiscordNotificationService;
 use App\Services\SubtaskService;
 use Illuminate\Http\JsonResponse;
 
@@ -20,17 +21,29 @@ use Illuminate\Http\JsonResponse;
  */
 class SubtaskStatusController extends Controller
 {
-    public function __construct(private readonly SubtaskService $subtasks)
-    {
+    public function __construct(
+        private readonly SubtaskService $subtasks,
+        private readonly DiscordNotificationService $discord,
+    ) {
     }
 
     public function update(SubtaskStatusRequest $request, TicketSubtask $subtask): JsonResponse
     {
+        // Read before the write; the cast object is replaced in place by it.
+        $fromKey = $subtask->status->value;
+        $fromLabel = $subtask->status->label();
+
         // SubtaskService::update() derives started_at / completed_at from the
         // status and re-syncs the ticket's counters, so nothing else to do.
         $this->subtasks->update($subtask, ['status' => $request->validated('status')]);
 
         $ticket = $subtask->ticket->refresh();
+
+        // Timeline only, and only for a real move. Nobody is DMed: this changes
+        // where the work stands, not whose it is.
+        if ($subtask->refresh()->status->value !== $fromKey) {
+            $this->discord->subtaskStatusChanged($ticket, $subtask, $fromKey, $fromLabel, $request->user()->id);
+        }
 
         return response()->json([
             'ok' => true,

@@ -30,7 +30,26 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class TicketDiscordMessage extends Model
 {
-    /** The ticket's own announcement in the general channel. */
+    /**
+     * A day's forum post — the container every ticket announced that date lives
+     * in. The only type whose row has no ticket_id.
+     */
+    public const TYPE_DAILY_FORUM_POST = 'daily_forum_post';
+
+    /**
+     * A pending edit of the ticket's card, so it shows the state the ticket is
+     * actually in. Coalesced: one pending row per ticket, its payload replaced
+     * as things change, because ten edits in a row only need the last one.
+     */
+    public const TYPE_ROOT_SYNC = 'ticket_root_sync';
+
+    /**
+     * A pending refresh of the day's header counts. Coalesced per date, like the
+     * ticket card's own rewrite.
+     */
+    public const TYPE_DAILY_SUMMARY = 'daily_summary_sync';
+
+    /** The ticket's own announcement — its card inside the day's post. */
     public const TYPE_CREATED_GENERAL = 'ticket_created_general';
 
     /** DM: this ticket is now yours. */
@@ -47,6 +66,29 @@ class TicketDiscordMessage extends Model
 
     /** Thread: the work is done. */
     public const TYPE_RESOLVED = 'ticket_resolved';
+
+    /*
+     * Subtask events. They ride the same ledger as the ticket ones — same
+     * statuses, same claim, same nonce, same queue — and carry the subtask in
+     * `payload` rather than in a column of their own, because nothing about
+     * delivery differs and a second table would have to re-earn every guarantee
+     * this one already has.
+     */
+
+    /** DM: this step is now yours. */
+    public const TYPE_SUBTASK_ASSIGNED = 'subtask_assigned';
+
+    /** DM: this step is not yours any more. */
+    public const TYPE_SUBTASK_UNASSIGNED = 'subtask_unassigned';
+
+    /** Thread: a step was added and given to somebody. */
+    public const TYPE_SUBTASK_CREATED = 'subtask_created';
+
+    /** Thread: a step changed hands. */
+    public const TYPE_SUBTASK_REASSIGNED_GENERAL = 'subtask_reassigned_general';
+
+    /** Thread: a step moved along. Never a DM — nobody's ownership changed. */
+    public const TYPE_SUBTASK_STATUS = 'subtask_status_changed';
 
     public const STATUS_PENDING = 'pending';
 
@@ -93,11 +135,17 @@ class TicketDiscordMessage extends Model
 
     /**
      * The ticket's announcement. Its existence is what "this ticket is live on
-     * Discord" means — thread updates are only allowed once it is there.
+     * Discord" means — lifecycle updates are only allowed once it is there.
      */
     public function scopeRoot(Builder $query): Builder
     {
         return $query->where('type', self::TYPE_CREATED_GENERAL);
+    }
+
+    /** The deterministic key that makes a day's post exist exactly once. */
+    public static function dailyPostKey(string $businessDate): string
+    {
+        return 'daily-post:' . $businessDate;
     }
 
     /** Reached a state no worker will move it out of. */
@@ -144,6 +192,11 @@ class TicketDiscordMessage extends Model
     /** A DM goes to a person; everything else goes to the channel or a thread. */
     public function isDirectMessage(): bool
     {
-        return in_array($this->type, [self::TYPE_ASSIGNED, self::TYPE_UNASSIGNED], true);
+        return in_array($this->type, [
+            self::TYPE_ASSIGNED,
+            self::TYPE_UNASSIGNED,
+            self::TYPE_SUBTASK_ASSIGNED,
+            self::TYPE_SUBTASK_UNASSIGNED,
+        ], true);
     }
 }
