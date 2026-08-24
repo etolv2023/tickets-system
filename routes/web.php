@@ -98,6 +98,31 @@ Route::prefix('portal')->name('portal.')->group(function () {
         ->name('attachment.thumb');
 });
 
+// TEMPORARY (2026-08-24) — manual verification routes for SlowRequestTimer.
+// Outside auth on purpose, purely to keep curl-based verification simple.
+// Removed immediately after verification.
+Route::get('/__diag/slow', function () {
+    sleep(4);
+
+    return 'slow-no-db';
+});
+Route::get('/__diag/slow-db', function () {
+    \Illuminate\Support\Facades\DB::select('SELECT SLEEP(4)');
+
+    return 'slow-db';
+});
+Route::get('/__diag/slow-fail', function () {
+    sleep(4);
+
+    throw new \RuntimeException('diag test exception');
+});
+Route::get('/__diag/slow-ticket/{ticket}', function (\App\Models\Ticket $ticket) {
+    sleep(4);
+
+    return 'slow-ticket-' . $ticket->id;
+});
+Route::get('/__diag/fast', fn () => 'fast');
+
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 

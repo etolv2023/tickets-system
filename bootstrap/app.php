@@ -6,6 +6,7 @@ use App\Http\Middleware\ForcePasswordChange;
 use App\Http\Middleware\PreventDuplicateSubmit;
 use App\Http\Middleware\QueryCount;
 use App\Http\Middleware\SecurityHeaders;
+use App\Http\Middleware\SlowRequestTimer;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -29,7 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // after auth, so it missed the query that loads the logged-in user and
         // every screen under-reported. Wrapping the whole pipeline is the only
         // way the number it prints is the number that actually ran.
-        $middleware->prepend([QueryCount::class]);
+        $middleware->prepend([QueryCount::class, SlowRequestTimer::class]);
 
         $middleware->web(append: [
             EnsureInstalled::class,

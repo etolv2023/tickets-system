@@ -73,6 +73,17 @@ return [
             'replace_placeholders' => true,
         ],
 
+        // TEMPORARY (2026-08-24) — see App\Http\Middleware\SlowRequestTimer.
+        // Remove this channel along with that middleware once the
+        // intermittent >60s ticket-action hang is diagnosed.
+        'slow_requests' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/slow-requests.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 7,
+            'replace_placeholders' => true,
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),
