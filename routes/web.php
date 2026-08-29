@@ -234,6 +234,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/github/without-branch', [GithubAuditController::class, 'index'])
         ->middleware('permission:github.audit')->name('github.missing');
 
+    // ★ (2026-08-29) "زامن دلوقتي" from the audit screen, so the list you are
+    // about to act on is not last night's. github.audit rather than
+    // settings.manage: reading with a read-only token changes nothing, and the
+    // person looking at the list is the one who needs it current.
+    Route::post('/github/sync', [GithubAuditController::class, 'sync'])
+        ->middleware('permission:github.audit')->name('github.sync');
+
     Route::get('/my-board', [BoardController::class, 'mine'])
         ->middleware('permission:worklog.manage')->name('board.mine');
     Route::get('/board', [BoardController::class, 'team'])
