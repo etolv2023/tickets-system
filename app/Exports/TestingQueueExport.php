@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Exports\Concerns\CachesSheets;
+use App\Exports\Concerns\ExportsDescriptions;
 use App\Exports\Sheets\ArraySheet;
 use App\Models\Role;
 use App\Models\Ticket;
@@ -22,7 +23,7 @@ use Maatwebsite\Excel\Concerns\WithMultipleSheets;
  */
 class TestingQueueExport implements WithMultipleSheets
 {
-    use Exportable, CachesSheets;
+    use Exportable, CachesSheets, ExportsDescriptions;
 
     public function __construct(private readonly User $tester)
     {
@@ -51,6 +52,7 @@ class TestingQueueExport implements WithMultipleSheets
                 'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type',
                 'priority', 'status', 'reported_at', 'sla_due_at',
             ])
+            ->selectRaw($this->descriptionSelect('description'))
             ->with([
                 'company:id,name', 'requester:id,name',
                 // The developers to talk to — everyone who logged work on it.
@@ -65,7 +67,7 @@ class TestingQueueExport implements WithMultipleSheets
 
         return new ArraySheet(
             'طابوري',
-            ['رقم التذكرة', 'العنوان', 'الجهة الطالبة', 'النوع', 'الأولوية', 'الحالة', 'اللي اشتغل عليها', 'تاريخ الفتح', 'مهلة SLA'],
+            ['رقم التذكرة', 'العنوان', 'الجهة الطالبة', 'النوع', 'الأولوية', 'الحالة', 'اللي اشتغل عليها', 'تاريخ الفتح', 'مهلة SLA', 'الوصف'],
             $rows->map(fn ($t) => $this->row($t, [
                 $t->workLogs->map(fn ($w) => $w->user?->name)->filter()->unique()->implode('، '),
             ]))->all(),
@@ -76,6 +78,7 @@ class TestingQueueExport implements WithMultipleSheets
     {
         $rows = Ticket::query()
             ->select(['id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'priority', 'status', 'reported_at', 'sla_due_at'])
+            ->selectRaw($this->descriptionSelect('description'))
             ->with('company:id,name', 'requester:id,name')
             ->where('status', 'dev_done')
             ->whereDoesntHave('roleAssignments', fn ($q) => $q->whereIn('role_id', $testerRoleIds))
@@ -85,7 +88,7 @@ class TestingQueueExport implements WithMultipleSheets
 
         return new ArraySheet(
             'من غير تيستر',
-            ['رقم التذكرة', 'العنوان', 'الجهة الطالبة', 'النوع', 'الأولوية', 'الحالة', 'تاريخ الفتح', 'مهلة SLA'],
+            ['رقم التذكرة', 'العنوان', 'الجهة الطالبة', 'النوع', 'الأولوية', 'الحالة', 'تاريخ الفتح', 'مهلة SLA', 'الوصف'],
             $rows->map(fn ($t) => $this->row($t))->all(),
         );
     }
@@ -101,6 +104,7 @@ class TestingQueueExport implements WithMultipleSheets
             [
                 $t->reported_at?->timezone($tz)->format('Y-m-d H:i'),
                 $t->sla_due_at?->timezone($tz)->format('Y-m-d H:i'),
+                $this->plainDescription($t->description_excerpt),
             ],
         );
     }

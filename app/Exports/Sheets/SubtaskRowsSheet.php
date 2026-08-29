@@ -2,6 +2,7 @@
 
 namespace App\Exports\Sheets;
 
+use App\Exports\Concerns\ExportsDescriptions;
 use App\Exports\Concerns\SanitizesCells;
 use App\Models\TicketSubtask;
 use Maatwebsite\Excel\Concerns\FromQuery;
@@ -18,7 +19,7 @@ use Maatwebsite\Excel\Concerns\WithTitle;
  */
 class SubtaskRowsSheet implements FromQuery, WithHeadings, WithMapping, WithTitle, ShouldAutoSize, WithStrictNullComparison
 {
-    use SanitizesCells;
+    use SanitizesCells, ExportsDescriptions;
 
     /** @param array<string, mixed> $filters keys TicketSubtask::scopeFilter understands */
     public function __construct(
@@ -34,6 +35,7 @@ class SubtaskRowsSheet implements FromQuery, WithHeadings, WithMapping, WithTitl
                 'id', 'ticket_id', 'title', 'assignee_id', 'side', 'role_id', 'status',
                 'start_date', 'due_date', 'estimated_hours', 'spent_hours', 'points', 'completed_at',
             ])
+            ->selectRaw($this->descriptionSelect('description'))
             ->with([
                 'assignee:id,name',
                 'role:id,name_ar',
@@ -51,7 +53,7 @@ class SubtaskRowsSheet implements FromQuery, WithHeadings, WithMapping, WithTitl
             'رقم التذكرة', 'عنوان التذكرة', 'الجهة الطالبة', 'نوع التذكرة',
             'الصب تاسك', 'المسؤول', 'الجهة / الدور', 'الحالة',
             'البداية', 'الاستحقاق', 'تاريخ الإنجاز',
-            'المقدّر (س)', 'الفعلي (س)', 'النقاط',
+            'المقدّر (س)', 'الفعلي (س)', 'النقاط', 'وصف الصب تاسك',
         ];
     }
 
@@ -74,6 +76,7 @@ class SubtaskRowsSheet implements FromQuery, WithHeadings, WithMapping, WithTitl
             $s->estimated_hours === null ? null : (float) $s->estimated_hours,
             (float) $s->spent_hours,
             $s->points === null ? null : (float) $s->points,
+            $this->plainDescription($s->description_excerpt),
         ]);
     }
 

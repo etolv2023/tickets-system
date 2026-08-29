@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Exports\Concerns\CachesSheets;
+use App\Exports\Concerns\ExportsDescriptions;
 use App\Exports\Sheets\ArraySheet;
 use App\Models\Company;
 use App\Models\Ticket;
@@ -25,7 +26,7 @@ use Maatwebsite\Excel\Concerns\WithMultipleSheets;
  */
 class SearchExport implements WithMultipleSheets
 {
-    use Exportable, CachesSheets;
+    use Exportable, CachesSheets, ExportsDescriptions;
 
     public function __construct(
         private readonly User $user,
@@ -48,6 +49,7 @@ class SearchExport implements WithMultipleSheets
     {
         $rows = Ticket::query()
             ->select(['id', 'ticket_number', 'title', 'company_id', 'requested_by', 'type', 'priority', 'status'])
+            ->selectRaw($this->descriptionSelect('description'))
             ->with('company:id,name', 'requester:id,name')
             ->whereFullText(['title', 'description'], $this->term)
             ->visibleTo($this->user)
@@ -56,7 +58,7 @@ class SearchExport implements WithMultipleSheets
 
         return new ArraySheet(
             'التذاكر',
-            ['رقم التذكرة', 'العنوان', 'الجهة الطالبة', 'النوع', 'الأولوية', 'الحالة'],
+            ['رقم التذكرة', 'العنوان', 'الجهة الطالبة', 'النوع', 'الأولوية', 'الحالة', 'الوصف'],
             $rows->map(fn ($t) => [
                 $t->ticket_number,
                 $t->title,
@@ -64,6 +66,7 @@ class SearchExport implements WithMultipleSheets
                 $t->type->label(),
                 $t->priority->label(),
                 $t->status->label(),
+                $this->plainDescription($t->description_excerpt),
             ])->all(),
         );
     }

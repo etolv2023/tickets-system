@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\ExportsDescriptions;
 use App\Exports\Concerns\SanitizesCells;
 use App\Models\PointTransaction;
 use Maatwebsite\Excel\Concerns\Exportable;
@@ -26,7 +27,7 @@ use Maatwebsite\Excel\Concerns\WithTitle;
  */
 class PointsLedgerExport implements FromQuery, WithHeadings, WithMapping, WithTitle, ShouldAutoSize, WithStrictNullComparison
 {
-    use Exportable, SanitizesCells;
+    use Exportable, SanitizesCells, ExportsDescriptions;
 
     /** @param array<string, mixed> $filters */
     public function __construct(private readonly array $filters = [])
@@ -38,10 +39,16 @@ class PointsLedgerExport implements FromQuery, WithHeadings, WithMapping, WithTi
         return PointTransaction::query()
             ->with([
                 'user:id,name,role_id', 'user.role:id,name_ar',
-                'ticket:id,ticket_number,title,type,company_id,requested_by',
+                // A closure, not a column list: the description needs a
+                // bounded raw select and the string form cannot express one.
+                'ticket' => fn ($q) => $q
+                    ->select(['id', 'ticket_number', 'title', 'type', 'company_id', 'requested_by'])
+                    ->selectRaw($this->descriptionSelect('description')),
                 'ticket.company:id,name',
                 'ticket.requester:id,name',
-                'subtask:id,title',
+                'subtask' => fn ($q) => $q
+                    ->select(['id', 'title'])
+                    ->selectRaw($this->descriptionSelect('description')),
                 'creator:id,name',
                 // A role-based row's side is null; this is the fallback.
                 'role:id,name_ar',
@@ -57,6 +64,7 @@ class PointsLedgerExport implements FromQuery, WithHeadings, WithMapping, WithTi
             'التاريخ', 'الشهر', 'الموظف', 'دور الموظف',
             'رقم التذكرة', 'عنوان التذكرة', 'الجهة الطالبة', 'نوع التذكرة',
             'الصب تاسك', 'الجهة / الدور', 'المصدر', 'اللي عمل التصحيح', 'السبب', 'النقاط',
+            'وصف التذكرة', 'وصف الصب تاسك',
         ];
     }
 
@@ -82,6 +90,8 @@ class PointsLedgerExport implements FromQuery, WithHeadings, WithMapping, WithTi
             $row->type === 'correction' ? $row->creator?->name : null,
             $row->reason,
             (float) $row->points,
+            $this->plainDescription($row->ticket?->description_excerpt),
+            $this->plainDescription($row->subtask?->description_excerpt),
         ]);
     }
 

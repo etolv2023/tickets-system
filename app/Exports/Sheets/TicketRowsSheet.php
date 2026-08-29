@@ -2,6 +2,7 @@
 
 namespace App\Exports\Sheets;
 
+use App\Exports\Concerns\ExportsDescriptions;
 use App\Exports\Concerns\SanitizesCells;
 use App\Models\Ticket;
 use Maatwebsite\Excel\Concerns\FromQuery;
@@ -23,7 +24,7 @@ use Maatwebsite\Excel\Concerns\WithTitle;
  */
 class TicketRowsSheet implements FromQuery, WithHeadings, WithMapping, WithTitle, ShouldAutoSize, WithStrictNullComparison
 {
-    use SanitizesCells;
+    use SanitizesCells, ExportsDescriptions;
 
     /** @param array<string, mixed> $filters keys Ticket::scopeFilter understands */
     public function __construct(
@@ -40,6 +41,7 @@ class TicketRowsSheet implements FromQuery, WithHeadings, WithMapping, WithTitle
                 'status', 'reported_at', 'sla_due_at', 'due_date', 'resolved_at',
                 'original_estimate_hours', 'spent_hours', 'subtasks_total', 'subtasks_done',
             ])
+            ->selectRaw($this->descriptionSelect('description'))
             ->with([
                 'company:id,name', 'requester:id,name',
                 'roleAssignments.role:id,name_ar', 'roleAssignments.user:id,name',
@@ -53,7 +55,7 @@ class TicketRowsSheet implements FromQuery, WithHeadings, WithMapping, WithTitle
         return [
             'رقم التذكرة', 'العنوان', 'الجهة الطالبة', 'النوع', 'الأولوية', 'الحالة', 'التوزيع',
             'تاريخ الفتح', 'مهلة SLA', 'تاريخ الاستحقاق', 'تاريخ الحل',
-            'المقدّر (س)', 'الفعلي (س)', 'صب تاسكس',
+            'المقدّر (س)', 'الفعلي (س)', 'صب تاسكس', 'الوصف',
         ];
     }
 
@@ -77,6 +79,7 @@ class TicketRowsSheet implements FromQuery, WithHeadings, WithMapping, WithTitle
             $t->original_estimate_hours === null ? null : (float) $t->original_estimate_hours,
             (float) $t->spent_hours,
             $t->subtasks_total > 0 ? "{$t->subtasks_done}/{$t->subtasks_total}" : null,
+            $this->plainDescription($t->description_excerpt),
         ]);
     }
 

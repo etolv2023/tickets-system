@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\ExportsDescriptions;
 use App\Exports\Concerns\SanitizesCells;
 use App\Models\PointTransaction;
 use App\Models\User;
@@ -25,7 +26,7 @@ use Maatwebsite\Excel\Concerns\WithTitle;
  */
 class MyPointsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, ShouldAutoSize, WithStrictNullComparison
 {
-    use Exportable, SanitizesCells;
+    use Exportable, SanitizesCells, ExportsDescriptions;
 
     public function __construct(
         private readonly User $user,
@@ -37,10 +38,16 @@ class MyPointsExport implements FromQuery, WithHeadings, WithMapping, WithTitle,
     {
         return PointTransaction::query()
             ->with([
-                'ticket:id,ticket_number,title,type,company_id,requested_by',
+                // A closure, not a column list: the description needs a
+                // bounded raw select and the string form cannot express one.
+                'ticket' => fn ($q) => $q
+                    ->select(['id', 'ticket_number', 'title', 'type', 'company_id', 'requested_by'])
+                    ->selectRaw($this->descriptionSelect('description')),
                 'ticket.company:id,name',
                 'ticket.requester:id,name',
-                'subtask:id,title',
+                'subtask' => fn ($q) => $q
+                    ->select(['id', 'title'])
+                    ->selectRaw($this->descriptionSelect('description')),
                 'role:id,name_ar',
             ])
             ->where('user_id', $this->user->id)
@@ -53,6 +60,7 @@ class MyPointsExport implements FromQuery, WithHeadings, WithMapping, WithTitle,
         return [
             'التاريخ', 'الشهر', 'رقم التذكرة', 'عنوان التذكرة', 'الجهة الطالبة',
             'نوع التذكرة', 'الصب تاسك', 'الجهة / الدور', 'المصدر', 'السبب', 'النقاط',
+            'وصف التذكرة', 'وصف الصب تاسك',
         ];
     }
 
@@ -71,6 +79,8 @@ class MyPointsExport implements FromQuery, WithHeadings, WithMapping, WithTitle,
             $row->kindLabel(),
             $row->reason,
             (float) $row->points,
+            $this->plainDescription($row->ticket?->description_excerpt),
+            $this->plainDescription($row->subtask?->description_excerpt),
         ]);
     }
 

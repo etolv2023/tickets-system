@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\ExportsDescriptions;
 use App\Exports\Concerns\SanitizesCells;
 use App\Models\Ticket;
 use Maatwebsite\Excel\Concerns\Exportable;
@@ -21,7 +22,7 @@ use Maatwebsite\Excel\Concerns\WithTitle;
  */
 class ApprovalsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, ShouldAutoSize, WithStrictNullComparison
 {
-    use Exportable, SanitizesCells;
+    use Exportable, SanitizesCells, ExportsDescriptions;
 
     /** @param array<string, mixed> $filters the screen's assignee/relation pair */
     public function __construct(private readonly array $filters = [])
@@ -35,7 +36,7 @@ class ApprovalsExport implements FromQuery, WithHeadings, WithMapping, WithTitle
                 'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type',
                 'priority', 'status', 'reported_at', 'sla_due_at', 'created_by',
             ])
-            ->selectRaw('LEFT(description, 1000) AS description_excerpt')
+            ->selectRaw($this->descriptionSelect('description'))
             ->with(['company:id,name', 'requester:id,name', 'creator:id,name'])
             ->where('approval_status', 'pending')
             // The same people filter the screen offers (2026-08-02).
@@ -46,7 +47,7 @@ class ApprovalsExport implements FromQuery, WithHeadings, WithMapping, WithTitle
 
     public function headings(): array
     {
-        return ['رقم التذكرة', 'العنوان', 'الجهة الطالبة', 'النوع', 'الأولوية', 'اللي فتحها', 'تاريخ الفتح', 'مهلة SLA', 'من الوصف'];
+        return ['رقم التذكرة', 'العنوان', 'الجهة الطالبة', 'النوع', 'الأولوية', 'اللي فتحها', 'تاريخ الفتح', 'مهلة SLA', 'الوصف'];
     }
 
     /** @param Ticket $t */
@@ -63,7 +64,7 @@ class ApprovalsExport implements FromQuery, WithHeadings, WithMapping, WithTitle
             $t->creator?->name,
             $t->reported_at?->timezone($tz)->format('Y-m-d H:i'),
             $t->sla_due_at?->timezone($tz)->format('Y-m-d H:i'),
-            $t->descriptionExcerpt(500),
+            $this->plainDescription($t->description_excerpt),
         ]);
     }
 
