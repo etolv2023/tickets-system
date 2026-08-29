@@ -92,6 +92,33 @@ fi
 echo "==> database migrations"
 php artisan migrate --force
 
+# ★ (2026-08-29) The permission list, re-seeded on every deploy.
+#
+# Added because a shipped feature was invisible in production and looked like a
+# bug in the feature: F27 and the point-correction buttons both introduced new
+# permission keys, the deploy ran migrate and nothing else, so the rows never
+# reached the `permissions` table. There is no superadmin bypass in this system
+# — hasPermission() reads explicit permission_role rows — so with no row,
+# @can() is false for everybody INCLUDING the admin, and the key does not even
+# appear on /admin/roles to be granted, because that screen lists the same
+# table. The feature is deployed and unreachable, with nothing on screen saying
+# why.
+#
+# Safe to run on every deploy: PermissionSeeder is updateOrCreate over the
+# `permissions` table alone. It adds keys and refreshes their Arabic names, and
+# it touches NO role assignment, so nothing an administrator has configured
+# through /admin/roles is affected.
+#
+# ⚠ RoleSeeder is deliberately NOT run here, and must not be added. It calls
+# syncPermissions() on every role, which would reset all of them to the seeded
+# defaults and silently discard every permission change made in production
+# since install.
+#
+# Granting a NEW key still has to be done by hand at /admin/roles — by design:
+# a deploy should make a permission grantable, never grant it.
+echo "==> permission list (adds new keys; never touches role assignments)"
+php artisan db:seed --class=PermissionSeeder --force
+
 echo "==> storage symlink (safe to re-run — no-ops if it already exists)"
 php artisan storage:link || true
 
