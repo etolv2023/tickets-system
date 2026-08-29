@@ -50,6 +50,8 @@ class GitHubSyncService
     public function syncRepository(GithubRepository $repo): array
     {
         try {
+            $this->refreshDefaultBranch($repo);
+
             $stats = $this->syncBranches($repo) + $this->syncPullRequests($repo);
 
             $repo->forceFill(['last_synced_at' => now(), 'last_sync_error' => null])->save();
@@ -163,6 +165,34 @@ class GitHubSyncService
             DB::table('tickets')
                 ->whereIn('id', $group->keys()->all())
                 ->update(['branches_count' => (int) $count]);
+        }
+    }
+
+    /**
+     * ★ (2026-08-29) Take the default branch from GitHub rather than from what
+     * somebody typed when the row was created.
+     *
+     * The seeded rows all said `main`; every one of these four repositories
+     * actually defaults to `production`. Nothing broke — the sync never reads
+     * this column — but the admin screen printed a branch name that was simply
+     * untrue, and a field that is wrong and harmless today is a field somebody
+     * builds on tomorrow.
+     *
+     * One extra request per repository per sync, which is once a night.
+     *
+     * It is allowed to throw, and that is deliberate — it is the FIRST call the
+     * sync makes, so a dead token or a repository the token cannot see fails
+     * here, with a message about that repository, before any branch work starts.
+     * syncRepository() catches it and writes it onto the row. A 404 comes back
+     * as null instead and simply leaves the stored name alone.
+     */
+    private function refreshDefaultBranch(GithubRepository $repo): void
+    {
+        $remote = $this->github->repository($repo);
+        $branch = $remote['default_branch'] ?? null;
+
+        if (filled($branch) && $branch !== $repo->default_branch) {
+            $repo->forceFill(['default_branch' => $branch])->save();
         }
     }
 

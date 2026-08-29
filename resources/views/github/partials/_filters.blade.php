@@ -11,7 +11,7 @@
      would mean a partial full of @if($screen === …), which is worse than two
      honest files. --}}
 
-<form method="GET" action="{{ route('github.missing') }}" class="filters">
+<form method="GET" action="{{ route('github.branches') }}" class="filters">
     <div class="filters__bar">
         <input
             type="search"
@@ -24,7 +24,7 @@
         <x-button variant="secondary">فلترة</x-button>
 
         @if (array_filter(\Illuminate\Support\Arr::except($filters, ['date_basis'])))
-            <x-button variant="ghost" :href="route('github.missing')">مسح</x-button>
+            <x-button variant="ghost" :href="route('github.branches')">مسح</x-button>
         @endif
 
         {{-- «زامن دلوقتي» is NOT here. It is a POST, this is a GET, and HTML has
@@ -33,6 +33,15 @@
     </div>
 
     <div class="filters__narrow">
+        {{-- ★ (2026-08-29) The question itself, first: ملهاش / ليها / الكل.
+             Blank stays «ملهاش برانش» — the blank state of this screen is the
+             question it was built to answer. --}}
+        <select name="branch" class="select" aria-label="البرانش">
+            @foreach ($branchModes as $value => $label)
+                <option value="{{ $value }}" @selected($mode === $value)>{{ $label }}</option>
+            @endforeach
+        </select>
+
         {{-- Blank means "اتقفلت" here, not "everything": the default state of
              this screen is the question it exists to answer. --}}
         <select name="status" class="select" aria-label="الحالة">
@@ -44,14 +53,16 @@
             @endforeach
         </select>
 
-        {{-- «ملهاش برانش في الباك اند» is a different question from «ملهاش
-             برانش خالص», and on a team split across a backend repo and three
-             frontends it is usually the more useful one. --}}
+        {{-- Scopes the question above to one repository: «ملهاش برانش في الباك
+             اند» is a different question from «ملهاش برانش خالص», and on a team
+             split across a backend repo and three frontends it is usually the
+             more useful one. The wording follows the mode so the two selects
+             read as one sentence rather than contradicting each other. --}}
         <select name="repo" class="select" aria-label="الريبو">
-            <option value="">ملهاش برانش في أي ريبو</option>
+            <option value="">في أي ريبو</option>
             @foreach ($repositories as $repository)
                 <option value="{{ $repository->id }}" @selected((int) ($filters['repo'] ?? 0) === $repository->id)>
-                    ملهاش برانش في {{ $repository->name }}
+                    في {{ $repository->name }}
                 </option>
             @endforeach
         </select>

@@ -29,6 +29,17 @@
         <x-badge :variant="$ticket->status->variant()">{{ $ticket->status->label() }}</x-badge>
     </td>
 
+    {{-- ★ (2026-08-29) Needed once the screen can show tickets that DO have a
+         branch: without it, "ليها برانش" is a list you have to take on trust.
+         The total across every repository, even when the filter names one. --}}
+    <td class="table__cell--num u-mono">
+        @if ($ticket->branches_count > 0)
+            {{ $ticket->branches_count }}
+        @else
+            <span class="u-subtle">—</span>
+        @endif
+    </td>
+
     <td class="u-mono table__cell--muted">
         {{ $ticket->resolved_at?->timezone(config('app.display_timezone'))->translatedFormat('j M Y') ?? '—' }}
     </td>

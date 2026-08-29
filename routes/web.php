@@ -232,8 +232,11 @@ Route::middleware('auth')->group(function () {
     // under /admin: a team manager holds github.audit without being an admin,
     // and the screen is a report, not a setting. Row-filtered by visibleTo()
     // inside the controller like every other ticket list.
-    Route::get('/github/without-branch', [GithubAuditController::class, 'index'])
-        ->middleware('permission:github.audit')->name('github.missing');
+    // ★ (2026-08-29) Was /github/without-branch. The screen filters both ways
+    // now — «ليها برانش» is the same data read from the other side — so a URL
+    // that names only one of its answers had stopped being true.
+    Route::get('/github/branches', [GithubAuditController::class, 'index'])
+        ->middleware('permission:github.audit')->name('github.branches');
 
     // ★ (2026-08-29) "زامن دلوقتي" from the audit screen, so the list you are
     // about to act on is not last night's. github.audit rather than

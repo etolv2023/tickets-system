@@ -27,28 +27,28 @@ class GithubRepositorySeeder extends Seeder
             'owner' => 'etolv2023',
             'repo' => 'trioapi',
             'side' => SubtaskSide::Backend,
-            'default_branch' => 'main',
+            'default_branch' => 'production',
         ],
         [
             'name' => 'بورتال السفر v3',
             'owner' => 'etolv2023',
             'repo' => 'travel_portal_v3',
             'side' => SubtaskSide::Frontend,
-            'default_branch' => 'main',
+            'default_branch' => 'production',
         ],
         [
             'name' => 'بورتال السفر v4',
             'owner' => 'etolv2023',
             'repo' => 'travel_portal_v4',
             'side' => SubtaskSide::Frontend,
-            'default_branch' => 'main',
+            'default_branch' => 'production',
         ],
         [
             'name' => 'حسابات السفر',
             'owner' => 'etolv2023',
             'repo' => 'travel-accounting',
             'side' => SubtaskSide::Frontend,
-            'default_branch' => 'main',
+            'default_branch' => 'production',
         ],
     ];
 
@@ -60,9 +60,11 @@ class GithubRepositorySeeder extends Seeder
                 [
                     'name' => $repository['name'],
                     'side' => $repository['side']->value,
-                    // The real default branch is read back on the first sync;
-                    // this is only the guess used until then. If it is wrong the
-                    // admin screen is where it gets fixed.
+                    // ★ (2026-08-29) Only the value shown until the first sync
+                    // — GitHubSyncService::refreshDefaultBranch() then replaces
+                    // it with the truth. It was `main` here and every one of
+                    // these repositories actually defaults to `production`,
+                    // which is exactly why nothing should trust this guess.
                     'default_branch' => $repository['default_branch'],
                     'is_active' => true,
                     'position' => $position,

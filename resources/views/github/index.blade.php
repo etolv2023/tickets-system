@@ -1,15 +1,16 @@
 @extends('layouts.app')
 
-@section('title', 'تذاكر من غير برانش')
+@section('title', 'برانشات التذاكر')
 
 @section('content')
     <div class="page">
         <div class="page__head">
             <div>
-                <h1 class="page-title">تذاكر من غير برانش</h1>
+                <h1 class="page-title">برانشات التذاكر</h1>
                 <p class="page-subtitle">
-                    تذاكر مفيش ولا برانش في أي ريبو اسمه بيبدأ برقمها.
-                    الافتراضي هو <strong>اللي اتقفلت</strong> — غيّر فلتر الحالة لو عايز تشوف الشغل المفتوح كمان.
+                    أنهي تذاكر ليها كود وراها وأنهي لأ — المطابقة بالبرانش اللي اسمه بيبدأ برقم التذكرة.
+                    <br>
+                    الافتراضي هو <strong>اللي اتقفلت وملهاش برانش</strong>؛ غيّر أول فلترين لو عايز تقلب السؤال.
                 </p>
             </div>
 
@@ -19,8 +20,10 @@
                      Both numbers follow the filters, so they always describe the
                      same rows you are looking at. --}}
                 <div class="gh-score">
-                    <span class="gh-score__value u-mono">{{ number_format($missingCount) }}</span>
-                    <span class="gh-score__label">من {{ number_format($totalCount) }} تذكرة</span>
+                    <span class="gh-score__value u-mono">{{ number_format($matchedCount) }}</span>
+                    <span class="gh-score__label">
+                        {{ $modeLabel }} · من {{ number_format($totalCount) }} تذكرة
+                    </span>
                 </div>
 
                 {{-- Its own form, outside the filter bar: that one is a GET and
@@ -55,8 +58,8 @@
         <x-card flush>
             @if ($tickets->isEmpty())
                 <div class="blank">
-                    <p class="blank__title">مفيش ولا تذكرة من غير برانش.</p>
-                    <p class="blank__body">كل تذكرة داخلة في الفلاتر دي ليها برانش على جيت هب.</p>
+                    <p class="blank__title">مفيش تذاكر بالفلاتر دي.</p>
+                    <p class="blank__body">جرّب تغيّر فلتر البرانش أو الحالة.</p>
                 </div>
             @else
                 <div class="table-wrap">
@@ -68,6 +71,7 @@
                                 <th>النوع</th>
                                 <th>الأولوية</th>
                                 <th>الحالة</th>
+                                <th class="table__cell--num">برانشات</th>
                                 <th>اتحلت</th>
                                 <th>مين شغّال عليها</th>
                             </tr>

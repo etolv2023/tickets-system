@@ -217,6 +217,24 @@ class GitHubClient
                 return;
             }
         }
+
+        /*
+         * ★ (2026-08-29) Reaching the cap with a FULL last page means there is
+         * more and we stopped anyway. That used to return quietly, and the first
+         * real sync came back with exactly 1000 branches on trioapi — the cap,
+         * read as a count. Every branch past it was invisible, so every ticket
+         * whose branch lived there was reported as having no code behind it.
+         *
+         * Refusing is the right answer, not truncating. A sync that fails leaves
+         * yesterday's data and says why on the repository row; a sync that
+         * silently returns half the branches produces confident, wrong
+         * accusations about people's work, and nothing on any screen looks off.
+         */
+        throw new RuntimeException(
+            'الريبو ده فيه أكتر من ' . ($max * self::PER_PAGE) . ' صف على ' . $path
+            . ' — الحد الحالي (GITHUB_MAX_PAGES=' . $max . ') مش كفاية، وقراءة ناقصة معناها '
+            . 'تذاكر تبان من غير برانش وهي ليها. ارفع الحد وشغّل المزامنة تاني.'
+        );
     }
 
     /**

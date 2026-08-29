@@ -42,12 +42,31 @@ class GithubAuditController extends Controller
     /** The status filter value that means "do not narrow by status at all". */
     private const STATUS_ALL = 'all';
 
+    /**
+     * ★ (2026-08-29) The screen answers three questions now, not one.
+     *
+     * It started as «اتقفلت من غير برانش» — the accusation-shaped question, and
+     * still the default. But «أنهي تذاكر ليها برانش فعلاً» is the same data read
+     * the other way, and «الكل» is how you see the ratio. One column, one WHERE.
+     */
+    public const BRANCH_MODES = [
+        'none' => 'ملهاش برانش',
+        'has' => 'ليها برانش',
+        'all' => 'الكل — ببرانش ومن غيره',
+    ];
+
     public function index(Request $request): View
     {
         $filters = $request->only(
             'q', 'status', 'type', 'priority', 'company', 'assignee', 'relation',
-            'from', 'to', 'date_basis', 'repo',
+            'from', 'to', 'date_basis', 'repo', 'branch',
         );
+
+        // Blank means «ملهاش برانش»: the blank state of this screen stays the
+        // question it was built to answer.
+        $mode = array_key_exists($filters['branch'] ?? '', self::BRANCH_MODES)
+            ? $filters['branch']
+            : 'none';
 
         // resolved_at rather than reported_at: on this screen a date range means
         // "work delivered in this window", not "tickets opened in it".
@@ -67,7 +86,7 @@ class GithubAuditController extends Controller
             ->tap(fn (Builder $q) => $this->applyStatus($q, $filters['status'] ?? null))
             // status is applied above; everything else is the same filter set
             // /tickets uses, so the two screens cannot drift apart.
-            ->filter(Arr::except($filters, ['status', 'repo']));
+            ->filter(Arr::except($filters, ['status', 'repo', 'branch']));
 
         $tickets = $population()
             // No description: LONGTEXT on a 25-row list (CLAUDE.md § 4.3).
@@ -79,19 +98,23 @@ class GithubAuditController extends Controller
                 'company:id,name',
                 'roleAssignments.user:id,name,avatar_path,is_active',
             ])
-            ->tap(fn (Builder $q) => $this->applyMissing($q, $repo))
+            ->tap(fn (Builder $q) => $this->applyBranchMode($q, $repo, $mode))
             ->orderByDesc('resolved_at')
             ->orderByDesc('id')
             ->paginate(25)
             ->withQueryString();
 
-        return view('github.missing', [
+        return view('github.index', [
             'tickets' => $tickets,
             'filters' => $filters,
+            'mode' => $mode,
+            'modeLabel' => self::BRANCH_MODES[$mode],
+            'branchModes' => self::BRANCH_MODES,
             // The denominator. "31" alone says nothing; "31 من 402" says
-            // whether this is a habit or a slip.
+            // whether this is a habit or a slip. Both follow the filters, so
+            // they always describe the same rows.
             'totalCount' => $population()->count(),
-            'missingCount' => $tickets->total(),
+            'matchedCount' => $tickets->total(),
             'repositories' => GithubRepository::activeList(),
             'selectedRepo' => $repo?->name,
             'statuses' => TicketStatusDefinition::options(),
@@ -159,23 +182,33 @@ class GithubAuditController extends Controller
     }
 
     /**
-     * "No branch" — either nowhere at all, or not in one named repository.
+     * Has a branch, has none, or do not ask — optionally scoped to one repo.
      *
-     * Without a repository this reads the counter column, which is why the
-     * unfiltered screen is one indexed WHERE over the whole ticket table
-     * (CLAUDE.md § 4.6). With one, it has to be a NOT EXISTS, because
+     * Without a repository the "none" case reads the counter column, which is
+     * why the unfiltered screen is one indexed WHERE over the whole ticket table
+     * (CLAUDE.md § 4.6). With one, it has to be an EXISTS, because
      * branches_count cannot say WHICH repository the branches were in — that is
-     * the price of the counter and it is only paid on a narrowed view.
+     * the price of the counter, and it is only paid on a narrowed view.
      */
-    private function applyMissing(Builder $query, ?GithubRepository $repo): void
+    private function applyBranchMode(Builder $query, ?GithubRepository $repo, string $mode): void
     {
+        if ($mode === 'all') {
+            return;
+        }
+
         if ($repo === null) {
-            $query->withoutBranch();
+            $mode === 'has'
+                ? $query->where('branches_count', '>', 0)
+                : $query->withoutBranch();
 
             return;
         }
 
-        $query->whereDoesntHave('branches', fn ($b) => $b->where('github_repository_id', $repo->id));
+        $inRepo = fn ($b) => $b->where('github_repository_id', $repo->id);
+
+        $mode === 'has'
+            ? $query->whereHas('branches', $inRepo)
+            : $query->whereDoesntHave('branches', $inRepo);
     }
 
     /** The chosen repository, from the cached map — never a query. */

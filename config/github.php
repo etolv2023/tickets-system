@@ -54,10 +54,28 @@ return [
     'timeout' => (int) env('GITHUB_TIMEOUT', 15),
 
     /*
-     * A sync walks pages of 100. The cap is a runaway guard, not a limit anyone
-     * should reach: 10 pages is 1000 branches in a single repository.
+     * A sync walks pages of 100 until GitHub returns a short page. That is what
+     * ends the walk — not this number.
+     *
+     * ★ (2026-08-29) This was 10, and the first real sync came back with EXACTLY
+     * 1000 branches and EXACTLY 1000 pull requests on trioapi. That is not a
+     * count, it is 10 × 100: the walk was cut off and the rest was never read.
+     * A branch that is never read is a ticket reported as «ملهاش برانش» when it
+     * has one — a false accusation produced by the feature built to prevent
+     * false accusations.
+     *
+     * So this is a runaway guard against a broken pagination loop, and NOT a
+     * working limit. 1000 pages is 100,000 rows in one repository; no real
+     * repository reaches it, and one that does should be looked at rather than
+     * quietly halved. Hitting it now raises instead of truncating — see
+     * GitHubClient::pages().
+     *
+     * The limit that actually binds at scale is GitHub's, not this: a PAT gets
+     * 5,000 requests an hour, which is ~500,000 rows. If a repository ever grows
+     * past what one nightly pass can read inside that budget, the answer is
+     * webhooks — being told what changed — not a bigger number here.
      */
-    'max_pages' => (int) env('GITHUB_MAX_PAGES', 10),
+    'max_pages' => (int) env('GITHUB_MAX_PAGES', 1000),
 
     /*
     |--------------------------------------------------------------------------
