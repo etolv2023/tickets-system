@@ -1,0 +1,21 @@
+/*
+ * A line of standing guidance between blocks — «شغّل الأمر ده»، «فيه حاجة ناقصة».
+ *
+ * ★ (2026-08-29) Was .gh-note in features/github.css. It turned up on a third
+ * screen (المهام المجدولة) and a class prefixed gh- on a page that has nothing
+ * to do with GitHub is a lie about where it belongs (CLAUDE.md § 3 — a pattern
+ * used twice is a component).
+ *
+ * NOT components/help-note.css: that one is a <details> with a summary and a
+ * fold, for help that hangs off a single field. This is a paragraph that is
+ * always visible and belongs to the page.
+ */
+.note {
+    margin-block: var(--space-4);
+    padding: var(--space-3);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius);
+    background: var(--surface-2);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+}

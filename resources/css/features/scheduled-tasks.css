@@ -1,0 +1,97 @@
+/*
+ * ★ (2026-08-29) /admin/scheduled-tasks — the cron jobs.
+ *
+ * Cards, not a table: each task carries a five-field editor, and five editable
+ * fields do not survive a table cell on a phone. Same reasoning as the GitHub
+ * repository list.
+ */
+
+.cron-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.cron-head__name {
+    font-weight: var(--weight-bold);
+}
+
+/* The artisan key. A code — monospace and LTR from the utilities on the
+   element; the size and colour are what say "this is the machine's name for it,
+   not yours". */
+.cron-head__key {
+    font-size: var(--text-xs);
+    color: var(--text-subtle);
+}
+
+/* Schedule · next run · last run, on one wrapping line. Tabular so the times
+   line up between cards. */
+.cron-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.cron-facts strong {
+    color: var(--text);
+    font-weight: var(--weight-medium);
+}
+
+/* Native <details>, so the last run's output opens with no JavaScript. Closed
+   by default: it is a wall of command output and it is read once, on the day
+   something broke. */
+.cron-output__summary {
+    cursor: pointer;
+    font-size: var(--text-sm);
+    color: var(--action);
+    list-style: none;
+}
+
+.cron-output__summary::-webkit-details-marker {
+    display: none;
+}
+
+.cron-output__body {
+    margin-block-start: var(--space-2);
+    padding: var(--space-3);
+    border-radius: var(--radius);
+    background: var(--inverse-surface);
+    color: var(--inverse-text);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: var(--leading-normal);
+    /* Command output is wide and must scroll inside its own box rather than
+       push the page sideways (CLAUDE.md § 6, الموبايل). */
+    overflow-x: auto;
+    white-space: pre;
+    max-block-size: 18rem;
+    overflow-y: auto;
+}
+
+/* The switch, the warning and the save button share the last line, so what you
+   toggle and what commits it are never separated. */
+.cron-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+}
+
+.cron-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.cron-foot__warn {
+    font-size: var(--text-xs);
+    color: var(--c-amber);
+}

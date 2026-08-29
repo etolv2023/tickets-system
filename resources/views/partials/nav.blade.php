@@ -60,7 +60,7 @@
             </x-nav-group>
         @endcan
 
-        @canany(['users.manage', 'settings.manage', 'points.rules.manage', 'audit.view'])
+        @canany(['users.manage', 'settings.manage', 'points.rules.manage', 'audit.view', 'schedule.manage'])
             <x-nav-group name="admin-system" title="النظام" icon="settings" :open="false">
                 @include('partials.nav._admin-system')
             </x-nav-group>

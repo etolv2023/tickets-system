@@ -2,13 +2,18 @@
 
 namespace App\Providers;
 
+use App\Listeners\RecordScheduledTask;
 use App\Models\Setting;
 use App\Models\User;
 use App\Services\VirusScanner;
 use Carbon\Carbon;
+use Illuminate\Console\Events\ScheduledTaskFailed;
+use Illuminate\Console\Events\ScheduledTaskFinished;
+use Illuminate\Console\Events\ScheduledTaskStarting;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -27,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
         $this->configureModels();
         $this->configureGates();
         $this->configureViews();
+        $this->configureScheduleLog();
 
         // Laravel's stock pagination view is a wall of Tailwind utilities and
         // ships left/right classes that don't flip. Ours is in resources/views
@@ -35,6 +41,22 @@ class AppServiceProvider extends ServiceProvider
         Paginator::defaultSimpleView('vendor.pagination.default');
 
         Carbon::setLocale('ar');
+    }
+
+    /**
+     * ★ (2026-08-29) Records every scheduled run onto its row, so
+     * /admin/scheduled-tasks can say whether a task actually ran and whether it
+     * worked — a schedule you cannot verify is a promise, not a fact.
+     *
+     * Registered by hand rather than by event discovery, which this application
+     * does not enable: three listeners in one place beats a convention that has
+     * to be remembered.
+     */
+    private function configureScheduleLog(): void
+    {
+        Event::listen(ScheduledTaskStarting::class, [RecordScheduledTask::class, 'starting']);
+        Event::listen(ScheduledTaskFinished::class, [RecordScheduledTask::class, 'finished']);
+        Event::listen(ScheduledTaskFailed::class, [RecordScheduledTask::class, 'failed']);
     }
 
     /**

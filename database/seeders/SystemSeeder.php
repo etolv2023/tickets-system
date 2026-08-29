@@ -20,6 +20,9 @@ class SystemSeeder extends Seeder
             // so they ship rather than being typed in. Nothing happens with
             // them until a token is configured.
             GithubRepositorySeeder::class,
+            // A task with no row is never registered with the scheduler, so
+            // without this a fresh install never charges a late subtask.
+            ScheduledTaskSeeder::class,
         ]);
     }
 }

@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\PointRuleController;
 use App\Http\Controllers\Admin\PointValueController;
 use App\Http\Controllers\Admin\PriorityController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\ScheduledTaskController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\TicketStatusController;
 use App\Http\Controllers\Admin\LinkTypeController;
@@ -352,6 +353,22 @@ Route::middleware('auth')->group(function () {
         // F23 — read-only by design.
         Route::get('audit', [AuditController::class, 'index'])
             ->middleware('permission:audit.view')->name('audit.index');
+
+        /*
+         * ★ (2026-08-29) The cron jobs. Its own permission (schedule.manage),
+         * granted to no role by default — switching off «خصم التأخير» stops
+         * money moving and nothing looks wrong afterwards.
+         *
+         * NOTE what is missing: no store, no destroy. The task list is a
+         * constant in App\Support\ScheduledTaskRegistry, so a row can only be
+         * rescheduled, switched off, or run once. Nothing here accepts a
+         * command name — a schedule screen that did would be a remote shell.
+         */
+        Route::middleware('permission:schedule.manage')->group(function () {
+            Route::get('scheduled-tasks', [ScheduledTaskController::class, 'index'])->name('scheduled-tasks.index');
+            Route::put('scheduled-tasks/{scheduledTask}', [ScheduledTaskController::class, 'update'])->name('scheduled-tasks.update');
+            Route::post('scheduled-tasks/{scheduledTask}/run', [ScheduledTaskController::class, 'run'])->name('scheduled-tasks.run');
+        });
 
         // Full-system backup/restore — its own permission (system.backup), not
         // settings.manage: restore replaces every row and every uploaded file

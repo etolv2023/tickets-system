@@ -75,6 +75,14 @@
     </a>
 @endcan
 
+@can('schedule.manage')
+    <a href="{{ route('admin.scheduled-tasks.index') }}" class="nav__link" title="المهام المجدولة"
+       @if (request()->routeIs('admin.scheduled-tasks.*')) aria-current="page" @endif>
+        <x-icon name="timer" class="nav__icon" />
+        <span class="nav__label">المهام المجدولة</span>
+    </a>
+@endcan
+
 @can('system.backup')
     <a href="{{ route('admin.backup') }}" class="nav__link" title="الباك أب"
        @if (request()->routeIs('admin.backup')) aria-current="page" @endif>

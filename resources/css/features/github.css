@@ -185,16 +185,3 @@
     font-size: var(--text-xs);
     color: var(--c-red);
 }
-
-/* A line of guidance between blocks. Not .help-note: that one is a <details>
-   with a summary and a fold, and these are two sentences that are always
-   visible. */
-.gh-note {
-    margin-block: var(--space-4);
-    padding: var(--space-3);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius);
-    background: var(--surface-2);
-    font-size: var(--text-sm);
-    color: var(--text-muted);
-}

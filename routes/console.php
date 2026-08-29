@@ -1,63 +1,97 @@
 <?php
 
+use App\Models\ScheduledTask;
+use App\Support\ScheduledTaskRegistry;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-/**
- * ★ (2026-08-05) The late-delivery sweep (F18 extension).
- *
- * withoutOverlapping because with «تراكم التأخير» on this touches money: a run
- * that is somehow still going when the next fires must not have a second one
- * walking the same rows beside it. The unique index would refuse the duplicate
- * anyway — this just means it never has to.
- *
- * Needs a system cron calling `php artisan schedule:run` every minute; without
- * it nothing here fires. The command is safe to run by hand meanwhile.
- *
- * ★ (2026-08-19) Hourly, was dailyAt('06:00').
- *
- * The old cadence was right while every deadline was a whole day: nothing can
- * become late between 06:00 and midnight if lateness only starts when a day
- * ends, so checking once each morning saw everything. F26 broke that
- * assumption — an exception subtask is due four working hours after the error,
- * so it can go late at 14:00 and a once-a-day sweep would not notice until the
- * following morning, sixteen hours after the fact.
- *
- * Safe to run twenty-four times a day because the charge is keyed by DAY, not
- * by run: UNIQUE(subtask_id, 'penalty:YYYY-MM-DD') means the second sweep of
- * any given day is refused by the database. So a whole-day subtask is still
- * docked exactly once per day with accumulation on, and exactly once ever with
- * it off — identical to the behaviour verified on 2026-08-05. All the extra
- * runs buy is that an exact deadline is caught within the hour.
- */
-Schedule::command('points:charge-late')
-    ->hourly()
-    ->withoutOverlapping()
-    ->onOneServer();
+/*
+|--------------------------------------------------------------------------
+| The schedule
+|--------------------------------------------------------------------------
+|
+| ★ (2026-08-29) Moved out of this file and into the database, so /admin
+| /scheduled-tasks can turn a task off or move when it runs without a deploy.
+|
+| WHAT DID NOT MOVE IS THE COMMAND. A row holds a key, a cron expression and an
+| on/off switch; App\Support\ScheduledTaskRegistry is what says which artisan
+| command a key means, and it lives in code and is reviewed like code. A
+| schedule table that stored the command string would be a remote shell behind
+| a permission.
+|
+| Both entries below used to be written out here by hand:
+|
+|     points:charge-late   hourly     (F18 — the late-delivery sweep)
+|     github:sync          03:00      (F27 — read the repositories)
+|
+| Their reasoning now lives on the registry entries, next to what they do.
+|
+| ScheduledTask::activeSchedule() CANNOT THROW — see its docblock. This file is
+| loaded on every artisan invocation, including `migrate` against a schema that
+| has no tables and installer calls made before .env has database credentials.
+|
+| withoutOverlapping and onOneServer on everything: the points sweep touches
+| money and must never have a second copy of itself walking the same rows, and
+| the GitHub sync would just spend the same API calls twice.
+|
+*/
+foreach (ScheduledTask::activeSchedule() as $key => $cron) {
+    Schedule::command($key)
+        // The name is how RecordScheduledTask maps a scheduler event back to
+        // its row — Laravel's events carry the description, not the key.
+        ->name($key)
+        ->cron($cron)
+        ->withoutOverlapping()
+        ->onOneServer();
+}
 
-/**
- * ★ (2026-08-29) F27 — read the repositories once a night.
+/*
+ * ★ (2026-08-29) Proof that anything is running the schedule at all.
  *
- * Deliberately early, at 03:00: everything this writes is evidence that later
- * questions are asked OF, so it has to be today's answer before anyone opens a
- * screen or any other scheduled job runs. When the points rule that requires a
- * branch lands, it must be scheduled AFTER this — a points sweep that runs
- * first would judge yesterday's picture.
+ * This is the failure the screen would otherwise hide, and it is the likeliest
+ * one: if the system cron is not calling `php artisan schedule:run`, every task
+ * still shows its cron and its "المرة الجاية" and none of them ever fire.
+ * Nothing on the page would look wrong. A missed heartbeat is what makes it
+ * look wrong.
  *
- * withoutOverlapping because a slow repository must not have a second run
- * walking the same rows beside it; onOneServer for the same reason across
- * machines. Both are cheap insurance — nothing here is destructive, the worst a
- * double run does is spend API calls twice.
- *
- * Silently does nothing when GITHUB_ENABLED is off, so an installation that
- * does not use GitHub gets no nightly failure mail.
+ * A cache write once a minute, nothing more. Deliberately not a scheduled
+ * COMMAND — it must not appear on the screen as a task somebody can switch off,
+ * because switching it off would only break the alarm, never the thing it is
+ * watching.
  */
-Schedule::command('github:sync')
-    ->dailyAt('03:00')
-    ->withoutOverlapping()
-    ->onOneServer();
+Schedule::call(fn () => Cache::put(ScheduledTask::HEARTBEAT_KEY, now()->toIso8601String(), now()->addHours(6)))
+    ->name('schedule-heartbeat')
+    ->everyMinute()
+    ->withoutOverlapping();
+
+/*
+ * A guard against the registry and the table drifting apart: a task added to
+ * the registry but never seeded has no row, so it is never scheduled and never
+ * appears on the screen — silently. `schedule:list` would not show it either.
+ * This makes the gap visible on the one command an administrator runs when
+ * something is missing.
+ */
+Artisan::command('schedule:audit', function () {
+    $rows = ScheduledTask::pluck('key')->all();
+
+    $missing = array_diff(ScheduledTaskRegistry::keys(), $rows);
+    $orphans = array_diff($rows, ScheduledTaskRegistry::keys());
+
+    foreach ($missing as $key) {
+        $this->warn("في الكود ومفيش ليه صف: {$key} — شغّل db:seed --class=ScheduledTaskSeeder");
+    }
+
+    foreach ($orphans as $key) {
+        $this->warn("صف في الداتابيز مش موجود في الكود (بيتجاهل): {$key}");
+    }
+
+    if ($missing === [] && $orphans === []) {
+        $this->info('المهام المجدولة متطابقة مع الكود.');
+    }
+})->purpose('يقارن المهام المجدولة في الداتابيز بالقائمة البيضاء في الكود');

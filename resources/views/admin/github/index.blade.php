@@ -33,7 +33,7 @@
         {{-- Not verified in the browser on purpose: checking the token and its
              scopes is four API calls, and a page with a 300ms budget does not
              make network requests to another company's server while it renders. --}}
-        <div class="gh-note">
+        <div class="note">
             للتأكد من التوكن وصلاحياته: <span class="u-mono u-ltr">php artisan github:check</span> —
             وده كمان بيحذّرك لو التوكن معاه صلاحية كتابة مش محتاجينها، أو قرّب يخلص.
         </div>
@@ -47,7 +47,7 @@
         </div>
 
         @if ($unmatchedPulls > 0)
-            <div class="gh-note">
+            <div class="note">
                 فيه {{ $unmatchedPulls }} PR الهيد برانش بتاعهم مش فيه رقم تذكرة معروف —
                 غالباً غلطة في اسم البرانش.
             </div>

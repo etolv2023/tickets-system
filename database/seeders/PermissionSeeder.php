@@ -124,6 +124,18 @@ class PermissionSeeder extends Seeder
             // is a different order of risk from editing the SLA hours. Never
             // granted to a role automatically — an admin assigns it by hand.
             'system.backup' => 'باك أب واسترجاع النظام كامل',
+            /*
+             * ★ (2026-08-29) The scheduled-task screen. Its own permission and
+             * granted to no role, exactly like system.backup above: switching
+             * off «خصم التأخير» stops money moving and nothing on any screen
+             * looks wrong afterwards, which makes it a quieter kind of damage
+             * than most. An admin names the person by hand.
+             *
+             * It does NOT let anybody run an arbitrary command — the task list
+             * is a constant in App\Support\ScheduledTaskRegistry and the
+             * database never holds a command string.
+             */
+            'schedule.manage' => 'إدارة المهام المجدولة',
         ],
     ];
 
