@@ -9,9 +9,26 @@
                 <h1 class="page-title">تصحيحات النقاط</h1>
                 <p class="page-subtitle">
                     كل صب تاسك بيتصرف بنقاطه هو — تتعدّل من جوه الصب تاسك نفسه. الشاشة دي للتصحيح اليدوي بس.
+                    <br>
+                    الإلغاء والتعديل بيتكتبوا كسطر عكسي — <strong>مفيش سطر بيتمسح من الدفتر</strong>، عشان تقرير أي شهر
+                    يفضل مطابق للي اتصرف فيه.
                 </p>
             </div>
         </div>
+
+        {{-- ★ (2026-08-29) These were being set and never rendered: storeCorrection
+             has always returned with('status'), and the screen had nowhere to
+             print it. With cancel and edit added, three actions would have been
+             silent instead of one. --}}
+        @if (session('status'))
+            <x-alert variant="success">{{ session('status') }}</x-alert>
+        @endif
+
+        {{-- One error block, not two: <x-form-errors> already prints whatever
+             is in the bag, and a refusal ("ده سطر إلغاء") arrives in the same
+             bag as a validation message. Rendering both showed every refusal
+             twice. --}}
+        <x-form-errors />
 
         {{-- F18: a manual correction — a new row, never an edit to what's already
              paid. Positive tops someone up, negative claws a mistake back. --}}
@@ -53,6 +70,13 @@
             </form>
         </x-card>
 
+        {{-- ★ (2026-08-29) «تعديل» و«إلغاء».
+
+             Neither erases anything: cancelling writes a reversing row and
+             editing writes that plus a corrected one. The cancelled original
+             stays in the list, struck through — the sum stays right because the
+             reversal is part of it, and a report printed last month still
+             matches what was paid. --}}
         <x-card title="آخر التصحيحات" flush>
             <div class="table-wrap">
                 <table class="table">
@@ -65,29 +89,17 @@
                             <th>التذكرة</th>
                             <th>سجّلها</th>
                             <th>التاريخ</th>
+                            <th class="table__cell--actions"></th>
                         </tr>
                     </thead>
-                    <tbody>
+                    {{-- One open editor at a time, keyed by row id: two forms
+                         open at once on a money screen is two chances to submit
+                         the one you were not looking at. --}}
+                    <tbody x-data="{ editing: null }">
                         @forelse ($corrections as $row)
-                            <tr>
-                                <td>{{ $row->user->name }}</td>
-                                <td>{{ $row->role?->name_ar ?? $row->side?->label() ?? '—' }}</td>
-                                <td class="table__cell--num points-cell">{{ rtrim(rtrim($row->points, '0'), '.') }}</td>
-                                <td class="u-subtle">{{ $row->reason }}</td>
-                                <td>
-                                    @if ($row->ticket)
-                                        <a href="{{ route('tickets.show', $row->ticket) }}" class="u-mono u-ltr">
-                                            {{ $row->ticket->ticket_number }}
-                                        </a>
-                                    @else
-                                        <span class="u-subtle">—</span>
-                                    @endif
-                                </td>
-                                <td class="u-subtle">{{ $row->correctedBy?->name }}</td>
-                                <td class="u-subtle u-mono">{{ $row->created_at->format('Y-m-d H:i') }}</td>
-                            </tr>
+                            @include('admin.point-rules.partials._correction-row', ['correction' => $row])
                         @empty
-                            <tr class="table__empty"><td colspan="7">مفيش تصحيحات لسه.</td></tr>
+                            <tr class="table__empty"><td colspan="8">مفيش تصحيحات لسه.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

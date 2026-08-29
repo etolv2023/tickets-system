@@ -48,6 +48,70 @@ Alpine.store('theme', {
     },
 });
 
+// ★ (2026-08-29) Fullscreen.
+//
+// Unlike the theme and the sidebar there is nothing to persist and nothing to
+// apply inline in the head: the Fullscreen API only enters from a user gesture,
+// so a page that tried to restore it on load would simply be refused. This
+// store mirrors what the browser is doing, and nothing more.
+Alpine.store('fullscreen', {
+    // iOS Safari has no fullscreen for anything but a <video>. Rendering a
+    // button there would be a dead control, so the topbar hides it instead of
+    // offering something that silently does nothing.
+    supported: document.fullscreenEnabled === true,
+
+    on: false,
+
+    init() {
+        // The browser leaves fullscreen without asking us — Esc, F11, a tab
+        // switch on some platforms. Listening is the only thing that keeps the
+        // icon honest about which state we are actually in.
+        document.addEventListener('fullscreenchange', () => {
+            this.on = document.fullscreenElement !== null;
+        });
+    },
+
+    toggle() {
+        const wasOn = document.fullscreenElement !== null;
+
+        /*
+         * DELIBERATELY NOT AWAITED, and the outcome is read off the DOM instead
+         * of off the promise.
+         *
+         * requestFullscreen() rejects when it is called without a user gesture
+         * — but when the gesture is real and the REFUSAL comes from a
+         * permissions policy (an embedded webview whose host never granted
+         * fullscreen; observed in this project's own preview pane), Chrome
+         * returns a promise that never settles at all. Awaiting it means the
+         * await never returns, so any "did that work?" check written after it
+         * never runs either, and the user is left clicking a button that does
+         * nothing and saying nothing.
+         *
+         * Asking the document a moment later is the one answer that is true in
+         * every browser and every embedding.
+         */
+        const request = wasOn
+            ? document.exitFullscreen()
+            : document.documentElement.requestFullscreen();
+
+        // A rejection is a refusal like any other; the check below reports it.
+        // Caught only so it is not an unhandled rejection in the console.
+        request?.catch?.(() => {});
+
+        // Long enough that a real transition has landed — fullscreenElement is
+        // set before the animation finishes, so this is generous — and short
+        // enough to still feel like a response to the click. Erring long on
+        // purpose: a false "refused" is worse than a late one.
+        setTimeout(() => {
+            if ((document.fullscreenElement !== null) === wasOn) {
+                // The toast store is declared further down this file; the
+                // lookup happens at click time, so the order does not matter.
+                Alpine.store('toast').push('المتصفح رفض ملء الشاشة. جرّب F11.', 'error');
+            }
+        }, 600);
+    },
+});
+
 // Sidebar rail. Like the theme, the state lives as an attribute on <html> and
 // is applied inline in the layout head, so a collapsed nav is collapsed on the
 // first painted frame rather than snapping shut once Alpine boots.

@@ -32,6 +32,7 @@
                 $errors->hasAny(['side', 'estimated_hours', 'start_date', 'due_date', 'blocked_reason']) => 'subtasks',
                 $errors->hasAny(['hours', 'worked_on', 'subtask_id']) => 'time',
                 $errors->hasAny(['to_ticket_id', 'link_type']) => 'links',
+                $errors->hasAny(['branch_name', 'github_repository_id']) => 'code',
                 default => 'timeline',
             };
         @endphp
@@ -77,6 +78,21 @@
                                 <span class="tabs__count">{{ $linkCount }}</span>
                             @endif
                         </button>
+
+                        {{-- ★ (2026-08-29) F27 — الكود. Last of the five: it is
+                             the only panel that answers a question about the
+                             ticket from outside this system. --}}
+                        @can('github.view')
+                            <button type="button" role="tab" @click="tab = 'code'"
+                                    :class="tab === 'code' && 'tabs__tab--active'"
+                                    :aria-selected="tab === 'code' ? 'true' : 'false'"
+                                    class="tabs__tab">
+                                الكود
+                                @if ($ticket->branches->isNotEmpty())
+                                    <span class="tabs__count">{{ $ticket->branches->count() }}</span>
+                                @endif
+                            </button>
+                        @endcan
                     </div>
 
                     <div x-show="tab === 'timeline'" role="tabpanel">
@@ -94,6 +110,12 @@
                     <div x-show="tab === 'links'" x-cloak role="tabpanel">
                         @include('tickets.partials._links')
                     </div>
+
+                    @can('github.view')
+                        <div x-show="tab === 'code'" x-cloak role="tabpanel">
+                            @include('tickets.partials._github')
+                        </div>
+                    @endcan
                 </div>
             </div>
 

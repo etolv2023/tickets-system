@@ -65,6 +65,10 @@ class User extends Authenticatable
         // actually ping the person it landed on. Set by the person themselves
         // at /profile, or by an admin on the user form.
         'discord_user_id',
+        // F27 — the GitHub handle, so the author of a branch's head commit
+        // resolves to a name instead of a login nobody recognises. Optional:
+        // without it the raw login is shown and nothing else changes.
+        'github_login',
         'is_active',
         'email_notifications',
     ];

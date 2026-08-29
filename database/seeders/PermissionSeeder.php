@@ -6,7 +6,7 @@ use App\Models\Permission;
 use Illuminate\Database\Seeder;
 
 /**
- * The 29 permissions from PLAN.md § 2. Seeded, never hardcoded in a Gate (F00.3).
+ * The permission list from PLAN.md § 2. Seeded, never hardcoded in a Gate (F00.3).
  * Idempotent: the installer and migrate:fresh both land on the same rows.
  */
 class PermissionSeeder extends Seeder
@@ -69,9 +69,49 @@ class PermissionSeeder extends Seeder
             'points.view.all' => 'عرض نقاط الجميع',
             'points.view.own' => 'عرض نقاطه هو',
             'points.rules.manage' => 'تعديل نقاط الصب تاسك والتصحيحات',
+            /*
+             * ★ (2026-08-29) Undoing a manual correction, split into two
+             * permissions of its own rather than folded into
+             * points.rules.manage above.
+             *
+             * Writing a correction and unwriting one are different authorities.
+             * The first adds a line somebody can read and argue with; the
+             * second takes back points a person may already have been told they
+             * earned, and — because the reversal is posted into the ORIGINAL's
+             * period — can change the total of a month whose bonus was already
+             * paid. Neither is destructive to the ledger (both only insert),
+             * but both move money, so both are separately revocable.
+             *
+             * Granted to no role by default. An admin holds them through '*';
+             * anyone else is named by hand, like system.backup.
+             */
+            'points.corrections.edit' => 'تعديل تصحيح نقاط',
+            'points.corrections.delete' => 'إلغاء تصحيح نقاط',
         ],
         'reports' => [
             'reports.view' => 'عرض التقارير',
+        ],
+        /*
+         * ★ (2026-08-29) F27 — GitHub. Two permissions, and there is no third.
+         *
+         * There is deliberately no github.branch.create and no github.delete,
+         * because the integration is read-only: the token behind it holds
+         * Contents: Read-only, and GitHubClient has no method that issues
+         * anything but GET. Nothing this system can be permitted to do would
+         * change a repository.
+         *
+         * github.audit is the stricter of the two. It carries the screen
+         * listing resolved tickets with no code behind them — which is a list
+         * of people's unproven work — and the ability to attach a branch to a
+         * ticket by hand. That second one is why it is not simply folded into
+         * reports.view: attaching a branch is an assertion that work exists,
+         * and it is checked against GitHub before it is accepted, but it is
+         * still an assertion and it should belong to whoever is accountable
+         * for the answer.
+         */
+        'github' => [
+            'github.view' => 'عرض برانشات التذكرة',
+            'github.audit' => 'تذاكر من غير برانش وربط برانش بإيد',
         ],
         'admin' => [
             'users.manage' => 'إدارة المستخدمين والأدوار',

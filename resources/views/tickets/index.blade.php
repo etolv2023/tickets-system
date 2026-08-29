@@ -61,14 +61,45 @@
                                 <tr class="tickets__row">
                                     <td class="table__cell--tight">
                                         <span class="tickets__number">{{ $ticket->ticket_number }}</span>
+
+                                        {{-- ★ (2026-08-29) F27. Only on a ticket
+                                             somebody already called finished: an
+                                             open ticket with no branch yet is the
+                                             normal state of the world, and marking
+                                             every row would turn the list into a
+                                             wall of warnings that stops meaning
+                                             anything. --}}
+                                        @can('github.view')
+                                            @if ($ticket->branches_count === 0 && in_array($ticket->status->value, ['resolved', 'closed'], true))
+                                                <x-badge variant="amber" class="badge--sm">ملهاش برانش</x-badge>
+                                            @endif
+                                        @endcan
                                     </td>
                                     <td>
                                         <a class="tickets__title" href="{{ route('tickets.show', $ticket) }}">{{ $ticket->title }}</a>
                                         {{-- F11 labels — data existed but the list never showed them,
                                              so "does this need my attention" meant opening the ticket
-                                             to find out. Small and quiet: the title still leads. --}}
-                                        @if ($ticket->labels->isNotEmpty())
+                                             to find out. Small and quiet: the title still leads.
+
+                                             ★ (2026-08-29) The subtask counter joined this row rather
+                                             than taking a tenth column: the table already scrolls
+                                             sideways at this width, and «كام خطوة خلصت» belongs beside
+                                             the ticket it describes, not five columns away from it.
+                                             Both counts were already selected — no new query. --}}
+                                        @if ($ticket->labels->isNotEmpty() || $ticket->subtasks_total > 0)
                                             <div class="row row--wrap tickets__labels">
+                                                @if ($ticket->subtasks_total > 0)
+                                                    {{-- Hidden at zero, like the board card: a ticket with
+                                                         no subtasks has nothing to report, and "0/0" on
+                                                         every other row is noise that teaches you to stop
+                                                         reading the column. --}}
+                                                    <span class="tickets__subtasks"
+                                                          title="الصب تاسكس المكتملة من الإجمالي">
+                                                        <x-icon name="list-checks" size="0.9em" />
+                                                        {{ $ticket->subtasks_done }}/{{ $ticket->subtasks_total }}
+                                                    </span>
+                                                @endif
+
                                                 @foreach ($ticket->labels as $label)
                                                     <x-badge :variant="$label->color" class="badge--sm">{{ $label->name }}</x-badge>
                                                 @endforeach

@@ -6,10 +6,17 @@ use App\Enums\PointSide;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * F18 — immutable. Nothing in the app updates or deletes one of these; a
  * correction is a new row with negative points.
+ *
+ * ★ (2026-08-29) That still holds, including for the «تعديل» and «حذف» buttons
+ * added to the corrections screen. Both write new rows: a reversal, and for an
+ * edit a replacement beside it. Whether a correction is still in force is
+ * DERIVED — "does a row point back at me" — precisely so that nothing has to
+ * be written onto the original and the guards below can stay absolute.
  */
 class PointTransaction extends Model
 {
@@ -21,6 +28,9 @@ class PointTransaction extends Model
         // charge": 'award' once ever, 'penalty:YYYY-MM-DD' once per day.
         'charge_key',
         'created_by', 'period', 'reason',
+        // ★ (2026-08-29) The two links that let a manual correction be undone
+        // without the ledger ever being rewritten — see the migration.
+        'reverses_id', 'replaces_id',
     ];
 
     protected function casts(): array
@@ -75,6 +85,70 @@ class PointTransaction extends Model
     public function correctedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * The row that cancels this one, if somebody cancelled it.
+     *
+     * hasOne, and the column is UNIQUE, so "reversed" is a yes/no question with
+     * no ambiguity: there is at most one, forever.
+     */
+    public function reversal(): HasOne
+    {
+        return $this->hasOne(self::class, 'reverses_id');
+    }
+
+    /** The correction this row cancels. Set only on a reversing entry. */
+    public function reverses(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'reverses_id');
+    }
+
+    /** The corrected version written when this row was edited rather than cancelled. */
+    public function replacement(): HasOne
+    {
+        return $this->hasOne(self::class, 'replaces_id');
+    }
+
+    public function replaces(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'replaces_id');
+    }
+
+    /** This row exists to cancel another one. It is not itself cancellable. */
+    public function isReversal(): bool
+    {
+        return $this->reverses_id !== null;
+    }
+
+    /**
+     * Somebody cancelled this correction, so it no longer stands.
+     *
+     * Reads the loaded relation and never queries: this is called once per row
+     * on a list screen, and a lazy load there is an N+1 that
+     * Model::preventLazyLoading() would (correctly) throw on in development.
+     */
+    public function isReversed(): bool
+    {
+        return $this->relationLoaded('reversal') && $this->reversal !== null;
+    }
+
+    /** Cancelled and replaced by a corrected row, rather than just cancelled. */
+    public function isReplaced(): bool
+    {
+        return $this->relationLoaded('replacement') && $this->replacement !== null;
+    }
+
+    /**
+     * Still counts toward what this person earned.
+     *
+     * The only question the ledger's readers actually care about — and the
+     * answer for every automatic award is yes, because nothing but a manual
+     * correction can be cancelled.
+     */
+    public function isInForce(): bool
+    {
+        return ! $this->isReversed();
     }
 
     public function scopeForPeriod(Builder $query, string $period): Builder

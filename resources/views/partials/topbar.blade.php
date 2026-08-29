@@ -31,6 +31,12 @@
 
     <x-theme-toggle />
 
+    {{-- ★ (2026-08-29) ملء الشاشة, next to the bell. Placed with the other
+         viewport controls (the rail toggle is the same idea at the other end of
+         the bar) rather than in a menu: it is one click, and the whole point of
+         it is that you reach for it when the screen feels cramped. --}}
+    <x-fullscreen-toggle />
+
     {{-- F20: the bell. The count refreshes on its own so it does not sit stale
          until the next page load. --}}
     <a href="{{ route('notifications.index') }}" class="topbar__btn bell tooltip--end tooltip--below"

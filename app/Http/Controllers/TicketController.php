@@ -6,6 +6,7 @@ use App\Http\Requests\Tickets\StoreTicketRequest;
 use App\Http\Requests\Tickets\UpdateTicketRequest;
 use App\Models\Company;
 use App\Models\CompanyContact;
+use App\Models\GithubRepository;
 use App\Models\Label;
 use App\Models\PriorityDefinition;
 use App\Models\Role;
@@ -17,6 +18,7 @@ use App\Models\TicketTypeDefinition;
 use App\Models\User;
 use App\Services\ActivityLogger;
 use App\Services\AttachmentService;
+use App\Services\BranchNamingService;
 use App\Services\DiscordNotificationService;
 use App\Services\SubtaskService;
 use App\Services\TicketService;
@@ -47,7 +49,7 @@ class TicketController extends Controller
     {
         $this->authorize('viewAny', Ticket::class);
 
-        $filters = $request->only('q', 'status', 'type', 'priority', 'company', 'assignee', 'relation', 'from', 'to');
+        $filters = $request->only('q', 'status', 'type', 'priority', 'company', 'assignee', 'relation', 'from', 'to', 'branch');
 
         $tickets = Ticket::query()
             // Never select description here: it's LONGTEXT and this page shows
@@ -56,6 +58,9 @@ class TicketController extends Controller
                 'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'priority',
                 'status', 'reported_at', 'sla_due_at', 'resolved_at', 'updated_at', 'created_by',
                 'subtasks_total', 'subtasks_done',
+                // F27 — read by the "ملهاش برانش" marker below. A column, not
+                // a subquery: 25 rows on a screen with a 300ms budget.
+                'branches_count',
             ])
             // Role-based assignment (2026-07-24): the assignee avatars come from
             // the ticket's role assignments, not the four dropped columns.
@@ -275,6 +280,22 @@ class TicketController extends Controller
 
         $this->authorize('view', $ticket);
 
+        /*
+         * ★ (2026-08-29) F27 — the code panel, loaded only for somebody who can
+         * see it. Two queries, and both are skipped entirely for a role without
+         * github.view rather than fetched and thrown away.
+         *
+         * The repository each row belongs to is NOT eager-loaded: there are
+         * four of them, they are cached forever, and TicketBranch::repo() reads
+         * them from there (see that method for why).
+         */
+        if (auth()->user()->hasPermission('github.view')) {
+            $ticket->load([
+                'branches' => fn ($q) => $q->orderBy('github_repository_id')->orderByDesc('id'),
+                'pullRequests' => fn ($q) => $q->orderByDesc('number'),
+            ]);
+        }
+
         // role names for work logs, subtasks and assignments — one cached
         // lookup instead of three eager loads on a dozen-row table.
         $this->hydrateRoles($ticket);
@@ -308,6 +329,17 @@ class TicketController extends Controller
                 ->limit(10)
                 ->get(),
             'isWatching' => $ticket->watchers->contains('id', auth()->id()),
+            // F27. The manual-link picker's options, from the cached map — no
+            // query. Empty array for anyone who cannot link, so the panel does
+            // not render a form nobody may submit.
+            'githubRepositories' => auth()->user()->hasPermission('github.audit')
+                ? GithubRepository::activeList()
+                : [],
+            // The name the convention says this ticket's branch should have.
+            // Computed here rather than in the view: a Blade file does not hold
+            // business rules, and the naming convention is one (CLAUDE.md § 3).
+            'suggestedBranch' => app(BranchNamingService::class)
+                ->suggest($ticket->ticket_number, $ticket->title),
             // F17: only fetched for someone allowed to see or give them — and
             // ★ (2026-08-04) only for a ticket that can actually show them.
             // show.blade.php renders the panel for resolved/closed only, so on

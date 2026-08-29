@@ -16,6 +16,10 @@ class SystemSeeder extends Seeder
             PermissionSeeder::class,
             RoleSeeder::class,
             SettingSeeder::class,
+            // F27 — the four repositories are the same on every installation,
+            // so they ship rather than being typed in. Nothing happens with
+            // them until a token is configured.
+            GithubRepositorySeeder::class,
         ]);
     }
 }

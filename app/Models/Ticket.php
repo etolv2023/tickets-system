@@ -270,6 +270,35 @@ class Ticket extends Model
     }
 
     /**
+     * F27: the branches carrying this ticket's code — the evidence that the
+     * work exists, as opposed to somebody's word that it does.
+     *
+     * Deliberately unordered by state: a merged-and-removed branch still counts
+     * as proof, so nothing here filters state='deleted' out.
+     */
+    public function branches(): HasMany
+    {
+        return $this->hasMany(TicketBranch::class);
+    }
+
+    /** F27. Matched through the pull request's head branch, not through a link. */
+    public function pullRequests(): HasMany
+    {
+        return $this->hasMany(TicketPullRequest::class);
+    }
+
+    /**
+     * F27: no code was ever found for this ticket.
+     *
+     * Reads the counter, never a subquery — this runs over the whole ticket
+     * table on the audit screen and on every filtered list (CLAUDE.md § 4.6).
+     */
+    public function scopeWithoutBranch(Builder $query): Builder
+    {
+        return $query->where('branches_count', 0);
+    }
+
+    /**
      * F10: something else must land before this can. Shown as a marker in the
      * list and on the board.
      */
@@ -499,6 +528,11 @@ class Ticket extends Model
             ->when($filters['company'] ?? null, fn (Builder $q, $v) => $q->where('company_id', $v))
             ->when($filters['assignee'] ?? null,
                 fn (Builder $q, $v) => $q->involving((int) $v, $filters['relation'] ?? null))
+            // F27. Two states only, both from the counter column: "no code was
+            // ever found" and "some was". Anything finer belongs on the ticket
+            // page, where the branches themselves are listed.
+            ->when(($filters['branch'] ?? null) === 'none', fn (Builder $q) => $q->where('branches_count', 0))
+            ->when(($filters['branch'] ?? null) === 'has', fn (Builder $q) => $q->where('branches_count', '>', 0))
             ->when($filters['from'] ?? null, fn (Builder $q, $v) => $q->whereDate($dateBasis, '>=', $v))
             ->when($filters['to'] ?? null, fn (Builder $q, $v) => $q->whereDate($dateBasis, '<=', $v))
             ->when($filters['q'] ?? null, fn (Builder $q, $term) => $q->search($term));

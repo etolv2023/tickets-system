@@ -34,6 +34,7 @@ class Permission extends Model
             'ratings' => 'التقييمات',
             'points' => 'النقاط',
             'reports' => 'التقارير',
+            'github' => 'جيت هب',
             'admin' => 'الإدارة',
             default => $this->group,
         };

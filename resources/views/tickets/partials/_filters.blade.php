@@ -106,6 +106,15 @@
             </select>
         </div>
 
+        {{-- ★ (2026-08-29) F27. Two states, both off the counter column. --}}
+        @can('github.view')
+            <select name="branch" class="select" aria-label="البرانش">
+                <option value="">البرانش: الكل</option>
+                <option value="none" @selected(($filters['branch'] ?? '') === 'none')>من غير برانش</option>
+                <option value="has" @selected(($filters['branch'] ?? '') === 'has')>ليها برانش</option>
+            </select>
+        @endcan
+
         <div class="filters__group">
             <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" class="input" aria-label="من تاريخ">
             <span class="u-subtle">→</span>

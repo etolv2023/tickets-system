@@ -34,6 +34,10 @@ class RoleSeeder extends Seeder
                 'ratings.give', 'ratings.view.all',
                 'points.view.own', 'points.view.all',
                 'reports.view',
+                // ★ (2026-08-29) F27. The manager gets the audit screen as
+                // well as the tab: "which resolved tickets have no code behind
+                // them" is a question about the team, and the team is theirs.
+                'github.view', 'github.audit',
             ],
         ],
         'support' => [
@@ -44,7 +48,7 @@ class RoleSeeder extends Seeder
                 'tickets.notify_client',
                 'comments.create', 'comments.internal',
                 'subtasks.manage', 'subtasks.reassign', 'time.log', 'links.manage',
-                'points.view.own',
+                'points.view.own', 'github.view',
             ],
         ],
         'frontend' => [
@@ -53,7 +57,7 @@ class RoleSeeder extends Seeder
                 'tickets.view.assigned',
                 'comments.create', 'comments.internal',
                 'worklog.manage', 'subtasks.manage', 'subtasks.reassign', 'time.log', 'links.manage',
-                'points.view.own',
+                'points.view.own', 'github.view',
             ],
         ],
         'backend' => [
@@ -62,7 +66,7 @@ class RoleSeeder extends Seeder
                 'tickets.view.assigned',
                 'comments.create', 'comments.internal',
                 'worklog.manage', 'subtasks.manage', 'subtasks.reassign', 'time.log', 'links.manage',
-                'points.view.own',
+                'points.view.own', 'github.view',
             ],
         ],
         'devops' => [
@@ -74,7 +78,7 @@ class RoleSeeder extends Seeder
                 'tickets.view.assigned',
                 'comments.create', 'comments.internal',
                 'subtasks.manage', 'subtasks.reassign', 'time.log', 'links.manage',
-                'points.view.own',
+                'points.view.own', 'github.view',
             ],
         ],
         'tester' => [
@@ -83,7 +87,7 @@ class RoleSeeder extends Seeder
                 'tickets.view.assigned', 'tickets.resolve', 'tickets.reopen',
                 'comments.create', 'comments.internal',
                 'subtasks.manage', 'subtasks.reassign', 'time.log',
-                'points.view.own',
+                'points.view.own', 'github.view',
             ],
         ],
     ];

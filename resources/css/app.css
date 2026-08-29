@@ -64,5 +64,6 @@
 @import './features/point-values.css';
 @import './features/queues.css';
 @import './features/portal.css';
+@import './features/github.css';
 
 @import 'tailwindcss/utilities';

@@ -99,9 +99,16 @@
 }
 
 /* n/m subtasks — filled in phase 4, hidden until a ticket actually has any. */
+/* Shared with the board card. ★ (2026-08-29) inline-flex so the glyph the
+   ticket list puts in front of the count sits on the count's baseline; the
+   board card passes no icon and is unaffected. */
 .tickets__subtasks {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     color: var(--text-subtle);
     white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }

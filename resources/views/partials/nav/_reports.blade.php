@@ -26,3 +26,13 @@
         <span class="nav__label">تقرير التيم التفصيلي</span>
     </a>
 @endcan
+
+{{-- ★ (2026-08-29) F27. Sits with the reports because that is what it is: a
+     read-only view of the team's finished work, asking one question about it. --}}
+@can('github.audit')
+    <a href="{{ route('github.missing') }}" class="nav__link" title="اتقفلت من غير برانش"
+       @if (request()->routeIs('github.missing')) aria-current="page" @endif>
+        <x-icon name="git-branch" class="nav__icon" />
+        <span class="nav__label">من غير برانش</span>
+    </a>
+@endcan

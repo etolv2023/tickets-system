@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\CalendarSettingController;
 use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\ContactController;
+use App\Http\Controllers\Admin\GithubController;
 use App\Http\Controllers\Admin\ImportController;
 use App\Http\Controllers\Admin\LabelController;
 use App\Http\Controllers\Admin\PointRuleController;
@@ -43,8 +44,10 @@ use App\Http\Controllers\Export\AdminExportController;
 use App\Http\Controllers\Export\PointsExportController;
 use App\Http\Controllers\Export\ReportExportController;
 use App\Http\Controllers\Export\TicketExportController;
+use App\Http\Controllers\GithubAuditController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InstallController;
+use App\Http\Controllers\TicketBranchController;
 use App\Http\Controllers\TicketCommentController;
 use App\Http\Controllers\TicketController;
 use App\Http\Middleware\UseInstallConnection;
@@ -181,6 +184,21 @@ Route::middleware('auth')->group(function () {
         Route::post('links', [TicketLinkController::class, 'store'])->name('links.store');
         Route::delete('links/{link}', [TicketLinkController::class, 'destroy'])->name('links.destroy');
 
+        /*
+         * ★ (2026-08-29) F27 — attaching an existing branch to this ticket.
+         *
+         * The only write this feature has, and it writes here, not to GitHub.
+         * github.audit rather than a permission of its own: asserting that work
+         * exists and auditing whether it does are the same responsibility.
+         *
+         * There is deliberately no DELETE beside it. The link is validated
+         * against the ticket number AND against GitHub before it is accepted,
+         * so a wrong one is close to impossible — and a way to erase evidence
+         * would cost more than it could ever fix.
+         */
+        Route::post('branches', [TicketBranchController::class, 'store'])
+            ->middleware('permission:github.audit')->name('branches.store');
+
         Route::post('watch', [TicketWatcherController::class, 'toggle'])->name('watch');
         // F17
         Route::post('ratings', [RatingController::class, 'store'])->name('ratings.store');
@@ -208,6 +226,13 @@ Route::middleware('auth')->group(function () {
     // the browser needs a message it can show while snapping the card back.
     Route::patch('tickets/{ticket}/board-column', [BoardMoveController::class, 'move'])
         ->name('board.move');
+
+    // ★ (2026-08-29) F27 — resolved tickets with no code behind them. Not
+    // under /admin: a team manager holds github.audit without being an admin,
+    // and the screen is a report, not a setting. Row-filtered by visibleTo()
+    // inside the controller like every other ticket list.
+    Route::get('/github/without-branch', [GithubAuditController::class, 'index'])
+        ->middleware('permission:github.audit')->name('github.missing');
 
     Route::get('/my-board', [BoardController::class, 'mine'])
         ->middleware('permission:worklog.manage')->name('board.mine');
@@ -296,6 +321,25 @@ Route::middleware('auth')->group(function () {
             Route::get('point-rules', [PointRuleController::class, 'index'])->name('point-rules.index');
             Route::post('point-rules/corrections', [PointRuleController::class, 'storeCorrection'])
                 ->name('point-rules.corrections.store');
+
+            /*
+             * ★ (2026-08-29) Editing and cancelling a correction. PUT and
+             * DELETE describe what the user is doing; neither writes anything
+             * but new rows — PointCorrectionService only inserts, and
+             * PointTransaction::booted() still refuses every update and delete
+             * with no exception carved into it.
+             *
+             * Their own permissions, ON TOP of the points.rules.manage that
+             * gates this whole group: holding the screen is not the same
+             * authority as taking points back off somebody.
+             */
+            Route::put('point-rules/corrections/{correction}', [PointRuleController::class, 'updateCorrection'])
+                ->middleware('permission:points.corrections.edit')
+                ->name('point-rules.corrections.update');
+
+            Route::delete('point-rules/corrections/{correction}', [PointRuleController::class, 'destroyCorrection'])
+                ->middleware('permission:points.corrections.delete')
+                ->name('point-rules.corrections.destroy');
         });
 
         // F23 — read-only by design.
@@ -348,6 +392,19 @@ Route::middleware('auth')->group(function () {
             Route::post('subtask-statuses', [AdminSubtaskStatusController::class, 'store'])->name('subtask-statuses.store');
             Route::put('subtask-statuses/{subtaskStatus}', [AdminSubtaskStatusController::class, 'update'])->name('subtask-statuses.update');
             Route::delete('subtask-statuses/{subtaskStatus}', [AdminSubtaskStatusController::class, 'destroy'])->name('subtask-statuses.destroy');
+
+            /*
+             * ★ (2026-08-29) F27 — the repositories, and the state of the
+             * connection to them.
+             *
+             * NO DESTROY ROUTE, on purpose. A repository is deactivated through
+             * update(); the row has to survive because every ticket_branches
+             * row points at it and those rows are the evidence.
+             */
+            Route::get('github', [GithubController::class, 'index'])->name('github.index');
+            Route::post('github', [GithubController::class, 'store'])->name('github.store');
+            Route::put('github/{repository}', [GithubController::class, 'update'])->name('github.update');
+            Route::post('github/{repository}/sync', [GithubController::class, 'sync'])->name('github.sync');
 
             // ★ (2026-07-24) The ticket-link-type list — label, reverse label
             // and colour, admin-managed.

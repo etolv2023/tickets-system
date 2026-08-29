@@ -254,3 +254,19 @@
 .points-cell--negative {
     color: var(--c-red);
 }
+
+/* ★ (2026-08-29) A correction somebody cancelled.
+ *
+ * Still listed, and deliberately so: it was reversed, not erased, and the sum
+ * below it is only right because both rows are in it. Dimmed and struck through
+ * so it reads as "this used to count" at a glance — the strike lands on the
+ * points cell alone, because the reason and the date are still true. */
+.correction--void {
+    color: var(--text-subtle);
+}
+
+.correction--void .points-cell {
+    text-decoration: line-through;
+    color: var(--text-subtle);
+    font-weight: var(--weight-medium);
+}

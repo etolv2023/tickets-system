@@ -24,6 +24,13 @@ class DatabaseSeeder extends Seeder
                 // ledger and the notification inbox have a history to show
                 // rather than a single week of rows.
                 DemoHistorySeeder::class,
+                // F27 — after the history, because it reads which tickets ended
+                // up resolved and gives most (not all) of them a branch.
+                DemoGithubSeeder::class,
+                // F18 — the corrections screen, with a cancelled row and an
+                // edited one on it. After the history so it has real tickets
+                // and real people to point at.
+                DemoPointCorrectionSeeder::class,
                 // Last: it reads the users and companies the others created,
                 // and it is the one you open to see how the pieces fit.
                 DemoFeatureWalkthroughSeeder::class,

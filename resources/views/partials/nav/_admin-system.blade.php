@@ -38,6 +38,12 @@
         <span class="nav__label">حالات الصب تاسك</span>
     </a>
 
+    <a href="{{ route('admin.github.index') }}" class="nav__link" title="جيت هب"
+       @if (request()->routeIs('admin.github.*')) aria-current="page" @endif>
+        <x-icon name="git-branch" class="nav__icon" />
+        <span class="nav__label">جيت هب</span>
+    </a>
+
     <a href="{{ route('admin.link-types.index') }}" class="nav__link" title="أنواع الروابط"
        @if (request()->routeIs('admin.link-types.*')) aria-current="page" @endif>
         <x-icon name="link" class="nav__icon" />

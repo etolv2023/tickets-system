@@ -39,3 +39,25 @@ Schedule::command('points:charge-late')
     ->hourly()
     ->withoutOverlapping()
     ->onOneServer();
+
+/**
+ * ★ (2026-08-29) F27 — read the repositories once a night.
+ *
+ * Deliberately early, at 03:00: everything this writes is evidence that later
+ * questions are asked OF, so it has to be today's answer before anyone opens a
+ * screen or any other scheduled job runs. When the points rule that requires a
+ * branch lands, it must be scheduled AFTER this — a points sweep that runs
+ * first would judge yesterday's picture.
+ *
+ * withoutOverlapping because a slow repository must not have a second run
+ * walking the same rows beside it; onOneServer for the same reason across
+ * machines. Both are cheap insurance — nothing here is destructive, the worst a
+ * double run does is spend API calls twice.
+ *
+ * Silently does nothing when GITHUB_ENABLED is off, so an installation that
+ * does not use GitHub gets no nightly failure mail.
+ */
+Schedule::command('github:sync')
+    ->dailyAt('03:00')
+    ->withoutOverlapping()
+    ->onOneServer();

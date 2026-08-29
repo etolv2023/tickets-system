@@ -63,6 +63,26 @@
         </div>
     @endif
 
+    {{-- ★ (2026-08-29) F27. «ملهاش برانش» has to be visible without opening the
+         الكود tab — a marker you have to click for is not a marker. Amber only
+         once somebody has called the ticket finished: on an open ticket having
+         no branch yet is the ordinary state of the world, and colouring it
+         would teach people to ignore the colour. --}}
+    @can('github.view')
+        <div class="ticket-summary__item">
+            <span class="ticket-summary__label">الكود</span>
+            <span class="ticket-summary__value">
+                @if ($ticket->branches_count > 0)
+                    <span class="u-mono">{{ $ticket->branches_count }}</span> برانش
+                @elseif (in_array($ticket->status->value, ['resolved', 'closed'], true))
+                    <x-badge variant="amber">ملهاش برانش</x-badge>
+                @else
+                    <span class="u-subtle">لسه مفيش برانش</span>
+                @endif
+            </span>
+        </div>
+    @endcan
+
     @if ($ticket->client_user_code)
         <div class="ticket-summary__item">
             <span class="ticket-summary__label">يوزر الدخول</span>
