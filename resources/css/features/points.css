@@ -270,3 +270,22 @@
     color: var(--text-subtle);
     font-weight: var(--weight-medium);
 }
+
+/* ★ (2026-08-29) A confirmation that lives in the row instead of in a browser
+ * dialog.
+ *
+ * window.confirm() is suppressible — Chrome and Edge offer to block further
+ * dialogs after a page shows a few, and once blocked it returns false forever
+ * in that tab. A button that decides whether somebody keeps their points cannot
+ * depend on that. Two buttons and a question, in the row. */
+.confirm-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.confirm-inline__ask {
+    font-size: var(--text-xs);
+    color: var(--c-amber);
+    white-space: nowrap;
+}

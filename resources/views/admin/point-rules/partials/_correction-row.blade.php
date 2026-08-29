@@ -64,28 +64,47 @@
                 @endcan
 
                 @can('points.corrections.delete')
-                    {{-- The confirmation hangs off the BUTTON, not off the form.
+                    {{-- NO window.confirm(). Twice now this button has "not
+                         worked" in production, and the browser dialog was the
+                         reason both times.
 
-                         onsubmit="return confirm(…)" is the pattern used by the
-                         other delete buttons in this app, and it has a trap: the
-                         submit guard runs in the capture phase, so it locks the
-                         form and disables the button BEFORE the dialog is even
-                         shown. Answer "لأ" once — or meet a browser that
-                         suppressed the dialog — and the button is dead until a
-                         reload, silently. On a click handler the cancelled
-                         confirm never produces a submit event at all, so there
-                         is nothing to lock and nothing to unlock.
+                         The first failure was ordering: submit-guard runs on the
+                         capture phase, so it locked the form and disabled the
+                         button before the dialog was even shown, and one "لأ"
+                         killed the button until a reload.
 
-                         (submit-guard.js now also unlocks a prevented submit, so
-                         the other screens are covered too. This form does not
-                         depend on that fix.) --}}
-                    <form method="POST" action="{{ route('admin.point-rules.corrections.destroy', $correction) }}">
+                         The second is the one no amount of ordering fixes.
+                         Chrome and Edge offer «امنع هذه الصفحة من إنشاء مربعات
+                         حوار إضافية» after a page shows a few dialogs. Tick it
+                         once — which anyone would, while poking at a button that
+                         appears to do nothing — and confirm() returns false
+                         forever in that tab, across reloads. The button then
+                         silently does nothing, permanently, with no way to tell
+                         that from a bug in this app.
+
+                         A step that decides whether somebody keeps their points
+                         has no business depending on a dialog the browser is
+                         allowed to switch off. The confirmation is now two
+                         buttons in the row: nothing to suppress, nothing to
+                         block, and the question is legible without a popup. --}}
+                    <form method="POST" action="{{ route('admin.point-rules.corrections.destroy', $correction) }}"
+                          class="row" x-data="{ armed: false }">
                         @csrf
                         @method('DELETE')
-                        <x-button variant="ghost" size="sm"
-                                  onclick="return confirm('هيتكتب سطر عكسي يلغي التصحيح ده. الأصلي هيفضل ظاهر في الدفتر. تمام؟')">
+
+                        <x-button variant="ghost" size="sm" type="button"
+                                  x-show="! armed" x-on:click="armed = true">
                             إلغاء
                         </x-button>
+
+                        <span class="confirm-inline" x-show="armed" x-cloak>
+                            <span class="confirm-inline__ask">هيتكتب سطر عكسي. متأكد؟</span>
+                            {{-- type defaults to submit: this one is the real
+                                 action, and it is the only submit in the form. --}}
+                            <x-button variant="ghost" size="sm">أيوه</x-button>
+                            <x-button variant="ghost" size="sm" type="button"
+                                      x-on:click="armed = false">لأ</x-button>
+                        </span>
                     </form>
                 @endcan
             </div>
