@@ -1,0 +1,40 @@
+/*
+ * ★ (2026-08-29) F29 — the "you are somebody else right now" bar.
+ *
+ * The one place in this system that is allowed to shout. Impersonation is full:
+ * anything done while it runs is recorded under the other person's name, so
+ * forgetting is the failure mode, and a quiet badge in a corner is exactly how
+ * you forget.
+ *
+ * Uses the semantic red — the same ink «عاجل» and «تخطّى SLA» use — because this
+ * is not chrome. It is a state of the session that changes what every button on
+ * the page means.
+ */
+.impersonation {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    padding-block: var(--space-3);
+    padding-inline: var(--body-pad, var(--space-5));
+    background-color: var(--c-red-bg);
+    color: var(--c-red);
+    border-block-end: 1px solid var(--c-red-line);
+    font-size: var(--text-sm);
+}
+
+.impersonation__icon {
+    flex: none;
+}
+
+/* Takes the slack so the exit button sits at the end of the bar, and wraps
+   under it on a phone rather than squeezing it off the screen. */
+.impersonation__text {
+    flex: 1 1 16rem;
+    min-inline-size: 0;
+    line-height: var(--leading-normal);
+}
+
+.impersonation__text strong {
+    font-weight: var(--weight-heavy);
+}

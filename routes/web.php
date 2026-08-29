@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\CalendarSettingController;
 use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\ContactController;
 use App\Http\Controllers\Admin\GithubController;
+use App\Http\Controllers\Admin\ImpersonationController;
 use App\Http\Controllers\Admin\ImportController;
 use App\Http\Controllers\Admin\LabelController;
 use App\Http\Controllers\Admin\PointRuleController;
@@ -356,6 +357,26 @@ Route::middleware('auth')->group(function () {
         // F23 — read-only by design.
         Route::get('audit', [AuditController::class, 'index'])
             ->middleware('permission:audit.view')->name('audit.index');
+
+        /*
+         * ★ (2026-08-29) F29 — الدخول بعين مستخدم تاني.
+         *
+         * Two permissions on purpose: doing it needs users.impersonate, reading
+         * the log of it needs audit.view. Auditing somebody must never require
+         * being able to do the thing you are auditing.
+         *
+         * The way OUT carries no permission at all — while impersonating you
+         * are the other person and no longer hold users.impersonate, so gating
+         * the exit would lock you inside somebody else's account.
+         */
+        Route::get('impersonations', [ImpersonationController::class, 'index'])
+            ->middleware('permission:audit.view')->name('impersonations.index');
+        Route::get('impersonations/{impersonation}', [ImpersonationController::class, 'show'])
+            ->middleware('permission:audit.view')->name('impersonations.show');
+        Route::post('impersonate/{user}', [ImpersonationController::class, 'store'])
+            ->middleware('permission:users.impersonate')->name('impersonate.start');
+        Route::delete('impersonate', [ImpersonationController::class, 'destroy'])
+            ->name('impersonate.stop');
 
         /*
          * ★ (2026-08-29) The cron jobs. Its own permission (schedule.manage),

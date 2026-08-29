@@ -82,6 +82,39 @@
                                     @else
                                         <div class="row">
                                             <x-button variant="ghost" size="sm" :href="route('admin.users.edit', $user)">تعديل</x-button>
+
+                                            {{-- ★ (2026-08-29) F29. Rendered only for a user this
+                                                 one can actually be: not yourself, not somebody
+                                                 who also holds the permission — the service
+                                                 refuses both anyway, and a button that always
+                                                 errors is worse than no button.
+
+                                                 The two-step confirm is in the row rather than a
+                                                 window.confirm() for the reason the points screen
+                                                 learned the hard way: browsers let people switch
+                                                 those off, and then the button silently does
+                                                 nothing forever. --}}
+                                            @can('users.impersonate')
+                                                @if ($user->id !== auth()->id() && ! $user->hasPermission('users.impersonate'))
+                                                    <form method="POST" action="{{ route('admin.impersonate.start', $user) }}"
+                                                          class="row" x-data="{ armed: false }">
+                                                        @csrf
+                                                        <x-button variant="ghost" size="sm" type="button"
+                                                                  x-show="! armed" x-on:click="armed = true">
+                                                            ادخل بعينه
+                                                        </x-button>
+
+                                                        <span class="confirm-inline" x-show="armed" x-cloak>
+                                                            <span class="confirm-inline__ask">
+                                                                هتشتغل باسمه وكل حاجة هتتسجل عليه. متأكد؟
+                                                            </span>
+                                                            <x-button variant="ghost" size="sm">أيوه</x-button>
+                                                            <x-button variant="ghost" size="sm" type="button"
+                                                                      x-on:click="armed = false">لأ</x-button>
+                                                        </span>
+                                                    </form>
+                                                @endif
+                                            @endcan
                                             {{-- The name is in the prompt on purpose: a delete button in a
                                                  paginated table is the easiest thing in the app to misfire. --}}
                                             <form method="POST" action="{{ route('admin.users.destroy', $user) }}"

@@ -78,6 +78,11 @@
         <div class="shell__main">
             @include('partials.topbar')
 
+            {{-- ★ (2026-08-29) F29. Above the notification banner and directly
+                 under the topbar: while impersonating, "who am I" outranks
+                 every other thing this page has to say. --}}
+            <x-impersonation-banner />
+
             <x-notify-banner />
 
             <main class="shell__body">

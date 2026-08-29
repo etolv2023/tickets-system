@@ -136,6 +136,20 @@ class PermissionSeeder extends Seeder
              * database never holds a command string.
              */
             'schedule.manage' => 'إدارة المهام المجدولة',
+            /*
+             * ★ (2026-08-29) F29 — الدخول بعين مستخدم تاني، بصلاحياته كاملة.
+             *
+             * The most powerful permission in the system, and the one with the
+             * least visible footprint: everything done while it is running is
+             * recorded under the OTHER person's name, because that is what keeps
+             * every screen truthful. impersonation_sessions is the only place
+             * that knows whose hands were on the keyboard.
+             *
+             * Holding it also makes you un-impersonatable — the service refuses
+             * a target who has it, or A could reach C through B and the log
+             * would name B.
+             */
+            'users.impersonate' => 'الدخول بعين مستخدم تاني',
         ],
     ];
 

@@ -1,0 +1,25 @@
+/*
+ * A confirmation that lives in the row instead of in a browser dialog.
+ *
+ * ★ (2026-08-29) Was .confirm-inline in features/points.css. It is on a second
+ * screen now (الدخول بعين مستخدم) so it belongs here — a pattern used twice is
+ * a component (CLAUDE.md § 3).
+ *
+ * The reason it exists at all: window.confirm() is suppressible. Chrome and
+ * Edge offer to block further dialogs after a page shows a few, and once
+ * blocked it returns false forever in that tab — the button then silently does
+ * nothing, permanently, and it looks exactly like a bug in this application.
+ * That cost the cancel button on the points screen two rounds of "it does not
+ * work". Anything that matters asks in the page.
+ */
+.confirm-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.confirm-inline__ask {
+    font-size: var(--text-xs);
+    color: var(--c-amber);
+    white-space: nowrap;
+}

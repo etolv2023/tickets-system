@@ -29,6 +29,7 @@
 @import './components/fold.css';
 @import './components/help-note.css';
 @import './components/note.css';
+@import './components/confirm-inline.css';
 @import './components/table.css';
 @import './components/form.css';
 @import './components/avatar.css';
@@ -39,6 +40,7 @@
 @import './components/prose.css';
 @import './components/uploader.css';
 @import './components/notification.css';
+@import './components/impersonation.css';
 @import './components/blank.css';
 @import './components/legend.css';
 @import './components/toast.css';

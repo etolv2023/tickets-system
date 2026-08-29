@@ -14,7 +14,7 @@ class ActivityLog extends Model
     public const UPDATED_AT = null;
 
     protected $fillable = [
-        'user_id', 'action', 'subject_type', 'subject_id', 'changes', 'ip', 'user_agent',
+        'user_id', 'impersonation_id', 'action', 'subject_type', 'subject_id', 'changes', 'ip', 'user_agent',
     ];
 
     protected function casts(): array
@@ -25,5 +25,20 @@ class ActivityLog extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * ★ (2026-08-29) F29. Set only when this action was performed by somebody
+     * acting as `user`. Null on the overwhelming majority of rows.
+     */
+    public function impersonation(): BelongsTo
+    {
+        return $this->belongsTo(ImpersonationSession::class, 'impersonation_id');
+    }
+
+    /** Somebody else's hands did this. */
+    public function wasImpersonated(): bool
+    {
+        return $this->impersonation_id !== null;
     }
 }

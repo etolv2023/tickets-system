@@ -6,6 +6,7 @@ use App\Listeners\RecordScheduledTask;
 use App\Models\Setting;
 use App\Models\User;
 use App\Services\VirusScanner;
+use App\Support\ImpersonationContext;
 use Carbon\Carbon;
 use Illuminate\Console\Events\ScheduledTaskFailed;
 use Illuminate\Console\Events\ScheduledTaskFinished;
@@ -25,6 +26,21 @@ class AppServiceProvider extends ServiceProvider
         // Its constructor takes host/port/enabled, not classes, so the
         // container cannot work it out on its own.
         $this->app->singleton(VirusScanner::class, fn () => VirusScanner::fromConfig());
+
+        /*
+         * ★ (2026-08-29) F29 — and it MUST be a singleton.
+         *
+         * TrackImpersonation fills it and ActivityLogger reads it. Without this
+         * line the container hands each of them a fresh instance, the middleware
+         * writes into one nobody reads, and every action taken while
+         * impersonating is logged with impersonation_id = null — the log looks
+         * complete and quietly loses the only fact it was added to record.
+         *
+         * That is exactly what happened the first time this was tested: the
+         * status change landed, the log row was written under the right user,
+         * and the session it belonged to was missing.
+         */
+        $this->app->singleton(ImpersonationContext::class);
     }
 
     public function boot(): void

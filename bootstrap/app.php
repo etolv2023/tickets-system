@@ -7,6 +7,7 @@ use App\Http\Middleware\PreventDuplicateSubmit;
 use App\Http\Middleware\QueryCount;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SlowRequestTimer;
+use App\Http\Middleware\TrackImpersonation;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -35,6 +36,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             EnsureInstalled::class,
             SecurityHeaders::class,
+            // ★ (2026-08-29) F29. Before ForcePasswordChange, which asks it
+            // whether we are impersonating, and before any controller, so
+            // ActivityLogger can stamp the session on whatever gets written.
+            TrackImpersonation::class,
             ForcePasswordChange::class,
             // The server-side half of the double-click guard. After the session
             // starts (it keys off the session id for guests) and before any

@@ -68,6 +68,12 @@
 @endcan
 
 @can('audit.view')
+    <a href="{{ route('admin.impersonations.index') }}" class="nav__link" title="سجل الدخول بعين الغير"
+       @if (request()->routeIs('admin.impersonations.*')) aria-current="page" @endif>
+        <x-icon name="user" class="nav__icon" />
+        <span class="nav__label">الدخول بعين الغير</span>
+    </a>
+
     <a href="{{ route('admin.audit.index') }}" class="nav__link" title="سجل التدقيق"
        @if (request()->routeIs('admin.audit.*')) aria-current="page" @endif>
         <x-icon name="audit" class="nav__icon" />
