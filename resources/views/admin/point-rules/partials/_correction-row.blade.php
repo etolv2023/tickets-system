@@ -64,11 +64,28 @@
                 @endcan
 
                 @can('points.corrections.delete')
-                    <form method="POST" action="{{ route('admin.point-rules.corrections.destroy', $correction) }}"
-                          onsubmit="return confirm('هيتكتب سطر عكسي يلغي التصحيح ده. الأصلي هيفضل ظاهر في الدفتر. تمام؟')">
+                    {{-- The confirmation hangs off the BUTTON, not off the form.
+
+                         onsubmit="return confirm(…)" is the pattern used by the
+                         other delete buttons in this app, and it has a trap: the
+                         submit guard runs in the capture phase, so it locks the
+                         form and disables the button BEFORE the dialog is even
+                         shown. Answer "لأ" once — or meet a browser that
+                         suppressed the dialog — and the button is dead until a
+                         reload, silently. On a click handler the cancelled
+                         confirm never produces a submit event at all, so there
+                         is nothing to lock and nothing to unlock.
+
+                         (submit-guard.js now also unlocks a prevented submit, so
+                         the other screens are covered too. This form does not
+                         depend on that fix.) --}}
+                    <form method="POST" action="{{ route('admin.point-rules.corrections.destroy', $correction) }}">
                         @csrf
                         @method('DELETE')
-                        <x-button variant="ghost" size="sm">إلغاء</x-button>
+                        <x-button variant="ghost" size="sm"
+                                  onclick="return confirm('هيتكتب سطر عكسي يلغي التصحيح ده. الأصلي هيفضل ظاهر في الدفتر. تمام؟')">
+                            إلغاء
+                        </x-button>
                     </form>
                 @endcan
             </div>

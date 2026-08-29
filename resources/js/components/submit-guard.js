@@ -14,6 +14,8 @@
  *     submit, but an invalid form that is corrected must stay usable)
  *   - stay locked forever: leaving the page via bfcache and coming back would
  *     otherwise show a permanently dead button
+ *   - ★ (2026-08-29) keep a form locked when the submit was CANCELLED — see
+ *     the unlock-on-prevented note in the listener
  *
  * The server has its own duplicate guard. This one is the fast path; that one
  * is the one that actually holds when JavaScript is off or slow.
@@ -79,6 +81,28 @@ export default function registerSubmitGuard() {
             }
 
             lock(form);
+
+            /*
+             * ★ (2026-08-29) Unlock again if something cancelled this submit.
+             *
+             * This listener is on the CAPTURE phase, so it locks before any
+             * other handler has had a say — and every delete button in this app
+             * is an inline onsubmit="return confirm(...)", which runs later and
+             * can still call the submit off. Answering "لأ" to that dialog (or
+             * a browser that suppressed it, which Chrome does after a page
+             * shows a few) therefore left the form locked and the button dead
+             * until a reload, with nothing on screen explaining why. It reads
+             * exactly like "the button does not work".
+             *
+             * defaultPrevented is only final once dispatch is over, hence the
+             * tick. On a submit that DOES go through, the page is navigating
+             * and this either never runs or finds nothing to undo.
+             */
+            setTimeout(() => {
+                if (event.defaultPrevented) {
+                    unlock(form);
+                }
+            }, 0);
         },
         true,
     );
