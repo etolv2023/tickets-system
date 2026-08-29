@@ -103,8 +103,26 @@ return [
      * Mention assignees in the general channel. Off by default: the assignee
      * already gets a DM, so a mention pings the same person twice for one event.
      * When on, allowed_mentions is restricted to exactly those user ids.
+     *
+     * ★ If send_dms below is off, this is the ONLY way a person is told the work
+     * is theirs — turning it on is the natural pairing.
      */
     'mention_assignees' => (bool) env('DISCORD_MENTION_ASSIGNEES', false),
+
+    /*
+     * ★ (2026-08-29) Direct messages to the assignee — «التذكرة دي بقت بتاعتك»
+     * and its four siblings (ticket/subtask assigned + unassigned).
+     *
+     * Off by default, by request. Everything else the integration does is
+     * unaffected: the channel announcement, the day's post, status changes,
+     * reassignment notes and subtask events all still go out. Only the private
+     * message to the person is withheld.
+     *
+     * Nothing is deleted to make this work — the DM types, their renderers and
+     * their delivery path are all intact, so flipping this back to true
+     * restores the behaviour with no other change.
+     */
+    'send_dms' => (bool) env('DISCORD_SEND_DMS', false),
 
     /*
      * Render and log the exact payload instead of calling the API. Lets the whole

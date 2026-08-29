@@ -190,14 +190,26 @@ class TicketDiscordMessage extends Model
         return 't' . $this->ticket_id . 'r' . $this->id;
     }
 
+    /**
+     * The four types that go to a person instead of to the channel.
+     *
+     * A constant rather than a literal inside isDirectMessage(), because two
+     * callers need the list: delivery asks "where does this go?", and the
+     * discord.send_dms switch asks "should this exist at all?". One definition,
+     * so a fifth DM type can never be added to one and missed by the other.
+     *
+     * @var array<int, string>
+     */
+    public const DM_TYPES = [
+        self::TYPE_ASSIGNED,
+        self::TYPE_UNASSIGNED,
+        self::TYPE_SUBTASK_ASSIGNED,
+        self::TYPE_SUBTASK_UNASSIGNED,
+    ];
+
     /** A DM goes to a person; everything else goes to the channel or a thread. */
     public function isDirectMessage(): bool
     {
-        return in_array($this->type, [
-            self::TYPE_ASSIGNED,
-            self::TYPE_UNASSIGNED,
-            self::TYPE_SUBTASK_ASSIGNED,
-            self::TYPE_SUBTASK_UNASSIGNED,
-        ], true);
+        return in_array($this->type, self::DM_TYPES, true);
     }
 }

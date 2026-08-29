@@ -773,6 +773,18 @@ class DiscordNotificationService
      */
     private function record(array $attributes): void
     {
+        // ★ (2026-08-29) Direct messages switched off (discord.send_dms).
+        //
+        // Refused here rather than at delivery on purpose: a row written only to
+        // be skipped still costs an insert, a queued job and a worker turn, and
+        // it fills the ledger with rows that were never going to be sent. The
+        // four DM types stay defined and their renderers untouched — the switch
+        // decides whether a row is ever born, nothing else.
+        if (! config('discord.send_dms')
+            && in_array($attributes['type'] ?? null, TicketDiscordMessage::DM_TYPES, true)) {
+            return;
+        }
+
         $key = $attributes['dedupe_key'] ?? null;
 
         if ($key !== null && TicketDiscordMessage::where('dedupe_key', $key)->exists()) {
