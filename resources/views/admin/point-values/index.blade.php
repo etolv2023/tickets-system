@@ -16,6 +16,12 @@
                     <strong>وخصومات التأخير داخلة في الحساب بالسالب.</strong>
                 </p>
             </div>
+            {{-- The file carries the rate card and the per-type split next to
+                 each person's figure: these are salary numbers, and the sheet
+                 has to show its working the way the screen does. --}}
+            <div class="page__actions">
+                <x-export-button route="export.money" />
+            </div>
         </div>
 
         @if (session('status'))

@@ -11,10 +11,7 @@
                 <p class="page-subtitle">الأرقام مكانها هنا — بتروحلها بقصد.</p>
             </div>
             <div class="page__actions">
-                <x-button variant="secondary" :href="route('export.tickets')">
-                    <x-icon name="download" class="btn__icon" />
-                    تصدير Excel
-                </x-button>
+                <x-export-button route="export.reports" />
             </div>
         </div>
 

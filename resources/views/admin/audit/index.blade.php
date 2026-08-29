@@ -12,6 +12,9 @@
                     للقراءة بس — مفيش تعديل ولا حذف. سجل بيتعدّل مش سجل.
                 </p>
             </div>
+            <div class="page__actions">
+                <x-export-button route="export.audit" />
+            </div>
         </div>
 
         <form method="GET" action="{{ route('admin.audit.index') }}" class="filters">

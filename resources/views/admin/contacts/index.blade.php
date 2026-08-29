@@ -13,6 +13,7 @@
                 </p>
             </div>
             <div class="page__actions">
+                <x-export-button route="export.contacts" />
                 <x-button variant="ghost" :href="route('admin.companies.index')">الشركات</x-button>
             </div>
         </div>

@@ -10,6 +10,7 @@
                 <p class="page-subtitle">{{ $users->total() }} مستخدم.</p>
             </div>
             <div class="page__actions">
+                <x-export-button route="export.users" />
                 <x-button variant="ghost" :href="route('admin.import.index')">استيراد من Excel</x-button>
                 <x-button variant="primary" :href="route('admin.users.create')">مستخدم جديد</x-button>
             </div>

@@ -17,6 +17,7 @@
             <div class="page__actions">
                 <span class="points-total">{{ rtrim(rtrim(number_format($data['pointsTotal'], 2), '0'), '.') }}</span>
                 <span class="u-subtle">نقطة</span>
+                <x-export-button route="export.employee" :params="['user' => $employee->id]" />
             </div>
         </div>
 

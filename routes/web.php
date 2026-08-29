@@ -39,7 +39,10 @@ use App\Http\Controllers\QueueController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\TicketWorkflowController;
 use App\Http\Controllers\Auth\PasswordChangeController;
-use App\Http\Controllers\ExportController;
+use App\Http\Controllers\Export\AdminExportController;
+use App\Http\Controllers\Export\PointsExportController;
+use App\Http\Controllers\Export\ReportExportController;
+use App\Http\Controllers\Export\TicketExportController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\TicketCommentController;
@@ -234,9 +237,33 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-points', [ReportController::class, 'myPoints'])
         ->middleware('permission:points.view.own')->name('reports.my-points');
 
-    // F19.3 — exports. Scoped to the requester's visibility.
-    Route::get('/export/tickets', [ExportController::class, 'tickets'])->name('export.tickets');
-    Route::get('/export/points', [ExportController::class, 'points'])->name('export.points');
+    /*
+     * F19.3 — exports. One endpoint per list screen, each repeating that
+     * screen's own authorisation and reading the same filters off the query
+     * string, so the file always matches what the exporter was looking at.
+     */
+    Route::prefix('export')->name('export.')->group(function () {
+        Route::get('tickets', [TicketExportController::class, 'tickets'])->name('tickets');
+        Route::get('approvals', [TicketExportController::class, 'approvals'])->name('approvals');
+        Route::get('testing-queue', [TicketExportController::class, 'testing'])->name('testing');
+        Route::get('search', [TicketExportController::class, 'search'])->name('search');
+
+        Route::get('points', [PointsExportController::class, 'leaderboard'])->name('points');
+        Route::get('points-summary', [PointsExportController::class, 'summary'])->name('points-summary');
+        Route::get('points-ledger', [PointsExportController::class, 'ledger'])->name('points-ledger');
+        Route::get('my-points', [PointsExportController::class, 'mine'])->name('my-points');
+
+        Route::get('reports', [ReportExportController::class, 'reports'])->name('reports');
+        Route::get('team-activity', [ReportExportController::class, 'teamActivity'])->name('team-activity');
+        Route::get('employees/{user}', [ReportExportController::class, 'employee'])->name('employee');
+        Route::get('timesheet', [ReportExportController::class, 'timesheet'])->name('timesheet');
+
+        Route::get('money', [AdminExportController::class, 'money'])->name('money');
+        Route::get('audit', [AdminExportController::class, 'audit'])->name('audit');
+        Route::get('users', [AdminExportController::class, 'users'])->name('users');
+        Route::get('companies', [AdminExportController::class, 'companies'])->name('companies');
+        Route::get('contacts', [AdminExportController::class, 'contacts'])->name('contacts');
+    });
 
     // F20
     // Type-ahead for every database-backed dropdown. Throttled: it is a search

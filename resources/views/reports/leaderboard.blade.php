@@ -13,9 +13,7 @@
                 <p class="page-subtitle">النقاط المصروفة في الشهر المختار.</p>
             </div>
             <div class="page__actions">
-                <x-button variant="secondary" :href="route('export.points', ['period' => $period])">
-                    تصدير Excel
-                </x-button>
+                <x-export-button route="export.points" :params="['period' => $period]" />
             </div>
         </div>
 

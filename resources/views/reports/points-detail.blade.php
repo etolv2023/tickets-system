@@ -19,6 +19,9 @@
                     <a href="{{ route('reports.points') }}">الملخص المجمّع هنا</a>.
                 </p>
             </div>
+            <div class="page__actions">
+                <x-export-button route="export.points-ledger" />
+            </div>
         </div>
 
         <form method="GET" action="{{ route('reports.points-detail') }}" class="filters">
@@ -121,7 +124,10 @@
                     <tbody>
                         @forelse ($rows as $row)
                             <tr>
-                                <td class="u-mono u-ltr">{{ $row->created_at->format('Y-m-d H:i') }}</td>
+                                {{-- Stored UTC, read in Cairo — same as every
+                                     other timestamp in the app, and same as
+                                     the export of this very screen. --}}
+                                <td class="u-mono u-ltr">{{ $row->created_at->timezone(config('app.display_timezone'))->format('Y-m-d H:i') }}</td>
 
                                 <td>
                                     <a class="row" href="{{ route('reports.employee', $row->user_id) }}">
@@ -130,12 +136,15 @@
                                     </a>
                                 </td>
 
+                                {{-- The number alone made the reader open the
+                                     ticket to find out which one it was. A row
+                                     meant to settle a bonus dispute has to say
+                                     what the work was. --}}
                                 <td>
                                     @if ($row->ticket)
-                                        <a href="{{ route('tickets.show', $row->ticket_id) }}">
-                                            <span class="u-mono u-ltr">{{ $row->ticket->ticket_number }}</span>
-                                            <span class="tickets__company">{{ $row->ticket->originLabel() }}</span>
-                                        </a>
+                                        <span class="tickets__number">{{ $row->ticket->ticket_number }}</span>
+                                        <a class="tickets__title" href="{{ route('tickets.show', $row->ticket_id) }}">{{ $row->ticket->title }}</a>
+                                        <span class="tickets__company">{{ $row->ticket->originLabel() }}</span>
                                     @else
                                         <span class="u-subtle">—</span>
                                     @endif

@@ -43,6 +43,8 @@
             <x-button variant="ghost" :href="route('tickets.index')">مسح</x-button>
         @endif
 
+        <x-export-button route="export.tickets" />
+
         {{-- The one primary action on this screen lives at the end of the bar,
              not in a page header — the design's filter row carries it. --}}
         @can('create', App\Models\Ticket::class)

@@ -10,6 +10,7 @@
                 <p class="page-subtitle">{{ $companies->total() }} شركة.</p>
             </div>
             <div class="page__actions">
+                <x-export-button route="export.companies" />
                 <x-button variant="ghost" :href="route('admin.contacts.index')">جهات الاتصال</x-button>
                 <x-button variant="ghost" :href="route('admin.import.index')">استيراد من Excel</x-button>
                 <x-button variant="primary" :href="route('admin.companies.create')">شركة جديدة</x-button>

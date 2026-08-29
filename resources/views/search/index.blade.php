@@ -21,6 +21,12 @@
                 autofocus
             >
             <x-button variant="primary">ابحث</x-button>
+
+            {{-- Only once there is a result list to export — an export button
+                 over an empty page is an offer of nothing. --}}
+            @if ($results && collect($results)->sum(fn ($r) => $r->count()) > 0)
+                <x-export-button route="export.search" />
+            @endif
         </form>
 
         @if ($tooShort)

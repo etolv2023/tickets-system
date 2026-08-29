@@ -10,6 +10,9 @@
                 <h1 class="page-title">تقرير التيم التفصيلي</h1>
                 <p class="page-subtitle">التذاكر والصب تاسكس الفعلية — مش أرقام مجمّعة، الصفوف نفسها.</p>
             </div>
+            <div class="page__actions">
+                <x-export-button route="export.team-activity" />
+            </div>
         </div>
 
         @include('reports.partials._team-activity-filters')

@@ -27,6 +27,9 @@
                 </h1>
                 <p class="page-subtitle">النقاط بتتصرف مرة واحدة أول ما التذكرة تتحل.</p>
             </div>
+            <div class="page__actions">
+                <x-export-button route="export.my-points" />
+            </div>
         </div>
 
         <div class="today-stats">

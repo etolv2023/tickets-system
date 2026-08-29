@@ -10,6 +10,9 @@
                 <h1 class="page-title">مستني قرارك</h1>
                 <p class="page-subtitle">فيتشرات وموديولات جديدة مستنية موافقتك قبل ما تتوزّع على المبرمجين.</p>
             </div>
+            <div class="page__actions">
+                <x-export-button route="export.approvals" />
+            </div>
         </div>
 
         @if (session('status'))

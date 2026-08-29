@@ -10,6 +10,9 @@
                 <h1 class="page-title">طابور التيست</h1>
                 <p class="page-subtitle">تذاكر خلصت تطوير ومستنية مراجعتك — أكّد الحل أو رجّعها بملاحظة.</p>
             </div>
+            <div class="page__actions">
+                <x-export-button route="export.testing" />
+            </div>
         </div>
 
         @if (session('status'))

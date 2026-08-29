@@ -81,4 +81,59 @@ class PointTransaction extends Model
     {
         return $query->where('period', $period);
     }
+
+    /**
+     * The ledger screen's filter set (F18/F19.3).
+     *
+     * Lives on the model rather than in the controller (CLAUDE.md § 3) because
+     * two callers need it: /points-report/detail and its export. A filtered
+     * screen whose export answers a different question is worse than no export,
+     * so there is exactly one definition of what the filter means.
+     *
+     * @param  array<string, mixed>  $filters
+     */
+    public function scopeFilter(Builder $query, array $filters): Builder
+    {
+        return $query
+            ->when($filters['person'] ?? null, fn (Builder $q, $v) => $q->where('user_id', $v))
+            ->when($filters['period'] ?? null, fn (Builder $q, $v) => $q->forPeriod($v))
+            ->when($filters['from'] ?? null, fn (Builder $q, $v) => $q->whereDate('created_at', '>=', $v))
+            ->when($filters['to'] ?? null, fn (Builder $q, $v) => $q->whereDate('created_at', '<=', $v))
+            ->when($filters['role'] ?? null, fn (Builder $q, $v) => $q->where('role_id', $v))
+            // 'kind' is this row's own type (award / penalty / correction);
+            // 'type' is the parent ticket's. Two different columns on two
+            // different tables, and the screen offers both.
+            ->when($filters['kind'] ?? null, fn (Builder $q, $v) => $q->where('type', $v))
+            ->when($filters['type'] ?? null, fn (Builder $q, $v) => $q->whereHas('ticket', fn (Builder $t) => $t->where('type', $v)))
+            ->when($filters['company'] ?? null, fn (Builder $q, $v) => $q->whereHas('ticket', fn (Builder $t) => $t->where('company_id', $v)))
+            ->when($filters['q'] ?? null, fn (Builder $q, $v) => $q->where(fn (Builder $w) => $w
+                ->where('reason', 'like', "%{$v}%")
+                ->orWhereHas('ticket', fn (Builder $t) => $t->where('ticket_number', 'like', "%{$v}%")
+                    ->orWhere('title', 'like', "%{$v}%"))
+                ->orWhereHas('subtask', fn (Builder $t) => $t->where('title', 'like', "%{$v}%"))));
+    }
+
+    /**
+     * How this row describes itself: an automatic award, a late-delivery
+     * penalty, or a hand-typed correction. The screen renders these as badges;
+     * a sheet needs the same three words.
+     */
+    public function kindLabel(): string
+    {
+        return match ($this->type) {
+            'correction' => 'تصحيح يدوي',
+            'penalty' => 'خصم تأخير',
+            default => 'صرف تلقائي',
+        };
+    }
+
+    /**
+     * Which role earned it. A subtask-based row carries a fixed `side`; a
+     * role-based one carries `role_id` and leaves side null — the same
+     * fallback the ledger screen prints.
+     */
+    public function sideLabel(): string
+    {
+        return $this->side?->label() ?? $this->role?->name_ar ?? '—';
+    }
 }

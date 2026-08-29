@@ -21,6 +21,9 @@
                     تسجيل الوقت مالوش أي علاقة بيها.
                 </p>
             </div>
+            <div class="page__actions">
+                <x-export-button route="export.points-summary" />
+            </div>
         </div>
 
         {{-- ★ (2026-08-19) الفلتر بالنوع جنب فلتر الشهر — فورم واحدة

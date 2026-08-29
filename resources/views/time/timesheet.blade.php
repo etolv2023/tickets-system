@@ -15,6 +15,7 @@
             </div>
             <div class="page__actions">
                 <span class="timesheet__total">{{ rtrim(rtrim(number_format($total, 2), '0'), '.') }} ساعة</span>
+                <x-export-button route="export.timesheet" />
             </div>
         </div>
 
