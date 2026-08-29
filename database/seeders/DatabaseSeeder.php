@@ -31,6 +31,10 @@ class DatabaseSeeder extends Seeder
                 // edited one on it. After the history so it has real tickets
                 // and real people to point at.
                 DemoPointCorrectionSeeder::class,
+                // F30 — the finished-but-open state, which no other seeder
+                // produces. Without it /ready-to-close ships empty and reads as
+                // broken rather than as quiet.
+                DemoReadyToCloseSeeder::class,
                 // Last: it reads the users and companies the others created,
                 // and it is the one you open to see how the pieces fit.
                 DemoFeatureWalkthroughSeeder::class,

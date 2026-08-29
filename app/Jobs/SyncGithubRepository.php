@@ -35,6 +35,26 @@ class SyncGithubRepository implements ShouldQueue
 
     public function handle(GitHubSyncService $sync): void
     {
+        /*
+         * ★ (2026-08-29) Bail before touching the repository row.
+         *
+         * Without this the client throws "التكامل مش مفعّل أو التوكن ناقص" from
+         * deep inside syncRepository(), which catches it and STAMPS IT ON THE
+         * ROW — so a global configuration problem is written onto all four
+         * repositories as if each of them had failed, overwriting the result of
+         * a sync that actually worked.
+         *
+         * It is not hypothetical: `queue:work` is a long-running process that
+         * reads config once at boot. A worker started before GITHUB_TOKEN was
+         * set keeps the old, empty value in memory, so `php artisan github:sync`
+         * on the terminal succeeds while the queued sync of the same repository
+         * fails a second later and marks every row red. Restarting the worker is
+         * the fix; not defacing the rows meanwhile is this.
+         */
+        if (! config('github.enabled') || blank(config('github.token'))) {
+            return;
+        }
+
         $repository = GithubRepository::find($this->repositoryId);
 
         if ($repository === null || ! $repository->is_active) {

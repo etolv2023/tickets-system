@@ -2,13 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
+use App\Models\PriorityDefinition;
 use App\Models\Ticket;
+use App\Models\TicketStatusDefinition;
+use App\Models\TicketTypeDefinition;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\View\View;
 
-/** The two work queues: approvals (F15) and testing (F16). */
+/** The work queues: approvals (F15), testing (F16) and ready-to-close (F30). */
 class QueueController extends Controller
 {
+    /** Statuses that mean the ticket is done with — it cannot be "ready" to close. */
+    private const SETTLED = ['resolved', 'closed', 'rejected'];
+
     /** F15 — features waiting on an admin's decision. */
     public function approvals(Request $request): View
     {
@@ -40,6 +49,66 @@ class QueueController extends Controller
             'filters' => $filters,
             'selectedAssignee' => filled($filters['assignee'] ?? null)
                 ? \App\Models\User::whereKey($filters['assignee'])->value('name')
+                : null,
+        ]);
+    }
+
+    /**
+     * ★ (2026-08-29) F30 — «جاهزة للقفل»: كل صب تاسكاتها خلصت والتذكرة لسه مفتوحة.
+     *
+     * The gap this catches is specific and common: the work is finished, every
+     * step is ticked, and nobody moved the ticket. It is invisible on /tickets —
+     * the row looks like any other open ticket — and invisible on the board for
+     * the same reason. It only appears when somebody asks this exact question.
+     *
+     * subtasks_total > 0 matters: a ticket with no steps has not "finished all
+     * of them", it has never had any, and listing those would bury the real ones.
+     *
+     * Both numbers are counters SubtaskService maintains on every mutation
+     * (§ 4.6), so this is a comparison between two columns rather than a count
+     * over ticket_subtasks per row.
+     *
+     * No permission on the route: visibleTo() decides what is in the result,
+     * exactly as on /tickets. A developer sees their own finished-but-open work
+     * — the person best placed to close it — and a manager sees the team's.
+     */
+    public function ready(Request $request): View
+    {
+        $filters = $request->only('q', 'type', 'priority', 'company', 'assignee', 'relation', 'from', 'to', 'status');
+
+        $tickets = Ticket::query()
+            ->select([
+                'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'priority',
+                'status', 'reported_at', 'sla_due_at', 'created_by',
+                'subtasks_total', 'subtasks_done', 'branches_count',
+            ])
+            ->with([
+                'company:id,name,code', 'requester:id,name', 'creator:id,name',
+                'roleAssignments.user:id,name,avatar_path,is_active',
+            ])
+            ->visibleTo($request->user())
+            ->where('subtasks_total', '>', 0)
+            ->whereColumn('subtasks_done', '>=', 'subtasks_total')
+            ->whereNotIn('status', self::SETTLED)
+            ->filter($filters)
+            ->defaultOrder()
+            ->paginate(25)
+            ->withQueryString();
+
+        return view('queues.ready', [
+            'tickets' => $tickets,
+            'filters' => $filters,
+            // Only the statuses a ticket in this queue can be in. Offering
+            // «تم الحل» on a queue defined as "not resolved" is a filter whose
+            // only possible answer is an empty list.
+            'statuses' => Arr::except(TicketStatusDefinition::options(), self::SETTLED),
+            'types' => TicketTypeDefinition::options(),
+            'priorities' => PriorityDefinition::options(),
+            'selectedCompany' => filled($filters['company'] ?? null)
+                ? Company::whereKey($filters['company'])->value('name')
+                : null,
+            'selectedAssignee' => filled($filters['assignee'] ?? null)
+                ? User::whereKey($filters['assignee'])->value('name')
                 : null,
         ]);
     }

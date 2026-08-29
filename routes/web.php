@@ -256,6 +256,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/approvals', [QueueController::class, 'approvals'])->name('queues.approvals');
     Route::get('/testing-queue', [QueueController::class, 'testing'])->name('queues.testing');
 
+    // ★ (2026-08-29) F30 — كل صب تاسكاتها خلصت وهي لسه مفتوحة.
+    //
+    // No permission middleware, like /tickets: visibleTo() inside the controller
+    // is what decides whose tickets are in the list. A developer sees their own
+    // finished-but-open work; a manager sees the team's.
+    Route::get('/ready-to-close', [QueueController::class, 'ready'])->name('queues.ready');
+
     // F21 — one box for everything.
     Route::get('/search', [SearchController::class, 'index'])->name('search');
 
