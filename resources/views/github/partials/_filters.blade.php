@@ -92,15 +92,20 @@
             </select>
         </div>
 
-        <div class="filters__group">
-            {{-- Defaults to تاريخ الحل on this screen, not تاريخ الفتح: a range
-                 here means "work delivered in this window". --}}
-            <select name="date_basis" class="select" aria-label="التاريخ محسوب على">
-                @foreach (\App\Models\Ticket::DATE_BASES as $value => $label)
-                    <option value="{{ $value }}" @selected(($filters['date_basis'] ?? 'resolved_at') === $value)>{{ $label }}</option>
-                @endforeach
-            </select>
+        {{-- Its own cell, NOT inside .filters__group below.
 
+             That group is sized for exactly two date inputs and an arrow across
+             two grid tracks — the inputs are flex: 1 1 0 so they can shrink
+             rather than overflow the row (see filters.css). Putting a third
+             control in there gave the select its full width and squeezed both
+             dates down to empty squares. --}}
+        <select name="date_basis" class="select" aria-label="التاريخ محسوب على">
+            @foreach (\App\Models\Ticket::DATE_BASES as $value => $label)
+                <option value="{{ $value }}" @selected(($filters['date_basis'] ?? 'resolved_at') === $value)>{{ $label }}</option>
+            @endforeach
+        </select>
+
+        <div class="filters__group">
             <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" class="input" aria-label="من تاريخ">
             <span class="u-subtle">→</span>
             <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" class="input" aria-label="لتاريخ">
