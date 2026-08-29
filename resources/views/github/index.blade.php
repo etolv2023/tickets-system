@@ -11,6 +11,10 @@
                     أنهي تذاكر ليها كود وراها وأنهي لأ — المطابقة بالبرانش اللي اسمه بيبدأ برقم التذكرة.
                     <br>
                     الافتراضي هو <strong>اللي اتقفلت وملهاش برانش</strong>؛ غيّر أول فلترين لو عايز تقلب السؤال.
+                    <br>
+                    عمود <strong>«البرانشات بالجهة»</strong> بيقارن الجهات المسنودة على التذكرة بالبرانشات
+                    الموجودة فعلاً — تذكرة عليها باك وفرونت لازم يكون ليها برانش في الاتنين، ولو واحد ناقص
+                    هيبان <strong>أحمر</strong> حتى لو التذكرة «ليها برانش».
                 </p>
             </div>
 
@@ -27,14 +31,21 @@
                 </div>
 
                 {{-- Its own form, outside the filter bar: that one is a GET and
-                     HTML has no nested forms. --}}
-                <form method="POST" action="{{ route('github.sync') }}">
-                    @csrf
-                    <x-button variant="secondary">
-                        <x-icon name="refresh" class="btn__icon" />
-                        زامن دلوقتي
-                    </x-button>
-                </form>
+                     HTML has no nested forms.
+
+                     ★ (2026-08-29) Stays on github.audit while the screen itself
+                     is open to every developer: reading the four repositories is
+                     four walks of every branch they hold, and a button that
+                     queues that is not one for everybody to press. --}}
+                @can('github.audit')
+                    <form method="POST" action="{{ route('github.sync') }}">
+                        @csrf
+                        <x-button variant="secondary">
+                            <x-icon name="refresh" class="btn__icon" />
+                            زامن دلوقتي
+                        </x-button>
+                    </form>
+                @endcan
             </div>
         </div>
 
@@ -71,7 +82,7 @@
                                 <th>النوع</th>
                                 <th>الأولوية</th>
                                 <th>الحالة</th>
-                                <th class="table__cell--num">برانشات</th>
+                                <th>البرانشات بالجهة</th>
                                 <th>اتحلت</th>
                                 <th>مين شغّال عليها</th>
                             </tr>

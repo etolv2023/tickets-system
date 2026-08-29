@@ -236,8 +236,11 @@ Route::middleware('auth')->group(function () {
     // ★ (2026-08-29) Was /github/without-branch. The screen filters both ways
     // now — «ليها برانش» is the same data read from the other side — so a URL
     // that names only one of its answers had stopped being true.
+    // ★ (2026-08-29) github.view, not github.audit: every developer sees this,
+    // and visibleTo() inside the controller narrows it to their own tickets
+    // exactly as /tickets does. Triggering a sync stays on github.audit below.
     Route::get('/github/branches', [GithubAuditController::class, 'index'])
-        ->middleware('permission:github.audit')->name('github.branches');
+        ->middleware('permission:github.view')->name('github.branches');
 
     // ★ (2026-08-29) "زامن دلوقتي" from the audit screen, so the list you are
     // about to act on is not last night's. github.audit rather than

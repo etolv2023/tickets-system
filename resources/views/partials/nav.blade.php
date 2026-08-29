@@ -42,7 +42,7 @@
 
         {{-- github.audit is in the list because "من غير برانش" lives inside
              this group, and a manager can hold it without holding reports.view. --}}
-        @canany(['points.view.all', 'reports.view', 'github.audit'])
+        @canany(['points.view.all', 'reports.view', 'github.view'])
             <x-nav-group name="reports" title="التقارير" icon="chart" :open="false">
                 @include('partials.nav._reports')
             </x-nav-group>

@@ -29,7 +29,7 @@
 
 {{-- ★ (2026-08-29) F27. Sits with the reports because that is what it is: a
      read-only view of the team's finished work, asking one question about it. --}}
-@can('github.audit')
+@can('github.view')
     <a href="{{ route('github.branches') }}" class="nav__link" title="برانشات التذاكر"
        @if (request()->routeIs('github.branches')) aria-current="page" @endif>
         <x-icon name="git-branch" class="nav__icon" />

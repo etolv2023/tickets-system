@@ -29,14 +29,29 @@
         <x-badge :variant="$ticket->status->variant()">{{ $ticket->status->label() }}</x-badge>
     </td>
 
-    {{-- ★ (2026-08-29) Needed once the screen can show tickets that DO have a
-         branch: without it, "ليها برانش" is a list you have to take on trust.
-         The total across every repository, even when the filter names one. --}}
-    <td class="table__cell--num u-mono">
-        @if ($ticket->branches_count > 0)
-            {{ $ticket->branches_count }}
-        @else
+    {{-- ★ (2026-08-29) The point of the screen, and it is NOT a count.
+
+         A ticket with backend and frontend work owes a branch in each. One of
+         the two is not "half covered", it is wrong — and a number in a column
+         says «1» for both the finished ticket and the broken one. So: a chip
+         per side, and the missing one is red and says «ناقص».
+
+         All derived, zero queries — see App\Support\BranchCoverage. --}}
+    <td>
+        @php $coverage = \App\Support\BranchCoverage::for($ticket); @endphp
+
+        @if ($coverage === [])
             <span class="u-subtle">—</span>
+        @else
+            <div class="row row--wrap gh-cover">
+                @foreach ($coverage as $side)
+                    @if ($side['covered'])
+                        <x-badge variant="green">{{ $side['label'] }} ✔</x-badge>
+                    @else
+                        <x-badge variant="red">{{ $side['label'] }} ناقص</x-badge>
+                    @endif
+                @endforeach
+            </div>
         @endif
     </td>
 

@@ -30,9 +30,16 @@ use Illuminate\View\View;
  * the settled tickets — that is the accusation-shaped question and it should
  * not need a click.
  *
- * Read-only, and row-filtered like everything else: github.audit says you may
- * ask the question, visibleTo() still decides which tickets you may ask it
- * about. A permission is not a bypass for the ticket scope (CLAUDE.md § 5).
+ * ★ (2026-08-29) Open to everybody who can see a ticket's code tab
+ * (github.view), not just to auditors. A developer asking «شغلي كله عليه
+ * برانش؟» is the person best placed to fix a missing one, and there is no
+ * reason to make them ask somebody else.
+ *
+ * That is safe for exactly one reason: visibleTo() still decides which tickets
+ * are in the result set. A developer holding only tickets.view.assigned sees
+ * their own tickets and nobody else's — on this screen for the same reason and
+ * through the same scope as on /tickets. A permission is never a bypass for the
+ * row filter (CLAUDE.md § 5). The sync button stays on github.audit.
  */
 class GithubAuditController extends Controller
 {
@@ -97,6 +104,11 @@ class GithubAuditController extends Controller
             ->with([
                 'company:id,name',
                 'roleAssignments.user:id,name,avatar_path,is_active',
+                // ★ (2026-08-29) Which repository each branch is in, so the row
+                // can answer per side instead of with a count — see
+                // App\Support\BranchCoverage. Two columns, one query, no
+                // repository join: the repositories come from the cached map.
+                'branches:id,ticket_id,github_repository_id',
             ])
             ->tap(fn (Builder $q) => $this->applyBranchMode($q, $repo, $mode))
             ->orderByDesc('resolved_at')
