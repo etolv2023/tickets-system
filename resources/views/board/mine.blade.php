@@ -16,7 +16,7 @@
             <div>
                 <h1 class="page-title">بوردي</h1>
                 <p class="page-subtitle">
-                    الشغل المسند ليك انت بس. عمود «مغلقة» بيوري آخر أسبوعين —
+                    الشغل المسند ليك انت بس. عمود «مغلقة» بيوري {{ $months[$period] }} —
                     الباقي في <a href="{{ route('tickets.index') }}">التذاكر</a>.
                 </p>
             </div>

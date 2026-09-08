@@ -1,7 +1,11 @@
 {{-- The board's filter bar. Status is deliberately absent — the columns are
      the statuses — so this narrows by type/priority/company/search (and, on the
      team board, by assignee). $filters and the selected lookups come from
-     BoardController; no query lives in the view. § 3 --}}
+     BoardController; no query lives in the view. § 3
+
+     ★ (2026-09-08) The month picker is the exception to "status is the columns":
+     it does not narrow the board, it says which month «مغلقة» covers. It is
+     kept out of $filters for that reason — see selectedPeriod(). --}}
 <form method="GET" action="{{ route($routeName) }}" class="filters">
     @isset($lane)
         {{-- Keep the swimlane grouping across a filter submit. --}}
@@ -46,8 +50,17 @@
         @endforeach
     </select>
 
+    <select name="period" class="select filters__select" aria-label="شهر العمود المغلق">
+        @foreach ($months as $value => $label)
+            <option value="{{ $value }}" @selected($period === $value)>{{ $label }}</option>
+        @endforeach
+    </select>
+
     <x-button variant="secondary">فلترة</x-button>
 
+    {{-- $filters only — «مسح» must not light up because a month is selected.
+         One always is (the picker has no empty option), so including it here
+         would leave the button showing on an untouched board. --}}
     @if (array_filter($filters))
         <x-button variant="ghost" :href="route($routeName, isset($lane) ? ['lane' => $lane] : [])">مسح</x-button>
     @endif

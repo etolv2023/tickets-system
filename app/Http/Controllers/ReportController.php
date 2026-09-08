@@ -12,7 +12,6 @@ use App\Models\TicketSubtask;
 use App\Models\TicketTypeDefinition;
 use App\Models\User;
 use App\Services\ReportService;
-use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -293,11 +292,7 @@ class ReportController extends Controller
 
     private function period(Request $request): string
     {
-        $period = (string) $request->query('period', '');
-
-        return preg_match('/^\d{4}-\d{2}$/', $period) === 1
-            ? $period
-            : CarbonImmutable::now()->format('Y-m');
+        return $this->reports->resolvePeriod($request->query('period'));
     }
 
     /** @return array{0: string, 1: string} */
@@ -306,16 +301,20 @@ class ReportController extends Controller
         return $this->reports->periodBounds($this->period($request));
     }
 
-    /** @return array<string, string> the last 12 months, for the picker */
+    /**
+     * The last 12 months, for the picker. Shared with the board, which needs
+     * the same list — so the list itself lives on ReportService next to
+     * periodBounds() rather than being written twice.
+     *
+     * ★ The `current` sentinel that list opens with is dropped here: these
+     * screens are reached on purpose and do not remember their filter bar, so
+     * a self-renewing default buys them nothing and would only add a second
+     * option meaning "September" during September.
+     *
+     * @return array<string, string>
+     */
     private function months(): array
     {
-        $months = [];
-
-        for ($i = 0; $i < 12; $i++) {
-            $month = CarbonImmutable::now()->subMonths($i);
-            $months[$month->format('Y-m')] = $month->translatedFormat('F Y');
-        }
-
-        return $months;
+        return \Illuminate\Support\Arr::except($this->reports->monthOptions(), ['current']);
     }
 }

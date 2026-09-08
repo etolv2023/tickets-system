@@ -17,7 +17,7 @@
                 <h1 class="page-title">بورد التيم</h1>
                 <p class="page-subtitle">
                     الشغل المفتوح مقسّم بالـ{{ $lane === 'priority' ? 'أولوية' : 'مسؤول' }}،
-                    وآخر أسبوعين من المقفول.
+                    والمقفول بتاع {{ $months[$period] }}.
                 </p>
             </div>
             <div class="page__actions">

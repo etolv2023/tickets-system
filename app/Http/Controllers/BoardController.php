@@ -16,6 +16,15 @@ use Illuminate\View\View;
 class BoardController extends Controller
 {
     /**
+     * ReportService owns the month picker's list and its bounds already — the
+     * board asks it the same two questions rather than growing a second copy
+     * of "what is a month".
+     */
+    public function __construct(private readonly \App\Services\ReportService $reports)
+    {
+    }
+
+    /**
      * Public because BoardMoveController and BoardMoveRequest read it: a drop
      * has to resolve the column key the browser sends back to a status.
      *
@@ -161,13 +170,6 @@ class BoardController extends Controller
         return ['id', 'ticket_id', 'title', 'status', 'side', 'role_id', 'assignee_id', 'position'];
     }
 
-    /**
-     * A board is a picture of live work, so the closed column is a short tail —
-     * not the archive. Without this it fetched every ticket ever closed: at
-     * 5,000 tickets that was 4,268 rows and a 6.7s render.
-     */
-    private const CLOSED_WINDOW_DAYS = 14;
-
     /** Cap per column. Anything beyond this is reported, never silently cut. */
     private const COLUMN_LIMIT = 100;
 
@@ -184,7 +186,14 @@ class BoardController extends Controller
 
         // The board's own filter bar — type/priority/company/search. Status is
         // the columns themselves, so it isn't offered here (2026-07-22).
+        // ★ (2026-09-08) …plus the month the «مغلقة» column covers. It is not a
+        // $filters entry the query reads through filter(): the other four narrow
+        // the whole board, this one bounds one column, so it goes to onBoard().
         $filters = $request->only('q', 'type', 'priority', 'company');
+        $months = $this->reports->monthOptions();
+        $selected = $this->selectedPeriod($request, $months);
+        // `current` is not a Y-m, so resolvePeriod() lands it on the running month.
+        $period = $this->reports->resolvePeriod($selected);
 
         // One query for the whole board: fetch the user's tickets, then group in
         // php rather than running a query per column (CLAUDE.md § 4).
@@ -223,7 +232,7 @@ class BoardController extends Controller
             ])
             ->assignedTo($user->id)
             ->filter($filters)
-            ->onBoard()
+            ->onBoard($this->reports->periodBounds($period))
             ->defaultOrder()
             ->get();
 
@@ -231,12 +240,38 @@ class BoardController extends Controller
             'columns' => $this->columns($tickets),
             'user' => $user,
             'filters' => $filters,
+            'period' => $selected,
+            'months' => $months,
             'routeName' => 'board.mine',
             'isTeam' => false,
             'selectedCompany' => filled($filters['company'] ?? null)
                 ? \App\Models\Company::whereKey($filters['company'])->value('name')
                 : null,
         ]);
+    }
+
+    /**
+     * What the month picker should show as chosen — the raw parameter, not the
+     * resolved month.
+     *
+     * The distinction is the whole point of the sentinel: a bare url and an
+     * explicit `current` both have to keep «الشهر الحالي» selected, because
+     * that choice is what sticky-filters.js writes to localStorage. Resolving
+     * it to «سبتمبر 2026» here would save the literal month and the board would
+     * open on September for the rest of the year.
+     *
+     * Checked against the option list, not just the shape: the picker only
+     * offers 12 months, so a well-formed but older `?period=2020-01` has no
+     * option to select and no label to print — the subtitle reads $months[$period]
+     * directly. Anything not on the list falls back to the sentinel.
+     *
+     * @param  array<string, string>  $months
+     */
+    private function selectedPeriod(Request $request, array $months): string
+    {
+        $period = (string) $request->query('period', '');
+
+        return array_key_exists($period, $months) ? $period : 'current';
     }
 
     /**
@@ -272,6 +307,9 @@ class BoardController extends Controller
 
         // The board's own filter bar — plus assignee, which /tickets has too.
         $filters = $request->only('q', 'type', 'priority', 'company', 'assignee');
+        $months = $this->reports->monthOptions();
+        $selected = $this->selectedPeriod($request, $months);
+        $window = $this->reports->periodBounds($this->reports->resolvePeriod($selected));
 
         $tickets = Ticket::query()
             ->select([
@@ -297,14 +335,17 @@ class BoardController extends Controller
             // unconditionally would spend a query the priority lane never uses.
             ->when($lane === 'assignee', fn ($q) => $q->with('roleAssignments.user:id,name,avatar_path,is_active'))
             ->filter($filters)
-            ->onBoard()
+            ->onBoard($window)
             ->defaultOrder()
             // A hard ceiling on the whole board. The lanes below are built in
             // php from these rows, so this is what bounds the page.
             ->limit(self::BOARD_LIMIT)
             ->get();
 
-        $total = Ticket::query()->onBoard()->count();
+        // Same window as the rows above, or the "معروض X من Y" alert compares a
+        // filtered board against an unfiltered count and reports a shortfall
+        // that isn't there.
+        $total = Ticket::query()->onBoard($window)->count();
 
         return view('board.team', [
             'lanes' => $this->swimlanes($tickets, $lane),
@@ -313,6 +354,8 @@ class BoardController extends Controller
             'shown' => $tickets->count(),
             'total' => $total,
             'filters' => $filters,
+            'period' => $selected,
+            'months' => $months,
             'routeName' => 'board.team',
             'isTeam' => true,
             'selectedCompany' => filled($filters['company'] ?? null)

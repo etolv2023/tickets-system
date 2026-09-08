@@ -461,20 +461,34 @@ class Ticket extends Model
     }
 
     /**
-     * What belongs on a board (F12): live work, plus a short tail of recently
-     * closed so you can see what just landed.
+     * What belongs on a board (F12): live work, plus the finished work of one
+     * chosen month.
      *
-     * The tail matters. Without the date bound the closed column pulled every
-     * ticket ever resolved — 4,268 rows at 5,000 tickets, and a 6.7s page. A
-     * board is a picture of now, not an archive; the archive is /tickets.
+     * The bound matters. Without it the closed column pulled every ticket ever
+     * resolved — 4,268 rows at 5,000 tickets, and a 6.7s page. A board is a
+     * picture of now, not an archive; the archive is /tickets.
+     *
+     * ★ (2026-09-08) The bound was «updated_at within 14 days», which answered
+     * "touched lately" rather than "finished lately": one comment on a ticket
+     * closed months ago dragged it back into the column, and there was no way
+     * to ask for a specific month. It reads resolved_at now — the same basis
+     * every report uses, and the only one whose meaning is fixed once the work
+     * is done.
+     *
+     * Consequence, deliberately not papered over: a resolved/closed row whose
+     * resolved_at is NULL (imported, or written straight to the column by a
+     * seeder) belongs to no month and appears in none. whereBetween excludes
+     * NULL on its own.
+     *
+     * @param  array{0: string, 1: string}  $resolvedBetween  from ReportService::periodBounds()
      */
-    public function scopeOnBoard(Builder $query, int $closedWithinDays = 14): Builder
+    public function scopeOnBoard(Builder $query, array $resolvedBetween): Builder
     {
-        return $query->where(function (Builder $q) use ($closedWithinDays) {
+        return $query->where(function (Builder $q) use ($resolvedBetween) {
             $q->whereIn('status', ['assigned', 'reopened', 'in_progress', 'dev_done', 'testing'])
                 ->orWhere(fn (Builder $w) => $w
                     ->whereIn('status', ['resolved', 'closed'])
-                    ->where('updated_at', '>=', now()->subDays($closedWithinDays)));
+                    ->whereBetween('resolved_at', $resolvedBetween));
         });
     }
 

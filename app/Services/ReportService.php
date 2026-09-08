@@ -468,6 +468,42 @@ class ReportService
             });
     }
 
+    /**
+     * The month picker's options, newest first.
+     *
+     * The first entry is the sentinel `current` rather than a literal month.
+     * Anything that remembers a filter bar — sticky-filters.js keeps the
+     * board's in localStorage — would otherwise store "2026-09" and go on
+     * opening September once the calendar has moved on. `current` is resolved
+     * at render time, so the default state can never go stale.
+     *
+     * @return array<string, string>
+     */
+    public function monthOptions(): array
+    {
+        $months = ['current' => 'الشهر الحالي'];
+
+        for ($i = 0; $i < 12; $i++) {
+            $month = \Carbon\CarbonImmutable::now()->subMonths($i);
+            $months[$month->format('Y-m')] = $month->translatedFormat('F Y');
+        }
+
+        return $months;
+    }
+
+    /**
+     * A `period` query parameter as an actual `Y-m` month.
+     *
+     * `current` and anything malformed both land on the running month, so a
+     * hand-edited url degrades to the default rather than to an exception.
+     */
+    public function resolvePeriod(?string $period): string
+    {
+        return preg_match('/^\d{4}-\d{2}$/', (string) $period) === 1
+            ? (string) $period
+            : \Carbon\CarbonImmutable::now()->format('Y-m');
+    }
+
     /** @return array{0: string, 1: string} */
     public function periodBounds(string $period): array
     {
