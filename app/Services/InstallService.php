@@ -35,6 +35,44 @@ class InstallService
     ];
 
     /**
+     * Every directory a normal request writes into, not just the two roots.
+     *
+     * ★ (2026-09-08) The check used to ask about storage/ and bootstrap/cache/
+     * and stop there — and is_writable('storage') says nothing about whether
+     * storage/framework/cache/data exists three levels down. A release whose
+     * zip had dropped that folder (see deploy/build-release.sh) therefore
+     * passed every green tick on /install and then threw a 500 on the first
+     * POST it served, naming a cache file nobody had heard of. The installer
+     * is the one screen whose entire job is to catch this before a user does.
+     *
+     * Cache and session folders are asked about only when those drivers are
+     * actually files. Switch either to database or redis and the folder stops
+     * mattering, so demanding it would be a red cross for a healthy install.
+     *
+     * @return array<string, string>  label => absolute path
+     */
+    private function writableDirectories(): array
+    {
+        $paths = [
+            'storage' => storage_path(),
+            'bootstrap/cache' => base_path('bootstrap/cache'),
+            'storage/framework/views' => storage_path('framework/views'),
+            'storage/logs' => storage_path('logs'),
+            'storage/app' => storage_path('app'),
+        ];
+
+        if (Config::get('cache.default') === 'file') {
+            $paths['storage/framework/cache/data'] = storage_path('framework/cache/data');
+        }
+
+        if (Config::get('session.driver') === 'file') {
+            $paths['storage/framework/sessions'] = storage_path('framework/sessions');
+        }
+
+        return $paths;
+    }
+
+    /**
      * @return array{passed: bool, checks: array<int, array{name: string, hint: string, value: string, ok: bool}>}
      */
     public function checkRequirements(): array
@@ -56,13 +94,20 @@ class InstallService
             ];
         }
 
-        foreach (['storage' => storage_path(), 'bootstrap/cache' => base_path('bootstrap/cache')] as $label => $path) {
-            $writable = is_writable($path);
+        foreach ($this->writableDirectories() as $label => $path) {
+            // Missing and unwritable are different problems with different
+            // fixes (mkdir vs chown), and the old check reported both as
+            // «ممنوع» — or rather, reported neither, because it only ever
+            // looked at storage/ itself.
             $checks[] = [
                 'name' => "الكتابة على {$label}/",
-                'hint' => 'المجلد لازم يكون قابل للكتابة',
-                'value' => $writable ? 'مسموح' : 'ممنوع',
-                'ok' => $writable,
+                'hint' => 'المجلد لازم يكون موجود وقابل للكتابة',
+                'value' => match (true) {
+                    ! is_dir($path) => 'مش موجود',
+                    ! is_writable($path) => 'ممنوع',
+                    default => 'مسموح',
+                },
+                'ok' => is_dir($path) && is_writable($path),
             ];
         }
 

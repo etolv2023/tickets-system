@@ -52,6 +52,14 @@ class DashboardService
     {
         return TicketSubtask::query()
             ->where('assignee_id', $userId)
+            // ★ (2026-09-08) …on a ticket that is still alive. dueOrOverdue()
+            // only ever looked at the SUBTASK's own status, so a step on a
+            // rejected ticket — work that was cancelled out from under its
+            // owner — kept sitting at the top of their day, going redder,
+            // with nothing they could do about it. Same rule the late-penalty
+            // sweep now uses, so the list and the ledger agree on what counts
+            // as live work.
+            ->onLiveTicket()
             ->dueOrOverdue();
     }
 

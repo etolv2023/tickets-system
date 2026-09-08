@@ -58,6 +58,18 @@ class CalendarService
             ])
             ->whereNotNull('due_date')
             ->whereBetween('due_date', [$from->toDateString(), $to->toDateString()])
+            // ★ (2026-09-08) Drop the phantoms: a step still OPEN on a ticket
+            // that is no longer open. A rejected ticket's subtasks were never
+            // cancelled — reject() closes nothing — so they kept showing as
+            // work owed, on days nobody was ever going to work them.
+            //
+            // Deliberately narrower than the dashboard's rule, which drops
+            // every subtask on a dead ticket. The calendar is also a record of
+            // what happened, and a FINISHED subtask on a resolved ticket is
+            // exactly that — hiding it would erase a month of delivered work
+            // from the one screen that shows when it landed. Only the open
+            // ones on dead tickets are fiction, and only they go.
+            ->where(fn ($q) => $q->onLiveTicket()->orWhere('status', 'done'))
             ->when($onlyUserId, fn ($q) => $q->where('assignee_id', $onlyUserId))
             ->when($filters['assignee'] ?? null, fn ($q, $v) => $q->where('assignee_id', $v))
             // Categorised by role now (2026-07-24), not the hardcoded side.

@@ -79,6 +79,33 @@ zip -rq "$OUT" . \
   -x '.env.backup' \
   -x 'tests/*'
 
+# ★ (2026-09-08) Put the runtime directories back.
+#
+# `-x 'storage/logs/*'` does not only skip the FILES in storage/logs — it also
+# matches the directory's own entry, `storage/logs/`, because zip's `*` happily
+# matches the empty string after that slash. So each of the three -x patterns
+# above silently deleted the folder it was meant to empty, and a fresh unzip
+# produced a tree with no storage/logs, no storage/framework/sessions and no
+# storage/framework/cache/data at all.
+#
+# What that looks like on the server is nothing to do with zipping: the app
+# installs fine, then throws a 500 on the first POST — file_put_contents(...
+# /cache/data/66/38/...): No such file or directory — from whichever middleware
+# touched the cache first. Laravel does try to create that path itself, but
+# FileStore::ensureCacheDirectoryExists() uses @mkdir, so when it cannot, it
+# fails silently and the write is what reports the problem, one layer too late
+# and naming a file rather than the missing folder.
+#
+# Each of these is a git-tracked placeholder whose only job is to make the
+# folder exist; re-adding them costs three entries and restores all three
+# directories. tickets/ and branding/ need no placeholder — Storage creates
+# those on first upload, inside storage/app, which does ship.
+echo "==> restoring the runtime directories the excludes above emptied"
+zip -q "$OUT" \
+  storage/framework/cache/data/.gitignore \
+  storage/framework/sessions/.gitignore \
+  storage/logs/.gitignore
+
 echo "==> restoring dev dependencies for continued local work"
 composer install --no-interaction >/dev/null 2>&1 || true
 

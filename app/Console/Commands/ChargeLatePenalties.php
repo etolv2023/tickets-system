@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 
 /**
- * ★ (2026-08-05) The 06:00 sweep: dock every subtask that is past its due date.
+ * ★ (2026-08-05) The sweep: dock every subtask that is past its due date.
  *
  * Scheduled rather than event-driven on purpose. Nothing happens when a due
  * date passes — no save, no request, no status change; the subtask simply sits
@@ -16,15 +16,21 @@ use Illuminate\Support\Carbon;
  * three weeks tells nobody they are losing points until payout day, which is
  * exactly when it is too late to act on.
  *
- * Six in the morning is chosen so the ledger is settled before anyone starts
- * work: whoever opens the system finds yesterday already accounted for, and
- * nobody is docked for a day they were still in the middle of.
+ * ★ (2026-09-08) This said "the 06:00 sweep", and it has not run at 06:00 since
+ * F26: ScheduledTaskRegistry schedules it '0 * * * *', every hour. An exception
+ * subtask is due four working hours after it arrives, so one dawn pass would let
+ * a subtask that went overdue at 2pm sit uncharged until the next morning. The
+ * cadence is not this file's to state anyway — /scheduled-tasks can change it
+ * without a deploy, and a docblock naming an hour will just go stale again.
  *
- * Safe to run by hand, and safe to run twice — UNIQUE(subtask_id, charge_key)
- * makes a repeat on the same day a no-op rather than a second deduction.
- * --as-of exists for exactly one reason: to replay a morning the scheduler
- * missed (a server that was down) at the date it should have run, so the charge
- * lands in the right day and the right month.
+ * Safe to run by hand, and safe to run 24 times a day — UNIQUE(subtask_id,
+ * charge_key) with a charge_key of 'penalty:YYYY-MM-DD' makes every repeat
+ * within the same day a no-op rather than another deduction. That index, not
+ * the schedule, is what bounds somebody's pay.
+ *
+ * --as-of exists for exactly one reason: to replay a day the scheduler missed
+ * (a server that was down) at the date it should have run, so the charge lands
+ * in the right day and the right month.
  */
 class ChargeLatePenalties extends Command
 {

@@ -220,6 +220,28 @@ class TicketSubtask extends Model
         return $query->where('status', '!=', 'done');
     }
 
+    /**
+     * Subtasks whose parent ticket is still owed to somebody.
+     *
+     * ★ (2026-09-08) The question "is this ticket still alive?" had no single
+     * answer, and the one place it mattered most got it wrong: LatePenaltyService
+     * asked `resolved_at IS NULL`, which is "was it resolved" — a REJECTED ticket
+     * is never resolved, so its abandoned subtasks stayed inside the late-penalty
+     * net and were docked, day after day, forever.
+     *
+     * Read off ticket_statuses.is_open rather than a hardcoded key list, the same
+     * way UserDeletionService and DiscordNotificationService ask it. That flag is
+     * literally defined as "still owed to the customer", so a dead-end status an
+     * admin invents at /admin/ticket-statuses is covered without a code change —
+     * which a list of ['resolved','closed','rejected'] would not be.
+     */
+    public function scopeOnLiveTicket(Builder $query): Builder
+    {
+        return $query->whereHas('ticket', fn (Builder $q) => $q
+            ->whereIn('status', fn ($s) => $s
+                ->select('key')->from('ticket_statuses')->where('is_open', true)));
+    }
+
     /** The date columns a date-range filter may run against. */
     public const DATE_BASES = [
         'start_date' => 'تاريخ البداية',

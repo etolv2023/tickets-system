@@ -23,19 +23,27 @@ use Illuminate\Support\Facades\Log;
  *
  * Two callers, one rule:
  *
- *   1. ChargeLatePenalties — the 06:00 sweep. This is the primary one, and the
- *      reason the deduction does not wait for the ticket to be resolved: a
+ *   1. ChargeLatePenalties — the scheduled sweep. This is the primary one, and
+ *      the reason the deduction does not wait for the ticket to be resolved: a
  *      ticket can sit open for weeks, and a penalty nobody sees until payout
  *      day is a penalty that teaches nothing.
  *   2. PointEngineService, at resolve. The safety net for the gap the sweep
  *      cannot cover — a subtask backdated, finished and resolved between two
- *      runs never sat overdue at 6 AM, but it was still delivered late.
+ *      runs never sat overdue when the sweep looked, but it was still delivered
+ *      late.
+ *
+ * ★ (2026-09-08) The sweep runs HOURLY, not once at dawn. ScheduledTaskRegistry
+ * has held '0 * * * *' since F26 landed — an exception subtask is due four
+ * working hours after it arrives, so a single morning pass would miss one that
+ * went overdue at 2pm. What keeps 24 runs from being 24 deductions is the
+ * database, not this class: UNIQUE(subtask_id, charge_key) with a charge_key of
+ * 'penalty:YYYY-MM-DD' means the second run of any given day is refused.
  *
  * HOW OFTEN a subtask can be docked is the one part an admin controls, through
  * the «تراكم التأخير على التاسكات» setting:
  *
  *   off (default) → once per subtask, ever. Being late is a single event.
- *   on            → once every morning it is still overdue AND still unfinished.
+ *   on            → once per DAY it is still overdue AND still unfinished.
  *                   Standing still costs more than being late once, and the
  *                   reason line says which day's charge each row is.
  *
@@ -48,7 +56,7 @@ class LatePenaltyService
     public const SETTING = 'late_penalty_accumulates';
 
     /**
-     * The 06:00 sweep: dock everything that is late and not yet paid for it.
+     * The sweep: dock everything that is late and not yet paid for it.
      *
      * @return array{charged: int, skipped: int, accumulating: bool}
      */
@@ -202,7 +210,18 @@ class LatePenaltyService
      */
     private function isChargeable(Ticket $ticket, TicketSubtask $subtask): bool
     {
-        // An unapproved or rejected feature pays nobody, so it docks nobody. F15
+        // A rejected ticket pays nobody, so it docks nobody. F15
+        //
+        // ★ (2026-09-08) The rejection half used to sit behind needsApproval(),
+        // so it only ever fired for a feature — the comment said "rejected
+        // feature" and meant it. A rejected bug kept its approval_status at
+        // 'not_required' and sailed straight past. Asked on its own now, for
+        // every type.
+        if ($ticket->approval_status === 'rejected') {
+            return false;
+        }
+
+        // An unapproved feature has not earned the right to pay OR to dock. F15
         if ($ticket->type->needsApproval() && $ticket->approval_status !== 'approved') {
             return false;
         }
@@ -221,13 +240,15 @@ class LatePenaltyService
      * Subtasks that are late right now and might owe a charge.
      *
      * "Late" is due_date strictly before today: a subtask due today is not late
-     * until today is over, which is why the sweep runs in the morning and looks
-     * backwards rather than at midnight and looks at itself.
+     * until today is over, which is why the sweep always looks backwards at a
+     * day already finished rather than at the one it is standing in.
      *
-     * Resolved tickets are excluded — their points were settled at resolve, and
-     * re-opening that is what a manual correction is for. Rows already carrying
-     * a penalty are not filtered out in SQL: whether they owe another one is the
-     * accumulation question, and the caller answers it with the count.
+     * Tickets that are no longer open are excluded — resolved ones because their
+     * points were settled at resolve (re-opening that is what a manual correction
+     * is for), and rejected or otherwise dead ones because there is no work left
+     * to be late for. Rows already carrying a penalty are not filtered out in
+     * SQL: whether they owe another one is the accumulation question, and the
+     * caller answers it with the count.
      */
     private function overdueQuery(Carbon $asOf)
     {
@@ -261,7 +282,15 @@ class LatePenaltyService
                 ->orWhereNull('completed_at')
                 ->orWhereRaw('(due_at IS NOT NULL AND completed_at > due_at)')
                 ->orWhereRaw('(due_at IS NULL AND completed_at >= DATE_ADD(due_date, INTERVAL 1 DAY))'))
-            ->whereHas('ticket', fn ($q) => $q->whereNull('resolved_at'))
+            // ★ (2026-09-08) Was `whereHas('ticket', resolved_at IS NULL)`, which
+            // asked "was this resolved" and called it "is this still live". A
+            // REJECTED ticket is never resolved, so resolved_at stayed NULL on it
+            // forever and its abandoned subtasks never left this net — they were
+            // docked every single day, indefinitely, on work nobody was ever
+            // going to do. onLiveTicket() asks the real question through
+            // ticket_statuses.is_open, so rejected, resolved, closed and any
+            // dead-end status an admin adds are all out.
+            ->onLiveTicket()
             ->withCount(['pointTransactions as point_transactions_count' => fn ($q) => $q->where('type', 'penalty')])
             ->with(['ticket', 'role:id,name_ar']);
     }
