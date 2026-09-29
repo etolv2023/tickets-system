@@ -5,16 +5,11 @@ namespace App\Http\Controllers;
 use App\Enums\BranchState;
 use App\Models\GithubRepository;
 use App\Models\GithubUnmatchedBranch;
-use App\Models\TicketBranch;
-use App\Models\TicketPullRequest;
 use App\Models\User;
 use App\Services\ActivityLogger;
 use App\Services\GitHubWriteClient;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use RuntimeException;
 
@@ -44,52 +39,9 @@ class GithubUnmatchedBranchController extends Controller
             'repositories' => GithubRepository::activeList(),
             'filterUsers' => User::query()->without('role')->active()
                 ->whereNotNull('github_login')->orderBy('name')->get(['id', 'name', 'github_login']),
-            'availableUsers' => User::query()->without('role')->active()
-                ->whereNull('github_login')->orderBy('name')->get(['id', 'name']),
             'selectedAuthor' => $selectedAuthor,
-            'githubLogins' => $this->availableGithubLogins(),
             'writeConfigured' => app(GitHubWriteClient::class)->configured(),
         ]);
-    }
-
-    public function linkAccount(Request $request, ActivityLogger $activity): RedirectResponse
-    {
-        $data = $request->validate([
-            'github_login' => ['required', 'string', 'max:100', 'regex:/^[A-Za-z0-9-]+$/', Rule::in($this->discoveredLogins())],
-            'user_id' => ['required', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
-        ]);
-
-        $login = trim((string) $data['github_login']);
-        $user = DB::transaction(function () use ($data, $login): User {
-            $user = User::query()->whereKey((int) $data['user_id'])->lockForUpdate()->firstOrFail();
-
-            if (filled($user->github_login)) {
-                throw ValidationException::withMessages([
-                    'user_id' => 'الشخص ده مربوط بحساب GitHub بالفعل. فك الربط القديم الأول.',
-                ]);
-            }
-
-            if (User::query()->whereRaw('LOWER(github_login) = ?', [mb_strtolower($login)])->exists()) {
-                throw ValidationException::withMessages([
-                    'github_login' => 'حساب GitHub ده مربوط بشخص بالفعل.',
-                ]);
-            }
-
-            $user->forceFill(['github_login' => $login])->save();
-
-            return $user;
-        });
-
-        $activity->log(
-            'github.account.linked',
-            $request->user()->id,
-            $user,
-            ['github_login' => ['before' => null, 'after' => $login]],
-            $request->ip(),
-            $request->userAgent(),
-        );
-
-        return back()->with('status', "اتربط @{$login} بـ {$user->name}. الربط هيستخدم في البرانشات والاكسبشنات.");
     }
 
     public function destroy(
@@ -139,33 +91,5 @@ class GithubUnmatchedBranchController extends Controller
         );
 
         return back()->with('status', "اتمسح البرانش {$branch->name} من GitHub.");
-    }
-
-    /** @return array<int, string> */
-    private function discoveredLogins(): array
-    {
-        return collect([
-            GithubUnmatchedBranch::query()->whereNotNull('author_login')->distinct()->pluck('author_login'),
-            TicketBranch::query()->whereNotNull('author_login')->distinct()->pluck('author_login'),
-            TicketPullRequest::query()->whereNotNull('author_login')->distinct()->pluck('author_login'),
-        ])->flatten()
-            ->filter(fn ($login) => is_string($login) && $login !== '')
-            ->unique(fn ($login) => mb_strtolower($login))
-            ->sort(fn ($a, $b) => strcasecmp($a, $b))
-            ->values()
-            ->all();
-    }
-
-    /** @return array<int, string> */
-    private function availableGithubLogins(): array
-    {
-        $linked = User::query()->whereNotNull('github_login')->pluck('github_login')
-            ->map(fn ($login) => mb_strtolower((string) $login))
-            ->flip();
-
-        return collect($this->discoveredLogins())
-            ->reject(fn ($login) => $linked->has(mb_strtolower($login)))
-            ->values()
-            ->all();
     }
 }

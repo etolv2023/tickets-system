@@ -49,7 +49,7 @@ class TicketController extends Controller
     {
         $this->authorize('viewAny', Ticket::class);
 
-        $filters = $request->only('q', 'status', 'type', 'priority', 'company', 'assignee', 'relation', 'from', 'to', 'branch');
+        $filters = $request->only('q', 'status', 'type', 'priority', 'company', 'assignee', 'relation', 'culprit', 'from', 'to', 'branch');
 
         $tickets = Ticket::query()
             // Never select description here: it's LONGTEXT and this page shows
@@ -82,6 +82,10 @@ class TicketController extends Controller
             'selectedAssignee' => filled($filters['assignee'] ?? null)
                 ? User::whereKey($filters['assignee'])->value('name')
                 : null,
+            'culpritUsers' => User::query()->without('role')
+                ->whereIn('id', Ticket::query()->visibleTo($request->user())->whereNotNull('exception_culprit_id')
+                    ->distinct()->pluck('exception_culprit_id'))
+                ->orderBy('name')->get(['id', 'name']),
             // The "تذاكري" shortcut is only meaningful to someone whose list
             // holds other people's tickets in the first place. For a
             // view.assigned-only user every row is already theirs.

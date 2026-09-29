@@ -106,6 +106,13 @@
             </select>
         </div>
 
+        <select name="culprit" class="select" aria-label="المتسبب في الاكسبشن">
+            <option value="">متسبب الاكسبشن: الكل</option>
+            @foreach($culpritUsers as $user)
+                <option value="{{ $user->id }}" @selected((int) ($filters['culprit'] ?? 0) === $user->id)>{{ $user->name }}</option>
+            @endforeach
+        </select>
+
         {{-- ★ (2026-08-29) F27. Two states, both off the counter column. --}}
         @can('github.view')
             <select name="branch" class="select" aria-label="البرانش">

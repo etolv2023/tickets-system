@@ -111,6 +111,7 @@ class PermissionSeeder extends Seeder
             'github.view' => 'عرض برانشات التذكرة',
             'github.audit' => 'تذاكر من غير برانش وربط برانش بإيد',
             'github.branches.delete' => 'حذف برانش مخالف من GitHub',
+            'github.identities.manage' => 'إدارة ربط حسابات GitHub بالمستخدمين',
         ],
         'admin' => [
             'users.manage' => 'إدارة المستخدمين والأدوار',
