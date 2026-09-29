@@ -14,6 +14,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use RuntimeException;
 
@@ -41,9 +42,12 @@ class GithubUnmatchedBranchController extends Controller
         return view('github.unmatched', [
             'branches' => $branches,
             'repositories' => GithubRepository::activeList(),
-            'users' => User::query()->without('role')->active()->orderBy('name')->get(['id', 'name', 'github_login']),
+            'filterUsers' => User::query()->without('role')->active()
+                ->whereNotNull('github_login')->orderBy('name')->get(['id', 'name', 'github_login']),
+            'availableUsers' => User::query()->without('role')->active()
+                ->whereNull('github_login')->orderBy('name')->get(['id', 'name']),
             'selectedAuthor' => $selectedAuthor,
-            'githubLogins' => $this->discoveredLogins(),
+            'githubLogins' => $this->availableGithubLogins(),
             'writeConfigured' => app(GitHubWriteClient::class)->configured(),
         ]);
     }
@@ -55,31 +59,32 @@ class GithubUnmatchedBranchController extends Controller
             'user_id' => ['required', 'integer', Rule::exists('users', 'id')->where('is_active', true)],
         ]);
 
-        $user = User::query()->findOrFail((int) $data['user_id']);
         $login = trim((string) $data['github_login']);
-        $before = $user->github_login;
-        $previousUserId = User::query()
-            ->where('id', '!=', $user->id)
-            ->whereRaw('LOWER(github_login) = ?', [mb_strtolower($login)])
-            ->value('id');
+        $user = DB::transaction(function () use ($data, $login): User {
+            $user = User::query()->whereKey((int) $data['user_id'])->lockForUpdate()->firstOrFail();
 
-        DB::transaction(function () use ($user, $login): void {
-            User::query()
-                ->where('id', '!=', $user->id)
-                ->whereRaw('LOWER(github_login) = ?', [mb_strtolower($login)])
-                ->update(['github_login' => null]);
+            if (filled($user->github_login)) {
+                throw ValidationException::withMessages([
+                    'user_id' => 'الشخص ده مربوط بحساب GitHub بالفعل. فك الربط القديم الأول.',
+                ]);
+            }
+
+            if (User::query()->whereRaw('LOWER(github_login) = ?', [mb_strtolower($login)])->exists()) {
+                throw ValidationException::withMessages([
+                    'github_login' => 'حساب GitHub ده مربوط بشخص بالفعل.',
+                ]);
+            }
 
             $user->forceFill(['github_login' => $login])->save();
+
+            return $user;
         });
 
         $activity->log(
             'github.account.linked',
             $request->user()->id,
             $user,
-            [
-                'github_login' => ['before' => $before, 'after' => $login],
-                'previous_user_id' => $previousUserId,
-            ],
+            ['github_login' => ['before' => null, 'after' => $login]],
             $request->ip(),
             $request->userAgent(),
         );
@@ -147,6 +152,19 @@ class GithubUnmatchedBranchController extends Controller
             ->filter(fn ($login) => is_string($login) && $login !== '')
             ->unique(fn ($login) => mb_strtolower($login))
             ->sort(fn ($a, $b) => strcasecmp($a, $b))
+            ->values()
+            ->all();
+    }
+
+    /** @return array<int, string> */
+    private function availableGithubLogins(): array
+    {
+        $linked = User::query()->whereNotNull('github_login')->pluck('github_login')
+            ->map(fn ($login) => mb_strtolower((string) $login))
+            ->flip();
+
+        return collect($this->discoveredLogins())
+            ->reject(fn ($login) => $linked->has(mb_strtolower($login)))
             ->values()
             ->all();
     }
