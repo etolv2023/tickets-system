@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Casts\PriorityValue;
 use App\Casts\TicketTypeValue;
 use App\Models\LinkTypeDefinition;
+use App\Models\GithubRepository;
 use App\Models\Role;
 use App\Models\Ticket;
 use App\Models\TicketLink;
@@ -95,6 +96,7 @@ class ExceptionIntakeService
         private readonly TicketWorkflowService $workflow,
         private readonly TicketService $tickets,
         private readonly DiscordNotificationService $discord,
+        private readonly GitHubClient $github,
     ) {
     }
 
@@ -141,7 +143,8 @@ class ExceptionIntakeService
         $type = TicketTypeValue::for((string) config('tickets.intake.type', 'exception'));
         $priority = PriorityValue::for((string) config('tickets.intake.priority', 'urgent'));
 
-        $assignee = $this->pickAssignee();
+        $culprit = $this->resolveCulprit($data);
+        $assignee = $this->pickAssignee($culprit['user'] ?? null);
         $reportedAt = CarbonImmutable::now();
 
         $ticket = Ticket::create([
@@ -160,6 +163,11 @@ class ExceptionIntakeService
             'exception_fingerprint' => (string) $data['fingerprint'],
             'exception_count' => max(1, (int) ($data['occurrences'] ?? 1)),
             'exception_server' => $this->serverName($data),
+            'exception_source_file' => $data['source_file'] ?? null,
+            'exception_source_line' => $data['source_line'] ?? null,
+            'exception_culprit_login' => $culprit['login'] ?? null,
+            'exception_culprit_name' => $culprit['user']?->name,
+            'exception_attribution_reason' => $culprit['reason'] ?? null,
             'status' => \App\Casts\TicketStatusValue::for('new'),
             'approval_status' => 'not_required',
             // Attributed to whoever it is assigned to rather than to a fake
@@ -196,6 +204,7 @@ class ExceptionIntakeService
             'ticket_number' => $ticket->ticket_number,
             'ticket_id' => $ticket->id,
             'assignee' => $this->describe($assignee),
+            'culprit' => $this->describeCulprit($culprit),
         ];
     }
 
@@ -239,6 +248,13 @@ class ExceptionIntakeService
             // Whoever is already holding it — a repeat does not reassign, so
             // the name the sender mentions is the name from the first report.
             'assignee' => $this->describe($this->currentAssignee($ticket)),
+            'culprit' => ($ticket->exception_culprit_login || $ticket->exception_attribution_reason)
+                ? [
+                    'name' => $ticket->exception_culprit_name,
+                    'github_login' => $ticket->exception_culprit_login,
+                    'reason' => $ticket->exception_attribution_reason,
+                ]
+                : null,
         ];
     }
 
@@ -356,7 +372,7 @@ class ExceptionIntakeService
      * the Back Office regardless — nothing is lost except the automatic
      * assignment, which is precisely the part that had no correct answer.
      */
-    private function pickAssignee(): User
+    private function pickAssignee(?User $preferred = null): User
     {
         $roleId = $this->assignRoleId();
         $last = $this->lastExceptionAssigneeId();
@@ -369,6 +385,10 @@ class ExceptionIntakeService
             // rather than pluck-then-exclude so this stays one query however
             // much leave history the table holds.
             ->whereDoesntHave('leaves', fn ($q) => $q->overlapping($today, $today));
+
+        if ($preferred !== null && (clone $pool)->whereKey($preferred->id)->exists()) {
+            return $preferred;
+        }
 
         $picked = (clone $pool)
             ->when($last !== null, fn ($q) => $q->whereKeyNot($last))
@@ -385,6 +405,65 @@ class ExceptionIntakeService
         }
 
         return $picked;
+    }
+
+    /**
+     * Attribute the exception to the GitHub author of the newest commit that
+     * touched its application file. This is evidence, not certainty; the reason
+     * is stored and shown everywhere the name is shown.
+     *
+     * @return array{user: User|null, login: string|null, reason: string|null}
+     */
+    private function resolveCulprit(array $data): array
+    {
+        $file = trim((string) ($data['source_file'] ?? ''));
+        $fullName = trim((string) ($data['source_repository'] ?? ''));
+
+        if ($file === '' || $fullName === '' || ! $this->github->configured()) {
+            return ['user' => null, 'login' => null, 'reason' => null];
+        }
+
+        $repo = GithubRepository::query()->active()
+            ->whereRaw("CONCAT(owner, '/', repo) = ?", [$fullName])
+            ->first();
+
+        if ($repo === null) {
+            return ['user' => null, 'login' => null, 'reason' => 'الريبو المرسل غير مسجل في نظام التذاكر'];
+        }
+
+        try {
+            $ref = trim((string) ($data['source_ref'] ?? '')) ?: $repo->default_branch;
+            $commit = $this->github->latestCommitForPath($repo, $file, $ref);
+        } catch (\Throwable $e) {
+            return ['user' => null, 'login' => null, 'reason' => 'تعذر سؤال GitHub: ' . mb_substr($e->getMessage(), 0, 180)];
+        }
+
+        $login = $commit['author']['login'] ?? null;
+        if (! is_string($login) || $login === '') {
+            return ['user' => null, 'login' => null, 'reason' => 'آخر commit للملف غير مربوط بحساب GitHub'];
+        }
+
+        $user = User::query()->whereRaw('LOWER(github_login) = ?', [mb_strtolower($login)])->first();
+        $line = isset($data['source_line']) ? ':' . (int) $data['source_line'] : '';
+
+        return [
+            'user' => $user,
+            'login' => $login,
+            'reason' => "آخر commit لمس {$file}{$line} على {$ref}",
+        ];
+    }
+
+    private function describeCulprit(array $culprit): ?array
+    {
+        if (($culprit['login'] ?? null) === null && ($culprit['reason'] ?? null) === null) {
+            return null;
+        }
+
+        return [
+            'name' => $culprit['user']?->name,
+            'github_login' => $culprit['login'] ?? null,
+            'reason' => $culprit['reason'] ?? null,
+        ];
     }
 
     /**
@@ -470,6 +549,9 @@ class ExceptionIntakeService
             'عنوان IP' => $data['ip_address'] ?? null,
             'عدد المرات' => $data['occurrences'] ?? null,
             'وقت الحدوث' => $data['occurred_at'] ?? null,
+            'ملف الخطأ' => isset($data['source_file'])
+                ? $data['source_file'] . (isset($data['source_line']) ? ':' . $data['source_line'] : '')
+                : null,
         ], fn ($v) => $v !== null && $v !== '');
 
         $html = '<p><strong>' . e((string) $data['message']) . '</strong></p>';

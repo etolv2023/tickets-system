@@ -75,6 +75,10 @@ class ExceptionWebhookRequest extends FormRequest
             'is_duplicate' => ['nullable', 'boolean'],
             'was_reopened' => ['nullable', 'boolean'],
             'occurred_at' => ['nullable', 'string', 'max:40'],
+            'source_file' => ['nullable', 'string', 'max:500'],
+            'source_line' => ['nullable', 'integer', 'min:1'],
+            'source_repository' => ['nullable', 'string', 'max:255', 'regex:/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/'],
+            'source_ref' => ['nullable', 'string', 'max:100', 'regex:/^[A-Za-z0-9._\/-]+$/'],
         ];
     }
 

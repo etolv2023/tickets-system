@@ -84,6 +84,12 @@ class BranchNamingService
         return $this->ticketNumberIn($branch) === strtoupper(trim($ticketNumber));
     }
 
+    /** Strict audit rule: the very first characters must be a ticket number. */
+    public function startsWithTicketNumber(string $branch): bool
+    {
+        return preg_match('/^' . self::TICKET . '(?:[-_\/].*)?$/i', trim($branch)) === 1;
+    }
+
     /**
      * Why a name was rejected, in Arabic, for a form error.
      *

@@ -54,6 +54,7 @@ class ExceptionWebhookController extends Controller
             // announcing the error can mention them by id instead of shouting
             // into a channel. Null when nothing was assigned.
             'assignee' => $result['assignee'] ?? null,
+            'culprit' => $result['culprit'] ?? null,
         ]);
     }
 }
