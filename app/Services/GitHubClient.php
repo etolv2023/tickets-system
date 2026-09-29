@@ -20,9 +20,9 @@ use RuntimeException;
  *
  * That is the guarantee, and it is structural rather than a matter of
  * discipline: there is exactly one method that reaches the network, request(),
- * it is private, and it calls ->get(). Nothing in this application can create a
- * branch, move a ref, open or merge a pull request, or delete anything on
- * GitHub, because no code exists that could express it.
+ * it is private, and it calls ->get(). The separately authorised branch-delete
+ * feature lives in GitHubWriteClient and uses a different token, so granting
+ * that feature write access cannot widen this evidence-reading path.
  *
  * The token backing this should be a fine-grained PAT with Contents: Read-only
  * and Pull requests: Read-only, so the same guarantee also holds one layer

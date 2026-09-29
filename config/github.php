@@ -11,11 +11,10 @@ return [
     | actually have code behind it? Not "did the developer say so" — is there a
     | branch, in a repo, whose name carries the ticket number.
     |
-    | It is therefore READ ONLY, all the way down. GitHubClient has exactly one
-    | request method and it issues GET; there is no code path in this
-    | application that can POST, PATCH or DELETE against GitHub, so no
-    | configuration mistake and no future edit to a controller can turn this
-    | into something that writes.
+    | Sync and evidence lookup are READ ONLY, all the way down. GitHubClient has
+    | exactly one request method and it issues GET. The optional manual branch
+    | deletion path is isolated in GitHubWriteClient with its own token,
+    | permission and typed-name confirmation.
     |
     | The token should be a fine-grained PAT scoped to the listed repositories
     | with:
@@ -41,6 +40,14 @@ return [
      * whether it works, never the value.
      */
     'token' => env('GITHUB_TOKEN'),
+
+    /*
+     * Separate, optional write token used only by GitHubWriteClient when an
+     * authorised admin explicitly deletes an unmatched branch. Keeping it out
+     * of GitHubClient preserves the read-only guarantee for every sync and
+     * attribution request.
+     */
+    'write_token' => env('GITHUB_WRITE_TOKEN'),
 
     'api_base' => env('GITHUB_API_BASE', 'https://api.github.com'),
 

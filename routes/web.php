@@ -244,6 +244,10 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:github.view')->name('github.branches');
     Route::get('/github/unmatched-branches', [GithubUnmatchedBranchController::class, 'index'])
         ->middleware('permission:github.audit')->name('github.unmatched-branches');
+    Route::post('/github/accounts/link', [GithubUnmatchedBranchController::class, 'linkAccount'])
+        ->middleware('permission:github.audit')->name('github.accounts.link');
+    Route::delete('/github/unmatched-branches/{branch}', [GithubUnmatchedBranchController::class, 'destroy'])
+        ->middleware('permission:github.branches.delete')->name('github.unmatched-branches.destroy');
 
     // ★ (2026-08-29) "زامن دلوقتي" from the audit screen, so the list you are
     // about to act on is not last night's. github.audit rather than
