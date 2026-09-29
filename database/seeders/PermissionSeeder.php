@@ -24,7 +24,6 @@ class PermissionSeeder extends Seeder
             'tickets.resolve' => 'تعليم التذكرة كمحلولة',
             'tickets.reopen' => 'إعادة فتح تذكرة',
             'tickets.close' => 'إغلاق التذكرة',
-            'tickets.close_without_branch' => 'حل أو إغلاق تذكرة بدون برانش',
             'tickets.notify_client' => 'تسجيل إبلاغ العميل',
         ],
         'comments' => [
