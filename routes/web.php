@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\CalendarSettingController;
 use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\ContactController;
 use App\Http\Controllers\Admin\GithubController;
+use App\Http\Controllers\Admin\GithubIdentityController;
 use App\Http\Controllers\Admin\ImpersonationController;
 use App\Http\Controllers\Admin\ImportController;
 use App\Http\Controllers\Admin\LabelController;
@@ -244,8 +245,6 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:github.view')->name('github.branches');
     Route::get('/github/unmatched-branches', [GithubUnmatchedBranchController::class, 'index'])
         ->middleware('permission:github.audit')->name('github.unmatched-branches');
-    Route::post('/github/accounts/link', [GithubUnmatchedBranchController::class, 'linkAccount'])
-        ->middleware('permission:github.audit')->name('github.accounts.link');
     Route::delete('/github/unmatched-branches/{branch}', [GithubUnmatchedBranchController::class, 'destroy'])
         ->middleware('permission:github.branches.delete')->name('github.unmatched-branches.destroy');
 
@@ -345,6 +344,13 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('admin')->name('admin.')->group(function () {
+        Route::middleware('permission:github.identities.manage')->group(function () {
+            Route::get('github-identities', [GithubIdentityController::class, 'index'])->name('github-identities.index');
+            Route::post('github-identities', [GithubIdentityController::class, 'store'])->name('github-identities.store');
+            Route::put('github-identities/{user}', [GithubIdentityController::class, 'update'])->name('github-identities.update');
+            Route::delete('github-identities/{user}', [GithubIdentityController::class, 'destroy'])->name('github-identities.destroy');
+            Route::post('github-identities/sync', [GithubIdentityController::class, 'sync'])->name('github-identities.sync');
+        });
         // F18 — the points correction ledger. points.rules.manage is admin-only.
         Route::middleware('permission:points.rules.manage')->group(function () {
             Route::get('point-rules', [PointRuleController::class, 'index'])->name('point-rules.index');

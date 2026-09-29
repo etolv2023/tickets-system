@@ -24,31 +24,6 @@
         @endif
 
         <x-card>
-            <div class="stack stack--tight">
-                <div>
-                    <strong>ربط حسابات GitHub بالناس</strong>
-                    <p class="u-subtle">اختار الحساب اللي ظهر في البرانشات أو الـ PRs، واربطه بمستخدم النظام. الربط ده بيتستخدم كمان لمعرفة صاحب الاكسبشن.</p>
-                </div>
-                <form method="POST" action="{{ route('github.accounts.link') }}" class="filters__bar">
-                    @csrf
-                    <select name="github_login" class="select" required aria-label="حساب GitHub">
-                        <option value="">حساب GitHub المكتشف</option>
-                        @foreach($githubLogins as $login)
-                            <option value="{{ $login }}">{{ '@' . $login }}</option>
-                        @endforeach
-                    </select>
-                    <select name="user_id" class="select" required aria-label="مستخدم النظام">
-                        <option value="">اختار الشخص في النظام</option>
-                        @foreach($availableUsers as $user)
-                            <option value="{{ $user->id }}">{{ $user->name }}</option>
-                        @endforeach
-                    </select>
-                    <x-button type="submit">احفظ الربط</x-button>
-                </form>
-            </div>
-        </x-card>
-
-        <x-card>
             <form method="GET" class="filters">
                 <div class="filters__bar">
                     <input name="q" value="{{ request('q') }}" placeholder="اسم البرانش" class="input">

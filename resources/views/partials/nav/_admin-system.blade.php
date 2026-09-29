@@ -51,6 +51,14 @@
     </a>
 @endcan
 
+@can('github.identities.manage')
+    <a href="{{ route('admin.github-identities.index') }}" class="nav__link" title="ربط حسابات GitHub"
+       @if(request()->routeIs('admin.github-identities.*')) aria-current="page" @endif>
+        <x-icon name="user" class="nav__icon" />
+        <span class="nav__label">حسابات GitHub</span>
+    </a>
+@endcan
+
 @can('settings.manage')
     <a href="{{ route('admin.point-values.index') }}" class="nav__link" title="سعر النقطة والمستحقات"
        @if (request()->routeIs('admin.point-values.*')) aria-current="page" @endif>

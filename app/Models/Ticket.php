@@ -30,7 +30,7 @@ class Ticket extends Model
         // is how a later report of the same error finds this ticket again.
         'exception_fingerprint', 'exception_count', 'exception_server',
         'exception_source_file', 'exception_source_line', 'exception_culprit_login',
-        'exception_culprit_name', 'exception_attribution_reason',
+        'exception_culprit_name', 'exception_culprit_id', 'exception_attribution_reason',
         'created_by',
         'approval_status', 'approved_by', 'approved_at',
         'reported_at', 'first_response_at', 'sla_due_at', 'resolved_at',
@@ -75,6 +75,12 @@ class Ticket extends Model
     public function requester(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requested_by');
+    }
+
+    /** The system user attributed as the likely cause of an exception ticket. */
+    public function exceptionCulprit(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'exception_culprit_id');
     }
 
     /**
@@ -545,6 +551,8 @@ class Ticket extends Model
             ->when($filters['company'] ?? null, fn (Builder $q, $v) => $q->where('company_id', $v))
             ->when($filters['assignee'] ?? null,
                 fn (Builder $q, $v) => $q->involving((int) $v, $filters['relation'] ?? null))
+            ->when($filters['culprit'] ?? null,
+                fn (Builder $q, $v) => $q->where('exception_culprit_id', (int) $v))
             // F27. Two states only, both from the counter column: "no code was
             // ever found" and "some was". Anything finer belongs on the ticket
             // page, where the branches themselves are listed.

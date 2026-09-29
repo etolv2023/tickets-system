@@ -166,7 +166,8 @@ class ExceptionIntakeService
             'exception_source_file' => $data['source_file'] ?? null,
             'exception_source_line' => $data['source_line'] ?? null,
             'exception_culprit_login' => $culprit['login'] ?? null,
-            'exception_culprit_name' => $culprit['name'] ?? null,
+            'exception_culprit_name' => $culprit['user']?->name,
+            'exception_culprit_id' => $culprit['user']?->id,
             'exception_attribution_reason' => $culprit['reason'] ?? null,
             'status' => \App\Casts\TicketStatusValue::for('new'),
             'approval_status' => 'not_required',
@@ -208,6 +209,7 @@ class ExceptionIntakeService
                 || $ticket->exception_culprit_login
                 || $ticket->exception_attribution_reason)
                 ? [
+                    'user_id' => $ticket->exception_culprit_id,
                     'name' => $ticket->exception_culprit_name,
                     'github_login' => $ticket->exception_culprit_login,
                     'reason' => $ticket->exception_attribution_reason,
@@ -240,7 +242,8 @@ class ExceptionIntakeService
             'exception_source_file' => $data['source_file'] ?? $ticket->exception_source_file,
             'exception_source_line' => $data['source_line'] ?? $ticket->exception_source_line,
             'exception_culprit_login' => $culprit['login'] ?? $ticket->exception_culprit_login,
-            'exception_culprit_name' => $culprit['name'] ?? $ticket->exception_culprit_name,
+            'exception_culprit_name' => $culprit['user']?->name ?? $ticket->exception_culprit_name,
+            'exception_culprit_id' => $culprit['user']?->id ?? $ticket->exception_culprit_id,
             'exception_attribution_reason' => $culprit['reason'] ?? $ticket->exception_attribution_reason,
         ])->save();
 
@@ -269,6 +272,7 @@ class ExceptionIntakeService
                 || $ticket->exception_culprit_login
                 || $ticket->exception_attribution_reason)
                 ? [
+                    'user_id' => $ticket->exception_culprit_id,
                     'name' => $ticket->exception_culprit_name,
                     'github_login' => $ticket->exception_culprit_login,
                     'reason' => $ticket->exception_attribution_reason,
@@ -491,12 +495,15 @@ class ExceptionIntakeService
             $reason .= '، لكن GitHub مرجعش هوية مؤلف الـ commit';
         } elseif ($user === null) {
             $reason .= '، والهوية لسه مش مربوطة بمستخدم في النظام';
+            if ($commitName !== null) {
+                $reason .= " (اسم مؤلف الـ commit: {$commitName})";
+            }
         }
 
         return [
             'user' => $user,
             'login' => $login,
-            'name' => $user?->name ?? $commitName,
+            'name' => $user?->name,
             'reason' => $reason,
         ];
     }
@@ -510,7 +517,8 @@ class ExceptionIntakeService
         }
 
         return [
-            'name' => $culprit['name'] ?? $culprit['user']?->name,
+            'user_id' => $culprit['user']?->id,
+            'name' => $culprit['user']?->name,
             'github_login' => $culprit['login'] ?? null,
             'reason' => $culprit['reason'] ?? null,
         ];
