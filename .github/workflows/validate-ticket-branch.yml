@@ -1,0 +1,23 @@
+name: Branch Ticket Validation
+
+on:
+  pull_request:
+  push:
+    branches-ignore:
+      - main
+
+jobs:
+  validate-ticket-number:
+    name: Validate ticket number in branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch name
+        env:
+          BRANCH_NAME: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
+        run: |
+          if [[ ! "$BRANCH_NAME" =~ ^TK-[0-9]{4}-[0-9]+([/_-].*)?$ ]]; then
+            echo "::error title=Invalid branch name::Branch '$BRANCH_NAME' must start with a ticket number, for example TK-2026-123-fix-invoice."
+            exit 1
+          fi
+
+          echo "Branch '$BRANCH_NAME' contains a valid ticket number."

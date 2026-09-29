@@ -77,7 +77,7 @@
                 @elseif (in_array($ticket->status->value, ['resolved', 'closed'], true))
                     <x-badge variant="amber">ملهاش برانش</x-badge>
                 @else
-                    <span class="u-subtle">لسه مفيش برانش</span>
+                    <x-badge variant="amber">مطلوب قبل الحل</x-badge>
                 @endif
             </span>
         </div>
