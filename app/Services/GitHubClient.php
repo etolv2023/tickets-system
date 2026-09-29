@@ -114,6 +114,20 @@ class GitHubClient
         return $this->json($response, $repo->fullName() . '#' . $name);
     }
 
+    /** The newest commit touching a path on the repository's default branch. */
+    public function latestCommitForPath(GithubRepository $repo, string $path, ?string $ref = null): ?array
+    {
+        $response = $this->request('/repos/' . $repo->fullName() . '/commits', [
+            'path' => ltrim($path, '/'),
+            'sha' => $ref ?: $repo->default_branch,
+            'per_page' => 1,
+        ]);
+
+        $commits = $this->json($response, $repo->fullName() . ':' . $path);
+
+        return is_array($commits) && isset($commits[0]) ? $commits[0] : null;
+    }
+
     /**
      * Pull requests, newest change first, stopping once they get older than
      * $since.

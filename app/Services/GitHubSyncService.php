@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\BranchState;
 use App\Enums\PullRequestState;
 use App\Models\GithubRepository;
+use App\Models\GithubUnmatchedBranch;
 use App\Models\Ticket;
 use App\Models\TicketBranch;
 use App\Models\TicketPullRequest;
@@ -288,7 +289,51 @@ class GitHubSyncService
 
         $this->refreshCounts($touched);
 
+        $this->syncUnmatchedBranches($repo, $remote);
+
         return $stats;
+    }
+
+    private function syncUnmatchedBranches(GithubRepository $repo, $remote): void
+    {
+        $invalid = $remote->filter(fn ($branch, string $name) =>
+            $name !== $repo->default_branch && ! $this->naming->startsWithTicketNumber($name)
+        );
+        $rows = GithubUnmatchedBranch::where('github_repository_id', $repo->id)->get()->keyBy('name');
+
+        foreach ($invalid as $name => $branch) {
+            $sha = $branch['commit']['sha'] ?? null;
+            $row = $rows->get($name) ?? new GithubUnmatchedBranch([
+                'github_repository_id' => $repo->id,
+                'name' => $name,
+                'first_seen_at' => now(),
+            ]);
+            $head = ['head_sha' => $sha];
+
+            if ($row->head_sha !== $sha || $row->last_commit_at === null) {
+                $detail = $this->github->branch($repo, $name);
+                if ($detail !== null) {
+                    $head = $this->headFrom($detail);
+                }
+            }
+
+            $row->fill($head + [
+                'state' => BranchState::Active->value,
+                'last_seen_at' => now(),
+                'deleted_detected_at' => null,
+            ])->save();
+        }
+
+        foreach ($rows as $name => $row) {
+            if ($invalid->has($name) || $row->state === BranchState::Deleted) {
+                continue;
+            }
+
+            $row->forceFill([
+                'state' => BranchState::Deleted->value,
+                'deleted_detected_at' => now(),
+            ])->save();
+        }
     }
 
     /**

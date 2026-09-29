@@ -47,6 +47,7 @@ use App\Http\Controllers\Export\PointsExportController;
 use App\Http\Controllers\Export\ReportExportController;
 use App\Http\Controllers\Export\TicketExportController;
 use App\Http\Controllers\GithubAuditController;
+use App\Http\Controllers\GithubUnmatchedBranchController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\TicketBranchController;
@@ -241,6 +242,8 @@ Route::middleware('auth')->group(function () {
     // exactly as /tickets does. Triggering a sync stays on github.audit below.
     Route::get('/github/branches', [GithubAuditController::class, 'index'])
         ->middleware('permission:github.view')->name('github.branches');
+    Route::get('/github/unmatched-branches', [GithubUnmatchedBranchController::class, 'index'])
+        ->middleware('permission:github.audit')->name('github.unmatched-branches');
 
     // ★ (2026-08-29) "زامن دلوقتي" from the audit screen, so the list you are
     // about to act on is not last night's. github.audit rather than

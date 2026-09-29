@@ -13,6 +13,13 @@
     </a>
 @endcan
 
+@can('github.audit')
+    <a href="{{ route('github.unmatched-branches') }}" class="nav__link" title="برانشات مخالفة">
+        <x-icon name="alert" class="nav__icon" />
+        <span class="nav__label">برانشات مخالفة</span>
+    </a>
+@endcan
+
 @can('reports.view')
     <a href="{{ route('reports.index') }}" class="nav__link" title="التقارير"
        @if (request()->routeIs('reports.index')) aria-current="page" @endif>

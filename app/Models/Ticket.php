@@ -29,6 +29,8 @@ class Ticket extends Model
         // F26 — set only on a ticket the error reporter opened. The fingerprint
         // is how a later report of the same error finds this ticket again.
         'exception_fingerprint', 'exception_count', 'exception_server',
+        'exception_source_file', 'exception_source_line', 'exception_culprit_login',
+        'exception_culprit_name', 'exception_attribution_reason',
         'created_by',
         'approval_status', 'approved_by', 'approved_at',
         'reported_at', 'first_response_at', 'sla_due_at', 'resolved_at',
@@ -54,6 +56,7 @@ class Ticket extends Model
             'due_date' => 'date',
             'original_estimate_hours' => 'decimal:2',
             'exception_count' => 'integer',
+            'exception_source_line' => 'integer',
             'spent_hours' => 'decimal:2',
         ];
     }
