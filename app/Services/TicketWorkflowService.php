@@ -87,6 +87,10 @@ class TicketWorkflowService
             );
         }
 
+        if (($blocker = $this->missingBranchBlocker($ticket, $to, $userId)) !== null) {
+            throw new DomainException($blocker);
+        }
+
         if (($blocker = $this->subtaskBlocker($ticket, $to)) !== null) {
             throw new DomainException($blocker);
         }
@@ -139,6 +143,22 @@ class TicketWorkflowService
 
             return $ticket;
         });
+    }
+
+    private function missingBranchBlocker(Ticket $ticket, TicketStatusValue $to, ?int $userId): ?string
+    {
+        if (! in_array($to->value, self::SUBTASK_GATED, true) || (int) $ticket->branches_count > 0) {
+            return null;
+        }
+
+        $actorCanBypass = $userId !== null
+            && User::find($userId)?->hasPermission('tickets.close_without_branch');
+
+        if ($actorCanBypass) {
+            return null;
+        }
+
+        return 'مينفعش تعلّم التذكرة محلولة أو تقفلها قبل ربط برانش يبدأ برقم التذكرة.';
     }
 
     /**
