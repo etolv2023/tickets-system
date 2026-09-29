@@ -166,7 +166,7 @@ class ExceptionIntakeService
             'exception_source_file' => $data['source_file'] ?? null,
             'exception_source_line' => $data['source_line'] ?? null,
             'exception_culprit_login' => $culprit['login'] ?? null,
-            'exception_culprit_name' => $culprit['user']?->name,
+            'exception_culprit_name' => $culprit['name'] ?? null,
             'exception_attribution_reason' => $culprit['reason'] ?? null,
             'status' => \App\Casts\TicketStatusValue::for('new'),
             'approval_status' => 'not_required',
@@ -204,7 +204,15 @@ class ExceptionIntakeService
             'ticket_number' => $ticket->ticket_number,
             'ticket_id' => $ticket->id,
             'assignee' => $this->describe($assignee),
-            'culprit' => $this->describeCulprit($culprit),
+            'culprit' => ($ticket->exception_culprit_name
+                || $ticket->exception_culprit_login
+                || $ticket->exception_attribution_reason)
+                ? [
+                    'name' => $ticket->exception_culprit_name,
+                    'github_login' => $ticket->exception_culprit_login,
+                    'reason' => $ticket->exception_attribution_reason,
+                ]
+                : null,
         ];
     }
 
@@ -219,12 +227,21 @@ class ExceptionIntakeService
     private function recur(Ticket $ticket, array $data): array
     {
         $count = max((int) $ticket->exception_count, (int) ($data['occurrences'] ?? 1));
+        $culprit = $this->resolveCulprit($data);
 
         $ticket->forceFill([
             'exception_count' => $count,
             // The most recent server to report it. Errors move between servers
             // and the newest sighting is the useful one.
             'exception_server' => $this->serverName($data) ?: $ticket->exception_server,
+            // Attribution can become available after the first occurrence — a
+            // GitHub account may have been linked in the meantime, or an old
+            // alert may predate attribution entirely. Refresh it on recurrence.
+            'exception_source_file' => $data['source_file'] ?? $ticket->exception_source_file,
+            'exception_source_line' => $data['source_line'] ?? $ticket->exception_source_line,
+            'exception_culprit_login' => $culprit['login'] ?? $ticket->exception_culprit_login,
+            'exception_culprit_name' => $culprit['name'] ?? $ticket->exception_culprit_name,
+            'exception_attribution_reason' => $culprit['reason'] ?? $ticket->exception_attribution_reason,
         ])->save();
 
         $seen = $this->serverName($data) ?: 'غير معروف';
@@ -248,7 +265,9 @@ class ExceptionIntakeService
             // Whoever is already holding it — a repeat does not reassign, so
             // the name the sender mentions is the name from the first report.
             'assignee' => $this->describe($this->currentAssignee($ticket)),
-            'culprit' => ($ticket->exception_culprit_login || $ticket->exception_attribution_reason)
+            'culprit' => ($ticket->exception_culprit_name
+                || $ticket->exception_culprit_login
+                || $ticket->exception_attribution_reason)
                 ? [
                     'name' => $ticket->exception_culprit_name,
                     'github_login' => $ticket->exception_culprit_login,
@@ -412,7 +431,7 @@ class ExceptionIntakeService
      * touched its application file. This is evidence, not certainty; the reason
      * is stored and shown everywhere the name is shown.
      *
-     * @return array{user: User|null, login: string|null, reason: string|null}
+     * @return array{user: User|null, login: string|null, name: string|null, reason: string|null}
      */
     private function resolveCulprit(array $data): array
     {
@@ -420,7 +439,7 @@ class ExceptionIntakeService
         $fullName = trim((string) ($data['source_repository'] ?? ''));
 
         if ($file === '' || $fullName === '' || ! $this->github->configured()) {
-            return ['user' => null, 'login' => null, 'reason' => null];
+            return ['user' => null, 'login' => null, 'name' => null, 'reason' => 'بيانات المصدر أو اتصال GitHub مش مكتملين'];
         }
 
         $repo = GithubRepository::query()->active()
@@ -428,39 +447,70 @@ class ExceptionIntakeService
             ->first();
 
         if ($repo === null) {
-            return ['user' => null, 'login' => null, 'reason' => 'الريبو المرسل غير مسجل في نظام التذاكر'];
+            return ['user' => null, 'login' => null, 'name' => null, 'reason' => 'الريبو المرسل غير مسجل في نظام التذاكر'];
         }
 
         try {
             $ref = trim((string) ($data['source_ref'] ?? '')) ?: $repo->default_branch;
             $commit = $this->github->latestCommitForPath($repo, $file, $ref);
         } catch (\Throwable $e) {
-            return ['user' => null, 'login' => null, 'reason' => 'تعذر سؤال GitHub: ' . mb_substr($e->getMessage(), 0, 180)];
+            return ['user' => null, 'login' => null, 'name' => null, 'reason' => 'تعذر سؤال GitHub: ' . mb_substr($e->getMessage(), 0, 180)];
+        }
+
+        if (! is_array($commit)) {
+            return ['user' => null, 'login' => null, 'name' => null, 'reason' => 'GitHub ملقاش commit للملف على المرجع المطلوب'];
         }
 
         $login = $commit['author']['login'] ?? null;
-        if (! is_string($login) || $login === '') {
-            return ['user' => null, 'login' => null, 'reason' => 'آخر commit للملف غير مربوط بحساب GitHub'];
+        $email = $commit['commit']['author']['email'] ?? null;
+        $commitName = $commit['commit']['author']['name'] ?? null;
+
+        $login = is_string($login) && $login !== '' ? $login : null;
+        $email = is_string($email) && $email !== '' ? $email : null;
+        $commitName = is_string($commitName) && $commitName !== '' ? $commitName : null;
+
+        // GitHub's privacy address still carries the login even when the API's
+        // top-level author is null: 12345+login@users.noreply.github.com.
+        if ($login === null && $email !== null
+            && preg_match('/^(?:\d+\+)?([^@]+)@users\.noreply\.github\.com$/i', $email, $matches)) {
+            $login = $matches[1];
         }
 
-        $user = User::query()->whereRaw('LOWER(github_login) = ?', [mb_strtolower($login)])->first();
+        $user = $login !== null
+            ? User::query()->whereRaw('LOWER(github_login) = ?', [mb_strtolower($login)])->first()
+            : null;
+
+        if ($user === null && $email !== null) {
+            $user = User::query()->whereRaw('LOWER(email) = ?', [mb_strtolower($email)])->first();
+        }
+
         $line = isset($data['source_line']) ? ':' . (int) $data['source_line'] : '';
+        $reason = "آخر commit لمس {$file}{$line} على {$ref}";
+
+        if ($user === null && $login === null && $commitName === null) {
+            $reason .= '، لكن GitHub مرجعش هوية مؤلف الـ commit';
+        } elseif ($user === null) {
+            $reason .= '، والهوية لسه مش مربوطة بمستخدم في النظام';
+        }
 
         return [
             'user' => $user,
             'login' => $login,
-            'reason' => "آخر commit لمس {$file}{$line} على {$ref}",
+            'name' => $user?->name ?? $commitName,
+            'reason' => $reason,
         ];
     }
 
     private function describeCulprit(array $culprit): ?array
     {
-        if (($culprit['login'] ?? null) === null && ($culprit['reason'] ?? null) === null) {
+        if (($culprit['name'] ?? null) === null
+            && ($culprit['login'] ?? null) === null
+            && ($culprit['reason'] ?? null) === null) {
             return null;
         }
 
         return [
-            'name' => $culprit['user']?->name,
+            'name' => $culprit['name'] ?? $culprit['user']?->name,
             'github_login' => $culprit['login'] ?? null,
             'reason' => $culprit['reason'] ?? null,
         ];

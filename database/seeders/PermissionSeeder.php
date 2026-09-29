@@ -92,13 +92,11 @@ class PermissionSeeder extends Seeder
             'reports.view' => 'عرض التقارير',
         ],
         /*
-         * ★ (2026-08-29) F27 — GitHub. Two permissions, and there is no third.
+         * ★ (2026-08-29) F27 — GitHub.
          *
-         * There is deliberately no github.branch.create and no github.delete,
-         * because the integration is read-only: the token behind it holds
-         * Contents: Read-only, and GitHubClient has no method that issues
-         * anything but GET. Nothing this system can be permitted to do would
-         * change a repository.
+         * Sync and attribution stay structurally read-only through GitHubClient.
+         * Branch deletion is a separate, explicitly granted authority backed by
+         * a different token and a different client.
          *
          * github.audit is the stricter of the two. It carries the screen
          * listing resolved tickets with no code behind them — which is a list
@@ -112,6 +110,7 @@ class PermissionSeeder extends Seeder
         'github' => [
             'github.view' => 'عرض برانشات التذكرة',
             'github.audit' => 'تذاكر من غير برانش وربط برانش بإيد',
+            'github.branches.delete' => 'حذف برانش مخالف من GitHub',
         ],
         'admin' => [
             'users.manage' => 'إدارة المستخدمين والأدوار',
