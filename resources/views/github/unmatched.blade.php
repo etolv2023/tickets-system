@@ -34,16 +34,13 @@
                     <select name="github_login" class="select" required aria-label="حساب GitHub">
                         <option value="">حساب GitHub المكتشف</option>
                         @foreach($githubLogins as $login)
-                            @php($linked = $users->first(fn ($user) => $user->github_login && strcasecmp($user->github_login, $login) === 0))
-                            <option value="{{ $login }}">
-                                {{ '@' . $login }}{{ $linked ? ' — ' . $linked->name : ' — غير مربوط' }}
-                            </option>
+                            <option value="{{ $login }}">{{ '@' . $login }}</option>
                         @endforeach
                     </select>
                     <select name="user_id" class="select" required aria-label="مستخدم النظام">
                         <option value="">اختار الشخص في النظام</option>
-                        @foreach($users as $user)
-                            <option value="{{ $user->id }}">{{ $user->name }}{{ $user->github_login ? ' — @' . $user->github_login : '' }}</option>
+                        @foreach($availableUsers as $user)
+                            <option value="{{ $user->id }}">{{ $user->name }}</option>
                         @endforeach
                     </select>
                     <x-button type="submit">احفظ الربط</x-button>
@@ -57,9 +54,9 @@
                     <input name="q" value="{{ request('q') }}" placeholder="اسم البرانش" class="input">
                     <select name="author_user" class="select" aria-label="صاحب البرانش">
                         <option value="">كل أصحاب البرانشات</option>
-                        @foreach($users as $user)
+                        @foreach($filterUsers as $user)
                             <option value="{{ $user->id }}" @selected((int) request('author_user') === $user->id)>
-                                {{ $user->name }}{{ $user->github_login ? ' — @' . $user->github_login : ' — غير مربوط' }}
+                                {{ $user->name }} — {{ '@' . $user->github_login }}
                             </option>
                         @endforeach
                     </select>
