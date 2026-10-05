@@ -91,16 +91,54 @@
     color: var(--action);
 }
 
+/* ★ (2026-10-05) The second tier of the tickets bar. A grid of its own that
+   spans the whole first grid, so its controls line up in the same columns as
+   the row above rather than starting wherever the toggle button ended. */
+.filters__tier {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    align-items: center;
+    gap: var(--space-2);
+    padding-block-start: var(--space-2);
+    border-block-start: 1px dashed var(--border-subtle);
+}
+
+/* The date range and the column it runs against: one question, three tracks. */
+.filters__dates {
+    grid-column: span 3;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+}
+
+.filters__dates .select {
+    inline-size: auto;
+}
+
+/* The tier toggle sits in the grid like a control, but reads as a button. */
+.filters__more {
+    justify-self: start;
+}
+
 @media (width < 48rem) {
     /* Below this the two-column person cell and the date pair both stop fitting
        side by side; one column per control is the only honest layout left. */
-    .filters__narrow {
+    .filters__narrow,
+    .filters__tier {
         grid-template-columns: 1fr;
     }
 
     .filters__person,
-    .filters__narrow .filters__group {
+    .filters__narrow .filters__group,
+    .filters__dates {
         grid-column: span 1;
+    }
+
+    .filters__dates {
+        grid-template-columns: 1fr;
     }
 }
 

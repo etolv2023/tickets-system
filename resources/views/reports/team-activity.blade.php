@@ -34,6 +34,7 @@
                                 <th>المسؤولين</th>
                                 <th>تاريخ الفتح</th>
                                 <th>تاريخ الحل</th>
+                                <th>التسليم</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -60,10 +61,19 @@
                                     </td>
                                     <td class="u-nums">{{ $ticket->reported_at->translatedFormat('j M Y') }}</td>
                                     <td class="u-nums">{{ $ticket->resolved_at?->translatedFormat('j M Y') ?? '—' }}</td>
+                                    <td class="table__cell--tight">
+                                        @if ($ticket->missedDeadlines() !== [])
+                                            <x-badge variant="urgent" class="badge--sm">متأخرة</x-badge>
+                                        @elseif ($ticket->hasDeadline())
+                                            <span class="tickets__ontime">في معادها</span>
+                                        @else
+                                            <span class="u-subtle">—</span>
+                                        @endif
+                                    </td>
                                 </tr>
                             @empty
                                 <tr class="table__empty">
-                                    <td colspan="7">مفيش تذاكر بالفلاتر دي.</td>
+                                    <td colspan="8">مفيش تذاكر بالفلاتر دي.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -74,72 +84,6 @@
             {{ $tickets->links() }}
         @endif
 
-        @if ($subtasks !== null)
-            <x-card title="الصب تاسكس" flush>
-                <x-slot:actions>
-                    <span class="u-subtle">{{ $subtasks->total() }}</span>
-                </x-slot:actions>
-
-                <div class="table-wrap">
-                    <table class="table table--hover">
-                        <thead>
-                            <tr>
-                                <th>الصب تاسك</th>
-                                <th>التذكرة</th>
-                                <th>الدور</th>
-                                <th>الحالة</th>
-                                <th>المسؤول</th>
-                                <th>الاستحقاق</th>
-                                <th>مقدّر/فعلي</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($subtasks as $subtask)
-                                <tr>
-                                    <td>{{ $subtask->title }}</td>
-                                    <td>
-                                        <a class="u-mono u-ltr" href="{{ route('tickets.show', $subtask->ticket) }}">
-                                            {{ $subtask->ticket->ticket_number }}
-                                        </a>
-                                        <span class="u-subtle">{{ $subtask->ticket->title }}</span>
-                                    </td>
-                                    <td><x-badge variant="neutral">{{ $subtask->role?->name_ar ?? 'عام' }}</x-badge></td>
-                                    <td><x-badge :variant="$subtask->status->variant()">{{ $subtask->status->label() }}</x-badge></td>
-                                    <td>
-                                        @if ($subtask->assignee)
-                                            <div class="row">
-                                                <x-avatar :user="$subtask->assignee" size="sm" />
-                                                {{ $subtask->assignee->name }}
-                                            </div>
-                                        @else
-                                            <span class="u-subtle">مش مسندة</span>
-                                        @endif
-                                    </td>
-                                    <td @class(['u-nums', 'tickets__age--overdue' => $subtask->isOverdue()])>
-                                        {{ $subtask->due_date?->translatedFormat('j M Y') ?? '—' }}
-                                        @if ($subtask->isOverdue())
-                                            <x-icon name="alert" aria-label="متأخرة" />
-                                        @endif
-                                    </td>
-                                    <td class="u-mono u-nums">
-                                        @if ($subtask->estimated_hours)
-                                            {{ rtrim(rtrim($subtask->spent_hours, '0'), '.') }}/{{ rtrim(rtrim($subtask->estimated_hours, '0'), '.') }} س
-                                        @else
-                                            —
-                                        @endif
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr class="table__empty">
-                                    <td colspan="7">مفيش صب تاسكس بالفلاتر دي.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </x-card>
-
-            {{ $subtasks->links() }}
-        @endif
+        @include('reports.partials._team-activity-subtasks')
     </div>
 @endsection

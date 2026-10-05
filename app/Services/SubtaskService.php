@@ -179,6 +179,20 @@ class SubtaskService
             $attributes['original_estimate_hours'] = $counts->estimate;
         }
 
-        $ticket->forceFill($attributes)->saveQuietly();
+        // ★ (2026-10-05) Written straight to the row, not through save().
+        //
+        // save() only writes attributes that differ from what the INSTANCE
+        // last saw — so when the ticket in hand was loaded before another
+        // instance changed the subtasks (the create form seeds rows, then the
+        // distribution runs on the same object; a delete through one instance
+        // followed by a create through another), the freshly counted value
+        // could equal the stale in-memory one and nothing reached the table.
+        // The counters then said "1 open" over rows that said otherwise, and
+        // the resolve gate refused a ticket whose last open subtask had been
+        // deleted. The count above is authoritative; the write must be too.
+        Ticket::whereKey($ticket->id)->update($attributes);
+
+        // The caller keeps reading this instance — keep it true as well.
+        $ticket->forceFill($attributes)->syncOriginalAttributes(array_keys($attributes));
     }
 }

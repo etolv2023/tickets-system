@@ -21,10 +21,12 @@ class ReportsExport implements WithMultipleSheets
 {
     use Exportable, CachesSheets;
 
+    /** @param array<string, mixed> $filters company, type, priority, person — see ReportService::constrain() */
     public function __construct(
         private readonly string $period,
         private readonly string $from,
         private readonly string $to,
+        private readonly array $filters = [],
     ) {
     }
 
@@ -32,14 +34,14 @@ class ReportsExport implements WithMultipleSheets
     protected function buildSheets(): array
     {
         $reports = app(ReportService::class);
-        $resolution = $reports->resolutionTimes($this->from, $this->to);
+        $resolution = $reports->resolutionTimes($this->from, $this->to, $this->filters);
 
         return [
-            $this->distribution($reports->ticketDistribution($this->from, $this->to)),
+            $this->distribution($reports->ticketDistribution($this->from, $this->to, $this->filters)),
             $this->byPriority($resolution['byPriority']),
             $this->byType($resolution['byType']),
-            $this->breaches($reports->slaBreaches($this->from, $this->to)),
-            $this->companies($reports->companyPerformance($this->from, $this->to)),
+            $this->breaches($reports->slaBreaches($this->from, $this->to, $this->filters)),
+            $this->companies($reports->companyPerformance($this->from, $this->to, $this->filters)),
             $this->load($reports->teamLoad()),
             $this->time($reports->timeReport($this->from, $this->to)),
         ];

@@ -49,14 +49,16 @@ class TicketController extends Controller
     {
         $this->authorize('viewAny', Ticket::class);
 
-        $filters = $request->only('q', 'status', 'type', 'priority', 'company', 'assignee', 'relation', 'culprit', 'from', 'to', 'branch');
+        // One list, shared with the export (Ticket::FILTER_KEYS) — the file a
+        // person downloads answers exactly the question the screen did.
+        $filters = $request->only(Ticket::FILTER_KEYS);
 
         $tickets = Ticket::query()
             // Never select description here: it's LONGTEXT and this page shows
             // 25 rows of it that nobody reads (CLAUDE.md § 4.3).
             ->select([
                 'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'priority',
-                'status', 'reported_at', 'sla_due_at', 'resolved_at', 'updated_at', 'created_by',
+                'status', 'reported_at', 'sla_due_at', 'due_date', 'resolved_at', 'updated_at', 'created_by',
                 'subtasks_total', 'subtasks_done',
                 // F27 — read by the "ملهاش برانش" marker below. A column, not
                 // a subquery: 25 rows on a screen with a 300ms budget.
@@ -67,7 +69,7 @@ class TicketController extends Controller
             ->with(['company:id,name,code', 'requester:id,name', 'creator:id,name', 'roleAssignments.user:id,name,avatar_path,is_active', 'labels:id,name,color'])
             ->visibleTo($request->user())
             ->filter($filters)
-            ->defaultOrder()
+            ->sortBy($filters['sort'] ?? null)
             ->paginate(25)
             ->withQueryString();
 
@@ -81,6 +83,12 @@ class TicketController extends Controller
                 : null,
             'selectedAssignee' => filled($filters['assignee'] ?? null)
                 ? User::whereKey($filters['assignee'])->value('name')
+                : null,
+            'selectedCreator' => filled($filters['creator'] ?? null)
+                ? User::whereKey($filters['creator'])->value('name')
+                : null,
+            'selectedLabel' => filled($filters['label'] ?? null)
+                ? Label::whereKey($filters['label'])->value('name')
                 : null,
             'culpritUsers' => User::query()->without('role')
                 ->whereIn('id', Ticket::query()->visibleTo($request->user())->whereNotNull('exception_culprit_id')

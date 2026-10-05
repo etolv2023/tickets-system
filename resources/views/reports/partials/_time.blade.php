@@ -1,6 +1,6 @@
 <x-card title="تقرير الوقت" flush>
     <x-slot:actions>
-        <span class="u-subtle">الوقت مالوش علاقة بالنقاط</span>
+        <span class="u-subtle">الوقت مالوش علاقة بالنقاط — ومش محكوم بفلاتر الشركة/النوع فوق</span>
     </x-slot:actions>
 
     <div class="table-wrap">

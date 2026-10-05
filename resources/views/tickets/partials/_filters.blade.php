@@ -7,7 +7,10 @@
      last saw it. Now it reads as two deliberate lines — what you DO on top
      (search, my tickets, the primary action) and what you NARROW BY underneath
      — and the narrowing line is one grid, so the controls land in the same
-     place every time. --}}
+     place every time.
+
+     ★ (2026-10-05) The narrowing line moved to _filters-narrow / _filters-more
+     when it grew a second tier; this file is the bar only. --}}
 @php
     // "Mine" is on when the person filter is me across any relation — the same
     // state the button itself links to, so it can render as pressed.
@@ -55,81 +58,5 @@
         @endcan
     </div>
 
-    <div class="filters__narrow">
-        <select name="status" class="select" aria-label="الحالة">
-            <option value="">كل الحالات</option>
-            <option value="open" @selected(($filters['status'] ?? '') === 'open')>غير محلولة</option>
-            <option value="resolved" @selected(($filters['status'] ?? '') === 'resolved')>محلولة</option>
-            @foreach (\App\Models\TicketStatusDefinition::options() as $value => $label)
-                <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $label }}</option>
-            @endforeach
-        </select>
-
-        <select name="type" class="select" aria-label="النوع">
-            <option value="">كل الأنواع</option>
-            @foreach (\App\Models\TicketTypeDefinition::options() as $value => $label)
-                <option value="{{ $value }}" @selected(($filters['type'] ?? '') === $value)>{{ $label }}</option>
-            @endforeach
-        </select>
-
-        <select name="priority" class="select" aria-label="الأولوية">
-            <option value="">كل الأولويات</option>
-            @foreach (\App\Models\PriorityDefinition::options() as $value => $label)
-                <option value="{{ $value }}" @selected(($filters['priority'] ?? '') === $value)>{{ $label }}</option>
-            @endforeach
-        </select>
-
-        {{-- Looked up server-side: this list grows with the customer table. --}}
-        <div class="filters__combobox">
-            <x-combobox name="company" resource="companies"
-                        :value="$filters['company'] ?? null"
-                        :selected="$selectedCompany"
-                        placeholder="كل الشركات" />
-        </div>
-
-        {{-- The person and HOW they're attached, kept adjacent on purpose: the
-             name alone is ambiguous — holding a role, opening the ticket and
-             owning a subtask on it are three different involvements, and the
-             old bar could only ask about the first. --}}
-        <div class="filters__person">
-            <div class="filters__combobox">
-                <x-combobox name="assignee" resource="users"
-                            :value="$filters['assignee'] ?? null"
-                            :selected="$selectedAssignee"
-                            placeholder="أي شخص" />
-            </div>
-
-            <select name="relation" class="select" aria-label="علاقته بالتذكرة">
-                @foreach (\App\Models\Ticket::RELATIONS as $value => $label)
-                    <option value="{{ $value }}" @selected(($filters['relation'] ?? 'any') === $value)>{{ $label }}</option>
-                @endforeach
-            </select>
-        </div>
-
-        <select name="culprit" class="select" aria-label="المتسبب في الاكسبشن">
-            <option value="">متسبب الاكسبشن: الكل</option>
-            @foreach($culpritUsers as $user)
-                <option value="{{ $user->id }}" @selected((int) ($filters['culprit'] ?? 0) === $user->id)>{{ $user->name }}</option>
-            @endforeach
-        </select>
-
-        {{-- ★ (2026-08-29) F27. Two states, both off the counter column. --}}
-        @can('github.view')
-            <select name="branch" class="select" aria-label="البرانش">
-                <option value="">البرانش: الكل</option>
-                <option value="none" @selected(($filters['branch'] ?? '') === 'none')>من غير برانش</option>
-                <option value="has" @selected(($filters['branch'] ?? '') === 'has')>ليها برانش</option>
-            </select>
-        @endcan
-
-        <div class="filters__group">
-            <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" class="input" aria-label="من تاريخ">
-            <span class="u-subtle">→</span>
-            <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" class="input" aria-label="لتاريخ">
-        </div>
-
-        @if ($narrowing)
-            <span class="filters__count">{{ count($narrowing) }} فلتر شغّال</span>
-        @endif
-    </div>
+    @include('tickets.partials._filters-narrow')
 </form>

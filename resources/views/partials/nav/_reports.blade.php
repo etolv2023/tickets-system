@@ -32,6 +32,13 @@
         <x-icon name="activity" class="nav__icon" />
         <span class="nav__label">تقرير التيم التفصيلي</span>
     </a>
+
+    {{-- ★ (2026-10-05) F19.5 — the matrix: people down, ticket types across. --}}
+    <a href="{{ route('reports.resolved-by-type') }}" class="nav__link" title="الحلول بالنوع"
+       @if (request()->routeIs('reports.resolved-by-type')) aria-current="page" @endif>
+        <x-icon name="check-circle" class="nav__icon" />
+        <span class="nav__label">الحلول بالنوع</span>
+    </a>
 @endcan
 
 {{-- ★ (2026-08-29) F27. Sits with the reports because that is what it is: a

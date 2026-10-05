@@ -39,7 +39,7 @@ class TicketsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, 
             ->select([
                 'id', 'ticket_number', 'company_id', 'requested_by', 'reporter_name', 'title',
                 'type', 'priority', 'status', 'created_by',
-                'reported_at', 'sla_due_at', 'resolved_at', 'updated_at',
+                'reported_at', 'sla_due_at', 'due_date', 'resolved_at', 'updated_at',
                 'original_estimate_hours', 'spent_hours', 'subtasks_total', 'subtasks_done',
             ])
             // The ticket's own words, bounded in SQL — see ExportsDescriptions.
@@ -51,7 +51,8 @@ class TicketsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, 
             // back door around row-level access.
             ->visibleTo($this->user)
             ->filter($this->filters)
-            ->defaultOrder();
+            // The order the screen was in, not always the default one.
+            ->sortBy($this->filters['sort'] ?? null);
     }
 
     public function headings(): array
@@ -59,7 +60,7 @@ class TicketsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, 
         return [
             'رقم التذكرة', 'العنوان', 'الشركة', 'المُبلغ', 'النوع',
             'الأولوية', 'الحالة', 'فتحها', 'التوزيع',
-            'وقت الإبلاغ', 'مهلة SLA', 'وقت الحل', 'العمر / زمن الحل',
+            'وقت الإبلاغ', 'مهلة SLA', 'تاريخ التسليم', 'وقت الحل', 'العمر / زمن الحل', 'التأخير',
             'المقدّر (س)', 'الفعلي (س)', 'صب تاسكس', 'الوصف',
         ];
     }
@@ -81,8 +82,15 @@ class TicketsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, 
                 ->implode('، '),
             $ticket->reported_at?->timezone(config('app.display_timezone'))->format('Y-m-d H:i'),
             $ticket->sla_due_at?->timezone(config('app.display_timezone'))->format('Y-m-d H:i'),
+            $ticket->due_date?->format('Y-m-d'),
             $ticket->resolved_at?->timezone(config('app.display_timezone'))->format('Y-m-d H:i'),
             $ticket->ageLabel(),
+            // Same words as the list's marker, so the sheet and the screen agree.
+            $ticket->hasDeadline()
+                ? ($ticket->missedDeadlines() !== []
+                    ? 'متأخرة: ' . implode('، ', array_map(fn ($k) => Ticket::DEADLINE_LABELS[$k], $ticket->missedDeadlines()))
+                    : 'في معادها')
+                : null,
             $ticket->original_estimate_hours,
             $ticket->spent_hours,
             $ticket->subtasks_total > 0 ? "{$ticket->subtasks_done}/{$ticket->subtasks_total}" : null,

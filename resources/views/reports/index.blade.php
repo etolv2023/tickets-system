@@ -15,7 +15,7 @@
             </div>
         </div>
 
-        @include('reports.partials._month-picker', ['route' => 'reports.index'])
+        @include('reports.partials._report-filters')
 
         @include('reports.partials._distribution')
         @include('reports.partials._resolution')

@@ -37,6 +37,11 @@
         @endforeach
     </select>
 
+    {{-- ★ (2026-10-05) One box over both tables: a subtask title, or its
+         ticket's number or title. --}}
+    <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" class="input filters__search"
+           placeholder="ابحث بعنوان الصب تاسك أو التذكرة أو رقمها" aria-label="بحث">
+
     <x-button variant="secondary">فلترة</x-button>
 
     @if (array_filter($filters) || $show !== 'both')
@@ -69,6 +74,14 @@
                 <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $label }}</option>
             @endforeach
         </select>
+
+        {{-- ★ (2026-10-05) Missed its SLA or delivery date — Ticket::scopeLate. --}}
+        <select name="ticket_late" class="select filters__select" aria-label="تأخير التذكرة">
+            <option value="">التأخير: الكل</option>
+            @foreach ($lateness as $value => $label)
+                <option value="{{ $value }}" @selected(($filters['ticket_late'] ?? '') === $value)>{{ $label }}</option>
+            @endforeach
+        </select>
     </div>
 
     <div class="filters__group filters__group--full">
@@ -94,6 +107,13 @@
             @foreach ($subtaskStatuses as $value => $label)
                 <option value="{{ $value }}" @selected(($filters['subtask_status'] ?? '') === $value)>{{ $label }}</option>
             @endforeach
+        </select>
+
+        {{-- ★ (2026-10-05) Still open past its date, or not — TicketSubtask::isOverdue(). --}}
+        <select name="subtask_overdue" class="select filters__select" aria-label="تأخير الصب تاسك">
+            <option value="">التأخير: الكل</option>
+            <option value="yes" @selected(($filters['subtask_overdue'] ?? '') === 'yes')>متأخرة</option>
+            <option value="no" @selected(($filters['subtask_overdue'] ?? '') === 'no')>مش متأخرة</option>
         </select>
     </div>
 </form>

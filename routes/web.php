@@ -39,6 +39,7 @@ use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\BoardController;
 use App\Http\Controllers\BoardMoveController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\Reports\ResolvedByTypeController;
 use App\Http\Controllers\QueueController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\TicketWorkflowController;
@@ -277,6 +278,9 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:reports.view')->name('reports.index');
     Route::get('/reports/team-activity', [ReportController::class, 'teamActivity'])
         ->middleware('permission:reports.view')->name('reports.team-activity');
+    // ★ (2026-10-05) F19.5 — who resolved how many of which type.
+    Route::get('/reports/resolved-by-type', ResolvedByTypeController::class)
+        ->middleware('permission:reports.view')->name('reports.resolved-by-type');
     Route::get('/employees/{user}', [ReportController::class, 'employee'])
         ->middleware('permission:reports.view')->name('reports.employee');
     Route::get('/points-report/detail', [ReportController::class, 'pointsDetail'])
@@ -308,6 +312,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('reports', [ReportExportController::class, 'reports'])->name('reports');
         Route::get('team-activity', [ReportExportController::class, 'teamActivity'])->name('team-activity');
+        Route::get('resolved-by-type', [ReportExportController::class, 'resolvedByType'])->name('resolved-by-type');
         Route::get('employees/{user}', [ReportExportController::class, 'employee'])->name('employee');
         Route::get('timesheet', [ReportExportController::class, 'timesheet'])->name('timesheet');
 

@@ -112,3 +112,23 @@
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
 }
+
+/* ★ (2026-10-05) The deadline column: a red pill when a promise was missed,
+   quiet text when it was kept, and the delivery date itself underneath. */
+.tickets__deadline {
+    white-space: nowrap;
+}
+
+.tickets__ontime {
+    font-size: var(--text-sm);
+    color: var(--c-resolved);
+}
+
+.tickets__due {
+    display: block;
+    margin-block-start: 2px;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    color: var(--text-subtle);
+    font-variant-numeric: tabular-nums;
+}

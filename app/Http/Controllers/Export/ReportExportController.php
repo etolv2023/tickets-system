@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Export;
 
 use App\Exports\EmployeeProfileExport;
 use App\Exports\ReportsExport;
+use App\Exports\ResolvedByTypeExport;
 use App\Exports\TeamActivityExport;
+use App\Http\Controllers\Reports\ResolvedByTypeController;
 use App\Exports\TimesheetExport;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Export\Concerns\LogsExport;
@@ -31,10 +33,11 @@ class ReportExportController extends Controller
 
         $period = $this->period($request);
         [$from, $to] = $this->reports->periodBounds($period);
+        $filters = $request->only(['company', 'type', 'priority', 'person']);
 
-        $this->logExport($request, 'export.reports', ['period' => $period]);
+        $this->logExport($request, 'export.reports', ['period' => $period] + $filters);
 
-        return (new ReportsExport($period, $from, $to))->download("reports-{$period}.xlsx");
+        return (new ReportsExport($period, $from, $to, $filters))->download("reports-{$period}.xlsx");
     }
 
     /** F19.3 — /reports/team-activity */
@@ -46,14 +49,25 @@ class ReportExportController extends Controller
             ? $request->query('show')
             : 'both';
 
-        $filters = $request->only([
-            'person', 'from', 'to', 'ticket_date_basis', 'subtask_date_basis',
-            'type', 'priority', 'status', 'company', 'role', 'subtask_status',
-        ]);
+        $filters = $request->only(\App\Support\TeamActivityFilters::KEYS);
 
         $this->logExport($request, 'export.team_activity', $filters + ['show' => $show]);
 
         return (new TeamActivityExport($filters, $show))->download($this->filename('team-activity'));
+    }
+
+    /** ★ (2026-10-05) F19.5 — /reports/resolved-by-type */
+    public function resolvedByType(Request $request): BinaryFileResponse
+    {
+        abort_unless($request->user()->hasPermission('reports.view'), 403);
+
+        // Settled exactly as the screen settles them, so the file covers the
+        // range the page showed — including the default month when none given.
+        $filters = ResolvedByTypeController::resolve($request->only(ResolvedByTypeController::FILTER_KEYS));
+
+        $this->logExport($request, 'export.resolved_by_type', $filters);
+
+        return (new ResolvedByTypeExport($filters))->download($this->filename('resolved-by-type'));
     }
 
     /** F19.1 — /employees/{user} */

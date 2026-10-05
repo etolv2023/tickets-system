@@ -270,7 +270,27 @@ class TicketSubtask extends Model
             ->when($filters['from'] ?? null, fn (Builder $q, $v) => $q->whereDate($dateBasis, '>=', $v))
             ->when($filters['to'] ?? null, fn (Builder $q, $v) => $q->whereDate($dateBasis, '<=', $v))
             ->when($filters['type'] ?? null, fn (Builder $q, $v) => $q->whereHas('ticket', fn (Builder $t) => $t->where('type', $v)))
-            ->when($filters['company'] ?? null, fn (Builder $q, $v) => $q->whereHas('ticket', fn (Builder $t) => $t->where('company_id', $v)));
+            ->when($filters['company'] ?? null, fn (Builder $q, $v) => $q->whereHas('ticket', fn (Builder $t) => $t->where('company_id', $v)))
+            // ★ (2026-10-05) The same rule isOverdue() reads on a row: not
+            // done, and its exact moment (due_at) or its day (due_date) has
+            // passed. 'no' is spelled out rather than NOT'ed — a NULL date
+            // inside NOT(...) would drop the row from both answers.
+            ->when(($filters['overdue'] ?? null) === 'yes', fn (Builder $q) => $q
+                ->open()
+                ->where(fn (Builder $d) => $d
+                    ->where('due_at', '<', now())
+                    ->orWhere(fn (Builder $w) => $w->whereNull('due_at')->where('due_date', '<', today()->toDateString()))))
+            ->when(($filters['overdue'] ?? null) === 'no', fn (Builder $q) => $q
+                ->where(fn (Builder $w) => $w
+                    ->where('status', 'done')
+                    ->orWhere(fn (Builder $d) => $d
+                        ->where(fn (Builder $a) => $a->whereNull('due_at')->orWhere('due_at', '>=', now()))
+                        ->where(fn (Builder $a) => $a->whereNotNull('due_at')->orWhereNull('due_date')->orWhere('due_date', '>=', today()->toDateString())))))
+            ->when($filters['q'] ?? null, fn (Builder $q, $v) => $q->where(fn (Builder $w) => $w
+                ->where('title', 'like', '%' . $v . '%')
+                ->orWhereHas('ticket', fn (Builder $t) => $t
+                    ->where('ticket_number', 'like', '%' . $v . '%')
+                    ->orWhere('title', 'like', '%' . $v . '%'))));
     }
 
     /** Due today or already late — the "what's on my plate" question. F22.1 */

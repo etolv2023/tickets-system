@@ -5,8 +5,10 @@ namespace App\Services;
 use App\Models\PointTransaction;
 use App\Models\Rating;
 use App\Models\Ticket;
+use App\Models\TicketTypeDefinition;
 use App\Models\TimeEntry;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -371,20 +373,50 @@ class ReportService
             ->get();
     }
 
-    /** F19.3 — how the work splits. */
-    public function ticketDistribution(string $from, string $to): Collection
+    /**
+     * ★ (2026-10-05) The /reports cards used to answer for the whole system
+     * only; now each one can be narrowed to a customer, a type, a priority or
+     * a person — and every card on the screen narrows TOGETHER, or two numbers
+     * on one page would stop agreeing (the same rule F19.4 set for the points
+     * report). One definition of the constraint, applied to every query that
+     * takes it.
+     *
+     * The person is "holds a role on the ticket", the same reading teamLoad()
+     * and the employee profile use.
+     *
+     * @param  array<string, mixed>  $filters  company, type, priority, person
+     */
+    private function constrain(Builder $query, array $filters): Builder
     {
-        return Ticket::query()
+        return $query
+            ->when($filters['company'] ?? null, fn (Builder $q, $v) => $q->where('tickets.company_id', (int) $v))
+            ->when($filters['type'] ?? null, fn (Builder $q, $v) => $q->where('tickets.type', $v))
+            ->when($filters['priority'] ?? null, fn (Builder $q, $v) => $q->where('tickets.priority', $v))
+            ->when($filters['person'] ?? null, fn (Builder $q, $v) => $q->assignedTo((int) $v));
+    }
+
+    /**
+     * F19.3 — how the work splits.
+     *
+     * @param  array<string, mixed>  $filters  see constrain()
+     */
+    public function ticketDistribution(string $from, string $to, array $filters = []): Collection
+    {
+        return $this->constrain(Ticket::query(), $filters)
             ->selectRaw('type, status, COUNT(*) n')
             ->whereBetween('reported_at', [$from, $to])
             ->groupBy('type', 'status')
             ->get();
     }
 
-    /** F19.3 — which customer sends the most. */
-    public function companyPerformance(string $from, string $to): Collection
+    /**
+     * F19.3 — which customer sends the most.
+     *
+     * @param  array<string, mixed>  $filters  see constrain()
+     */
+    public function companyPerformance(string $from, string $to, array $filters = []): Collection
     {
-        return Ticket::query()
+        return $this->constrain(Ticket::query(), $filters)
             ->selectRaw('company_id, COUNT(*) total')
             ->selectRaw("SUM(status IN ('resolved','closed')) resolved")
             ->selectRaw('AVG(CASE WHEN resolved_at IS NOT NULL THEN TIMESTAMPDIFF(HOUR, reported_at, resolved_at) END) avg_hours')
@@ -396,10 +428,14 @@ class ReportService
             ->get();
     }
 
-    /** F19.3 — resolution time by priority and by type. */
-    public function resolutionTimes(string $from, string $to): array
+    /**
+     * F19.3 — resolution time by priority and by type.
+     *
+     * @param  array<string, mixed>  $filters  see constrain()
+     */
+    public function resolutionTimes(string $from, string $to, array $filters = []): array
     {
-        $shape = fn (string $column) => Ticket::query()
+        $shape = fn (string $column) => $this->constrain(Ticket::query(), $filters)
             ->selectRaw("{$column} k, COUNT(*) n")
             ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, reported_at, resolved_at)) avg_hours')
             ->whereNotNull('resolved_at')
@@ -410,10 +446,14 @@ class ReportService
         return ['byPriority' => $shape('priority'), 'byType' => $shape('type')];
     }
 
-    /** F19.3 — who is over their SLA. */
-    public function slaBreaches(string $from, string $to): Collection
+    /**
+     * F19.3 — who is over their SLA.
+     *
+     * @param  array<string, mixed>  $filters  see constrain()
+     */
+    public function slaBreaches(string $from, string $to, array $filters = []): Collection
     {
-        return Ticket::query()
+        return $this->constrain(Ticket::query(), $filters)
             ->select(['id', 'ticket_number', 'title', 'company_id', 'requested_by', 'priority', 'status', 'sla_due_at', 'resolved_at'])
             ->with('company:id,name', 'requester:id,name')
             ->whereNotNull('sla_due_at')
@@ -466,6 +506,157 @@ class ReportService
                     'accuracy' => $user ? $this->estimateAccuracy($user) : null,
                 ];
             });
+    }
+
+    /**
+     * ★ (2026-10-05) F19.5 — who resolved how many of what.
+     *
+     * The employee profile already says "كام بج حل" for one person and one
+     * month; this is the same question asked across the team, over any date
+     * range, with the answer laid out as a matrix (people down, types across)
+     * — the shape a manager compares with, rather than one card per person.
+     *
+     * "Resolved" means: status is resolved or closed today, AND resolved_at
+     * falls in the range. The first half matters — a reopened ticket keeps its
+     * old resolved_at, and counting it would pay a fix that was sent back.
+     *
+     * The person's attachment to the ticket is a choice (Ticket::RELATIONS,
+     * minus 'any'): holding a role on it is the default and is what "حل" means
+     * for a developer; opening it is what it means for support; owning a
+     * subtask on it catches work done on a ticket assigned to somebody else.
+     * With a person chosen the same question is asked of one row, and the
+     * tickets behind the numbers are listed so a figure can be checked rather
+     * than believed.
+     *
+     * Three aggregate queries at most, never a loop over models (§ 4). The
+     * narrowing (dates, type, company, priority) is one Ticket::filter() call
+     * reused as an id subquery, so the matrix and the list cannot drift.
+     *
+     * @param  array<string, mixed>  $filters  from, to, person, relation, type, company, priority
+     * @param  bool  $paginate  false for the export, which carries the whole range on one tab
+     * @return array<string, mixed>
+     */
+    public function resolvedByType(array $filters, bool $paginate = true): array
+    {
+        $relation = in_array($filters['relation'] ?? null, ['assigned', 'created', 'subtask'], true)
+            ? $filters['relation']
+            : 'assigned';
+
+        $types = array_filter(
+            TicketTypeDefinition::options(),
+            fn (string $key) => $key !== 'undefined',
+            ARRAY_FILTER_USE_KEY,
+        );
+
+        $scope = fn () => Ticket::query()->filter([
+            'status' => 'resolved',
+            'date_basis' => 'resolved_at',
+            'from' => $filters['from'],
+            'to' => $filters['to'],
+            'type' => $filters['type'] ?? null,
+            'company' => $filters['company'] ?? null,
+            'priority' => $filters['priority'] ?? null,
+        ]);
+
+        $person = (int) ($filters['person'] ?? 0) ?: null;
+
+        if ($person !== null) {
+            $byType = $scope()->involving($person, $relation)
+                ->selectRaw('type, COUNT(*) n, AVG(TIMESTAMPDIFF(HOUR, reported_at, resolved_at)) avg_hours')
+                ->groupBy('type')
+                ->get()
+                ->keyBy('type');
+
+            $tickets = $scope()->involving($person, $relation)
+                ->select(['id', 'ticket_number', 'title', 'type', 'priority', 'status', 'company_id', 'requested_by', 'reported_at', 'sla_due_at', 'due_date', 'resolved_at'])
+                ->with('company:id,name', 'requester:id,name')
+                ->orderByDesc('resolved_at');
+
+            $tickets = $paginate ? $tickets->paginate(25)->withQueryString() : $tickets->get();
+
+            $total = (int) $byType->sum('n');
+
+            return [
+                'relation' => $relation,
+                'types' => $types,
+                'byType' => $byType,
+                'total' => $total,
+                // Weighted across the types, so it is the person's real average
+                // rather than the average of five averages.
+                'avgHours' => $total > 0
+                    ? round($byType->sum(fn ($r) => (float) $r->avg_hours * (int) $r->n) / $total)
+                    : null,
+                'lateCount' => $scope()->involving($person, $relation)->late()->count(),
+                'tickets' => $tickets,
+                'rows' => collect(),
+                'totals' => [],
+            ];
+        }
+
+        $ids = $scope()->select('tickets.id');
+
+        // The join decides whose ticket it is. COUNT(DISTINCT) on the subtask
+        // path: three subtasks on one ticket are still one ticket resolved.
+        $counts = match ($relation) {
+            'created' => DB::table('tickets')
+                ->selectRaw('created_by AS user_id, type, COUNT(*) n')
+                ->whereIn('id', $ids)
+                ->groupBy('created_by', 'type'),
+            'subtask' => DB::table('ticket_subtasks AS s')
+                ->join('tickets', 'tickets.id', '=', 's.ticket_id')
+                ->selectRaw('s.assignee_id AS user_id, tickets.type, COUNT(DISTINCT tickets.id) n')
+                ->whereNull('s.deleted_at')
+                ->whereNotNull('s.assignee_id')
+                ->whereIn('tickets.id', $ids)
+                ->groupBy('s.assignee_id', 'tickets.type'),
+            default => DB::table('ticket_role_assignments AS tra')
+                ->join('tickets', 'tickets.id', '=', 'tra.ticket_id')
+                ->selectRaw('tra.user_id, tickets.type, COUNT(DISTINCT tickets.id) n')
+                ->whereIn('tickets.id', $ids)
+                ->groupBy('tra.user_id', 'tickets.type'),
+        };
+
+        $counts = $counts->get();
+
+        $users = User::query()
+            ->whereIn('id', $counts->pluck('user_id')->unique())
+            ->get(['id', 'name', 'avatar_path', 'is_active', 'role_id'])
+            ->keyBy('id');
+
+        $rows = $counts->groupBy('user_id')
+            ->map(function (Collection $group, int $userId) use ($users) {
+                $perType = $group->pluck('n', 'type')->map(fn ($n) => (int) $n)->all();
+
+                return (object) [
+                    'user' => $users[$userId] ?? null,
+                    'counts' => $perType,
+                    'total' => array_sum($perType),
+                ];
+            })
+            ->filter(fn ($row) => $row->user !== null)
+            ->sortByDesc('total')
+            ->values();
+
+        $totals = [];
+
+        foreach (array_keys($types) as $key) {
+            $totals[$key] = (int) $counts->where('type', $key)->sum('n');
+        }
+
+        return [
+            'relation' => $relation,
+            'types' => $types,
+            'rows' => $rows,
+            'totals' => $totals,
+            // Distinct tickets, not the sum of a matrix that counts a ticket
+            // once per person on it.
+            'total' => $scope()->count(),
+            // Resolved after their SLA or delivery date — Ticket::scopeLate.
+            'lateCount' => $scope()->late()->count(),
+            'avgHours' => null,
+            'byType' => collect(),
+            'tickets' => null,
+        ];
     }
 
     /**

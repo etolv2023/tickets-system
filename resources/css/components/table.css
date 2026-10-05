@@ -151,3 +151,20 @@
     text-align: center;
     color: var(--text-muted);
 }
+
+/* ★ (2026-10-05) A count matrix (people × types). Zeros fade so the eye
+   lands on the cells that say something; the totals row is a footer, set
+   apart by weight and a heavier rule rather than by colour. */
+.matrix__zero {
+    color: var(--text-subtle);
+}
+
+.matrix__total {
+    font-weight: var(--weight-bold);
+}
+
+.matrix__foot td {
+    font-weight: var(--weight-bold);
+    border-block-start: 2px solid var(--border);
+    font-variant-numeric: tabular-nums;
+}

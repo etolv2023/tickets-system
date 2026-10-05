@@ -28,17 +28,31 @@ class ReportController extends Controller
 
         [$from, $to] = $this->bounds($request);
 
+        // ★ (2026-10-05) The cards narrow together (ReportService::constrain).
+        // The load and time cards are not bound by these: one is "now", the
+        // other is time_entries, and the screen says so beside each.
+        $filters = $request->only(['company', 'type', 'priority', 'person']);
+
         return view('reports.index', [
             'from' => $from,
             'to' => $to,
             'period' => $this->period($request),
-            'distribution' => $this->reports->ticketDistribution($from, $to),
-            'companies' => $this->reports->companyPerformance($from, $to),
-            'resolution' => $this->reports->resolutionTimes($from, $to),
-            'breaches' => $this->reports->slaBreaches($from, $to),
+            'filters' => $filters,
+            'distribution' => $this->reports->ticketDistribution($from, $to, $filters),
+            'companies' => $this->reports->companyPerformance($from, $to, $filters),
+            'resolution' => $this->reports->resolutionTimes($from, $to, $filters),
+            'breaches' => $this->reports->slaBreaches($from, $to, $filters),
             'load' => $this->reports->teamLoad(),
             'time' => $this->reports->timeReport($from, $to),
             'months' => $this->months(),
+            'types' => TicketTypeDefinition::options(),
+            'priorities' => PriorityDefinition::options(),
+            'selectedCompany' => filled($filters['company'] ?? null)
+                ? Company::whereKey($filters['company'])->value('name')
+                : null,
+            'selectedPerson' => filled($filters['person'] ?? null)
+                ? User::whereKey($filters['person'])->value('name')
+                : null,
         ]);
     }
 
@@ -216,28 +230,17 @@ class ReportController extends Controller
             ? $request->query('show')
             : 'both';
 
-        $filters = $request->only([
-            'person', 'from', 'to', 'ticket_date_basis', 'subtask_date_basis',
-            'type', 'priority', 'status', 'company', 'role', 'subtask_status',
-        ]);
+        $filters = $request->only(\App\Support\TeamActivityFilters::KEYS);
 
         $tickets = $show !== 'subtasks'
             ? Ticket::query()
                 ->select([
                     'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'priority',
-                    'status', 'reported_at', 'due_date', 'resolved_at',
+                    'status', 'reported_at', 'sla_due_at', 'due_date', 'resolved_at',
                 ])
                 ->with(['company:id,name', 'requester:id,name', 'roleAssignments.user:id,name,avatar_path,is_active'])
-                ->filter([
-                    'assignee' => $filters['person'] ?? null,
-                    'from' => $filters['from'] ?? null,
-                    'to' => $filters['to'] ?? null,
-                    'date_basis' => $filters['ticket_date_basis'] ?? null,
-                    'type' => $filters['type'] ?? null,
-                    'priority' => $filters['priority'] ?? null,
-                    'status' => $filters['status'] ?? null,
-                    'company' => $filters['company'] ?? null,
-                ])
+                // One translation, shared with the export (TeamActivityFilters).
+                ->filter(\App\Support\TeamActivityFilters::forTickets($filters))
                 ->defaultOrder()
                 ->paginate(25, ['*'], 'tickets_page')
                 ->withQueryString()
@@ -250,16 +253,7 @@ class ReportController extends Controller
                     'start_date', 'due_date', 'estimated_hours', 'spent_hours', 'completed_at',
                 ])
                 ->with(['assignee:id,name,avatar_path,is_active', 'role:id,name_ar', 'ticket:id,ticket_number,title,company_id,requested_by,type'])
-                ->filter([
-                    'person' => $filters['person'] ?? null,
-                    'from' => $filters['from'] ?? null,
-                    'to' => $filters['to'] ?? null,
-                    'date_basis' => $filters['subtask_date_basis'] ?? null,
-                    'role' => $filters['role'] ?? null,
-                    'status' => $filters['subtask_status'] ?? null,
-                    'type' => $filters['type'] ?? null,
-                    'company' => $filters['company'] ?? null,
-                ])
+                ->filter(\App\Support\TeamActivityFilters::forSubtasks($filters))
                 ->orderByDesc('due_date')
                 ->paginate(25, ['*'], 'subtasks_page')
                 ->withQueryString()
@@ -287,6 +281,7 @@ class ReportController extends Controller
             'subtaskStatuses' => SubtaskStatusDefinition::options(),
             'ticketDateBases' => Ticket::DATE_BASES,
             'subtaskDateBases' => TicketSubtask::DATE_BASES,
+            'lateness' => Ticket::LATENESS,
         ]);
     }
 

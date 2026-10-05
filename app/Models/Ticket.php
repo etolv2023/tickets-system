@@ -515,8 +515,69 @@ class Ticket extends Model
     /** The date columns a date-range filter may run against. */
     public const DATE_BASES = [
         'reported_at' => 'تاريخ الفتح',
-        'due_date' => 'تاريخ الاستحقاق',
         'resolved_at' => 'تاريخ الحل',
+        'closed_at' => 'تاريخ الإغلاق',
+        'due_date' => 'تاريخ التسليم',
+        'sla_due_at' => 'مهلة الـ SLA',
+        'updated_at' => 'آخر تحديث',
+    ];
+
+    /**
+     * ★ (2026-10-05) Every query-string key the list filter reads, in one place.
+     *
+     * /tickets, its export and the ready-to-close queue all used to repeat the
+     * list by hand, and a key added to one was silently missing from the next —
+     * the export of a filtered screen then answered a different question than
+     * the screen. Read this constant instead of retyping it.
+     */
+    public const FILTER_KEYS = [
+        'q', 'status', 'type', 'priority', 'company', 'assignee', 'relation', 'culprit',
+        'from', 'to', 'date_basis', 'branch', 'label', 'module', 'origin', 'approval',
+        'creator', 'subtasks', 'late', 'sort',
+    ];
+
+    /** Where the ticket came from — a customer, or the team itself (F25). */
+    public const ORIGINS = [
+        'client' => 'من عميل',
+        'internal' => 'داخلية',
+    ];
+
+    /** F15 — the approval column's four states, labelled for a filter. */
+    public const APPROVALS = [
+        'not_required' => 'مش محتاجة موافقة',
+        'pending' => 'مستنية موافقة',
+        'approved' => 'اتوافق عليها',
+        'rejected' => 'اترفضت',
+    ];
+
+    /** The subtask counters, read as three states a human asks about (F08/F30). */
+    public const SUBTASK_STATES = [
+        'none' => 'من غير صب تاسكس',
+        'open' => 'فيها صب تاسكس مفتوحة',
+        'done' => 'كل صب تاسكاتها خلصت',
+    ];
+
+    /** Missed a deadline or not — see scopeLate() for the exact rule. */
+    public const LATENESS = [
+        'late' => 'اتأخرت عن معادها',
+        'on_time' => 'في معادها',
+    ];
+
+    /** What missedDeadlines() can name, labelled for the row marker. */
+    public const DEADLINE_LABELS = [
+        'sla' => 'مهلة الـ SLA',
+        'due' => 'تاريخ التسليم',
+    ];
+
+    /** The orders a list may be asked for. 'default' is scopeDefaultOrder(). */
+    public const SORTS = [
+        'default' => 'الأولوية ثم الأقدم',
+        'newest' => 'الأحدث فتحاً',
+        'oldest' => 'الأقدم فتحاً',
+        'updated' => 'آخر تحديث',
+        'due' => 'أقرب تسليم',
+        'sla' => 'أقرب مهلة SLA',
+        'resolved' => 'آخر ما اتحل',
     ];
 
     /**
@@ -560,7 +621,141 @@ class Ticket extends Model
             ->when(($filters['branch'] ?? null) === 'has', fn (Builder $q) => $q->where('branches_count', '>', 0))
             ->when($filters['from'] ?? null, fn (Builder $q, $v) => $q->whereDate($dateBasis, '>=', $v))
             ->when($filters['to'] ?? null, fn (Builder $q, $v) => $q->whereDate($dateBasis, '<=', $v))
+            // ★ (2026-10-05) The second row of the filter bar. Each one is a
+            // question the list could not answer before without opening rows.
+            ->when($filters['label'] ?? null,
+                fn (Builder $q, $v) => $q->whereHas('labels', fn (Builder $l) => $l->where('labels.id', (int) $v)))
+            ->when($filters['module'] ?? null, fn (Builder $q, $v) => $q->where('module', 'like', '%' . $v . '%'))
+            ->when(($filters['origin'] ?? null) === 'internal', fn (Builder $q) => $q->internal())
+            ->when(($filters['origin'] ?? null) === 'client', fn (Builder $q) => $q->internal(false))
+            ->when(array_key_exists($filters['approval'] ?? '', self::APPROVALS),
+                fn (Builder $q) => $q->where('approval_status', $filters['approval']))
+            ->when($filters['creator'] ?? null, fn (Builder $q, $v) => $q->where('created_by', (int) $v))
+            // Off the two counters SubtaskService maintains — never a COUNT()
+            // over ticket_subtasks per row (§ 4.6).
+            ->when(($filters['subtasks'] ?? null) === 'none', fn (Builder $q) => $q->where('subtasks_total', 0))
+            ->when(($filters['subtasks'] ?? null) === 'open',
+                fn (Builder $q) => $q->whereColumn('subtasks_done', '<', 'subtasks_total'))
+            ->when(($filters['subtasks'] ?? null) === 'done',
+                fn (Builder $q) => $q->where('subtasks_total', '>', 0)->whereColumn('subtasks_done', '>=', 'subtasks_total'))
+            ->when(($filters['late'] ?? null) === 'late', fn (Builder $q) => $q->late())
+            ->when(($filters['late'] ?? null) === 'on_time', fn (Builder $q) => $q->late(false))
             ->when($filters['q'] ?? null, fn (Builder $q, $term) => $q->search($term));
+    }
+
+    /**
+     * ★ (2026-10-05) "Did this ticket miss its deadline?" — one rule, in SQL,
+     * so the list filter and the row marker cannot disagree (missedDeadlines()
+     * below is the same rule read off a loaded row).
+     *
+     * A ticket carries up to two promises: the SLA (`sla_due_at`, a moment) and
+     * the delivery date (`due_date`, a day — late once that day is over). It is
+     * late when it is still open past either, or when it was resolved after
+     * either. A rejected ticket was never worked and is never late; a ticket
+     * with no promise at all cannot miss one, so it counts as on time.
+     *
+     * "Open" is read off ticket_statuses.is_open rather than a key list, the
+     * way TicketSubtask::scopeOnLiveTicket does, so a status the admin adds is
+     * covered without a code change.
+     *
+     * Both branches are spelled out rather than one being NOT the other: a
+     * NULL deadline inside NOT(...) is NULL in SQL, and the row would silently
+     * drop out of both answers.
+     */
+    public function scopeLate(Builder $query, bool $late = true): Builder
+    {
+        $open = fn ($s) => $s->select('key')->from('ticket_statuses')->where('is_open', true);
+        $now = now();
+        $today = today()->toDateString();
+
+        if ($late) {
+            return $query->where(fn (Builder $w) => $w
+                ->where(fn (Builder $o) => $o
+                    ->whereIn('status', $open)
+                    ->where(fn (Builder $d) => $d
+                        ->where('sla_due_at', '<', $now)
+                        ->orWhere('due_date', '<', $today)))
+                ->orWhere(fn (Builder $r) => $r
+                    ->whereNotIn('status', $open)
+                    ->whereNotNull('resolved_at')
+                    ->where(fn (Builder $d) => $d
+                        ->whereColumn('resolved_at', '>', 'sla_due_at')
+                        ->orWhereRaw('DATE(resolved_at) > due_date'))));
+        }
+
+        return $query->where(fn (Builder $w) => $w
+            ->where(fn (Builder $o) => $o
+                ->whereIn('status', $open)
+                ->where(fn (Builder $d) => $d->whereNull('sla_due_at')->orWhere('sla_due_at', '>=', $now))
+                ->where(fn (Builder $d) => $d->whereNull('due_date')->orWhere('due_date', '>=', $today)))
+            ->orWhere(fn (Builder $r) => $r
+                ->whereNotIn('status', $open)
+                ->whereNotNull('resolved_at')
+                ->where(fn (Builder $d) => $d->whereNull('sla_due_at')->orWhereColumn('resolved_at', '<=', 'sla_due_at'))
+                ->where(fn (Builder $d) => $d->whereNull('due_date')->orWhereRaw('DATE(resolved_at) <= due_date')))
+            // Settled without ever being resolved (rejected): nothing was
+            // promised and nothing was missed.
+            ->orWhere(fn (Builder $r) => $r->whereNotIn('status', $open)->whereNull('resolved_at')));
+    }
+
+    /**
+     * The deadlines this ticket has missed, as the row marker reads them —
+     * the same rule as scopeLate(), on a loaded row. 'sla', 'due', or both;
+     * empty when it is on time or carries no promise.
+     *
+     * For an open ticket the clock is now; for a resolved one it stopped at
+     * resolved_at, so a ticket that was late stays late — the entire point of
+     * the marker on a resolved row.
+     *
+     * @return array<int, string>
+     */
+    public function missedDeadlines(): array
+    {
+        $end = $this->status->isOpen() ? now() : $this->resolved_at;
+
+        if ($end === null) {
+            return [];
+        }
+
+        $missed = [];
+
+        if ($this->sla_due_at !== null && $end->gt($this->sla_due_at)) {
+            $missed[] = 'sla';
+        }
+
+        // ->copy(): the date cast hands back the cached Carbon, and endOfDay()
+        // on it would move due_date for whoever reads it next.
+        if ($this->due_date !== null && $end->gt($this->due_date->copy()->endOfDay())) {
+            $missed[] = 'due';
+        }
+
+        return $missed;
+    }
+
+    /** True when it has a delivery date or an SLA at all — the marker's "—" case. */
+    public function hasDeadline(): bool
+    {
+        return $this->sla_due_at !== null || $this->due_date !== null;
+    }
+
+    /**
+     * ★ (2026-10-05) The order the list was asked for. Anything not in SORTS
+     * lands on the default, so a hand-edited url degrades rather than throws.
+     *
+     * The NULLS-last expressions carry no user input — the key is matched
+     * against SORTS before any SQL is built.
+     */
+    public function scopeSortBy(Builder $query, ?string $sort): Builder
+    {
+        return match ($sort) {
+            'newest' => $query->orderByDesc('reported_at'),
+            'oldest' => $query->orderBy('reported_at'),
+            'updated' => $query->orderByDesc('updated_at'),
+            'due' => $query->orderByRaw('due_date IS NULL')->orderBy('due_date')->orderBy('reported_at'),
+            'sla' => $query->orderByRaw('sla_due_at IS NULL')->orderBy('sla_due_at')->orderBy('reported_at'),
+            'resolved' => $query->orderByRaw('resolved_at IS NULL')->orderByDesc('resolved_at'),
+            default => $query->defaultOrder(),
+        };
     }
 
     /**

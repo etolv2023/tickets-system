@@ -1,6 +1,6 @@
 <x-card title="حِمل التيم" flush>
     <x-slot:actions>
-        <span class="u-subtle">التذاكر المفتوحة دلوقتي — مش محكومة بالشهر المختار</span>
+        <span class="u-subtle">التذاكر المفتوحة دلوقتي — مش محكومة بالشهر ولا بالفلاتر فوق</span>
     </x-slot:actions>
 
     <div class="table-wrap">
