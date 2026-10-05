@@ -559,8 +559,8 @@ class Ticket extends Model
 
     /** Missed a deadline or not — see scopeLate() for the exact rule. */
     public const LATENESS = [
-        'late' => 'اتأخرت عن معادها',
-        'on_time' => 'في معادها',
+        'late' => 'المتأخرة بس',
+        'on_time' => 'اللي في معادها بس',
     ];
 
     /** What missedDeadlines() can name, labelled for the row marker. */
@@ -730,6 +730,30 @@ class Ticket extends Model
         }
 
         return $missed;
+    }
+
+    /**
+     * ★ (2026-10-05) How late, as words: «3 أيام و 4 ساعات» measured from the
+     * FIRST promise it broke (the earlier of the two deadlines) to now for an
+     * open ticket, or to resolved_at for a finished one. Null when it is on
+     * time. The marker reads this beside the badge, so "late" always comes
+     * with "by how much".
+     */
+    public function lateByLabel(): ?string
+    {
+        $missed = $this->missedDeadlines();
+
+        if ($missed === []) {
+            return null;
+        }
+
+        $end = $this->status->isOpen() ? now() : $this->resolved_at;
+
+        $deadlines = collect($missed)->map(fn (string $k) => $k === 'sla'
+            ? $this->sla_due_at
+            : $this->due_date->copy()->endOfDay());
+
+        return $this->humanInterval($deadlines->min()->diffAsCarbonInterval($end));
     }
 
     /** True when it has a delivery date or an SLA at all — the marker's "—" case. */

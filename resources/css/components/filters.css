@@ -91,6 +91,14 @@
     color: var(--action);
 }
 
+/* ★ (2026-10-05) The late view: same mechanics, semantic red rather than the
+   action hue — this is the one filter whose meaning IS urgency. */
+.filters__late--on {
+    border-color: var(--c-urgent-line);
+    background-color: var(--c-urgent-bg);
+    color: var(--c-urgent);
+}
+
 /* ★ (2026-10-05) The second tier of the tickets bar. A grid of its own that
    spans the whole first grid, so its controls line up in the same columns as
    the row above rather than starting wherever the toggle button ended. */

@@ -17,6 +17,12 @@
     $mine = (int) ($filters['assignee'] ?? 0) === auth()->id()
         && in_array($filters['relation'] ?? 'any', ['any', ''], true);
     $narrowing = array_filter(array_diff_key($filters, ['q' => true]));
+    // ★ (2026-10-05) The late toggle keeps every other filter: it narrows the
+    // view you are already looking at rather than replacing it.
+    $lateOn = ($filters['late'] ?? '') === 'late';
+    $lateHref = route('tickets.index', array_filter($lateOn
+        ? array_diff_key($filters, ['late' => true])
+        : $filters + ['late' => 'late']));
 @endphp
 
 <form method="GET" action="{{ route('tickets.index') }}" class="filters">
@@ -39,6 +45,15 @@
                 تذاكري
             </a>
         @endif
+
+        {{-- Same shape as «تذاكري»: a saved view, shareable and back-buttonable.
+             Red when on, because the whole point of the view is urgency. --}}
+        <a href="{{ $lateHref }}"
+           @class(['btn', 'btn--secondary', 'filters__late', 'filters__late--on' => $lateOn])
+           @if ($lateOn) aria-pressed="true" @endif>
+            <x-icon name="alert" class="btn__icon" />
+            المتأخرة
+        </a>
 
         <x-button variant="secondary">فلترة</x-button>
 

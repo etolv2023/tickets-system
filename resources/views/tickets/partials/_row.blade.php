@@ -105,10 +105,13 @@
         @if (! $ticket->hasDeadline())
             <span class="u-subtle">—</span>
         @elseif ($missed !== [])
-            <x-badge variant="urgent" class="badge--sm"
-                     title="اتأخرت عن: {{ implode('، ', array_map(fn ($k) => \App\Models\Ticket::DEADLINE_LABELS[$k], $missed)) }}">
-                متأخرة
-            </x-badge>
+            <x-badge variant="urgent" class="badge--sm">متأخرة</x-badge>
+            {{-- By how much, and against which promise — the badge alone said
+                 only that it happened. --}}
+            <span class="tickets__late-by">
+                بـ {{ $ticket->lateByLabel() }}
+                عن {{ implode(' و', array_map(fn ($k) => \App\Models\Ticket::DEADLINE_LABELS[$k], $missed)) }}
+            </span>
         @else
             <span class="tickets__ontime">في معادها</span>
         @endif
