@@ -48,6 +48,7 @@ use App\Http\Controllers\Export\AdminExportController;
 use App\Http\Controllers\Export\PointsExportController;
 use App\Http\Controllers\Export\ReportExportController;
 use App\Http\Controllers\Export\TicketExportController;
+use App\Http\Controllers\Export\TicketReportExportController;
 use App\Http\Controllers\GithubAuditController;
 use App\Http\Controllers\GithubUnmatchedBranchController;
 use App\Http\Controllers\HomeController;
@@ -317,6 +318,11 @@ Route::middleware('auth')->group(function () {
         Route::get('my-points', [PointsExportController::class, 'mine'])->name('my-points');
 
         Route::get('reports', [ReportExportController::class, 'reports'])->name('reports');
+        Route::get('performance', [TicketReportExportController::class, 'performance'])->name('performance');
+        Route::get('comparison', [TicketReportExportController::class, 'comparison'])->name('comparison');
+        Route::get('summary', [TicketReportExportController::class, 'summary'])->name('summary');
+        Route::get('aging', [TicketReportExportController::class, 'aging'])->name('aging');
+        Route::get('deadline', [TicketReportExportController::class, 'deadline'])->name('deadline');
         Route::get('team-activity', [ReportExportController::class, 'teamActivity'])->name('team-activity');
         Route::get('resolved-by-type', [ReportExportController::class, 'resolvedByType'])->name('resolved-by-type');
         Route::get('employees/{user}', [ReportExportController::class, 'employee'])->name('employee');

@@ -2,7 +2,7 @@
 @section('title', 'تقرير المواعيد والـ SLA')
 @section('content')
 <div class="page page--wide reports-page">
-    <div class="page__head"><div><h1 class="page-title">تقرير المواعيد والـ SLA</h1><p class="page-subtitle">الالتزام بموعد التسليم، أو مهلة الـ SLA عند عدم وجود موعد.</p></div></div>
+    <div class="page__head"><div><h1 class="page-title">تقرير المواعيد والـ SLA</h1><p class="page-subtitle">الالتزام بموعد التسليم، أو مهلة الـ SLA عند عدم وجود موعد.</p></div><x-export-button route="export.deadline" /></div>
     @include('reports.partials._management-filters')
     <div class="reports-stats">
         <x-stat-tile :figure="$report['summary']->completed_before" caption="اكتملت بدري" variant="green" icon="check-circle" />

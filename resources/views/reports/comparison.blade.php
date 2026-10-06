@@ -2,7 +2,7 @@
 @section('title', 'مقارنة أداء الموظفين')
 @section('content')
 <div class="page page--wide reports-page">
-    <div class="page__head"><div><h1 class="page-title">مقارنة أداء الموظفين</h1><p class="page-subtitle">التذكرة المسندة لأكتر من موظف بتتحسب لكل واحد فيهم.</p></div></div>
+    <div class="page__head"><div><h1 class="page-title">مقارنة أداء الموظفين</h1><p class="page-subtitle">التذكرة المسندة لأكتر من موظف بتتحسب لكل واحد فيهم.</p></div><x-export-button route="export.comparison" /></div>
     @include('reports.partials._management-filters')
     <x-card title="المقارنة" flush><div class="table-wrap"><table class="table table--hover reports-table">
         <thead><tr><th>الموظف</th><th>المسند</th><th>المحلول</th><th>المفتوح</th><th>المتأخر</th><th>الالتزام</th><th>متوسط الحل</th></tr></thead>

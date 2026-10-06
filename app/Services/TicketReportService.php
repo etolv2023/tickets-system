@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Ticket;
 use App\Models\TicketTypeDefinition;
 use App\Models\User;
+use App\Support\DateBounds;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +20,30 @@ use Illuminate\Support\Facades\DB;
  */
 class TicketReportService
 {
+    /** Resolve the query string exactly once for report screens and exports. */
+    public function parameters(array $query): array
+    {
+        $basis = array_key_exists($query['date_basis'] ?? '', Ticket::DATE_BASES)
+            ? $query['date_basis']
+            : 'resolved_at';
+        $month = CarbonImmutable::now(config('app.display_timezone'))->format('Y-m');
+        [$start, $end] = DateBounds::month($month);
+        $timezone = config('app.display_timezone');
+        $from = $query['from'] ?? CarbonImmutable::parse($start)->setTimezone($timezone)->toDateString();
+        $to = $query['to'] ?? CarbonImmutable::parse($end)->setTimezone($timezone)->toDateString();
+        $keys = array_diff(Ticket::FILTER_KEYS, ['date_basis', 'from', 'to']);
+        $filters = array_intersect_key($query, array_flip($keys));
+
+        return [
+            'date_basis' => $basis,
+            'from' => $from,
+            'to' => $to,
+            'filters' => array_filter($filters, fn ($value) => $value !== null && $value !== ''),
+            'user' => isset($query['user']) && is_numeric($query['user']) ? (int) $query['user'] : null,
+            'by' => in_array($query['by'] ?? null, ['type', 'status', 'priority', 'module'], true) ? $query['by'] : 'type',
+        ];
+    }
+
     /**
      * A ticket assigned to two users contributes once to each user's figures.
      * Multiple roles held by the same user on one ticket still contribute once.
@@ -191,7 +217,12 @@ class TicketReportService
         $byType = $this->agedDimension($aged, 'type');
         $byPriority = $this->agedDimension($aged, 'priority');
 
-        return compact('totals', 'byAssignee', 'byType', 'byPriority');
+        return [
+            'totals' => $totals,
+            'by_assignee' => $byAssignee,
+            'by_type' => $byType,
+            'by_priority' => $byPriority,
+        ];
     }
 
     /**

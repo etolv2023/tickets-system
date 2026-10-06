@@ -2,7 +2,7 @@
 @section('title', 'أعمار التذاكر المفتوحة')
 @section('content')
 <div class="page page--wide reports-page">
-    <div class="page__head"><div><h1 class="page-title">أعمار التذاكر المفتوحة</h1><p class="page-subtitle">مدة بقاء التذاكر المفتوحة من تاريخ البلاغ.</p></div></div>
+    <div class="page__head"><div><h1 class="page-title">أعمار التذاكر المفتوحة</h1><p class="page-subtitle">مدة بقاء التذاكر المفتوحة من تاريخ البلاغ.</p></div><x-export-button route="export.aging" /></div>
     @include('reports.partials._management-filters')
     @foreach (['totals' => 'الإجمالي', 'by_assignee' => 'حسب المسؤول', 'by_type' => 'حسب النوع', 'by_priority' => 'حسب الأولوية'] as $key => $title)
         <x-card :title="$title" flush class="reports-section"><div class="table-wrap"><table class="table reports-table">

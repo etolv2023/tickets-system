@@ -6,8 +6,6 @@ use App\Models\Ticket;
 use App\Models\TicketStatusDefinition;
 use App\Models\User;
 use App\Services\TicketReportService;
-use App\Support\DateBounds;
-use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 
 class TicketReportController extends Controller
@@ -17,8 +15,8 @@ class TicketReportController extends Controller
     public function userPerformance(Request $request)
     {
         abort_unless($request->user()->hasPermission('reports.view'), 403);
-        [$basis, $from, $to, $filters] = $this->parameters($request);
-        $user = User::findOrFail($request->integer('user') ?: $request->user()->id);
+        ['date_basis' => $basis, 'from' => $from, 'to' => $to, 'filters' => $filters, 'user' => $userId] = $this->reports->parameters($request->query());
+        $user = User::findOrFail($userId ?: $request->user()->id);
         $report = $this->reports->userPerformance($user, $basis, $from, $to, $filters);
 
         return view('reports.performance', $this->data($request, $basis, $from, $to, $filters) + compact('user', 'report'));
@@ -27,7 +25,7 @@ class TicketReportController extends Controller
     public function comparison(Request $request)
     {
         abort_unless($request->user()->hasPermission('reports.view'), 403);
-        [$basis, $from, $to, $filters] = $this->parameters($request);
+        ['date_basis' => $basis, 'from' => $from, 'to' => $to, 'filters' => $filters] = $this->reports->parameters($request->query());
         $rows = $this->reports->usersComparison($basis, $from, $to, $filters);
 
         return view('reports.comparison', $this->data($request, $basis, $from, $to, $filters) + compact('rows'));
@@ -36,8 +34,7 @@ class TicketReportController extends Controller
     public function summary(Request $request)
     {
         abort_unless($request->user()->hasPermission('reports.view'), 403);
-        [$basis, $from, $to, $filters] = $this->parameters($request);
-        $by = in_array($request->query('by'), ['type', 'status', 'priority', 'module'], true) ? $request->query('by') : 'type';
+        ['date_basis' => $basis, 'from' => $from, 'to' => $to, 'filters' => $filters, 'by' => $by] = $this->reports->parameters($request->query());
         $method = $by . 'Summary';
         $rows = $this->reports->{$method}($basis, $from, $to, $filters);
 
@@ -47,7 +44,7 @@ class TicketReportController extends Controller
     public function aging(Request $request)
     {
         abort_unless($request->user()->hasPermission('reports.view'), 403);
-        [$basis, $from, $to, $filters] = $this->parameters($request);
+        ['date_basis' => $basis, 'from' => $from, 'to' => $to, 'filters' => $filters] = $this->reports->parameters($request->query());
         $report = $this->reports->agingReport($basis, $from, $to, $filters);
 
         return view('reports.aging', $this->data($request, $basis, $from, $to, $filters) + compact('report'));
@@ -56,22 +53,10 @@ class TicketReportController extends Controller
     public function deadline(Request $request)
     {
         abort_unless($request->user()->hasPermission('reports.view'), 403);
-        [$basis, $from, $to, $filters] = $this->parameters($request);
+        ['date_basis' => $basis, 'from' => $from, 'to' => $to, 'filters' => $filters] = $this->reports->parameters($request->query());
         $report = $this->reports->deadlineReport($basis, $from, $to, $filters);
 
         return view('reports.deadline', $this->data($request, $basis, $from, $to, $filters) + compact('report'));
-    }
-
-    private function parameters(Request $request): array
-    {
-        $basis = array_key_exists($request->query('date_basis'), Ticket::DATE_BASES) ? $request->query('date_basis') : 'resolved_at';
-        $month = CarbonImmutable::now(config('app.display_timezone'))->format('Y-m');
-        [$start, $end] = DateBounds::month($month);
-        $from = $request->query('from', CarbonImmutable::parse($start)->setTimezone(config('app.display_timezone'))->toDateString());
-        $to = $request->query('to', CarbonImmutable::parse($end)->setTimezone(config('app.display_timezone'))->toDateString());
-        $filters = $request->only(array_diff(Ticket::FILTER_KEYS, ['date_basis', 'from', 'to']));
-
-        return [$basis, $from, $to, array_filter($filters, fn ($value) => $value !== null && $value !== '')];
     }
 
     private function data(Request $request, string $basis, string $from, string $to, array $filters): array

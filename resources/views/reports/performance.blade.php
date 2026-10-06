@@ -2,7 +2,7 @@
 @section('title', 'أداء الموظف')
 @section('content')
 <div class="page page--wide reports-page">
-    <div class="page__head"><div><h1 class="page-title">أداء الموظف</h1><p class="page-subtitle">التذكرة المسندة لأكتر من موظف بتتحسب لكل واحد فيهم.</p></div></div>
+    <div class="page__head"><div><h1 class="page-title">أداء الموظف</h1><p class="page-subtitle">التذكرة المسندة لأكتر من موظف بتتحسب لكل واحد فيهم.</p></div><x-export-button route="export.performance" :params="['user' => $user->id]" /></div>
     @include('reports.partials._management-filters')
     <div class="reports-stats">
         @if (empty($filters['created_by']) || (int) $filters['created_by'] === $user->id)<a href="{{ route('tickets.index', array_merge($drilldown, ['created_by' => $user->id])) }}"><x-stat-tile :figure="$report['created']" caption="فتحها" icon="plus" /></a>@else<x-stat-tile :figure="$report['created']" caption="فتحها" icon="plus" />@endif
