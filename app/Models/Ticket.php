@@ -813,11 +813,10 @@ class Ticket extends Model
      * so the list filter and the row marker cannot disagree (missedDeadlines()
      * below is the same rule read off a loaded row).
      *
-     * A ticket carries up to two promises: the SLA (`sla_due_at`, a moment) and
-     * the delivery date (`due_date`, a day — late once that day is over). It is
-     * late when it is still open past either, or when it was resolved after
-     * either. A rejected ticket was never worked and is never late; a ticket
-     * with no promise at all cannot miss one, so it counts as on time.
+     * The delivery date is the ticket's primary promise. The SLA is used only
+     * when no delivery date was set, matching deadlineAt() and the status badge
+     * in the list. A settled ticket is compared by calendar day, so delivery
+     * during the promised day remains on time.
      *
      * "Open" is read off ticket_statuses.is_open rather than a key list, the
      * way TicketSubtask::scopeOnLiveTicket does, so a status the admin adds is
@@ -830,34 +829,51 @@ class Ticket extends Model
     public function scopeLate(Builder $query, bool $late = true): Builder
     {
         $open = fn ($s) => $s->select('key')->from('ticket_statuses')->where('is_open', true);
-        $now = now();
-        $today = today()->toDateString();
+        $timezone = config('app.display_timezone');
+        $now = now('UTC');
+        $today = now($timezone)->toDateString();
+        $resolvedDay = "DATE(CONVERT_TZ(resolved_at, '+00:00', ?))";
+        $slaDay = "DATE(CONVERT_TZ(sla_due_at, '+00:00', ?))";
 
         if ($late) {
             return $query->where(fn (Builder $w) => $w
                 ->where(fn (Builder $o) => $o
                     ->whereIn('status', $open)
                     ->where(fn (Builder $d) => $d
-                        ->where('sla_due_at', '<', $now)
-                        ->orWhere('due_date', '<', $today)))
+                        ->where('due_date', '<', $today)
+                        ->orWhere(fn (Builder $sla) => $sla
+                            ->whereNull('due_date')
+                            ->where('sla_due_at', '<', $now))))
                 ->orWhere(fn (Builder $r) => $r
                     ->whereNotIn('status', $open)
                     ->whereNotNull('resolved_at')
                     ->where(fn (Builder $d) => $d
-                        ->whereColumn('resolved_at', '>', 'sla_due_at')
-                        ->orWhereRaw('DATE(resolved_at) > due_date'))));
+                        ->whereRaw("{$resolvedDay} > due_date", [$timezone])
+                        ->orWhere(fn (Builder $sla) => $sla
+                            ->whereNull('due_date')
+                            ->whereRaw("{$resolvedDay} > {$slaDay}", [$timezone, $timezone])))));
         }
 
         return $query->where(fn (Builder $w) => $w
             ->where(fn (Builder $o) => $o
                 ->whereIn('status', $open)
-                ->where(fn (Builder $d) => $d->whereNull('sla_due_at')->orWhere('sla_due_at', '>=', $now))
-                ->where(fn (Builder $d) => $d->whereNull('due_date')->orWhere('due_date', '>=', $today)))
+                ->where(fn (Builder $d) => $d
+                    ->where('due_date', '>=', $today)
+                    ->orWhere(fn (Builder $sla) => $sla
+                        ->whereNull('due_date')
+                        ->where(fn (Builder $deadline) => $deadline
+                            ->whereNull('sla_due_at')
+                            ->orWhere('sla_due_at', '>=', $now)))))
             ->orWhere(fn (Builder $r) => $r
                 ->whereNotIn('status', $open)
                 ->whereNotNull('resolved_at')
-                ->where(fn (Builder $d) => $d->whereNull('sla_due_at')->orWhereColumn('resolved_at', '<=', 'sla_due_at'))
-                ->where(fn (Builder $d) => $d->whereNull('due_date')->orWhereRaw('DATE(resolved_at) <= due_date')))
+                ->where(fn (Builder $d) => $d
+                    ->whereRaw("{$resolvedDay} <= due_date", [$timezone])
+                    ->orWhere(fn (Builder $sla) => $sla
+                        ->whereNull('due_date')
+                        ->where(fn (Builder $deadline) => $deadline
+                            ->whereNull('sla_due_at')
+                            ->orWhereRaw("{$resolvedDay} <= {$slaDay}", [$timezone, $timezone])))))
             // Settled without ever being resolved (rejected): nothing was
             // promised and nothing was missed.
             ->orWhere(fn (Builder $r) => $r->whereNotIn('status', $open)->whereNull('resolved_at')));
@@ -879,9 +895,8 @@ class Ticket extends Model
     }
 
     /**
-     * The deadlines this ticket has missed, as the row marker reads them —
-     * the same rule as scopeLate(), on a loaded row. 'sla', 'due', or both;
-     * empty when it is on time or carries no promise.
+     * The primary deadline this ticket missed, using the same rule as
+     * scopeLate() on a loaded row: delivery date when present, otherwise SLA.
      *
      * For an open ticket the clock is now; for a resolved one it stopped at
      * resolved_at, so a ticket that was late stays late — the entire point of
@@ -897,27 +912,30 @@ class Ticket extends Model
             return [];
         }
 
-        $missed = [];
-
-        if ($this->sla_due_at !== null && $end->gt($this->sla_due_at)) {
-            $missed[] = 'sla';
+        if ($this->due_date !== null) {
+            return $end->copy()->setTimezone(config('app.display_timezone'))->toDateString()
+                > $this->due_date->toDateString() ? ['due'] : [];
         }
 
-        // ->copy(): the date cast hands back the cached Carbon, and endOfDay()
-        // on it would move due_date for whoever reads it next.
-        if ($this->due_date !== null && $end->gt($this->due_date->copy()->endOfDay())) {
-            $missed[] = 'due';
+        if ($this->sla_due_at === null) {
+            return [];
         }
 
-        return $missed;
+        if ($this->status->isOpen()) {
+            return $end->gt($this->sla_due_at) ? ['sla'] : [];
+        }
+
+        return $end->copy()->setTimezone(config('app.display_timezone'))->toDateString()
+            > $this->sla_due_at->copy()->setTimezone(config('app.display_timezone'))->toDateString()
+                ? ['sla'] : [];
     }
 
     /**
      * ★ (2026-10-05) How late, as words: «3 أيام و 4 ساعات» measured from the
-     * FIRST promise it broke (the earlier of the two deadlines) to now for an
-     * open ticket, or to resolved_at for a finished one. Null when it is on
-     * time. The marker reads this beside the badge, so "late" always comes
-     * with "by how much".
+     * primary promise it broke (delivery date when present, otherwise SLA) to
+     * now for an open ticket, or to resolved_at for a finished one. Null when
+     * it is on time. The marker reads this beside the badge, so "late" always
+     * comes with "by how much".
      */
     public function lateByLabel(): ?string
     {

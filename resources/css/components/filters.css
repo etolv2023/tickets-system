@@ -130,6 +130,49 @@
     min-inline-size: 0;
 }
 
+/* A native multiple select is rendered as a tall listbox in Safari. Keep the
+   grid row compact and reveal the choices only while the user is editing it. */
+.filters__multi {
+    position: relative;
+    min-inline-size: 0;
+}
+
+.filters__multi-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    text-align: start;
+}
+
+.filters__multi-menu {
+    position: absolute;
+    z-index: var(--z-dropdown);
+    inset-block-start: calc(100% + var(--space-1));
+    inset-inline: 0;
+    max-block-size: 16rem;
+    overflow-y: auto;
+    padding: var(--space-1);
+    background-color: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+}
+
+.filters__multi-option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    cursor: pointer;
+}
+
+.filters__multi-option:hover {
+    background-color: var(--hover);
+}
+
 /* The date range and the column it runs against: one question, three tracks. */
 .filters__dates {
     grid-column: span 3;

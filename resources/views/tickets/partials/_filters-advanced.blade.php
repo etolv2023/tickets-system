@@ -9,11 +9,22 @@
 <x-collapsible-section title="فلاتر متقدمة" :meta="count($activeAdvanced) . ' فلتر شغّال'"
                        :open="$activeAdvanced !== []" class="filters__advanced-section">
     <div class="filters__advanced">
-        <select name="statuses[]" class="select" aria-label="حالات متعددة" multiple>
-            @foreach (\App\Models\TicketStatusDefinition::options() as $value => $label)
-                <option value="{{ $value }}" @selected(in_array($value, (array) ($filters['statuses'] ?? []), true))>{{ $label }}</option>
-            @endforeach
-        </select>
+        <div class="filters__multi" x-data="{ open: false, selected: @js(array_values(array_filter((array) ($filters['statuses'] ?? [])))) }"
+             @click.outside="open = false">
+            <button type="button" class="select filters__multi-toggle" @click="open = !open"
+                    :aria-expanded="open.toString()" aria-haspopup="listbox">
+                <span x-text="selected.length ? `الحالات: ${selected.length}` : 'الحالات: الكل'">الحالات: الكل</span>
+                <x-icon name="chevron-down" size="0.8em" />
+            </button>
+            <div class="filters__multi-menu" x-show="open" x-cloak role="listbox" aria-label="حالات متعددة">
+                @foreach (\App\Models\TicketStatusDefinition::options() as $value => $label)
+                    <label class="filters__multi-option">
+                        <input type="checkbox" name="statuses[]" value="{{ $value }}" x-model="selected">
+                        <span>{{ $label }}</span>
+                    </label>
+                @endforeach
+            </div>
+        </div>
         <div class="filters__combobox"><x-combobox name="culprit" resource="users" :value="$filters['culprit'] ?? null" :selected="$selectedCulprit" placeholder="متسبب الاكسبشن" /></div>
         <select name="branch" class="select" aria-label="البرانش"><option value="">البرانش: الكل</option><option value="none" @selected(($filters['branch'] ?? '') === 'none')>من غير برانش</option><option value="has" @selected(($filters['branch'] ?? '') === 'has')>ليها برانش</option></select>
         <select name="label" class="select" aria-label="اللابل"><option value="">أي لابل</option>@foreach ($labels as $label)<option value="{{ $label->id }}" @selected((int) ($filters['label'] ?? 0) === $label->id)>{{ $label->name }}</option>@endforeach</select>
