@@ -86,12 +86,6 @@
     white-space: nowrap;
 }
 
-/* Past its SLA. The only red in the row. F03.1 */
-.tickets__age--overdue {
-    color: var(--c-urgent);
-    font-weight: var(--weight-heavy);
-}
-
 .tickets__people {
     display: flex;
     align-items: center;
@@ -113,31 +107,43 @@
     font-variant-numeric: tabular-nums;
 }
 
-/* ★ (2026-10-05) The deadline column: a red pill when a promise was missed,
-   quiet text when it was kept, and the delivery date itself underneath. */
 .tickets__deadline {
     white-space: nowrap;
 }
 
-.tickets__ontime {
-    font-size: var(--text-sm);
-    color: var(--c-resolved);
-}
-
-.tickets__due {
+.tickets__deadline-delta,
+.tickets__deadline .tickets__age {
     display: block;
-    margin-block-start: 2px;
-    font-family: var(--font-mono);
+    margin-block-start: var(--space-1);
     font-size: var(--text-2xs);
     color: var(--text-subtle);
     font-variant-numeric: tabular-nums;
 }
 
-/* How late, beside the pill. Red like the pill, quieter in weight. */
-.tickets__late-by {
-    display: block;
-    margin-block-start: 2px;
-    font-size: var(--text-2xs);
-    color: var(--c-urgent);
-    white-space: nowrap;
+.tickets__deadline-badge.badge--overdue,
+.tickets__deadline-badge.badge--completed_late {
+    --badge-color: var(--c-urgent);
+    --badge-bg: var(--c-urgent-bg);
+    --badge-line: var(--c-urgent-line);
+}
+
+.tickets__deadline-badge.badge--due_today,
+.tickets__deadline-badge.badge--due_soon {
+    --badge-color: var(--c-amber);
+    --badge-bg: var(--c-amber-bg);
+    --badge-line: var(--c-amber-line);
+}
+
+.tickets__deadline-badge.badge--on_track,
+.tickets__deadline-badge.badge--completed_early,
+.tickets__deadline-badge.badge--completed_on_time {
+    --badge-color: var(--c-resolved);
+    --badge-bg: var(--c-resolved-bg);
+    --badge-line: var(--c-resolved-line);
+}
+
+.tickets__deadline-badge.badge--none {
+    --badge-color: var(--text-subtle);
+    --badge-bg: var(--surface-2);
+    --badge-line: var(--border-subtle);
 }

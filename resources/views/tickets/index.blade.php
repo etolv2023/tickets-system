@@ -53,8 +53,7 @@
                                 <th>الحالة</th>
                                 <th>المسؤولين</th>
                                 <th>أنشأها</th>
-                                <th>{{ ($filters['status'] ?? '') === 'resolved' ? 'زمن الحل' : 'SLA' }}</th>
-                                <th>التسليم</th>
+                                <th>الموعد والعمر</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -62,7 +61,7 @@
                                 @include('tickets.partials._row', ['ticket' => $ticket])
                             @empty
                                 <tr class="table__empty">
-                                    <td colspan="10">مفيش تذاكر بالفلاتر دي.</td>
+                                    <td colspan="9">مفيش تذاكر بالفلاتر دي.</td>
                                 </tr>
                             @endforelse
                         </tbody>

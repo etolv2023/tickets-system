@@ -86,37 +86,11 @@
         </div>
     </td>
     <td class="table__cell--muted">{{ $ticket->creator?->name ?? '—' }}</td>
-    {{-- Red is the whole message here; the age stays
-         beside it so nothing is lost to the colour. --}}
-    <td class="table__cell--tight">
-        @if ($ticket->isOverdue())
-            <span class="tickets__age tickets__age--overdue">تخطّى</span>
-            <span class="tickets__age u-subtle">{{ $ticket->ageLabel() }}</span>
-        @else
-            <span class="tickets__age">{{ $ticket->ageLabel() }}</span>
-        @endif
-    </td>
-    {{-- ★ (2026-10-05) Did it miss its promise? The SLA column already goes
-         red while a ticket is open past its SLA; this one also covers the
-         delivery date (due_date) and stays red on a resolved row — work
-         delivered late is late forever, which is what the filter asks. --}}
     <td class="table__cell--tight tickets__deadline">
-        @php($missed = $ticket->missedDeadlines())
-        @if (! $ticket->hasDeadline())
-            <span class="u-subtle">—</span>
-        @elseif ($missed !== [])
-            <x-badge variant="urgent" class="badge--sm">متأخرة</x-badge>
-            {{-- By how much, and against which promise — the badge alone said
-                 only that it happened. --}}
-            <span class="tickets__late-by">
-                بـ {{ $ticket->lateByLabel() }}
-                عن {{ implode(' و', array_map(fn ($k) => \App\Models\Ticket::DEADLINE_LABELS[$k], $missed)) }}
-            </span>
-        @else
-            <span class="tickets__ontime">في معادها</span>
-        @endif
-        @if ($ticket->due_date)
-            <span class="tickets__due">تسليم {{ $ticket->due_date->translatedFormat('j M') }}</span>
-        @endif
+        <x-badge :variant="$ticket->deadlineStatus()['key']" class="badge--sm tickets__deadline-badge">
+            {{ $ticket->deadlineStatus()['label'] }}
+        </x-badge>
+        <span class="tickets__deadline-delta">{{ $ticket->deadlineStatus()['delta'] }}</span>
+        <span class="tickets__age u-subtle">{{ $ticket->ageLabel() }}</span>
     </td>
 </tr>

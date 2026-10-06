@@ -6,6 +6,7 @@ use App\Casts\PriorityCast;
 use App\Casts\TicketStatusCast;
 use App\Casts\TicketTypeCast;
 use App\Support\DateBounds;
+use Carbon\Carbon;
 use Carbon\CarbonInterval;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -448,7 +449,7 @@ class Ticket extends Model
         return Str::limit(trim(preg_replace('/\s+/u', ' ', strip_tags($source))), $length);
     }
 
-    private function humanInterval(CarbonInterval $interval): string
+    public function humanInterval(CarbonInterval $interval): string
     {
         $days = (int) $interval->totalDays;
         $hours = $interval->hours;
@@ -534,7 +535,18 @@ class Ticket extends Model
     public const FILTER_KEYS = [
         'q', 'status', 'type', 'priority', 'company', 'assignee', 'relation', 'culprit',
         'from', 'to', 'date_basis', 'branch', 'label', 'module', 'origin', 'approval',
-        'creator', 'subtasks', 'late', 'sort',
+        'creator', 'subtasks', 'late', 'deadline', 'sort',
+    ];
+
+    public const DEADLINE_FILTERS = [
+        'none' => 'من غير موعد نهائي',
+        'overdue' => 'متأخرة',
+        'due_today' => 'مستحقة النهارده',
+        'due_soon' => 'مستحقة قريب',
+        'on_track' => 'في معادها',
+        'completed_early' => 'اكتملت بدري',
+        'completed_on_time' => 'اكتملت في معادها',
+        'completed_late' => 'اكتملت متأخر',
     ];
 
     /** Where the ticket came from — a customer, or the team itself (F25). */
@@ -647,7 +659,104 @@ class Ticket extends Model
                 fn (Builder $q) => $q->where('subtasks_total', '>', 0)->whereColumn('subtasks_done', '>=', 'subtasks_total'))
             ->when(($filters['late'] ?? null) === 'late', fn (Builder $q) => $q->late())
             ->when(($filters['late'] ?? null) === 'on_time', fn (Builder $q) => $q->late(false))
+            ->when(array_key_exists($filters['deadline'] ?? '', self::DEADLINE_FILTERS),
+                fn (Builder $q) => $q->deadline($filters['deadline']))
             ->when($filters['q'] ?? null, fn (Builder $q, $term) => $q->search($term));
+    }
+
+    public function deadlineAt(): ?Carbon
+    {
+        $timezone = config('app.display_timezone');
+
+        if ($this->due_date !== null) {
+            return Carbon::createFromFormat(
+                'Y-m-d H:i:s',
+                $this->due_date->toDateString() . ' 23:59:59',
+                $timezone,
+            );
+        }
+
+        return $this->sla_due_at?->copy()->setTimezone($timezone);
+    }
+
+    /** @return array{key: string, label: string, delta: string} */
+    public function deadlineStatus(): array
+    {
+        $deadline = $this->deadlineAt();
+
+        if ($deadline === null) {
+            return ['key' => 'none', 'label' => self::DEADLINE_FILTERS['none'], 'delta' => '—'];
+        }
+
+        $open = $this->status->isOpen();
+        $moment = $open ? now($deadline->timezone) : $this->resolved_at?->copy()->setTimezone($deadline->timezone);
+
+        if ($moment === null) {
+            return ['key' => 'none', 'label' => self::DEADLINE_FILTERS['none'], 'delta' => '—'];
+        }
+
+        if (! $open) {
+            $key = match ($moment->toDateString() <=> $deadline->toDateString()) {
+                -1 => 'completed_early',
+                0 => 'completed_on_time',
+                default => 'completed_late',
+            };
+        } else {
+            $key = match (true) {
+                $moment->gt($deadline) => 'overdue',
+                $moment->isSameDay($deadline) => 'due_today',
+                $deadline->lte($moment->copy()->addHours(48)) => 'due_soon',
+                default => 'on_track',
+            };
+        }
+
+        return [
+            'key' => $key,
+            'label' => self::DEADLINE_FILTERS[$key],
+            'delta' => $this->humanInterval($moment->diffAsCarbonInterval($deadline)),
+        ];
+    }
+
+    public function scopeDeadline(Builder $query, string $key): Builder
+    {
+        if (! array_key_exists($key, self::DEADLINE_FILTERS)) {
+            return $query;
+        }
+
+        $timezone = config('app.display_timezone');
+        $deadline = "COALESCE(CONVERT_TZ(CONCAT(due_date, ' 23:59:59'), ?, '+00:00'), sla_due_at)";
+        $resolvedDay = "DATE(CONVERT_TZ(resolved_at, '+00:00', ?))";
+        $deadlineDay = "DATE(CONVERT_TZ({$deadline}, '+00:00', ?))";
+        $openKeys = TicketStatusDefinition::openKeys();
+
+        return match ($key) {
+            'none' => $query->where(fn (Builder $none) => $none
+                ->whereRaw("{$deadline} IS NULL", [$timezone])
+                ->orWhere(fn (Builder $settled) => $settled
+                    ->whereNotIn('status', $openKeys)
+                    ->whereNull('resolved_at'))),
+            'overdue' => $query->whereIn('status', $openKeys)
+                ->whereRaw("{$deadline} IS NOT NULL AND {$deadline} < ?", [$timezone, $timezone, now('UTC')])
+                ->whereRaw('(resolved_at IS NULL OR resolved_at IS NOT NULL)'),
+            'due_today' => $query->whereIn('status', $openKeys)
+                ->whereRaw("{$deadline} IS NOT NULL AND {$deadline} >= ? AND {$deadlineDay} = ?", [
+                    $timezone, $timezone, now('UTC'), $timezone, $timezone, now($timezone)->toDateString(),
+                ])->whereRaw('(resolved_at IS NULL OR resolved_at IS NOT NULL)'),
+            'due_soon' => $query->whereIn('status', $openKeys)
+                ->whereRaw("{$deadline} IS NOT NULL AND {$deadline} > ? AND {$deadlineDay} > ? AND {$deadline} <= ?", [
+                    $timezone, $timezone, now('UTC'), $timezone, $timezone, now($timezone)->toDateString(),
+                    $timezone, now('UTC')->addHours(48),
+                ])->whereRaw('(resolved_at IS NULL OR resolved_at IS NOT NULL)'),
+            'on_track' => $query->whereIn('status', $openKeys)
+                ->whereRaw("{$deadline} IS NOT NULL AND {$deadline} > ?", [$timezone, $timezone, now('UTC')->addHours(48)])
+                ->whereRaw('(resolved_at IS NULL OR resolved_at IS NOT NULL)'),
+            'completed_early' => $query->whereNotIn('status', $openKeys)->whereNotNull('resolved_at')
+                ->whereRaw("{$deadline} IS NOT NULL AND {$resolvedDay} < {$deadlineDay}", [$timezone, $timezone, $timezone, $timezone]),
+            'completed_on_time' => $query->whereNotIn('status', $openKeys)->whereNotNull('resolved_at')
+                ->whereRaw("{$deadline} IS NOT NULL AND {$resolvedDay} = {$deadlineDay}", [$timezone, $timezone, $timezone, $timezone]),
+            'completed_late' => $query->whereNotIn('status', $openKeys)->whereNotNull('resolved_at')
+                ->whereRaw("{$deadline} IS NOT NULL AND {$resolvedDay} > {$deadlineDay}", [$timezone, $timezone, $timezone, $timezone]),
+        };
     }
 
     /**

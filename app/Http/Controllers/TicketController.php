@@ -58,7 +58,7 @@ class TicketController extends Controller
             // 25 rows of it that nobody reads (CLAUDE.md § 4.3).
             ->select([
                 'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'priority',
-                'status', 'reported_at', 'sla_due_at', 'due_date', 'resolved_at', 'updated_at', 'created_by',
+                'status', 'reported_at', 'sla_due_at', 'due_date', 'resolved_at', 'closed_at', 'updated_at', 'created_by',
                 'subtasks_total', 'subtasks_done',
                 // F27 — read by the "ملهاش برانش" marker below. A column, not
                 // a subquery: 25 rows on a screen with a 300ms budget.
