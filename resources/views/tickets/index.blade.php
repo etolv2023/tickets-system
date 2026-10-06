@@ -53,6 +53,7 @@
                                 <th>الحالة</th>
                                 <th>المسؤولين</th>
                                 <th>أنشأها</th>
+                                <th>{{ \App\Models\Ticket::DATE_BASES[$dateBasis] }}</th>
                                 <th>الموعد والعمر</th>
                             </tr>
                         </thead>
@@ -61,7 +62,7 @@
                                 @include('tickets.partials._row', ['ticket' => $ticket])
                             @empty
                                 <tr class="table__empty">
-                                    <td colspan="9">مفيش تذاكر بالفلاتر دي.</td>
+                                    <td colspan="10">مفيش تذاكر بالفلاتر دي.</td>
                                 </tr>
                             @endforelse
                         </tbody>

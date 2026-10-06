@@ -6,15 +6,16 @@
     <td class="table__cell--tight">
         <span class="tickets__number">{{ $ticket->ticket_number }}</span>
 
-        {{-- ★ (2026-08-29) F27. Only on a ticket
-             somebody already called finished: an
-             open ticket with no branch yet is the
-             normal state of the world, and marking
-             every row would turn the list into a
-             wall of warnings that stops meaning
-             anything. --}}
+        {{-- ★ (2026-08-29) F27. In the normal list this warning is reserved
+             for finished tickets, because an open ticket with no branch yet
+             is ordinary. In the explicit "من غير برانش" view every result
+             must carry the marker; otherwise identical zero-count rows look
+             as if the filter disagrees with itself. --}}
         @can('github.view')
-            @if ($ticket->branches_count === 0 && in_array($ticket->status->value, \App\Models\TicketStatusDefinition::resolvedKeys(), true))
+            @if ($ticket->branches_count === 0 && (
+                ($filters['branch'] ?? null) === 'none'
+                || in_array($ticket->status->value, \App\Models\TicketStatusDefinition::resolvedKeys(), true)
+            ))
                 <x-badge variant="amber" class="badge--sm">ملهاش برانش</x-badge>
             @endif
         @endcan
@@ -86,6 +87,7 @@
         </div>
     </td>
     <td class="table__cell--muted">{{ $ticket->creator?->name ?? '—' }}</td>
+    <td class="table__cell--muted u-nums">{{ $ticket->dateBasisLabel($dateBasis) }}</td>
     <td class="table__cell--tight tickets__deadline">
         <x-badge :variant="$ticket->deadlineStatus()['key']" class="badge--sm tickets__deadline-badge">
             {{ $ticket->deadlineStatus()['label'] }}

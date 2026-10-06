@@ -26,6 +26,7 @@ use App\Services\TicketWorkflowService;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use RuntimeException;
 
@@ -52,18 +53,35 @@ class TicketController extends Controller
         // One list, shared with the export (Ticket::FILTER_KEYS) — the file a
         // person downloads answers exactly the question the screen did.
         $filters = Ticket::normalizeFilters($request->only(Ticket::FILTER_KEYS));
+        $dateBasis = $filters['date_basis'] ?? 'reported_at';
 
         $tickets = Ticket::query()
             // Never select description here: it's LONGTEXT and this page shows
             // 25 rows of it that nobody reads (CLAUDE.md § 4.3).
             ->select([
                 'id', 'ticket_number', 'company_id', 'requested_by', 'title', 'type', 'priority',
-                'status', 'reported_at', 'sla_due_at', 'due_date', 'resolved_at', 'closed_at', 'updated_at', 'created_by',
+                'status', 'reported_at', 'created_at', 'updated_at', 'first_response_at',
+                'sla_due_at', 'due_date', 'resolved_at', 'closed_at', 'client_notified_at', 'created_by',
                 'subtasks_total', 'subtasks_done',
                 // F27 — read by the "ملهاش برانش" marker below. A column, not
                 // a subquery: 25 rows on a screen with a 300ms budget.
                 'branches_count',
             ])
+            ->when($dateBasis === 'assigned', fn ($query) => $query->addSelect([
+                'selected_date_at' => DB::table('ticket_role_assignments')
+                    ->select('created_at')
+                    ->whereColumn('ticket_role_assignments.ticket_id', 'tickets.id')
+                    ->orderBy('created_at')
+                    ->limit(1),
+            ]))
+            ->when($dateBasis === 'reopened', fn ($query) => $query->addSelect([
+                'selected_date_at' => DB::table('ticket_status_history')
+                    ->select('created_at')
+                    ->whereColumn('ticket_status_history.ticket_id', 'tickets.id')
+                    ->where('to_status', 'reopened')
+                    ->orderByDesc('created_at')
+                    ->limit(1),
+            ]))
             // Role-based assignment (2026-07-24): the assignee avatars come from
             // the ticket's role assignments, not the four dropped columns.
             ->with(['company:id,name,code', 'requester:id,name', 'creator:id,name', 'roleAssignments.user:id,name,avatar_path,is_active', 'labels:id,name,color'])
@@ -76,6 +94,7 @@ class TicketController extends Controller
         return view('tickets.index', [
             'tickets' => $tickets,
             'filters' => $filters,
+            'dateBasis' => $dateBasis,
             // Just the one that is selected, so the box can show its name.
             // The rest arrive from /lookup as the user types.
             'selectedCompany' => filled($filters['company'] ?? null)

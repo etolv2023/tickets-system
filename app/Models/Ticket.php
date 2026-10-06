@@ -1055,6 +1055,34 @@ class Ticket extends Model
         return $this->sla_due_at !== null || $this->due_date !== null;
     }
 
+    /** The date chosen above the list, formatted for its dynamic table column. */
+    public function dateBasisLabel(string $basis): string
+    {
+        if (! array_key_exists($basis, self::DATE_BASES)) {
+            $basis = 'reported_at';
+        }
+
+        if (in_array($basis, ['assigned', 'reopened'], true)) {
+            $value = $this->getAttribute('selected_date_at');
+
+            return $value === null
+                ? '—'
+                : Carbon::parse($value, 'UTC')->setTimezone(config('app.display_timezone'))->format('d/m/Y H:i');
+        }
+
+        $value = $this->getAttribute($basis);
+
+        if ($value === null) {
+            return '—';
+        }
+
+        if ($basis === 'due_date') {
+            return $value->format('d/m/Y');
+        }
+
+        return $value->copy()->setTimezone(config('app.display_timezone'))->format('d/m/Y H:i');
+    }
+
     /**
      * ★ (2026-10-05) The order the list was asked for. Anything not in SORTS
      * lands on the default, so a hand-edited url degrades rather than throws.
