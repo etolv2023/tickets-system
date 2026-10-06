@@ -54,6 +54,7 @@ class TicketService
                 'type' => $type,
                 'priority' => $priority,
                 'module' => $data['module'] ?? null,
+                'due_date' => $data['due_date'] ?? null,
                 // How to reproduce it: the login code and the page.
                 'client_user_code' => $data['client_user_code'] ?? null,
                 'page_url' => $data['page_url'] ?? null,
@@ -89,6 +90,7 @@ class TicketService
             'type' => $data['type'],
             'priority' => $priority,
             'module' => $data['module'] ?? null,
+            'due_date' => $data['due_date'] ?? null,
             // Editable, unlike the company and the reporter: those are a record
             // of who said what, these are where the work happens and the client
             // moves the page or hands over a different account.

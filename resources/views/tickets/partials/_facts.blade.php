@@ -74,6 +74,15 @@
             </span>
         </div>
 
+        @if ($ticket->due_date)
+            <div class="facts__row">
+                <span class="facts__label">تاريخ التسليم</span>
+                <span class="facts__value facts__value--num">
+                    {{ $ticket->due_date->translatedFormat('j M Y') }}
+                </span>
+            </div>
+        @endif
+
         @if ($ticket->resolved_at)
             <div class="facts__row">
                 <span class="facts__label">اتحلت</span>

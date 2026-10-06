@@ -74,6 +74,7 @@ class StoreTicketRequest extends FormRequest
             'type' => ['required', Rule::exists('ticket_types', 'key')],
             'priority' => ['required', Rule::exists('priorities', 'key')],
             'module' => ['nullable', 'string', 'max:100'],
+            'due_date' => ['nullable', 'date'],
 
             // ★ (2026-08-04) How whoever picks this up reproduces it. Required
             // on a client ticket and optional on an internal one — internal
@@ -196,6 +197,7 @@ class StoreTicketRequest extends FormRequest
             'type' => 'النوع',
             'priority' => 'الأولوية',
             'module' => 'الموديول',
+            'due_date' => 'تاريخ التسليم',
             'client_user_code' => 'يوزر الدخول',
             'page_url' => 'لينك الصفحة',
             'attachments' => 'المرفقات',

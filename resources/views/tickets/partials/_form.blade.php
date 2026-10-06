@@ -69,6 +69,9 @@
 
             <x-field name="module" label="الموديول" :value="$ticket?->module"
                      placeholder="الفواتير، المخزون…" />
+
+            <x-field name="due_date" label="تاريخ التسليم" type="date"
+                     :value="$ticket?->due_date?->toDateString()" />
         </div>
     </x-card>
 

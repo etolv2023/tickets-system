@@ -46,6 +46,7 @@ class UpdateTicketRequest extends FormRequest
             'type' => ['required', Rule::exists('ticket_types', 'key')],
             'priority' => ['required', Rule::exists('priorities', 'key')],
             'module' => ['nullable', 'string', 'max:100'],
+            'due_date' => ['nullable', 'date'],
 
             // Editable after the fact, unlike the company and the reporter:
             // a client hands over a different account, or the page moves.
@@ -79,6 +80,7 @@ class UpdateTicketRequest extends FormRequest
             'type' => 'النوع',
             'priority' => 'الأولوية',
             'module' => 'الموديول',
+            'due_date' => 'تاريخ التسليم',
             'client_user_code' => 'يوزر الدخول',
             'page_url' => 'لينك الصفحة',
             'attachments' => 'المرفقات',
