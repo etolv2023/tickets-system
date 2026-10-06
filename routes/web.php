@@ -55,6 +55,7 @@ use App\Http\Controllers\InstallController;
 use App\Http\Controllers\TicketBranchController;
 use App\Http\Controllers\TicketCommentController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\TicketReportController;
 use App\Http\Middleware\UseInstallConnection;
 use Illuminate\Support\Facades\Route;
 
@@ -278,6 +279,11 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:reports.view')->name('reports.index');
     Route::get('/reports/team-activity', [ReportController::class, 'teamActivity'])
         ->middleware('permission:reports.view')->name('reports.team-activity');
+    Route::get('/reports/performance', [TicketReportController::class, 'userPerformance'])->name('reports.performance');
+    Route::get('/reports/comparison', [TicketReportController::class, 'comparison'])->name('reports.comparison');
+    Route::get('/reports/summary', [TicketReportController::class, 'summary'])->name('reports.summary');
+    Route::get('/reports/aging', [TicketReportController::class, 'aging'])->name('reports.aging');
+    Route::get('/reports/deadline', [TicketReportController::class, 'deadline'])->name('reports.deadline');
     // ★ (2026-10-05) F19.5 — who resolved how many of which type.
     Route::get('/reports/resolved-by-type', ResolvedByTypeController::class)
         ->middleware('permission:reports.view')->name('reports.resolved-by-type');

@@ -64,6 +64,7 @@
 @import './features/calendar-agenda.css';
 @import './features/calendar-timeline.css';
 @import './features/points.css';
+@import './features/reports.css';
 @import './features/point-values.css';
 @import './features/queues.css';
 @import './features/portal.css';

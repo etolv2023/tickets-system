@@ -33,6 +33,36 @@
         <span class="nav__label">تقرير التيم التفصيلي</span>
     </a>
 
+    <a href="{{ route('reports.performance') }}" class="nav__link" title="أداء الموظف"
+       @if (request()->routeIs('reports.performance')) aria-current="page" @endif>
+        <x-icon name="user" class="nav__icon" />
+        <span class="nav__label">أداء الموظف</span>
+    </a>
+
+    <a href="{{ route('reports.comparison') }}" class="nav__link" title="مقارنة الأداء"
+       @if (request()->routeIs('reports.comparison')) aria-current="page" @endif>
+        <x-icon name="users" class="nav__icon" />
+        <span class="nav__label">مقارنة الأداء</span>
+    </a>
+
+    <a href="{{ route('reports.summary') }}" class="nav__link" title="ملخص التذاكر"
+       @if (request()->routeIs('reports.summary')) aria-current="page" @endif>
+        <x-icon name="list-checks" class="nav__icon" />
+        <span class="nav__label">ملخص التذاكر</span>
+    </a>
+
+    <a href="{{ route('reports.aging') }}" class="nav__link" title="أعمار التذاكر"
+       @if (request()->routeIs('reports.aging')) aria-current="page" @endif>
+        <x-icon name="clock" class="nav__icon" />
+        <span class="nav__label">أعمار التذاكر</span>
+    </a>
+
+    <a href="{{ route('reports.deadline') }}" class="nav__link" title="المواعيد والـ SLA"
+       @if (request()->routeIs('reports.deadline')) aria-current="page" @endif>
+        <x-icon name="alert" class="nav__icon" />
+        <span class="nav__label">المواعيد والـ SLA</span>
+    </a>
+
     {{-- ★ (2026-10-05) F19.5 — the matrix: people down, ticket types across. --}}
     <a href="{{ route('reports.resolved-by-type') }}" class="nav__link" title="الحلول بالنوع"
        @if (request()->routeIs('reports.resolved-by-type')) aria-current="page" @endif>

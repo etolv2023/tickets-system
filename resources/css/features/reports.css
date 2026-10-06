@@ -1,0 +1,28 @@
+.reports-page {
+    display: grid;
+    gap: var(--space-5);
+}
+
+.reports-filters {
+    align-items: end;
+}
+
+.reports-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3);
+}
+
+.reports-stats > a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.reports-section {
+    margin-block-start: var(--space-2);
+}
+
+.reports-table .u-nums {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
