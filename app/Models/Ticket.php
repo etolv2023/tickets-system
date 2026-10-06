@@ -1067,7 +1067,7 @@ class Ticket extends Model
 
             return $value === null
                 ? '—'
-                : Carbon::parse($value, 'UTC')->setTimezone(config('app.display_timezone'))->format('d/m/Y H:i');
+                : Carbon::parse($value, 'UTC')->setTimezone(config('app.display_timezone'))->format('d/m/Y h:i A');
         }
 
         $value = $this->getAttribute($basis);
@@ -1080,7 +1080,7 @@ class Ticket extends Model
             return $value->format('d/m/Y');
         }
 
-        return $value->copy()->setTimezone(config('app.display_timezone'))->format('d/m/Y H:i');
+        return $value->copy()->setTimezone(config('app.display_timezone'))->format('d/m/Y h:i A');
     }
 
     /**
