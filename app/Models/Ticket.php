@@ -517,11 +517,16 @@ class Ticket extends Model
     /** The date columns a date-range filter may run against. */
     public const DATE_BASES = [
         'reported_at' => 'تاريخ الفتح',
+        'created_at' => 'تاريخ الإنشاء',
+        'updated_at' => 'آخر نشاط',
+        'first_response_at' => 'أول رد',
         'resolved_at' => 'تاريخ الحل',
         'closed_at' => 'تاريخ الإغلاق',
-        'due_date' => 'تاريخ التسليم',
+        'client_notified_at' => 'تاريخ إخطار العميل',
         'sla_due_at' => 'مهلة الـ SLA',
-        'updated_at' => 'آخر تحديث',
+        'due_date' => 'تاريخ التسليم',
+        'assigned' => 'تاريخ الإسناد',
+        'reopened' => 'تاريخ إعادة الفتح',
     ];
 
     /**
@@ -533,9 +538,10 @@ class Ticket extends Model
      * the screen. Read this constant instead of retyping it.
      */
     public const FILTER_KEYS = [
-        'q', 'status', 'type', 'priority', 'company', 'assignee', 'relation', 'culprit',
+        'q', 'status', 'statuses', 'type', 'priority', 'company', 'assignee', 'relation', 'culprit',
         'from', 'to', 'date_basis', 'branch', 'label', 'module', 'origin', 'approval',
-        'creator', 'subtasks', 'late', 'deadline', 'sort',
+        'creator', 'created_by', 'resolved_by', 'closed_by', 'subtasks', 'has_subtasks',
+        'unassigned', 'reopened', 'has_comments', 'has_attachments', 'late', 'deadline', 'sort',
     ];
 
     public const DEADLINE_FILTERS = [
@@ -615,6 +621,8 @@ class Ticket extends Model
             ? [DateBounds::day($filters['from'] ?? null), DateBounds::day($filters['to'] ?? null)]
             : DateBounds::range($filters['from'] ?? null, $filters['to'] ?? null);
 
+        $dateColumn = in_array($dateBasis, ['assigned', 'reopened'], true) ? null : $dateBasis;
+
         return $query
             // "open" and "resolved" are groupings a human thinks in; the rest
             // are the raw states.
@@ -626,6 +634,8 @@ class Ticket extends Model
                 ($filters['status'] ?? null) && ! in_array($filters['status'], ['open', 'resolved'], true),
                 fn (Builder $q) => $q->where('status', $filters['status'])
             )
+            ->when(is_array($filters['statuses'] ?? null) && array_filter($filters['statuses']) !== [],
+                fn (Builder $q) => $q->whereIn('status', array_filter($filters['statuses'])))
             ->when($filters['type'] ?? null, fn (Builder $q, $v) => $q->where('type', $v))
             ->when($filters['priority'] ?? null, fn (Builder $q, $v) => $q->where('priority', $v))
             ->when($filters['company'] ?? null, fn (Builder $q, $v) => $q->where('company_id', $v))
@@ -638,18 +648,55 @@ class Ticket extends Model
             // page, where the branches themselves are listed.
             ->when(($filters['branch'] ?? null) === 'none', fn (Builder $q) => $q->where('branches_count', 0))
             ->when(($filters['branch'] ?? null) === 'has', fn (Builder $q) => $q->where('branches_count', '>', 0))
-            ->when($from, fn (Builder $q, $v) => $q->where($dateBasis, '>=', $v))
-            ->when($to, fn (Builder $q, $v) => $q->where($dateBasis, '<=', $v))
+            ->when($dateColumn !== null && $from, fn (Builder $q, $v) => $q->where($dateColumn, '>=', $v))
+            ->when($dateColumn !== null && $to, fn (Builder $q, $v) => $q->where($dateColumn, '<=', $v))
+            ->when($dateBasis === 'assigned' && ($from || $to),
+                fn (Builder $q) => $q->whereExists(fn ($assignment) => $assignment
+                    ->selectRaw('1')
+                    ->from('ticket_role_assignments')
+                    ->whereColumn('ticket_role_assignments.ticket_id', 'tickets.id')
+                    ->whereNotExists(fn ($earlier) => $earlier
+                        ->selectRaw('1')
+                        ->from('ticket_role_assignments as earlier_assignments')
+                        ->whereColumn('earlier_assignments.ticket_id', 'ticket_role_assignments.ticket_id')
+                        ->whereColumn('earlier_assignments.created_at', '<', 'ticket_role_assignments.created_at'))
+                    ->when($from, fn ($a, $v) => $a->where('ticket_role_assignments.created_at', '>=', $v))
+                    ->when($to, fn ($a, $v) => $a->where('ticket_role_assignments.created_at', '<=', $v))))
+            ->when($dateBasis === 'reopened' && ($from || $to),
+                fn (Builder $q) => $q->whereExists(fn ($history) => $history
+                    ->selectRaw('1')
+                    ->from('ticket_status_history')
+                    ->whereColumn('ticket_status_history.ticket_id', 'tickets.id')
+                    ->where('ticket_status_history.to_status', 'reopened')
+                    ->when($from, fn ($h, $v) => $h->where('ticket_status_history.created_at', '>=', $v))
+                    ->when($to, fn ($h, $v) => $h->where('ticket_status_history.created_at', '<=', $v))))
             // ★ (2026-10-05) The second row of the filter bar. Each one is a
             // question the list could not answer before without opening rows.
             ->when($filters['label'] ?? null,
                 fn (Builder $q, $v) => $q->whereHas('labels', fn (Builder $l) => $l->where('labels.id', (int) $v)))
-            ->when($filters['module'] ?? null, fn (Builder $q, $v) => $q->where('module', 'like', '%' . $v . '%'))
+            ->when($filters['module'] ?? null, fn (Builder $q, $v) => $q->where('module', $v))
+            ->when(in_array($filters['unassigned'] ?? null, ['yes', '1', 1, true], true),
+                fn (Builder $q) => $q->whereDoesntHave('roleAssignments'))
+            ->when(in_array($filters['unassigned'] ?? null, ['no', '0', 0, false], true),
+                fn (Builder $q) => $q->whereHas('roleAssignments'))
+            ->when(in_array($filters['reopened'] ?? null, ['yes', '1', 1, true], true), fn (Builder $q) => $q->whereHas('statusHistory',
+                fn (Builder $h) => $h->where('to_status', 'reopened')))
+            ->when(in_array($filters['reopened'] ?? null, ['no', '0', 0, false], true), fn (Builder $q) => $q->whereDoesntHave('statusHistory',
+                fn (Builder $h) => $h->where('to_status', 'reopened')))
+            ->when(in_array($filters['has_comments'] ?? null, ['yes', '1', 1, true], true), fn (Builder $q) => $q->whereHas('comments'))
+            ->when(in_array($filters['has_comments'] ?? null, ['no', '0', 0, false], true), fn (Builder $q) => $q->whereDoesntHave('comments'))
+            ->when(in_array($filters['has_attachments'] ?? null, ['yes', '1', 1, true], true), fn (Builder $q) => $q->whereHas('attachments'))
+            ->when(in_array($filters['has_attachments'] ?? null, ['no', '0', 0, false], true), fn (Builder $q) => $q->whereDoesntHave('attachments'))
             ->when(($filters['origin'] ?? null) === 'internal', fn (Builder $q) => $q->internal())
             ->when(($filters['origin'] ?? null) === 'client', fn (Builder $q) => $q->internal(false))
             ->when(array_key_exists($filters['approval'] ?? '', self::APPROVALS),
                 fn (Builder $q) => $q->where('approval_status', $filters['approval']))
             ->when($filters['creator'] ?? null, fn (Builder $q, $v) => $q->where('created_by', (int) $v))
+            ->when($filters['created_by'] ?? null, fn (Builder $q, $v) => $q->where('created_by', (int) $v))
+            ->when($filters['resolved_by'] ?? null, fn (Builder $q, $v) => $q->whereHas('statusHistory',
+                fn (Builder $h) => $h->where('to_status', 'resolved')->where('user_id', (int) $v)))
+            ->when($filters['closed_by'] ?? null, fn (Builder $q, $v) => $q->whereHas('statusHistory',
+                fn (Builder $h) => $h->where('to_status', 'closed')->where('user_id', (int) $v)))
             // Off the two counters SubtaskService maintains — never a COUNT()
             // over ticket_subtasks per row (§ 4.6).
             ->when(($filters['subtasks'] ?? null) === 'none', fn (Builder $q) => $q->where('subtasks_total', 0))
@@ -657,6 +704,8 @@ class Ticket extends Model
                 fn (Builder $q) => $q->whereColumn('subtasks_done', '<', 'subtasks_total'))
             ->when(($filters['subtasks'] ?? null) === 'done',
                 fn (Builder $q) => $q->where('subtasks_total', '>', 0)->whereColumn('subtasks_done', '>=', 'subtasks_total'))
+            ->when(in_array($filters['has_subtasks'] ?? null, ['yes', '1', 1, true], true), fn (Builder $q) => $q->where('subtasks_total', '>', 0))
+            ->when(in_array($filters['has_subtasks'] ?? null, ['no', '0', 0, false], true), fn (Builder $q) => $q->where('subtasks_total', 0))
             ->when(($filters['late'] ?? null) === 'late', fn (Builder $q) => $q->late())
             ->when(($filters['late'] ?? null) === 'on_time', fn (Builder $q) => $q->late(false))
             ->when(array_key_exists($filters['deadline'] ?? '', self::DEADLINE_FILTERS),

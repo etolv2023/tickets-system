@@ -71,7 +71,7 @@ class QueueController extends Controller
      */
     public function ready(Request $request): View
     {
-        $filters = $request->only('q', 'type', 'priority', 'company', 'assignee', 'relation', 'from', 'to', 'status');
+        $filters = $request->only(Ticket::FILTER_KEYS);
 
         $tickets = Ticket::query()
             ->select([
