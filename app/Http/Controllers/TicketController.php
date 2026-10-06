@@ -87,18 +87,24 @@ class TicketController extends Controller
             'selectedCreator' => filled($filters['creator'] ?? null)
                 ? User::whereKey($filters['creator'])->value('name')
                 : null,
-            'selectedLabel' => filled($filters['label'] ?? null)
-                ? Label::whereKey($filters['label'])->value('name')
-                : null,
-            'culpritUsers' => User::query()->without('role')
-                ->whereIn('id', Ticket::query()->visibleTo($request->user())->whereNotNull('exception_culprit_id')
-                    ->distinct()->pluck('exception_culprit_id'))
-                ->orderBy('name')->get(['id', 'name']),
+            'labels' => Label::pickerList(),
+            'selectedCulprit' => $this->selectedUserName($filters, 'culprit'),
+            'selectedCreatedBy' => $this->selectedUserName($filters, 'created_by'),
+            'selectedResolvedBy' => $this->selectedUserName($filters, 'resolved_by'),
+            'selectedClosedBy' => $this->selectedUserName($filters, 'closed_by'),
             // The "تذاكري" shortcut is only meaningful to someone whose list
             // holds other people's tickets in the first place. For a
             // view.assigned-only user every row is already theirs.
             'canSeeOthers' => $request->user()->hasPermission('tickets.view.all'),
         ]);
+    }
+
+    /** @param array<string, mixed> $filters */
+    private function selectedUserName(array $filters, string $key): ?string
+    {
+        return filled($filters[$key] ?? null)
+            ? User::whereKey($filters[$key])->value('name')
+            : null;
     }
 
     public function create(): View

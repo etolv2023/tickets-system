@@ -112,6 +112,24 @@
     border-block-start: 1px dashed var(--border-subtle);
 }
 
+.filters__advanced-section {
+    inline-size: 100%;
+    margin-block-start: var(--space-3);
+}
+
+.filters__advanced {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.filters__advanced .input,
+.filters__advanced .select {
+    inline-size: 100%;
+    min-inline-size: 0;
+}
+
 /* The date range and the column it runs against: one question, three tracks. */
 .filters__dates {
     grid-column: span 3;
