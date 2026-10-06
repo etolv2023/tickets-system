@@ -819,7 +819,8 @@ class TicketWorkflowService
             ->where('status', '!=', 'done')
             ->where(fn ($q) => $q->whereNull('role_id')
                 ->orWhereIn('role_id', Role::workLoggingRoleIds()))
-            ->whereNotIn('assignee_id', $this->waivedAssigneeIds($ticket))
+            ->where(fn ($q) => $q->whereNull('assignee_id')
+                ->orWhereNotIn('assignee_id', $this->waivedAssigneeIds($ticket)))
             ->count();
 
         if ($open === 0) {
@@ -974,6 +975,16 @@ class TicketWorkflowService
         if ($hasTester) {
             $this->transition($ticket, TicketStatusValue::for('testing'), $actorId, 'في انتظار التيست');
         }
+    }
+
+    /** Recomputes the ticket's derived status after its subtasks change. */
+    public function reevaluateSides(Ticket $ticket, ?int $actorId): void
+    {
+        if ($ticket->status !== TicketStatusValue::for('in_progress')) {
+            return;
+        }
+
+        $this->promoteIfSidesDone($ticket, $actorId, 'اتحدّثت الصب تاسك وكل الجهات خلصت');
     }
 
     /**

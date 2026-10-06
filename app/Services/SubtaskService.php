@@ -63,6 +63,7 @@ class SubtaskService
             $data = $this->roleFollowsAssignee($data);
 
             $status = isset($data['status']) ? SubtaskStatusValue::for($data['status']) : $subtask->status;
+            $doneChanged = $status->isDone() !== $subtask->status->isDone();
 
             // Timestamps follow the status rather than being asked for.
             if ($status->isInProgress() && $subtask->started_at === null) {
@@ -84,6 +85,10 @@ class SubtaskService
 
             $subtask->update($data);
             $this->syncCounters($subtask->ticket);
+
+            if ($doneChanged) {
+                $this->reevaluateTicketSides($subtask->ticket);
+            }
 
             return $subtask;
         });
@@ -124,7 +129,15 @@ class SubtaskService
             $ticket = $subtask->ticket;
             $subtask->delete();
             $this->syncCounters($ticket);
+            $this->reevaluateTicketSides($ticket);
         });
+    }
+
+    private function reevaluateTicketSides(Ticket $ticket): void
+    {
+        // TicketWorkflowService already depends on this service, so resolve it
+        // here to avoid turning the constructor graph into a circular dependency.
+        app(TicketWorkflowService::class)->reevaluateSides($ticket, null);
     }
 
     /**
