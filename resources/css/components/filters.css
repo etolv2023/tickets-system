@@ -317,6 +317,13 @@
     font-size: var(--text-sm);
 }
 
+/* Safari paints today's date inside an empty date field even though the form
+   submits an empty string. Hide that phantom value until the field is focused;
+   Alpine removes this class as soon as the person chooses a real date. */
+.filters__range input[type='date'].filters__date--empty:not(:focus)::-webkit-datetime-edit {
+    color: transparent;
+}
+
 .filters__range input[type='date']:focus {
     outline: none;
 }

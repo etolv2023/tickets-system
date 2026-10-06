@@ -51,7 +51,7 @@ class TicketController extends Controller
 
         // One list, shared with the export (Ticket::FILTER_KEYS) — the file a
         // person downloads answers exactly the question the screen did.
-        $filters = $request->only(Ticket::FILTER_KEYS);
+        $filters = Ticket::normalizeFilters($request->only(Ticket::FILTER_KEYS));
 
         $tickets = Ticket::query()
             // Never select description here: it's LONGTEXT and this page shows

@@ -39,11 +39,11 @@
         <div class="filters__combobox"><x-combobox name="assignee" resource="users" :value="$filters['assignee'] ?? null" :selected="$selectedAssignee" placeholder="أي شخص" /></div>
         <select name="relation" class="select" aria-label="علاقته بالتذكرة">@foreach (\App\Models\Ticket::RELATIONS as $value => $label)<option value="{{ $value }}" @selected(($filters['relation'] ?? 'any') === $value)>{{ $label }}</option>@endforeach</select>
     </div>
-    <div class="filters__dates">
+    <div class="filters__dates" x-data="{ from: @js($filters['from'] ?? ''), to: @js($filters['to'] ?? '') }">
         <select name="date_basis" class="select" aria-label="الفترة على أي تاريخ">@foreach (\App\Models\Ticket::DATE_BASES as $value => $label)<option value="{{ $value }}" @selected(($filters['date_basis'] ?? 'reported_at') === $value)>{{ $label }}</option>@endforeach</select>
         <div class="filters__range">
-            <span class="filters__range-label">من</span><input type="date" name="from" value="{{ $filters['from'] ?? '' }}" aria-label="من تاريخ">
-            <span class="filters__range-label">إلى</span><input type="date" name="to" value="{{ $filters['to'] ?? '' }}" aria-label="إلى تاريخ">
+            <span class="filters__range-label">من</span><input type="date" name="from" value="{{ $filters['from'] ?? '' }}" x-model="from" :class="{ 'filters__date--empty': !from }" @class(['filters__date--empty' => empty($filters['from'])]) aria-label="من تاريخ">
+            <span class="filters__range-label">إلى</span><input type="date" name="to" value="{{ $filters['to'] ?? '' }}" x-model="to" :class="{ 'filters__date--empty': !to }" @class(['filters__date--empty' => empty($filters['to'])]) aria-label="إلى تاريخ">
         </div>
     </div>
 </div>

@@ -26,6 +26,11 @@ const PREFIX = 'filters:';
 // `page` is deliberately dropped: coming back to a screen should land you on
 // its first page, not on page 7 of a list that has moved on since.
 const IGNORED = ['page', '_token'];
+const DEFAULTS = {
+    relation: 'any',
+    date_basis: 'reported_at',
+    sort: 'default',
+};
 
 /** Per user, not per browser — a shared machine must not hand you someone else's «تذاكري». */
 const scope = () => document.querySelector('meta[name="user-id"]')?.content || '0';
@@ -38,7 +43,7 @@ const normalise = (params) => {
     // An empty select is "كل الحالات", i.e. no filter — storing it would make
     // every saved state look filtered and turn on the "3 فلاتر شغّالة" counter.
     for (const [name, value] of [...params.entries()]) {
-        if (value === '') {
+        if (value === '' || DEFAULTS[name] === value) {
             params.delete(name);
         }
     }

@@ -600,6 +600,99 @@ class Ticket extends Model
     ];
 
     /**
+     * Turn the query string into one honest filter state before either the
+     * screen or its export builds SQL. Empty form controls and UI defaults are
+     * not filters, invalid enum/id values are ignored, and the multi-status
+     * control takes precedence over the single-status shortcut.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return array<string, mixed>
+     */
+    public static function normalizeFilters(array $filters): array
+    {
+        $filters = array_intersect_key($filters, array_flip(self::FILTER_KEYS));
+
+        foreach ($filters as $key => $value) {
+            if (is_array($value)) {
+                $value = array_values(array_unique(array_filter(array_map(
+                    fn ($item) => is_scalar($item) ? trim((string) $item) : '',
+                    $value,
+                ), fn ($item) => $item !== '')));
+            } elseif (is_scalar($value)) {
+                $value = trim((string) $value);
+            } else {
+                $value = '';
+            }
+
+            if ($value === '' || $value === []) {
+                unset($filters[$key]);
+            } else {
+                $filters[$key] = $value;
+            }
+        }
+
+        foreach (['company', 'assignee', 'culprit', 'label', 'creator', 'created_by', 'resolved_by', 'closed_by'] as $key) {
+            if (isset($filters[$key]) && (! ctype_digit((string) $filters[$key]) || (int) $filters[$key] < 1)) {
+                unset($filters[$key]);
+            }
+        }
+
+        $allowed = [
+            'relation' => array_keys(self::RELATIONS),
+            'branch' => ['none', 'has'],
+            'origin' => array_keys(self::ORIGINS),
+            'approval' => array_keys(self::APPROVALS),
+            'subtasks' => array_keys(self::SUBTASK_STATES),
+            'has_subtasks' => ['yes', 'no'],
+            'unassigned' => ['yes', 'no'],
+            'reopened' => ['yes', 'no'],
+            'has_comments' => ['yes', 'no'],
+            'has_attachments' => ['yes', 'no'],
+            'late' => array_keys(self::LATENESS),
+            'deadline' => array_keys(self::DEADLINE_FILTERS),
+            'sort' => array_keys(self::SORTS),
+        ];
+
+        foreach ($allowed as $key => $values) {
+            if (isset($filters[$key]) && ! in_array($filters[$key], $values, true)) {
+                unset($filters[$key]);
+            }
+        }
+
+        if (($filters['relation'] ?? null) === 'any') {
+            unset($filters['relation']);
+        }
+        if (($filters['sort'] ?? null) === 'default') {
+            unset($filters['sort']);
+        }
+
+        if (isset($filters['statuses'])) {
+            unset($filters['status']);
+        }
+        if (isset($filters['created_by'])) {
+            unset($filters['creator']);
+        }
+
+        foreach (['from', 'to'] as $key) {
+            if (isset($filters[$key]) && DateBounds::day($filters[$key]) === null) {
+                unset($filters[$key]);
+            }
+        }
+
+        if (isset($filters['from'], $filters['to']) && $filters['from'] > $filters['to']) {
+            [$filters['from'], $filters['to']] = [$filters['to'], $filters['from']];
+        }
+
+        if (! isset($filters['from']) && ! isset($filters['to'])) {
+            unset($filters['date_basis']);
+        } elseif (! array_key_exists($filters['date_basis'] ?? '', self::DATE_BASES)) {
+            $filters['date_basis'] = 'reported_at';
+        }
+
+        return $filters;
+    }
+
+    /**
      * The list filters (F03.1). Query logic, so it lives on the model rather
      * than in the controller (CLAUDE.md § 3).
      *
@@ -648,8 +741,10 @@ class Ticket extends Model
             // page, where the branches themselves are listed.
             ->when(($filters['branch'] ?? null) === 'none', fn (Builder $q) => $q->where('branches_count', 0))
             ->when(($filters['branch'] ?? null) === 'has', fn (Builder $q) => $q->where('branches_count', '>', 0))
-            ->when($dateColumn !== null && $from, fn (Builder $q, $v) => $q->where($dateColumn, '>=', $v))
-            ->when($dateColumn !== null && $to, fn (Builder $q, $v) => $q->where($dateColumn, '<=', $v))
+            ->when($dateColumn !== null && $from !== null,
+                fn (Builder $q) => $q->where($dateColumn, '>=', $from))
+            ->when($dateColumn !== null && $to !== null,
+                fn (Builder $q) => $q->where($dateColumn, '<=', $to))
             ->when($dateBasis === 'assigned' && ($from || $to),
                 fn (Builder $q) => $q->whereExists(fn ($assignment) => $assignment
                     ->selectRaw('1')
@@ -674,7 +769,7 @@ class Ticket extends Model
             // question the list could not answer before without opening rows.
             ->when($filters['label'] ?? null,
                 fn (Builder $q, $v) => $q->whereHas('labels', fn (Builder $l) => $l->where('labels.id', (int) $v)))
-            ->when($filters['module'] ?? null, fn (Builder $q, $v) => $q->where('module', $v))
+            ->when($filters['module'] ?? null, fn (Builder $q, $v) => $q->where('module', 'like', '%' . $v . '%'))
             ->when(in_array($filters['unassigned'] ?? null, ['yes', '1', 1, true], true),
                 fn (Builder $q) => $q->whereDoesntHave('roleAssignments'))
             ->when(in_array($filters['unassigned'] ?? null, ['no', '0', 0, false], true),

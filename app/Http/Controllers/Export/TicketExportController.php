@@ -29,7 +29,7 @@ class TicketExportController extends Controller
     {
         $this->authorize('viewAny', Ticket::class);
 
-        $filters = $request->only(Ticket::FILTER_KEYS);
+        $filters = Ticket::normalizeFilters($request->only(Ticket::FILTER_KEYS));
 
         $this->logExport($request, 'export.tickets', $filters);
 
