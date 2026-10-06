@@ -152,7 +152,9 @@ class DashboardService
     public function kpis(User $user, string $from, string $to): array
     {
         $open = TicketStatusDefinition::openKeys();
+        $settled = TicketStatusDefinition::settledKeys();
         $placeholders = implode(', ', array_fill(0, count($open), '?'));
+        $settledPlaceholders = implode(', ', array_fill(0, count($settled), '?'));
 
         $row = $this->visible($user)
             ->selectRaw("COUNT(CASE WHEN status IN ({$placeholders}) THEN 1 END) open", $open)
@@ -160,9 +162,10 @@ class DashboardService
             ->selectRaw('AVG(CASE WHEN resolved_at BETWEEN ? AND ? THEN TIMESTAMPDIFF(HOUR, reported_at, resolved_at) END) avg_resolution_hours', [$from, $to])
             ->selectRaw(
                 'COUNT(CASE WHEN sla_due_at IS NOT NULL AND reported_at BETWEEN ? AND ?'
-                . ' AND ((resolved_at IS NULL AND sla_due_at < ?) OR resolved_at > sla_due_at)'
+                . " AND ((status IN ({$placeholders}) AND sla_due_at < ?)"
+                . " OR (status IN ({$settledPlaceholders}) AND resolved_at IS NOT NULL AND resolved_at > sla_due_at))"
                 . ' THEN 1 END) sla_breaches_this_month',
-                [$from, $to, now()]
+                [$from, $to, ...$open, now(), ...$settled]
             )
             ->first();
 
@@ -304,10 +307,7 @@ class DashboardService
     private function breachesQuery(User $user, string $from, string $to): \Illuminate\Database\Eloquent\Builder
     {
         return $this->visible($user)
-            ->whereNotNull('sla_due_at')
             ->whereBetween('reported_at', [$from, $to])
-            ->where(fn ($q) => $q
-                ->where(fn ($w) => $w->whereNull('resolved_at')->where('sla_due_at', '<', now()))
-                ->orWhereColumn('resolved_at', '>', 'sla_due_at'));
+            ->slaBreached();
     }
 }

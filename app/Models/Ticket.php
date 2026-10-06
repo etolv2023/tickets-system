@@ -863,6 +863,21 @@ class Ticket extends Model
             ->orWhere(fn (Builder $r) => $r->whereNotIn('status', $open)->whereNull('resolved_at')));
     }
 
+    /** Tickets that missed their SLA, using status semantics from the DB. */
+    public function scopeSlaBreached(Builder $query): Builder
+    {
+        return $query
+            ->whereNotNull('sla_due_at')
+            ->where(fn (Builder $q) => $q
+                ->where(fn (Builder $open) => $open
+                    ->whereIn('status', TicketStatusDefinition::openKeys())
+                    ->where('sla_due_at', '<', now()))
+                ->orWhere(fn (Builder $settled) => $settled
+                    ->whereIn('status', TicketStatusDefinition::settledKeys())
+                    ->whereNotNull('resolved_at')
+                    ->whereColumn('resolved_at', '>', 'sla_due_at')));
+    }
+
     /**
      * The deadlines this ticket has missed, as the row marker reads them —
      * the same rule as scopeLate(), on a loaded row. 'sla', 'due', or both;

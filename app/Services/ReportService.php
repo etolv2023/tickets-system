@@ -97,6 +97,7 @@ class ReportService
 
         $reopened = DB::table('ticket_status_history')
             ->join('tickets', 'tickets.id', '=', 'ticket_status_history.ticket_id')
+            ->whereNull('tickets.deleted_at')
             ->where('ticket_status_history.to_status', 'reopened')
             ->whereBetween('ticket_status_history.created_at', [$from, $to])
             // Role-based assignment: the ticket has a role assignment for this
@@ -151,6 +152,7 @@ class ReportService
                 ->selectRaw(1)
                 ->from('tickets')
                 ->whereColumn('tickets.id', 'point_transactions.ticket_id')
+                ->whereNull('tickets.deleted_at')
                 ->where('tickets.type', $type))
         );
 
@@ -186,6 +188,7 @@ class ReportService
         // the user already chose. It stays the map that shows where they are.
         $byType = PointTransaction::query()
             ->join('tickets', 'tickets.id', '=', 'point_transactions.ticket_id')
+            ->whereNull('tickets.deleted_at')
             ->selectRaw('tickets.type, SUM(point_transactions.points) total, COUNT(*) awards')
             ->selectRaw('COUNT(DISTINCT tickets.id) tickets')
             ->forPeriod($period)
@@ -199,6 +202,7 @@ class ReportService
             // A manual correction may not reference a ticket at all (ticket_id
             // nullable since F18's rework); this table is about tickets.
             ->whereNotNull('ticket_id')
+            ->whereHas('ticket')
             ->forPeriod($period)
             ->groupBy('ticket_id')
             ->orderByDesc('total')
@@ -225,7 +229,7 @@ class ReportService
             'total' => (float) $byPerson->sum('total'),
             'people' => $byPerson->count(),
             'tickets' => (int) PointTransaction::query()->tap($ofType)->forPeriod($period)
-                ->whereNotNull('ticket_id')->distinct()->count('ticket_id'),
+                ->whereNotNull('ticket_id')->whereHas('ticket')->distinct()->count('ticket_id'),
             'correctionsTotal' => (float) ($corrections->total ?? 0),
             'correctionsCount' => (int) ($corrections->awards ?? 0),
             // Last month, so the headline number has something to mean.
@@ -286,6 +290,9 @@ class ReportService
         $grouped = PointTransaction::query()
             ->leftJoin('tickets', 'tickets.id', '=', 'point_transactions.ticket_id')
             ->join('users', 'users.id', '=', 'point_transactions.user_id')
+            ->where(fn ($query) => $query
+                ->whereNull('point_transactions.ticket_id')
+                ->orWhereNull('tickets.deleted_at'))
             ->forPeriod($period)
             ->groupBy('point_transactions.user_id', 'users.name', 'tickets.type')
             ->orderBy('users.name')
@@ -476,12 +483,8 @@ class ReportService
         return $this->constrain(Ticket::query(), $filters)
             ->select(['id', 'ticket_number', 'title', 'company_id', 'requested_by', 'priority', 'status', 'sla_due_at', 'resolved_at'])
             ->with('company:id,name', 'requester:id,name')
-            ->whereNotNull('sla_due_at')
             ->whereBetween('reported_at', [$from, $to])
-            ->where(fn ($q) => $q
-                // Either still open past its deadline, or resolved after it.
-                ->where(fn ($w) => $w->whereNull('resolved_at')->where('sla_due_at', '<', now()))
-                ->orWhereColumn('resolved_at', '>', 'sla_due_at'))
+            ->slaBreached()
             ->orderBy('sla_due_at')
             ->get();
     }
@@ -510,20 +513,36 @@ class ReportService
     /** F19.3 — estimated vs actual per person. */
     public function timeReport(string $from, string $to): Collection
     {
-        return DB::table('time_entries')
-            ->selectRaw('user_id, SUM(hours) logged, COUNT(DISTINCT ticket_id) tickets')
-            ->whereBetween('spent_on', [$from, $to])
-            ->groupBy('user_id')
-            ->orderByDesc('logged')
+        $time = DB::table('time_entries')
+            ->join('tickets', 'tickets.id', '=', 'time_entries.ticket_id')
+            ->selectRaw('time_entries.user_id, SUM(time_entries.hours) logged, COUNT(DISTINCT time_entries.ticket_id) tickets')
+            ->whereNull('tickets.deleted_at')
+            ->whereBetween('time_entries.spent_on', [$from, $to])
+            ->groupBy('time_entries.user_id');
+
+        $accuracy = DB::table('ticket_subtasks')
+            ->selectRaw('assignee_id AS user_id, AVG(estimated_hours / spent_hours) accuracy')
+            ->where('status', 'done')
+            ->whereNull('deleted_at')
+            ->whereNotNull('estimated_hours')
+            ->where('estimated_hours', '>', 0)
+            ->where('spent_hours', '>', 0)
+            ->groupBy('assignee_id');
+
+        return User::query()
+            ->without('role')
+            ->joinSub($time, 'time_report', 'time_report.user_id', '=', 'users.id')
+            ->leftJoinSub($accuracy, 'estimate_accuracy', 'estimate_accuracy.user_id', '=', 'users.id')
+            ->select('users.*', 'time_report.logged', 'time_report.tickets', 'estimate_accuracy.accuracy')
+            ->orderByDesc('time_report.logged')
             ->get()
-            ->map(function ($row) {
-                $user = User::without('role')->find($row->user_id);
+            ->map(function (User $user) {
 
                 return (object) [
                     'user' => $user,
-                    'logged' => (float) $row->logged,
-                    'tickets' => $row->tickets,
-                    'accuracy' => $user ? $this->estimateAccuracy($user) : null,
+                    'logged' => (float) $user->logged,
+                    'tickets' => (int) $user->tickets,
+                    'accuracy' => $user->accuracy === null ? null : round((float) $user->accuracy, 2),
                 ];
             });
     }
@@ -620,18 +639,21 @@ class ReportService
         $counts = match ($relation) {
             'created' => DB::table('tickets')
                 ->selectRaw('created_by AS user_id, type, COUNT(*) n')
+                ->whereNull('deleted_at')
                 ->whereIn('id', $ids)
                 ->groupBy('created_by', 'type'),
             'subtask' => DB::table('ticket_subtasks AS s')
                 ->join('tickets', 'tickets.id', '=', 's.ticket_id')
                 ->selectRaw('s.assignee_id AS user_id, tickets.type, COUNT(DISTINCT tickets.id) n')
                 ->whereNull('s.deleted_at')
+                ->whereNull('tickets.deleted_at')
                 ->whereNotNull('s.assignee_id')
                 ->whereIn('tickets.id', $ids)
                 ->groupBy('s.assignee_id', 'tickets.type'),
             default => DB::table('ticket_role_assignments AS tra')
                 ->join('tickets', 'tickets.id', '=', 'tra.ticket_id')
                 ->selectRaw('tra.user_id, tickets.type, COUNT(DISTINCT tickets.id) n')
+                ->whereNull('tickets.deleted_at')
                 ->whereIn('tickets.id', $ids)
                 ->groupBy('tra.user_id', 'tickets.type'),
         };
