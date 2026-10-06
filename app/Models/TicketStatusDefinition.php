@@ -17,6 +17,12 @@ class TicketStatusDefinition extends Model
 
     public const CACHE_KEY = 'ticket_statuses.map';
 
+    private const OPEN_KEYS_CACHE_KEY = 'ticket_statuses.open_keys';
+
+    private const SETTLED_KEYS_CACHE_KEY = 'ticket_statuses.settled_keys';
+
+    private const RESOLVED_KEYS_CACHE_KEY = 'ticket_statuses.resolved_keys';
+
     /**
      * The palette a status colour may come from — the same semantic tokens
      * Label::COLORS already uses. No free colour (CLAUDE.md § 6).
@@ -34,6 +40,9 @@ class TicketStatusDefinition extends Model
     {
         $bust = function () {
             Cache::forget(self::CACHE_KEY);
+            Cache::forget(self::OPEN_KEYS_CACHE_KEY);
+            Cache::forget(self::SETTLED_KEYS_CACHE_KEY);
+            Cache::forget(self::RESOLVED_KEYS_CACHE_KEY);
             // A deleted status cascades to delete its transitions too (FK
             // cascadeOnDelete) — that cached graph would otherwise still list
             // a status that no longer exists.
@@ -91,5 +100,32 @@ class TicketStatusDefinition extends Model
     public static function options(): array
     {
         return array_map(fn (self $s) => $s->name_ar, static::map());
+    }
+
+    /** @return array<int, string> */
+    public static function openKeys(): array
+    {
+        return Cache::rememberForever(
+            self::OPEN_KEYS_CACHE_KEY,
+            fn () => static::where('is_open', true)->orderBy('position')->pluck('key')->all()
+        );
+    }
+
+    /** @return array<int, string> */
+    public static function settledKeys(): array
+    {
+        return Cache::rememberForever(
+            self::SETTLED_KEYS_CACHE_KEY,
+            fn () => static::where('is_open', false)->orderBy('position')->pluck('key')->all()
+        );
+    }
+
+    /** @return array<int, string> */
+    public static function resolvedKeys(): array
+    {
+        return Cache::rememberForever(self::RESOLVED_KEYS_CACHE_KEY, function () {
+            // Rejected is settled, but it was never resolved.
+            return array_values(array_diff(static::settledKeys(), ['rejected']));
+        });
     }
 }

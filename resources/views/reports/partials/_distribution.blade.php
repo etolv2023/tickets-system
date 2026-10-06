@@ -1,9 +1,3 @@
-@php
-    // A table, not a pie chart — § 6 rules charts out, and five numbers read
-    // faster in a column than in a donut anyway.
-    $byType = $distribution->groupBy('type');
-@endphp
-
 <x-card title="توزيع التذاكر" flush>
     <div class="table-wrap">
         <table class="table">
@@ -16,17 +10,12 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse ($byType as $type => $rows)
-                    @php
-                        $enum = \App\Casts\TicketTypeValue::for($type);
-                        $total = $rows->sum('n');
-                        $done = $rows->whereIn('status', ['resolved', 'closed'])->sum('n');
-                    @endphp
+                @forelse ($distribution as $row)
                     <tr>
-                        <td><x-badge :variant="$enum->variant()">{{ $enum->label() }}</x-badge></td>
-                        <td class="table__cell--num">{{ $total }}</td>
-                        <td class="table__cell--num">{{ $done }}</td>
-                        <td class="table__cell--num">{{ $total - $done }}</td>
+                        <td><x-badge :variant="$row->type->variant()">{{ $row->type->label() }}</x-badge></td>
+                        <td class="table__cell--num">{{ $row->total }}</td>
+                        <td class="table__cell--num">{{ $row->done }}</td>
+                        <td class="table__cell--num">{{ $row->open }}</td>
                     </tr>
                 @empty
                     <tr class="table__empty"><td colspan="4">مفيش تذاكر في الفترة دي.</td></tr>

@@ -496,7 +496,7 @@ class Ticket extends Model
         return $query->where(function (Builder $q) use ($resolvedBetween) {
             $q->whereIn('status', ['assigned', 'reopened', 'in_progress', 'dev_done', 'testing'])
                 ->orWhere(fn (Builder $w) => $w
-                    ->whereIn('status', ['resolved', 'closed'])
+                    ->whereIn('status', TicketStatusDefinition::resolvedKeys())
                     ->whereBetween('resolved_at', $resolvedBetween));
         });
     }
@@ -600,9 +600,9 @@ class Ticket extends Model
             // "open" and "resolved" are groupings a human thinks in; the rest
             // are the raw states.
             ->when(($filters['status'] ?? null) === 'open',
-                fn (Builder $q) => $q->whereNotIn('status', ['resolved', 'closed', 'rejected']))
+                fn (Builder $q) => $q->whereIn('status', TicketStatusDefinition::openKeys()))
             ->when(($filters['status'] ?? null) === 'resolved',
-                fn (Builder $q) => $q->whereIn('status', ['resolved', 'closed']))
+                fn (Builder $q) => $q->whereIn('status', TicketStatusDefinition::resolvedKeys()))
             ->when(
                 ($filters['status'] ?? null) && ! in_array($filters['status'], ['open', 'resolved'], true),
                 fn (Builder $q) => $q->where('status', $filters['status'])

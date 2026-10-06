@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Casts\TicketTypeValue;
 use App\Models\ActivityLog;
 use App\Models\Ticket;
+use App\Models\TicketStatusDefinition;
 use App\Models\TicketSubtask;
 use App\Models\User;
 use Illuminate\Support\Collection;
@@ -80,7 +81,7 @@ class DashboardService
             ->visibleTo($user)
             ->whereNotNull('sla_due_at')
             ->where('sla_due_at', '<', now())
-            ->whereNotIn('status', ['resolved', 'closed', 'rejected']);
+            ->whereIn('status', TicketStatusDefinition::openKeys());
     }
 
     public function onFire($user)
@@ -121,12 +122,12 @@ class DashboardService
     {
         return Ticket::query()
             ->assignedTo($userId)
-            ->whereNotIn('status', ['resolved', 'closed', 'rejected'])
+            ->whereIn('status', TicketStatusDefinition::openKeys())
             // Only if it actually blocks something that is itself still open —
             // blocking a closed ticket holds nobody up.
             ->whereHas('outgoingLinks', fn ($q) => $q
                 ->where('type', 'blocks')
-                ->whereHas('toTicket', fn ($t) => $t->whereNotIn('status', ['resolved', 'closed', 'rejected'])));
+                ->whereHas('toTicket', fn ($t) => $t->whereIn('status', TicketStatusDefinition::openKeys())));
     }
 
     public function blockingOthers(int $userId)
@@ -150,8 +151,11 @@ class DashboardService
      */
     public function kpis(User $user, string $from, string $to): array
     {
+        $open = TicketStatusDefinition::openKeys();
+        $placeholders = implode(', ', array_fill(0, count($open), '?'));
+
         $row = $this->visible($user)
-            ->selectRaw("COUNT(CASE WHEN status NOT IN ('resolved', 'closed', 'rejected') THEN 1 END) open")
+            ->selectRaw("COUNT(CASE WHEN status IN ({$placeholders}) THEN 1 END) open", $open)
             ->selectRaw('COUNT(CASE WHEN resolved_at BETWEEN ? AND ? THEN 1 END) resolved_this_month', [$from, $to])
             ->selectRaw('AVG(CASE WHEN resolved_at BETWEEN ? AND ? THEN TIMESTAMPDIFF(HOUR, reported_at, resolved_at) END) avg_resolution_hours', [$from, $to])
             ->selectRaw(
@@ -191,13 +195,14 @@ class DashboardService
             ->groupBy('type')
             ->map(function (Collection $rows, string $type) {
                 $total = (int) $rows->sum('n');
-                $done = (int) $rows->whereIn('status', ['resolved', 'closed'])->sum('n');
+                $done = (int) $rows->whereIn('status', TicketStatusDefinition::resolvedKeys())->sum('n');
+                $open = (int) $rows->whereIn('status', TicketStatusDefinition::openKeys())->sum('n');
 
                 return (object) [
                     'type' => TicketTypeValue::for($type),
                     'total' => $total,
                     'done' => $done,
-                    'open' => $total - $done,
+                    'open' => $open,
                     'pct' => $total > 0 ? (int) round($done / $total * 100) : 0,
                 ];
             })

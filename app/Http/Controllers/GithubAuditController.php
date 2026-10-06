@@ -43,9 +43,6 @@ use Illuminate\View\View;
  */
 class GithubAuditController extends Controller
 {
-    /** Closed-enough to expect code behind it. The default view. */
-    private const SETTLED = ['resolved', 'closed'];
-
     /** The status filter value that means "do not narrow by status at all". */
     private const STATUS_ALL = 'all';
 
@@ -186,9 +183,9 @@ class GithubAuditController extends Controller
     private function applyStatus(Builder $query, ?string $status): void
     {
         match (true) {
-            blank($status) => $query->whereIn('status', self::SETTLED),
+            blank($status) => $query->whereIn('status', TicketStatusDefinition::resolvedKeys()),
             $status === self::STATUS_ALL => null,
-            $status === 'open' => $query->whereNotIn('status', ['resolved', 'closed', 'rejected']),
+            $status === 'open' => $query->whereIn('status', TicketStatusDefinition::openKeys()),
             default => $query->where('status', $status),
         };
     }

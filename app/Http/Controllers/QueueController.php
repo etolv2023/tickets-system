@@ -15,9 +15,6 @@ use Illuminate\View\View;
 /** The work queues: approvals (F15), testing (F16) and ready-to-close (F30). */
 class QueueController extends Controller
 {
-    /** Statuses that mean the ticket is done with — it cannot be "ready" to close. */
-    private const SETTLED = ['resolved', 'closed', 'rejected'];
-
     /** F15 — features waiting on an admin's decision. */
     public function approvals(Request $request): View
     {
@@ -89,7 +86,7 @@ class QueueController extends Controller
             ->visibleTo($request->user())
             ->where('subtasks_total', '>', 0)
             ->whereColumn('subtasks_done', '>=', 'subtasks_total')
-            ->whereNotIn('status', self::SETTLED)
+            ->whereNotIn('status', TicketStatusDefinition::settledKeys())
             ->filter($filters)
             ->defaultOrder()
             ->paginate(25)
@@ -101,7 +98,7 @@ class QueueController extends Controller
             // Only the statuses a ticket in this queue can be in. Offering
             // «تم الحل» on a queue defined as "not resolved" is a filter whose
             // only possible answer is an empty list.
-            'statuses' => Arr::except(TicketStatusDefinition::options(), self::SETTLED),
+            'statuses' => Arr::except(TicketStatusDefinition::options(), TicketStatusDefinition::settledKeys()),
             'types' => TicketTypeDefinition::options(),
             'priorities' => PriorityDefinition::options(),
             'selectedCompany' => filled($filters['company'] ?? null)

@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Casts\TicketTypeValue;
 use App\Models\PointTransaction;
 use App\Models\Rating;
 use App\Models\Ticket;
+use App\Models\TicketStatusDefinition;
 use App\Models\TicketTypeDefinition;
 use App\Models\TimeEntry;
 use App\Models\User;
@@ -406,7 +408,21 @@ class ReportService
             ->selectRaw('type, status, COUNT(*) n')
             ->whereBetween('reported_at', [$from, $to])
             ->groupBy('type', 'status')
-            ->get();
+            ->get()
+            ->groupBy('type')
+            ->map(function (Collection $rows, string $type) {
+                $total = (int) $rows->sum('n');
+                $done = (int) $rows->whereIn('status', TicketStatusDefinition::resolvedKeys())->sum('n');
+                $open = (int) $rows->whereIn('status', TicketStatusDefinition::openKeys())->sum('n');
+
+                return (object) [
+                    'type' => TicketTypeValue::for($type),
+                    'total' => $total,
+                    'done' => $done,
+                    'open' => $open,
+                ];
+            })
+            ->values();
     }
 
     /**
@@ -416,9 +432,12 @@ class ReportService
      */
     public function companyPerformance(string $from, string $to, array $filters = []): Collection
     {
+        $resolved = TicketStatusDefinition::resolvedKeys();
+        $placeholders = implode(', ', array_fill(0, count($resolved), '?'));
+
         return $this->constrain(Ticket::query(), $filters)
             ->selectRaw('company_id, COUNT(*) total')
-            ->selectRaw("SUM(status IN ('resolved','closed')) resolved")
+            ->selectRaw("SUM(status IN ({$placeholders})) resolved", $resolved)
             ->selectRaw('AVG(CASE WHEN resolved_at IS NOT NULL THEN TIMESTAMPDIFF(HOUR, reported_at, resolved_at) END) avg_hours')
             ->whereBetween('reported_at', [$from, $to])
             ->groupBy('company_id')
@@ -479,7 +498,7 @@ class ReportService
             ->select(['id', 'name', 'avatar_path', 'is_active'])
             ->without('role')
             ->withCount(['assignedTickets as open_load' => fn ($q) => $q
-                ->whereNotIn('status', ['resolved', 'closed', 'rejected'])])
+                ->whereIn('status', TicketStatusDefinition::openKeys())])
             ->active()
             ->get()
             ->filter(fn ($u) => $u->open_load > 0)

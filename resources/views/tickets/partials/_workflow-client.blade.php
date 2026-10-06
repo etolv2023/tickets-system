@@ -1,6 +1,6 @@
 {{-- F06: telling the customer, then closing. The order is enforced. --}}
 @canany(['notifyClient', 'close'])
-    @if (in_array($ticket->status->value, ['resolved', 'closed'], true))
+    @if (in_array($ticket->status->value, \App\Models\TicketStatusDefinition::resolvedKeys(), true))
         {{-- name= is not optional here: the fold key is md5(title), and this shared
              one with the facts card that used to be called "العميل" too, so
              folding either folded both. --}}

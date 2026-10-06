@@ -233,7 +233,7 @@ class TicketSubtask extends Model
      * way UserDeletionService and DiscordNotificationService ask it. That flag is
      * literally defined as "still owed to the customer", so a dead-end status an
      * admin invents at /admin/ticket-statuses is covered without a code change —
-     * which a list of ['resolved','closed','rejected'] would not be.
+     * which a hardcoded list of settled keys would not be.
      */
     public function scopeOnLiveTicket(Builder $query): Builder
     {

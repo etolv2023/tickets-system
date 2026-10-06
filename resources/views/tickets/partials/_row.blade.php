@@ -14,7 +14,7 @@
              wall of warnings that stops meaning
              anything. --}}
         @can('github.view')
-            @if ($ticket->branches_count === 0 && in_array($ticket->status->value, ['resolved', 'closed'], true))
+            @if ($ticket->branches_count === 0 && in_array($ticket->status->value, \App\Models\TicketStatusDefinition::resolvedKeys(), true))
                 <x-badge variant="amber" class="badge--sm">ملهاش برانش</x-badge>
             @endif
         @endcan

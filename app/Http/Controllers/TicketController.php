@@ -356,7 +356,7 @@ class TicketController extends Controller
             // ★ (2026-08-04) only for a ticket that can actually show them.
             // show.blade.php renders the panel for resolved/closed only, so on
             // every open ticket this was a query whose result went nowhere.
-            'ratings' => in_array($ticket->status->value, ['resolved', 'closed'], true)
+            'ratings' => in_array($ticket->status->value, TicketStatusDefinition::resolvedKeys(), true)
                 && (auth()->user()->hasPermission('ratings.give')
                     || auth()->user()->hasPermission('ratings.view.all'))
                 ? $ticket->ratings()->get()

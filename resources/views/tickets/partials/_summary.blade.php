@@ -74,7 +74,7 @@
             <span class="ticket-summary__value">
                 @if ($ticket->branches_count > 0)
                     <span class="u-mono">{{ $ticket->branches_count }}</span> برانش
-                @elseif (in_array($ticket->status->value, ['resolved', 'closed'], true))
+                @elseif (in_array($ticket->status->value, \App\Models\TicketStatusDefinition::resolvedKeys(), true))
                     <x-badge variant="amber">ملهاش برانش</x-badge>
                 @else
                     <span class="u-subtle">لسه مفيش برانش</span>

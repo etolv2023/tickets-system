@@ -3,7 +3,6 @@
 namespace App\Exports;
 
 use App\Casts\PriorityValue;
-use App\Casts\TicketTypeValue;
 use App\Exports\Concerns\CachesSheets;
 use App\Exports\Sheets\ArraySheet;
 use App\Services\ReportService;
@@ -52,12 +51,9 @@ class ReportsExport implements WithMultipleSheets
         return new ArraySheet(
             'توزيع التذاكر',
             ['النوع', 'الإجمالي', 'محلولة', 'مفتوحة'],
-            collect($rows)->groupBy('type')->map(function ($group, $type) {
-                $total = $group->sum('n');
-                $done = $group->whereIn('status', ['resolved', 'closed'])->sum('n');
-
-                return [TicketTypeValue::for($type)->label(), $total, $done, $total - $done];
-            })->values()->all(),
+            collect($rows)->map(fn ($row) => [
+                $row->type->label(), $row->total, $row->done, $row->open,
+            ])->all(),
         );
     }
 

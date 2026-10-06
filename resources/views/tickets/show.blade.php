@@ -122,7 +122,7 @@
             <aside class="ticket__side">
                 @include('tickets.partials._workflow')
                 @include('tickets.partials._facts')
-                @if (in_array($ticket->status->value, ['resolved', 'closed'], true))
+                @if (in_array($ticket->status->value, \App\Models\TicketStatusDefinition::resolvedKeys(), true))
                     @include('tickets.partials._ratings')
                 @endif
                 @include('tickets.partials._labels')

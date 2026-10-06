@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Holiday;
 use App\Models\Setting;
 use App\Models\Ticket;
+use App\Models\TicketStatusDefinition;
 use App\Models\TicketSubtask;
 use App\Models\User;
 use App\Models\UserLeave;
@@ -105,7 +106,7 @@ class CalendarService
             ->with('company:id,name', 'requester:id,name')
             ->whereNotNull('sla_due_at')
             ->whereBetween('sla_due_at', [$from->startOfDay(), $to->endOfDay()])
-            ->whereNotIn('status', ['resolved', 'closed', 'rejected'])
+            ->whereIn('status', TicketStatusDefinition::openKeys())
             ->when($filters['type'] ?? null, fn ($q, $v) => $q->where('type', $v))
             ->when($filters['priority'] ?? null, fn ($q, $v) => $q->where('priority', $v))
             ->when($filters['company'] ?? null, fn ($q, $v) => $q->where('company_id', $v))
