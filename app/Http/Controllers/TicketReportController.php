@@ -44,7 +44,7 @@ class TicketReportController extends Controller
     public function aging(Request $request)
     {
         abort_unless($request->user()->hasPermission('reports.view'), 403);
-        ['date_basis' => $basis, 'from' => $from, 'to' => $to, 'filters' => $filters] = $this->reports->parameters($request->query());
+        ['date_basis' => $basis, 'from' => $from, 'to' => $to, 'filters' => $filters] = $this->reports->parameters($request->query(), 'reported_at');
         $report = $this->reports->agingReport($basis, $from, $to, $filters);
 
         return view('reports.aging', $this->data($request, $basis, $from, $to, $filters) + compact('report'));
@@ -53,7 +53,7 @@ class TicketReportController extends Controller
     public function deadline(Request $request)
     {
         abort_unless($request->user()->hasPermission('reports.view'), 403);
-        ['date_basis' => $basis, 'from' => $from, 'to' => $to, 'filters' => $filters] = $this->reports->parameters($request->query());
+        ['date_basis' => $basis, 'from' => $from, 'to' => $to, 'filters' => $filters] = $this->reports->parameters($request->query(), 'reported_at');
         $report = $this->reports->deadlineReport($basis, $from, $to, $filters);
 
         return view('reports.deadline', $this->data($request, $basis, $from, $to, $filters) + compact('report'));

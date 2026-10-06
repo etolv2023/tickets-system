@@ -55,7 +55,7 @@ class TicketReportExportController extends Controller
     public function aging(Request $request): BinaryFileResponse
     {
         abort_unless($request->user()->hasPermission('reports.view'), 403);
-        $parameters = $this->reports->parameters($request->query());
+        $parameters = $this->reports->parameters($request->query(), 'reported_at');
         $report = $this->reports->agingReport($parameters['date_basis'], $parameters['from'], $parameters['to'], $parameters['filters']);
         $this->logExport($request, 'export.aging', $this->context($parameters));
 
@@ -65,7 +65,7 @@ class TicketReportExportController extends Controller
     public function deadline(Request $request): BinaryFileResponse
     {
         abort_unless($request->user()->hasPermission('reports.view'), 403);
-        $parameters = $this->reports->parameters($request->query());
+        $parameters = $this->reports->parameters($request->query(), 'reported_at');
         $report = $this->reports->deadlineReport($parameters['date_basis'], $parameters['from'], $parameters['to'], $parameters['filters']);
         $this->logExport($request, 'export.deadline', $this->context($parameters));
 

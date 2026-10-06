@@ -117,6 +117,13 @@
     margin-block-start: var(--space-3);
 }
 
+/* The compact multi-select opens outside the fold's body. This one fold must
+   not clip overlays at its border; other collapsible sections keep their
+   default overflow rule. */
+.filters__advanced-section.fold {
+    overflow: visible;
+}
+
 .filters__advanced {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));

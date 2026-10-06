@@ -21,11 +21,11 @@ use Illuminate\Support\Facades\DB;
 class TicketReportService
 {
     /** Resolve the query string exactly once for report screens and exports. */
-    public function parameters(array $query): array
+    public function parameters(array $query, string $defaultBasis = 'resolved_at'): array
     {
         $basis = array_key_exists($query['date_basis'] ?? '', Ticket::DATE_BASES)
             ? $query['date_basis']
-            : 'resolved_at';
+            : $defaultBasis;
         $month = CarbonImmutable::now(config('app.display_timezone'))->format('Y-m');
         [$start, $end] = DateBounds::month($month);
         $timezone = config('app.display_timezone');
