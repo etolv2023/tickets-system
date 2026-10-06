@@ -10,6 +10,7 @@ use App\Models\TicketStatusDefinition;
 use App\Models\TicketTypeDefinition;
 use App\Models\TimeEntry;
 use App\Models\User;
+use App\Support\DateBounds;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -714,12 +715,14 @@ class ReportService
             : \Carbon\CarbonImmutable::now()->format('Y-m');
     }
 
-    /** @return array{0: string, 1: string} */
+    /**
+     * UTC bounds of the display-timezone month — see DateBounds::month().
+     *
+     * @return array{0: string, 1: string}
+     */
     public function periodBounds(string $period): array
     {
-        $start = \Carbon\CarbonImmutable::createFromFormat('Y-m-d H:i:s', $period . '-01 00:00:00');
-
-        return [$start->toDateTimeString(), $start->endOfMonth()->toDateTimeString()];
+        return DateBounds::month($period);
     }
 
     private function avgResolutionHours(User $user, string $from, string $to): ?float

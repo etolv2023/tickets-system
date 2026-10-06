@@ -12,6 +12,7 @@ use App\Models\TicketSubtask;
 use App\Models\TicketTypeDefinition;
 use App\Models\User;
 use App\Services\ReportService;
+use App\Support\DateBounds;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -128,6 +129,7 @@ class ReportController extends Controller
         abort_unless($request->user()->hasPermission('points.view.all'), 403);
 
         $filters = $request->only(['person', 'period', 'from', 'to', 'role', 'type', 'kind', 'company', 'q']);
+        [$from, $to] = DateBounds::range($filters['from'] ?? null, $filters['to'] ?? null);
 
         $rows = PointTransaction::query()
             ->with([
@@ -143,8 +145,8 @@ class ReportController extends Controller
             ])
             ->when($filters['person'] ?? null, fn ($q, $v) => $q->where('user_id', $v))
             ->when($filters['period'] ?? null, fn ($q, $v) => $q->forPeriod($v))
-            ->when($filters['from'] ?? null, fn ($q, $v) => $q->whereDate('created_at', '>=', $v))
-            ->when($filters['to'] ?? null, fn ($q, $v) => $q->whereDate('created_at', '<=', $v))
+            ->when($from, fn ($q, $v) => $q->where('created_at', '>=', $v))
+            ->when($to, fn ($q, $v) => $q->where('created_at', '<=', $v))
             ->when($filters['role'] ?? null, fn ($q, $v) => $q->where('role_id', $v))
             ->when($filters['kind'] ?? null, fn ($q, $v) => $q->where('type', $v))
             ->when($filters['type'] ?? null, fn ($q, $v) => $q->whereHas('ticket', fn ($t) => $t->where('type', $v)))

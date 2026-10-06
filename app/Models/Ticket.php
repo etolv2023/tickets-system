@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Casts\PriorityCast;
 use App\Casts\TicketStatusCast;
 use App\Casts\TicketTypeCast;
+use App\Support\DateBounds;
 use Carbon\CarbonInterval;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -596,6 +597,12 @@ class Ticket extends Model
             ? $filters['date_basis']
             : 'reported_at';
 
+        // Raw column against bounds, never DATE(column), so the index stays
+        // usable. due_date is a DATE — a calendar day already, no timezone.
+        [$from, $to] = $dateBasis === 'due_date'
+            ? [DateBounds::day($filters['from'] ?? null), DateBounds::day($filters['to'] ?? null)]
+            : DateBounds::range($filters['from'] ?? null, $filters['to'] ?? null);
+
         return $query
             // "open" and "resolved" are groupings a human thinks in; the rest
             // are the raw states.
@@ -619,8 +626,8 @@ class Ticket extends Model
             // page, where the branches themselves are listed.
             ->when(($filters['branch'] ?? null) === 'none', fn (Builder $q) => $q->where('branches_count', 0))
             ->when(($filters['branch'] ?? null) === 'has', fn (Builder $q) => $q->where('branches_count', '>', 0))
-            ->when($filters['from'] ?? null, fn (Builder $q, $v) => $q->whereDate($dateBasis, '>=', $v))
-            ->when($filters['to'] ?? null, fn (Builder $q, $v) => $q->whereDate($dateBasis, '<=', $v))
+            ->when($from, fn (Builder $q, $v) => $q->where($dateBasis, '>=', $v))
+            ->when($to, fn (Builder $q, $v) => $q->where($dateBasis, '<=', $v))
             // ★ (2026-10-05) The second row of the filter bar. Each one is a
             // question the list could not answer before without opening rows.
             ->when($filters['label'] ?? null,

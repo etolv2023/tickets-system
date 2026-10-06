@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Casts\SubtaskStatusCast;
 use App\Enums\SubtaskSide;
+use App\Support\DateBounds;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -263,12 +264,19 @@ class TicketSubtask extends Model
             ? $filters['date_basis']
             : 'start_date';
 
+        // Raw column against bounds, never DATE(column), so the index stays
+        // usable. Only completed_at is a timestamp; the other two are DATE
+        // columns — calendar days already, no timezone.
+        [$from, $to] = $dateBasis === 'completed_at'
+            ? DateBounds::range($filters['from'] ?? null, $filters['to'] ?? null)
+            : [DateBounds::day($filters['from'] ?? null), DateBounds::day($filters['to'] ?? null)];
+
         return $query
             ->when($filters['person'] ?? null, fn (Builder $q, $v) => $q->where('assignee_id', $v))
             ->when($filters['role'] ?? null, fn (Builder $q, $v) => $q->where('role_id', $v))
             ->when($filters['status'] ?? null, fn (Builder $q, $v) => $q->where('status', $v))
-            ->when($filters['from'] ?? null, fn (Builder $q, $v) => $q->whereDate($dateBasis, '>=', $v))
-            ->when($filters['to'] ?? null, fn (Builder $q, $v) => $q->whereDate($dateBasis, '<=', $v))
+            ->when($from, fn (Builder $q, $v) => $q->where($dateBasis, '>=', $v))
+            ->when($to, fn (Builder $q, $v) => $q->where($dateBasis, '<=', $v))
             ->when($filters['type'] ?? null, fn (Builder $q, $v) => $q->whereHas('ticket', fn (Builder $t) => $t->where('type', $v)))
             ->when($filters['company'] ?? null, fn (Builder $q, $v) => $q->whereHas('ticket', fn (Builder $t) => $t->where('company_id', $v)))
             // ★ (2026-10-05) The same rule isOverdue() reads on a row: not
@@ -296,6 +304,6 @@ class TicketSubtask extends Model
     /** Due today or already late — the "what's on my plate" question. F22.1 */
     public function scopeDueOrOverdue(Builder $query): Builder
     {
-        return $query->open()->whereNotNull('due_date')->whereDate('due_date', '<=', today());
+        return $query->open()->whereNotNull('due_date')->where('due_date', '<=', today()->toDateString());
     }
 }
