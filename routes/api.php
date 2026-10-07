@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\ExceptionWebhookController;
+use App\Http\Controllers\Api\TicketLookupController;
+use App\Http\Middleware\VerifyIntegrationSignature;
 use App\Http\Middleware\VerifyWebhookSignature;
 use Illuminate\Support\Facades\Route;
 
@@ -32,3 +34,13 @@ Route::post('webhooks/exceptions', ExceptionWebhookController::class)
         'throttle:120,1',
     ])
     ->name('api.webhooks.exceptions');
+
+// Read-only ticket lookup for other internal tools (F31). Signed like the
+// webhook above, but the signature covers the full request URI so the query
+// string (search term) cannot be swapped on a captured request.
+Route::prefix('integrations')
+    ->middleware([VerifyIntegrationSignature::class, 'throttle:60,1'])
+    ->group(function () {
+        Route::get('tickets', [TicketLookupController::class, 'index'])->name('api.integrations.tickets.index');
+        Route::get('tickets/{ticket_number}', [TicketLookupController::class, 'show'])->name('api.integrations.tickets.show');
+    });

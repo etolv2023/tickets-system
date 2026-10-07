@@ -97,4 +97,23 @@ return [
         'assign_role' => env('EXCEPTION_ASSIGN_ROLE', 'backend'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Read-only integrations (F31)
+    |--------------------------------------------------------------------------
+    |
+    | Other internal tools that need to LOOK UP tickets (search by number or
+    | title, open one by number). Read-only: nothing here can create or change
+    | a ticket. Empty secret = endpoint closed (503), never unauthenticated.
+    |
+    */
+
+    'integrations' => [
+        'neo4j_dash' => [
+            // MUST equal TICKETS_API_SECRET on the Neo4j Dash server.
+            'secret' => env('TICKETS_NEO4J_DASH_SECRET', ''),
+            'max_skew_seconds' => (int) env('TICKETS_NEO4J_DASH_MAX_SKEW', 300),
+        ],
+    ],
+
 ];
