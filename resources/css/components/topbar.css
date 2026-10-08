@@ -69,15 +69,19 @@
 }
 
 .topbar__search {
-    position: relative;
-    display: flex;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
+    gap: var(--space-2);
     width: min(22rem, 28vw);
+    padding-inline: var(--space-3) var(--space-2);
+    background-color: var(--field-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    transition: background-color var(--transition), border-color var(--transition), box-shadow var(--transition);
 }
 
 .topbar__search-icon {
-    position: absolute;
-    inset-inline-start: var(--space-3);
     color: var(--text-subtle);
     pointer-events: none;
 }
@@ -87,16 +91,12 @@
    answers in the interaction hue, because a focused control is the definition
    of interactive. */
 .topbar__search input {
+    min-width: 0;
     width: 100%;
     padding-block: var(--space-2);
-    padding-inline-start: calc(var(--space-6) + var(--space-1));
-    /* The shortcut badge is wider than the old reserved space (especially at
-       Safari's font metrics). Reserve its full footprint so an RTL placeholder
-       can never run underneath it. */
-    padding-inline-end: 4.75rem;
-    background-color: var(--field-bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    padding-inline: 0;
+    background: transparent;
+    border: 0;
     color: var(--text);
     font-family: inherit;
     font-size: var(--text-sm);
@@ -104,8 +104,7 @@
 }
 
 .topbar__search-key {
-    position: absolute;
-    inset-inline-end: var(--space-2);
+    position: static;
     padding-block: var(--space-1);
     padding-inline: var(--space-2);
     border: 1px solid var(--border);
@@ -125,15 +124,20 @@
     color: var(--action);
 }
 
+.topbar__search:focus-within {
+    background-color: var(--field-bg-focus);
+    border-color: var(--action);
+    box-shadow: 0 0 0 3px var(--action-bg), var(--shadow-xs);
+}
+
 .topbar__search input::placeholder {
     color: var(--text-subtle);
 }
 
 .topbar__search input:focus {
     outline: none;
-    border-color: var(--action);
-    box-shadow: 0 0 0 3px var(--action-bg), var(--shadow-xs);
-    background-color: var(--field-bg-focus);
+    box-shadow: none;
+    background: transparent;
 }
 
 /* Clear the browser's native search affordances — they break the RTL padding. */
