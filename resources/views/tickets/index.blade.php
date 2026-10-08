@@ -3,7 +3,8 @@
 @section('title', 'التذاكر')
 
 @section('content')
-    <div class="page page--wide">
+    <div class="page page--wide"
+         x-data="tableColumns({ storageKey: 'tickets.index.columns', defaults: ['priority', 'status', 'assignees', 'deadline'] })">
         @if (session('status'))
             <x-alert variant="success">{{ session('status') }}</x-alert>
         @endif
@@ -46,12 +47,12 @@
                         <thead>
                             <tr>
                                 <th>التذكرة</th>
-                                <th>الأولوية</th>
-                                <th>الحالة</th>
-                                <th>المسؤولين</th>
-                                <th>أنشأها</th>
-                                <th>{{ \App\Models\Ticket::DATE_BASES[$dateBasis] }}</th>
-                                <th>الموعد والعمر</th>
+                                <th x-show="isVisible('priority')">الأولوية</th>
+                                <th x-show="isVisible('status')">الحالة</th>
+                                <th x-show="isVisible('assignees')">المسؤولين</th>
+                                <th x-show="isVisible('creator')">أنشأها</th>
+                                <th x-show="isVisible('date')">{{ \App\Models\Ticket::DATE_BASES[$dateBasis] }}</th>
+                                <th x-show="isVisible('deadline')">الموعد والعمر</th>
                             </tr>
                         </thead>
                         <tbody>

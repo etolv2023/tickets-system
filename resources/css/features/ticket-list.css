@@ -4,6 +4,13 @@
     position: relative;
 }
 
+/* This row already contains identity, title and metadata. The generic table
+   spacing made those three compact lines look like a tall card and left large
+   empty bands in the short columns. */
+.tickets__row > td {
+    padding-block: var(--space-3);
+}
+
 /* The tickets index itself no longer stripes its rows — it carries a priority
    BADGE column instead, per the approved design. This rule stays because the
    testing queue and the report tables still render a stripe cell, and they
@@ -28,7 +35,8 @@
 }
 
 .tickets__main-cell {
-    min-inline-size: 24rem;
+    inline-size: 100%;
+    min-inline-size: 28rem;
 }
 
 .tickets__identity,
@@ -57,7 +65,7 @@
 
 .tickets__title {
     display: block;
-    max-width: 48rem;
+    max-width: none;
     font-size: var(--text-md);
     font-weight: var(--weight-bold);
     overflow: hidden;

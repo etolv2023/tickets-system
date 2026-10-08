@@ -62,17 +62,17 @@
             </div>
         @endif
     </td>
-    <td class="table__cell--tight">
+    <td class="table__cell--tight" x-show="isVisible('priority')">
         <x-badge :variant="$ticket->priority->variant()" :icon="$ticket->priority->icon()">{{ $ticket->priority->label() }}</x-badge>
     </td>
     {{-- Editable in place: the common move is one
          click from the list, without opening the
          ticket. Falls back to a badge for anyone
          who can't change it. --}}
-    <td class="table__cell--tight">
+    <td class="table__cell--tight" x-show="isVisible('status')">
         <x-status-select :ticket="$ticket" />
     </td>
-    <td>
+    <td x-show="isVisible('assignees')">
         {{-- Role-based assignment (2026-07-24):
              one avatar per assigned person. --}}
         <div class="tickets__people">
@@ -85,9 +85,9 @@
             @endforelse
         </div>
     </td>
-    <td class="table__cell--muted">{{ $ticket->creator?->name ?? '—' }}</td>
-    <td class="table__cell--muted u-nums">{{ $ticket->dateBasisLabel($dateBasis) }}</td>
-    <td class="table__cell--tight tickets__deadline">
+    <td class="table__cell--muted" x-show="isVisible('creator')">{{ $ticket->creator?->name ?? '—' }}</td>
+    <td class="table__cell--muted u-nums" x-show="isVisible('date')">{{ $ticket->dateBasisLabel($dateBasis) }}</td>
+    <td class="table__cell--tight tickets__deadline" x-show="isVisible('deadline')">
         <x-badge :variant="$ticket->deadlineStatus()['key']" class="badge--sm tickets__deadline-badge">
             {{ $ticket->deadlineStatus()['label'] }}
         </x-badge>

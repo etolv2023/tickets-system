@@ -156,6 +156,59 @@
     color: var(--text-muted);
 }
 
+/* Optional-column picker. Kept beside the table controls instead of adding
+   permanent table chrome; the choice is persisted by table-columns.js. */
+.table-columns {
+    position: relative;
+}
+
+.table-columns__menu {
+    position: absolute;
+    z-index: 20;
+    inset-block-start: calc(100% + var(--space-2));
+    inset-inline-end: 0;
+    inline-size: 14rem;
+    padding: var(--space-2);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+
+.table-columns__option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-block-size: 2.5rem;
+    padding-inline: var(--space-2);
+    border-radius: var(--radius-md);
+    color: var(--text);
+    cursor: pointer;
+}
+
+.table-columns__option:hover {
+    background-color: var(--surface-2);
+}
+
+.table-columns__option input {
+    inline-size: 1rem;
+    block-size: 1rem;
+    accent-color: var(--action);
+}
+
+.table-columns__reset {
+    inline-size: 100%;
+    margin-block-start: var(--space-2);
+    padding-block: var(--space-2);
+    border: 0;
+    border-block-start: 1px solid var(--border-subtle);
+    background: none;
+    color: var(--action);
+    font: inherit;
+    font-size: var(--text-xs);
+    cursor: pointer;
+}
+
 /* ★ (2026-10-05) A count matrix (people × types). Zeros fade so the eye
    lands on the cells that say something; the totals row is a footer, set
    apart by weight and a heavier rule rather than by colour. */

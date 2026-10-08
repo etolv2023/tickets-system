@@ -8,6 +8,7 @@ import notifyPermission from './components/notify-permission';
 import registerSubmitGuard from './components/submit-guard';
 import registerStickyFilters from './components/sticky-filters';
 import registerGlobalShortcuts from './components/global-shortcuts';
+import tableColumns from './components/table-columns';
 
 // Before Alpine, and before anything else can attach a submit handler: a
 // double-click on "إرسال" used to post the same comment three times.
@@ -19,6 +20,8 @@ registerStickyFilters();
 
 // Fast navigation for a ticketing tool: users search dozens of times a day.
 registerGlobalShortcuts();
+
+Alpine.data('tableColumns', tableColumns);
 
 // Theme: tokens.css already follows prefers-color-scheme on its own. This store
 // only lets a user override the OS choice and remembers it. The initial value is

@@ -21,6 +21,29 @@
             <span class="filters__active-count">{{ $activeFilterCount }}</span>
         @endif
     </button>
+    <div class="table-columns" x-data="{ open: false }" @click.outside="open = false">
+        <button type="button" class="btn btn--secondary" @click="open = !open"
+                :aria-expanded="open.toString()" aria-haspopup="menu">
+            <x-icon name="grid" class="btn__icon" />
+            الأعمدة
+        </button>
+        <div class="table-columns__menu" x-show="open" x-cloak role="menu">
+            @foreach ([
+                'priority' => 'الأولوية',
+                'status' => 'الحالة',
+                'assignees' => 'المسؤولون',
+                'creator' => 'أنشأها',
+                'date' => \App\Models\Ticket::DATE_BASES[$dateBasis],
+                'deadline' => 'الموعد والعمر',
+            ] as $column => $label)
+                <label class="table-columns__option">
+                    <input type="checkbox" :checked="isVisible('{{ $column }}')" @change="toggle('{{ $column }}')">
+                    <span>{{ $label }}</span>
+                </label>
+            @endforeach
+            <button type="button" class="table-columns__reset" @click="reset()">الوضع الافتراضي</button>
+        </div>
+    </div>
     <x-export-button route="export.tickets" />
     @can('create', App\Models\Ticket::class)
         <x-button variant="primary" :href="route('tickets.create')"><x-icon name="plus" class="btn__icon" /> تذكرة جديدة</x-button>
