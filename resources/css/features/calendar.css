@@ -544,10 +544,13 @@
 
 .cal--day .cal__day--full {
     gap: var(--space-3);
+    block-size: auto;
+    height: auto;
     min-block-size: 0;
     padding: 0;
     background: transparent;
     box-shadow: none;
+    overflow: visible;
 }
 
 .cal--day .cal__day--full:hover {
@@ -599,6 +602,49 @@
     cursor: pointer;
 }
 
+/* Explicit placement matters here: a subtask has both initials and hours,
+   while SLA/ticket rows do not. Leaving CSS Grid to auto-place those mixed
+   children made the title share a track with its badge and appear clipped. */
+.cal--day .cal__kind-label {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: start;
+    justify-self: start;
+    inline-size: max-content;
+    max-inline-size: 7rem;
+}
+
+.cal--day .cal__content {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+    inline-size: 100%;
+    min-inline-size: 0;
+}
+
+.cal--day .cal__who {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+}
+
+.cal--day .cal__hours {
+    grid-column: 3;
+    grid-row: 2;
+    justify-self: end;
+    block-size: auto;
+    min-inline-size: 0;
+}
+
+.cal--day .cal__ticket .cal__content,
+.cal--day .cal__sla .cal__content {
+    grid-column: 2 / -1;
+}
+
+.cal--day .cal__sla-dot {
+    display: none;
+}
+
 .cal--day .cal__sla {
     border-inline-start-color: var(--c-urgent);
 }
@@ -618,6 +664,8 @@
 }
 
 .cal--day .cal__text {
+    min-inline-size: 0;
+    overflow: hidden;
     font-weight: var(--weight-bold);
     white-space: normal;
     display: -webkit-box;
@@ -645,6 +693,7 @@
     color: var(--text-muted);
     font-size: var(--text-2xs);
     font-weight: var(--weight-heavy);
+    white-space: nowrap;
 }
 
 .cal--day .cal__ticket-tag {
