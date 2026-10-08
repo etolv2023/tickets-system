@@ -10,6 +10,7 @@ import registerStickyFilters from './components/sticky-filters';
 import registerGlobalShortcuts from './components/global-shortcuts';
 import tableColumns from './components/table-columns';
 import calendarDayPreview from './components/calendar-day-preview';
+import registerDenseFilterShells from './components/dense-filter-shell';
 
 // Before Alpine, and before anything else can attach a submit handler: a
 // double-click on "إرسال" used to post the same comment three times.
@@ -21,6 +22,7 @@ registerStickyFilters();
 
 // Fast navigation for a ticketing tool: users search dozens of times a day.
 registerGlobalShortcuts();
+registerDenseFilterShells();
 
 Alpine.data('tableColumns', tableColumns);
 Alpine.data('calendarDayPreview', calendarDayPreview);

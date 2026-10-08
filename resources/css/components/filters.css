@@ -68,6 +68,26 @@
     border-radius: var(--radius);
 }
 
+/* System-wide disclosure for legacy dense filters. JS only toggles the
+   existing blocks; no control is reparented, so compound fields stay intact. */
+.filters--dense-shell {
+    position: relative;
+}
+
+.filters--dense-shell [hidden] {
+    display: none !important;
+}
+
+.dense-filter-toggle {
+    gap: var(--space-2);
+}
+
+.dense-filter-toggle--open {
+    border-color: var(--action-line);
+    background-color: var(--action-bg);
+    color: var(--action);
+}
+
 /* The person and their relation to the ticket are one question in two controls,
    so they share a cell and never wrap apart. */
 .filters__person {
