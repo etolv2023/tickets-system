@@ -45,10 +45,7 @@
                     <table class="table table--hover table--zebra">
                         <thead>
                             <tr>
-                                <th>الرقم</th>
-                                <th>العنوان</th>
-                                <th>الشركة</th>
-                                <th>النوع</th>
+                                <th>التذكرة</th>
                                 <th>الأولوية</th>
                                 <th>الحالة</th>
                                 <th>المسؤولين</th>
@@ -62,7 +59,7 @@
                                 @include('tickets.partials._row', ['ticket' => $ticket])
                             @empty
                                 <tr class="table__empty">
-                                    <td colspan="10">مفيش تذاكر بالفلاتر دي.</td>
+                                    <td colspan="7">مفيش تذاكر بالفلاتر دي.</td>
                                 </tr>
                             @endforelse
                         </tbody>

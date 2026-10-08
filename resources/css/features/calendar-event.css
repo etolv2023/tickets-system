@@ -201,3 +201,27 @@
     border-radius: 3px;
     font-size: var(--text-2xs);
 }
+
+.cal__item,
+.cal__sla,
+.cal__ticket {
+    min-block-size: 1.65rem;
+    padding: var(--space-1) var(--space-2);
+}
+
+.cal__sla {
+    border-color: var(--c-red-line);
+    background-color: var(--c-red-bg);
+}
+
+.cal__ticket {
+    background-color: color-mix(in srgb, var(--ticket-color) 12%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--ticket-color) 34%, transparent);
+    border-inline-start: 3px solid var(--ticket-color);
+    color: var(--text);
+}
+
+.cal__ticket-tag {
+    background-color: color-mix(in srgb, var(--ticket-color) 14%, transparent);
+    color: var(--ticket-color);
+}

@@ -217,3 +217,58 @@
         var(--border) 4px
     );
 }
+
+/* Structural calendar pass: lower density, quieter non-working days, and a
+   toolbar that reads as one control instead of loose buttons. */
+.cal__head {
+    padding-block: var(--space-3);
+    background: var(--surface-2);
+    font-size: var(--text-sm);
+}
+
+.cal__day {
+    gap: var(--space-1);
+    height: 9rem;
+    padding: var(--space-3);
+}
+
+.cal__body {
+    gap: var(--space-1);
+}
+
+.cal__day--off {
+    background-color: color-mix(in srgb, var(--surface-2) 72%, var(--bg));
+    background-image: none;
+}
+
+.cal__day--today {
+    background-color: color-mix(in srgb, var(--action-bg) 62%, var(--surface));
+    box-shadow: inset 0 0 0 1px var(--action-line);
+}
+
+.cal__num {
+    display: inline-grid;
+    place-items: center;
+    min-inline-size: 1.7rem;
+    block-size: 1.7rem;
+    border-radius: var(--radius-full);
+    font-size: var(--text-sm);
+}
+
+.cal__day--today .cal__num {
+    background-color: var(--action-bg);
+}
+
+.cal__bar {
+    padding: var(--space-2);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xs);
+}
+
+.cal__views {
+    padding: var(--space-1);
+    background-color: var(--surface-2);
+    border-radius: var(--radius);
+}

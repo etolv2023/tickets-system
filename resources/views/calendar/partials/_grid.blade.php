@@ -66,7 +66,7 @@
                 $dayTickets = $ticketsByDay[$key] ?? collect();
                 $daySlas = $slasByDay[$key] ?? collect();
                 $totalItems = $daySubtasks->count() + $dayTickets->count() + $daySlas->count();
-                $cap = in_array($view, ['month', 'week'], true) ? 4 : $totalItems;
+                $cap = $view === 'month' ? 2 : ($view === 'week' ? 4 : $totalItems);
                 $shown = 0;
             @endphp
 

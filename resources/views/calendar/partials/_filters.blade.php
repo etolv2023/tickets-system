@@ -3,9 +3,27 @@
      calendar on whatever month you last browsed — you'd come back in أغسطس and
      land in يونيو. A calendar's job is to open on today. Nothing is written for
      this screen, so the head's restore finds no key and never fires. --}}
-<form method="GET" action="{{ route($routeName) }}" class="filters" data-remember="off">
+@php
+    $calendarFilterCount = collect($filters)->filter(fn ($value) => filled($value))->count();
+@endphp
+
+<form method="GET" action="{{ route($routeName) }}" class="filters filters--calendar"
+      data-remember="off" x-data="{ panelOpen: false }">
     <input type="hidden" name="view" value="{{ $view }}">
     <input type="hidden" name="date" value="{{ $anchor->toDateString() }}">
+
+    <div class="filters__calendar-bar">
+        <button type="button" class="btn btn--secondary" @click="panelOpen = !panelOpen"
+                :aria-expanded="panelOpen.toString()">
+            <x-icon name="filter" class="btn__icon" />
+            تصفية الكاليندر
+            @if ($calendarFilterCount)
+                <span class="filters__active-count">{{ $calendarFilterCount }}</span>
+            @endif
+        </button>
+    </div>
+
+    <div class="filters__calendar-panel" x-show="panelOpen" x-cloak @keydown.escape.window="panelOpen = false">
 
     {{-- Searched server-side: both of these lists grow with the database. --}}
     @if ($isTeam)
@@ -65,4 +83,5 @@
     @if (array_filter($filters))
         <x-button variant="ghost" :href="route($routeName, ['view' => $view])">مسح</x-button>
     @endif
+    </div>
 </form>

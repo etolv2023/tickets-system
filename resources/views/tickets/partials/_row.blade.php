@@ -3,8 +3,9 @@
      the table. Everything here was already selected or eager-loaded by
      TicketController::index — no query runs inside this file. --}}
 <tr class="tickets__row">
-    <td class="table__cell--tight">
-        <span class="tickets__number">{{ $ticket->ticket_number }}</span>
+    <td class="tickets__main-cell">
+        <div class="tickets__identity">
+            <span class="tickets__number">{{ $ticket->ticket_number }}</span>
 
         {{-- ★ (2026-08-29) F27. In the normal list this warning is reserved
              for finished tickets, because an open ticket with no branch yet
@@ -19,9 +20,19 @@
                 <x-badge variant="amber" class="badge--sm">ملهاش برانش</x-badge>
             @endif
         @endcan
-    </td>
-    <td>
+        </div>
+
         <a class="tickets__title" href="{{ route('tickets.show', $ticket) }}">{{ $ticket->title }}</a>
+
+        <div class="tickets__meta">
+            <span>{{ $ticket->originLabel() }}</span>
+            <span class="tickets__type">
+                <x-icon :name="$ticket->type->icon()" class="tickets__type-icon"
+                        style="--type-color: var(--c-{{ $ticket->type->variant() }}, var(--text-subtle))" />
+                {{ $ticket->type->label() }}
+            </span>
+        </div>
+
         {{-- F11 labels — data existed but the list never showed them,
              so "does this need my attention" meant opening the ticket
              to find out. Small and quiet: the title still leads.
@@ -50,18 +61,6 @@
                 @endforeach
             </div>
         @endif
-    </td>
-    <td class="tickets__cell--company">{{ $ticket->originLabel() }}</td>
-    {{-- Type stays un-badged: four pills in one row and none of
-         them reads. It gets the glyph instead, tinted in the
-         type's own hue — the type is legible at a glance now
-         without adding a third competing pill shape. --}}
-    <td class="tickets__type">
-        <x-icon :name="$ticket->type->icon()" class="tickets__type-icon"
-                {{-- The fallback catches "neutral", which is a variant
-                     name but deliberately not a hue token. --}}
-                style="--type-color: var(--c-{{ $ticket->type->variant() }}, var(--text-subtle))" />
-        {{ $ticket->type->label() }}
     </td>
     <td class="table__cell--tight">
         <x-badge :variant="$ticket->priority->variant()" :icon="$ticket->priority->icon()">{{ $ticket->priority->label() }}</x-badge>

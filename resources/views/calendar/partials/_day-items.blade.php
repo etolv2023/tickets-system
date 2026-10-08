@@ -1,7 +1,7 @@
 @php
     /*
      * The chips for one day — subtasks, ticket deadlines, SLA markers — shared
-     * by the desktop grid cell (_grid, capped at 4) and the mobile agenda row
+     * by the desktop grid cell (_grid, capped by view) and the mobile agenda row
      * (_agenda, uncapped). Extracted so the two layouts render the exact same
      * item markup from one place.
      *
