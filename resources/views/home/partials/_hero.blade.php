@@ -6,13 +6,16 @@
      the large monthly KPI tiles in the overview zone, so the two number groups
      can never be mistaken for the same row twice. --}}
 <div class="today__hero">
-    <div class="today__hero-mark">
-        <x-icon name="home" />
-    </div>
+    <div class="today__hero-main">
+        <div class="today__hero-mark">
+            <x-icon name="home" />
+        </div>
 
-    <div class="today__hero-text">
-        <h1 class="today__greeting">أهلاً، {{ $user->name }}</h1>
-        <p class="today__date">{{ now(config('app.display_timezone'))->translatedFormat('l j F Y') }}</p>
+        <div class="today__hero-text">
+            <h1 class="today__greeting">أهلاً، {{ $user->name }}</h1>
+            <p class="today__date">{{ now(config('app.display_timezone'))->translatedFormat('l j F Y') }}</p>
+        </div>
+
         <div class="today__hero-actions">
             <a class="btn btn--primary btn--sm" href="{{ route('tickets.create') }}">
                 <x-icon name="plus" class="btn__icon" /> تذكرة جديدة
