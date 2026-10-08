@@ -1,0 +1,66 @@
+{
+  "public/fonts/cairo-arabic.woff2": {
+    "file": "assets/cairo-arabic-CJWMIGCx.woff2",
+    "src": "public/fonts/cairo-arabic.woff2"
+  },
+  "public/fonts/cairo-latin-ext.woff2": {
+    "file": "assets/cairo-latin-ext-at8nfxId.woff2",
+    "src": "public/fonts/cairo-latin-ext.woff2"
+  },
+  "public/fonts/cairo-latin.woff2": {
+    "file": "assets/cairo-latin-PfPtmrPZ.woff2",
+    "src": "public/fonts/cairo-latin.woff2"
+  },
+  "public/fonts/plex-mono-400-latin-ext.woff2": {
+    "file": "assets/plex-mono-400-latin-ext-BmRBH3aV.woff2",
+    "src": "public/fonts/plex-mono-400-latin-ext.woff2"
+  },
+  "public/fonts/plex-mono-400-latin.woff2": {
+    "file": "assets/plex-mono-400-latin-DMJ8VG8y.woff2",
+    "src": "public/fonts/plex-mono-400-latin.woff2"
+  },
+  "public/fonts/plex-mono-500-latin-ext.woff2": {
+    "file": "assets/plex-mono-500-latin-ext-CAhNIIs5.woff2",
+    "src": "public/fonts/plex-mono-500-latin-ext.woff2"
+  },
+  "public/fonts/plex-mono-500-latin.woff2": {
+    "file": "assets/plex-mono-500-latin-DSY6xOcd.woff2",
+    "src": "public/fonts/plex-mono-500-latin.woff2"
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-BVkRZ6s5.css",
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "name": "app",
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-DIzIA80P.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/js/features/board.js": {
+    "file": "assets/board-DoeegXr7.js",
+    "name": "board",
+    "src": "resources/js/features/board.js",
+    "isEntry": true,
+    "imports": [
+      "resources/js/features/subtasks.js"
+    ]
+  },
+  "resources/js/features/calendar.js": {
+    "file": "assets/calendar-Ck7Xn6Zx.js",
+    "name": "calendar",
+    "src": "resources/js/features/calendar.js",
+    "isEntry": true
+  },
+  "resources/js/features/subtasks.js": {
+    "file": "assets/subtasks-DoMvXwzI.js",
+    "name": "subtasks",
+    "src": "resources/js/features/subtasks.js",
+    "isEntry": true
+  }
+}
