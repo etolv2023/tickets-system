@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="page page--wide"
-         x-data="tableColumns({ storageKey: 'tickets.index.columns', defaults: ['priority', 'status', 'assignees', 'deadline'] })">
+         x-data="tableColumns({ storageKey: 'tickets.index.columns.v2', defaults: ['priority', 'status', 'assignees', 'deadline'] })">
         @if (session('status'))
             <x-alert variant="success">{{ session('status') }}</x-alert>
         @endif
@@ -43,7 +43,7 @@
         @else
             <x-card flush>
                 <div class="table-wrap">
-                    <table class="table table--hover table--zebra">
+                    <table class="table table--hover table--zebra tickets__table">
                         <thead>
                             <tr>
                                 <th>التذكرة</th>

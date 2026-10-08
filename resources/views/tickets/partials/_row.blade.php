@@ -22,7 +22,7 @@
         @endcan
         </div>
 
-        <a class="tickets__title" href="{{ route('tickets.show', $ticket) }}">{{ $ticket->title }}</a>
+        <a class="tickets__title" dir="auto" href="{{ route('tickets.show', $ticket) }}">{{ $ticket->title }}</a>
 
         <div class="tickets__meta">
             <span>{{ $ticket->originLabel() }}</span>

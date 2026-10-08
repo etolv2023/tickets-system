@@ -9,7 +9,14 @@ export default function tableColumns({ storageKey, defaults }) {
                 const saved = JSON.parse(localStorage.getItem(storageKey));
 
                 if (Array.isArray(saved)) {
-                    this.visibleColumns = saved.filter((column) => allowed.includes(column));
+                    const valid = saved.filter((column) => allowed.includes(column));
+
+                    // A table with only its identity column is technically
+                    // valid but operationally broken: long mixed-direction
+                    // titles consume the whole row and none of the workflow
+                    // state remains visible. Treat an empty saved set as a
+                    // corrupt preference and recover the useful defaults.
+                    this.visibleColumns = valid.length ? valid : [...defaults];
                 }
             } catch {
                 this.visibleColumns = [...defaults];
@@ -21,6 +28,10 @@ export default function tableColumns({ storageKey, defaults }) {
         },
 
         toggle(column) {
+            if (this.visibleColumns.length === 1 && this.isVisible(column)) {
+                return;
+            }
+
             this.visibleColumns = this.isVisible(column)
                 ? this.visibleColumns.filter((item) => item !== column)
                 : [...this.visibleColumns, column];

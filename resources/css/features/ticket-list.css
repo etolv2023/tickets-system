@@ -36,7 +36,8 @@
 
 .tickets__main-cell {
     inline-size: 100%;
-    min-inline-size: 28rem;
+    min-inline-size: 20rem;
+    max-inline-size: 0;
 }
 
 .tickets__identity,
@@ -65,12 +66,21 @@
 
 .tickets__title {
     display: block;
-    max-width: none;
+    inline-size: 100%;
+    max-inline-size: 100%;
     font-size: var(--text-md);
     font-weight: var(--weight-bold);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+/* Do not let an exception message or a long LTR subject dictate the intrinsic
+   width of the whole table. The identity column receives the remaining space;
+   optional workflow columns keep their compact natural widths. */
+.tickets__table {
+    table-layout: auto;
+    min-inline-size: 48rem;
 }
 
 /* F11 labels, stacked under the title. gap over margin between chips so
