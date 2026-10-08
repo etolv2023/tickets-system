@@ -6,13 +6,13 @@
 .ticket-form {
     display: grid;
     grid-template-columns: minmax(0, 1.35fr) minmax(20rem, 0.85fr);
-    gap: var(--space-4);
+    gap: var(--space-5);
     align-items: start;
 }
 
 .page--ticket-workspace {
     max-width: 100rem;
-    gap: var(--space-4);
+    gap: var(--space-5);
 }
 
 .page--ticket-workspace .card__body {
@@ -22,7 +22,7 @@
 .ticket-form__col {
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
+    gap: var(--space-5);
     min-width: 0;
 }
 

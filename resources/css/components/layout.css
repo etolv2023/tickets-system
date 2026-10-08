@@ -60,7 +60,9 @@
     margin-inline: auto;
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
+    /* Sections need a wider beat than controls inside them. Keeping both at
+       16px made filter panels, stat strips and tables read as one piled card. */
+    gap: var(--space-5);
 }
 
 .page--narrow {
