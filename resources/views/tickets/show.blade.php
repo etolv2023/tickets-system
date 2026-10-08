@@ -120,6 +120,13 @@
             </div>
 
             <aside class="ticket__side">
+                <div class="ticket__side-head">
+                    <div>
+                        <strong>إدارة التذكرة</strong>
+                        <span>الإجراءات والتفاصيل المكملة</span>
+                    </div>
+                    <x-icon name="settings" />
+                </div>
                 @include('tickets.partials._workflow')
                 @include('tickets.partials._facts')
                 @if (in_array($ticket->status->value, \App\Models\TicketStatusDefinition::resolvedKeys(), true))

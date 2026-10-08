@@ -32,17 +32,66 @@
 .ticket__side {
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
+    gap: 1px;
     position: sticky;
     /* Clears the sticky topbar, plus the page gutter. */
     inset-block-start: calc(var(--topbar-height) + var(--space-4));
     max-height: calc(100dvh - var(--topbar-height) - var(--space-5) * 2);
     overflow-y: auto;
     /* Room for the scrollbar so a card's border does not sit under it. */
-    padding-inline-end: var(--space-1);
+    padding: var(--space-2);
+    background-color: var(--border-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xs);
     /* The aside owns its overscroll: reaching its end must not start scrolling
        the page underneath it mid-gesture. */
     overscroll-behavior: contain;
+}
+
+.ticket__side-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-3) var(--space-4);
+    background-color: var(--surface-2);
+    border-radius: var(--radius-lg) var(--radius-lg) var(--radius-sm) var(--radius-sm);
+    color: var(--text-muted);
+}
+
+.ticket__side-head div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ticket__side-head strong {
+    color: var(--text);
+    font-size: var(--text-md);
+}
+
+.ticket__side-head span {
+    font-size: var(--text-xs);
+}
+
+/* The inspector is one workspace, not a pile of unrelated floating cards. */
+.ticket__side > .card {
+    border: 0;
+    border-radius: var(--radius-sm);
+    box-shadow: none;
+}
+
+.ticket__side > .card .card__header {
+    background: var(--surface);
+}
+
+.ticket__side > .card:has(.btn--primary) {
+    position: relative;
+    z-index: 1;
+    margin-block: var(--space-2);
+    border: 1px solid var(--action-line);
+    border-radius: var(--radius-lg);
 }
 
 /* ★ Without this the max-height above silently eats the cards instead of
@@ -246,6 +295,6 @@
         position: static;
         max-height: none;
         overflow-y: visible;
-        padding-inline-end: 0;
+        padding: var(--space-2);
     }
 }

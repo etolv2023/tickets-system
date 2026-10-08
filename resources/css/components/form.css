@@ -144,6 +144,24 @@
     cursor: pointer;
 }
 
+/* Safari otherwise follows the macOS menu palette for the opened list even
+   when the app is explicitly in light mode. Options keep the same surface and
+   ink as the closed field across every select in the system. */
+.select option,
+.select optgroup {
+    background-color: var(--surface);
+    color: var(--text);
+    font-family: var(--font-ar);
+}
+
+:root[data-theme='light'] .select {
+    color-scheme: light;
+}
+
+:root[data-theme='dark'] .select {
+    color-scheme: dark;
+}
+
 .checkbox-row {
     display: flex;
     align-items: flex-start;
