@@ -90,7 +90,10 @@
     width: 100%;
     padding-block: var(--space-2);
     padding-inline-start: calc(var(--space-6) + var(--space-1));
-    padding-inline-end: var(--space-7);
+    /* The shortcut badge is wider than the old reserved space (especially at
+       Safari's font metrics). Reserve its full footprint so an RTL placeholder
+       can never run underneath it. */
+    padding-inline-end: 4.75rem;
     background-color: var(--field-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
@@ -113,6 +116,8 @@
     font-size: var(--text-2xs);
     line-height: 1;
     pointer-events: none;
+    min-inline-size: 2.85rem;
+    text-align: center;
 }
 
 .topbar__search:focus-within .topbar__search-key {
