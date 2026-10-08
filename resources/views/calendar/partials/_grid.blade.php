@@ -59,7 +59,11 @@
 @endphp
 
 <div x-data="calendarDayPreview(@js($previewDays))" @keydown.escape.window="close()">
-<div @class(['cal', 'cal--day' => $view === 'day']) data-calendar>
+<div @class([
+    'cal',
+    'cal--day' => $view === 'day',
+    'cal--week' => $view === 'week',
+]) data-calendar>
     @if ($view !== 'day')
         @foreach ($weekdays as $name)
             <div class="cal__head">{{ $name }}</div>
@@ -126,10 +130,11 @@
                 $shown = 0;
             @endphp
 
-            @if ($view === 'month')
-                {{-- Month is an overview, not seven tiny task lists. Long mixed
-                     Arabic/English titles were unreadable at this width; show
-                     an honest workload summary and open the readable day view. --}}
+            @if (in_array($view, ['month', 'week'], true))
+                {{-- Month and week are overviews, not seven tiny task lists.
+                     Long mixed Arabic/English titles are unreadable at this
+                     width; show an honest workload summary and open the modal
+                     for the readable list and ticket detail. --}}
                 @if ($totalItems > 0)
                     <button type="button" class="cal__day-summary"
                             @click="openDay('{{ $key }}', '{{ $day->translatedFormat('l j F') }}')">
@@ -151,7 +156,7 @@
                 </div>
             @endif
 
-            @if ($view !== 'month' && $totalItems > $cap)
+            @if ($view === 'day' && $totalItems > $cap)
                 <a class="cal__more"
                    href="{{ route($routeName, array_merge(array_filter($filters), ['view' => 'day', 'date' => $key])) }}">
                     +{{ $totalItems - $cap }} أكثر
