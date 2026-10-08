@@ -6,6 +6,7 @@
     justify-content: space-between;
     gap: var(--space-3);
     flex-wrap: wrap;
+    width: 100%;
 }
 
 .pagination__summary {
@@ -25,8 +26,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 2rem;
-    height: 2rem;
+    gap: var(--space-1);
+    min-width: 2.25rem;
+    height: 2.25rem;
     padding-inline: var(--space-2);
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -35,6 +37,11 @@
     font-size: var(--text-md);
     font-variant-numeric: tabular-nums;
     transition: background-color var(--transition), border-color var(--transition);
+}
+
+.pagination__link .icon {
+    width: 0.9em;
+    height: 0.9em;
 }
 
 .pagination__link {
@@ -67,6 +74,21 @@
 .pagination__gap {
     padding-inline: var(--space-1);
     color: var(--text-subtle);
+}
+
+@media (max-width: 36rem) {
+    .pagination {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .pagination__list {
+        justify-content: center;
+    }
+
+    .pagination__summary {
+        text-align: center;
+    }
 }
 
 /* Chevrons are drawn pointing one way; the document direction flips them. */

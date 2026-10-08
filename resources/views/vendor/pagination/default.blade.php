@@ -6,9 +6,9 @@
 
         <div class="pagination__list">
             @if ($paginator->onFirstPage())
-                <span class="pagination__link pagination__link--disabled" aria-hidden="true">السابق</span>
+                <span class="pagination__link pagination__link--disabled" aria-hidden="true"><x-icon name="chevron-right" /> السابق</span>
             @else
-                <a href="{{ $paginator->previousPageUrl() }}" class="pagination__link" rel="prev">السابق</a>
+                <a href="{{ $paginator->previousPageUrl() }}" class="pagination__link" rel="prev"><x-icon name="chevron-right" /> السابق</a>
             @endif
 
             @foreach ($elements as $element)
@@ -19,7 +19,7 @@
                 @if (is_array($element))
                     @foreach ($element as $page => $url)
                         @if ($page == $paginator->currentPage())
-                            <a href="{{ $url }}" class="pagination__link" aria-current="page">{{ $page }}</a>
+                            <span class="pagination__link" aria-current="page">{{ $page }}</span>
                         @else
                             <a href="{{ $url }}" class="pagination__link">{{ $page }}</a>
                         @endif
@@ -28,9 +28,9 @@
             @endforeach
 
             @if ($paginator->hasMorePages())
-                <a href="{{ $paginator->nextPageUrl() }}" class="pagination__link" rel="next">التالي</a>
+                <a href="{{ $paginator->nextPageUrl() }}" class="pagination__link" rel="next">التالي <x-icon name="chevron-left" /></a>
             @else
-                <span class="pagination__link pagination__link--disabled" aria-hidden="true">التالي</span>
+                <span class="pagination__link pagination__link--disabled" aria-hidden="true">التالي <x-icon name="chevron-left" /></span>
             @endif
         </div>
     </nav>

@@ -40,6 +40,38 @@
 
 /* ---- Notification list ---- */
 
+.notifications-page {
+    max-width: 96rem;
+}
+
+.notifications-page__summary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-block-start: var(--space-3);
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+}
+
+.notifications-page__summary span {
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-full);
+    background-color: var(--surface-2);
+}
+
+.notifications-page__unread {
+    color: var(--action);
+    background-color: var(--action-bg) !important;
+}
+
+.notifications-page__unread--empty {
+    color: var(--text-muted);
+}
+
+.notifications-card {
+    overflow: visible;
+}
+
 /* The list owns no styling of its own — the rows' hairlines are the
    structure. It exists so the notifications page stops borrowing another
    feature's class. */
@@ -48,14 +80,21 @@
     flex-direction: column;
 }
 
+.notif-group + .notif-group {
+    border-block-start: 1px solid var(--border);
+}
+
 /* Not sticky. Every day header here is a flat sibling of the rows (no
    per-day wrapper), and several sticky siblings fighting over the same `top`
    anchor is exactly what tore during scroll — a row from the group above
    showing through under the "stuck" header instead of fully scrolling away.
    A plain static divider never has that failure mode. */
 .notif-day {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding-block: var(--space-2);
-    padding-inline: var(--space-4);
+    padding-inline: var(--space-5);
     background-color: var(--surface-2);
     border-block-end: 1px solid var(--border-subtle);
     font-size: var(--text-2xs);
@@ -63,11 +102,16 @@
     color: var(--text-subtle);
 }
 
+.notif-day span:last-child {
+    font-weight: var(--weight-normal);
+    color: var(--text-muted);
+}
+
 .notif {
     display: flex;
     align-items: flex-start;
     gap: var(--space-3);
-    padding: var(--space-3) var(--space-4);
+    padding: var(--space-4) var(--space-5);
     border-block-start: 1px solid var(--border-subtle);
     color: inherit;
     transition: background-color var(--transition);
@@ -96,12 +140,24 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
+    width: 2.25rem;
+    height: 2.25rem;
     flex: none;
     border-radius: var(--radius-full);
     background-color: var(--chip);
     color: var(--text-subtle);
+}
+
+.notif__arrow {
+    align-self: center;
+    color: var(--text-subtle);
+    opacity: 0;
+    transition: opacity var(--transition), transform var(--transition);
+}
+
+.notif:hover .notif__arrow {
+    opacity: 1;
+    transform: translateX(-2px);
 }
 
 .notif__icon--red { background-color: var(--c-red-bg); color: var(--c-red); }
@@ -147,6 +203,22 @@
 .notif__text {
     font-size: var(--text-md);
     line-height: var(--leading-normal);
+}
+
+.notif-pagination {
+    padding: var(--space-3) var(--space-5);
+    border-block-start: 1px solid var(--border);
+    background-color: var(--surface-2);
+}
+
+@media (max-width: 40rem) {
+    .notif,
+    .notif-day,
+    .notif-pagination {
+        padding-inline: var(--space-3);
+    }
+
+    .notif__arrow { display: none; }
 }
 
 .notif--unread .notif__text {
