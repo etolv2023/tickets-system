@@ -52,6 +52,12 @@
     min-width: 0;
 }
 
+.today__hero-actions {
+    display: flex;
+    gap: var(--space-2);
+    margin-block-start: var(--space-3);
+}
+
 .today__greeting {
     font-size: var(--text-2xl);
     font-weight: var(--weight-black);
@@ -154,22 +160,43 @@
 
 /* ---- Zone 2: action questions (masonry) ---- */
 
-/* CSS multi-column masonry: sections flow top-to-bottom in the first column
-   (onFire is emitted first → lands top of the reading-order column), then the
-   next. A one-row or cleared section packs directly under its neighbour rather
-   than leaving an empty track beside a tall list — the definitive kill of the
-   old fixed 1.6fr/1fr canyon. */
+/* The home page is a command centre, not two endless lists. The urgent SLA
+   queue owns the wide track; personal/approval/blocking queues form a compact
+   decision rail beside it. Every list is capped in Blade and links to its full
+   workspace, keeping the first viewport useful regardless of total volume. */
 .today {
-    columns: 2;
-    column-gap: var(--space-4);
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(21rem, 0.85fr);
+    grid-template-areas:
+        "focus plate"
+        "focus approve"
+        "focus blocking";
+    align-items: start;
+    gap: var(--space-4);
     margin-block-start: var(--space-5);
 }
 
 .today__section {
     display: flex;
     flex-direction: column;
-    break-inside: avoid;
-    margin-block-end: var(--space-4);
+    min-inline-size: 0;
+    margin: 0;
+}
+
+.today__section--focus { grid-area: focus; }
+.today__section--plate { grid-area: plate; }
+.today__section--approve { grid-area: approve; }
+.today__section--blocking { grid-area: blocking; }
+
+.today__section--focus {
+    position: sticky;
+    inset-block-start: calc(var(--topbar-height) + var(--space-3));
+    border-color: color-mix(in srgb, var(--c-red) 24%, var(--border));
+    box-shadow: var(--shadow-md);
+}
+
+.today__section--focus .card__header {
+    background: linear-gradient(135deg, var(--c-red-bg), var(--surface) 58%);
 }
 
 /* The section heading carries the question, not a metric. */
@@ -267,6 +294,14 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.today__section:not(.today__section--focus) .today__row {
+    padding-block: var(--space-2);
+}
+
+.today__section:not(.today__section--focus) .today__row-title {
+    font-size: var(--text-sm);
 }
 
 .today__row-meta {
@@ -557,9 +592,17 @@ a.stat-tile:hover {
 }
 
 @media (max-width: 60rem) {
-    .today,
+    .today {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas: "focus" "plate" "approve" "blocking";
+    }
+
     .overview-grid {
         columns: 1;
+    }
+
+    .today__section--focus {
+        position: static;
     }
 
     .pulse-strip {

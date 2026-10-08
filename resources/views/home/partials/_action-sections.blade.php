@@ -7,13 +7,13 @@
      and row markup as before — this is a layout + empty-state change only. The
      top KPI row moved to the header pulse-strip (_hero). --}}
 <div class="today">
-    <x-today-section question="الي بيولّع" hint="تذاكر خرقت مهلة الـ SLA"
+    <x-today-section question="الي بيولّع" hint="تذاكر خرقت مهلة الـ SLA" class="today__section--focus"
                      :count="$counts['onFire']" variant="red" anchor="sec-onfire">
         <x-slot:action>
             <a class="today__q-hint" href="{{ route('tickets.index', ['status' => 'open']) }}">عرض الكل</a>
         </x-slot:action>
 
-        @forelse ($onFire as $ticket)
+        @forelse ($onFire->take(6) as $ticket)
             <a class="today__row" href="{{ route('tickets.show', $ticket) }}">
                 <x-priority-stripe :priority="$ticket->priority" />
                 <div class="today__row-main">
@@ -35,9 +35,12 @@
         @endforelse
     </x-today-section>
 
-    <x-today-section question="الي على دماغي" hint="صب تاسكس مستحقة النهاردة أو متأخرة"
+    <x-today-section question="الي على دماغي" hint="صب تاسكس مستحقة النهاردة أو متأخرة" class="today__section--plate"
                      :count="$counts['onMyPlate']" variant="green" anchor="sec-plate">
-        @forelse ($onMyPlate as $subtask)
+        <x-slot:action>
+            <a class="today__q-hint" href="{{ route('calendar.mine', ['view' => 'day']) }}">افتح كاليندري</a>
+        </x-slot:action>
+        @forelse ($onMyPlate->take(4) as $subtask)
             <a class="today__row" href="{{ route('tickets.show', $subtask->ticket_id) }}">
                 <x-priority-stripe :priority="$subtask->ticket->priority" />
                 <div class="today__row-main">
@@ -65,9 +68,12 @@
     </x-today-section>
 
     @can('features.approve')
-        <x-today-section question="مستني قراري" hint="فيتشرات وموديولات مستنية موافقتك"
+        <x-today-section question="مستني قراري" hint="فيتشرات وموديولات مستنية موافقتك" class="today__section--approve"
                          :count="$counts['awaitingMe']" variant="amber" anchor="sec-approve">
-            @forelse ($awaitingMe as $ticket)
+            <x-slot:action>
+                <a class="today__q-hint" href="{{ route('queues.approvals') }}">كل الموافقات</a>
+            </x-slot:action>
+            @forelse ($awaitingMe->take(4) as $ticket)
                 <a class="today__row" href="{{ route('tickets.show', $ticket) }}">
                     <x-priority-stripe :priority="$ticket->priority" />
                     <div class="today__row-main">
@@ -88,9 +94,9 @@
         </x-today-section>
     @endcan
 
-    <x-today-section question="أنا مأخّر مين" hint="تذاكر شغلك بيبلوكها"
+    <x-today-section question="أنا مأخّر مين" hint="تذاكر شغلك بيبلوكها" class="today__section--blocking"
                      :count="$counts['blockingOthers']" variant="teal" anchor="sec-blocking">
-        @forelse ($blockingOthers as $ticket)
+        @forelse ($blockingOthers->take(4) as $ticket)
             <a class="today__row" href="{{ route('tickets.show', $ticket) }}">
                 <x-priority-stripe :priority="$ticket->priority" />
                 <div class="today__row-main">
