@@ -11,7 +11,8 @@
      would mean a partial full of @if($screen === …), which is worse than two
      honest files. --}}
 
-<form method="GET" action="{{ route('github.branches') }}" class="filters">
+<form method="GET" action="{{ route('github.branches') }}" class="filters"
+      x-data="{ panelOpen: false }">
     <div class="filters__bar">
         <input
             type="search"
@@ -21,7 +22,12 @@
             class="input filters__search"
         >
 
-        <x-button variant="secondary">فلترة</x-button>
+        <button type="button" class="btn btn--secondary" @click="panelOpen = !panelOpen"
+                :aria-expanded="panelOpen.toString()">
+            <x-icon name="filter" class="btn__icon" /> الفلاتر
+        </button>
+
+        <x-button variant="secondary">تطبيق</x-button>
 
         @if (array_filter(\Illuminate\Support\Arr::except($filters, ['date_basis'])))
             <x-button variant="ghost" :href="route('github.branches')">مسح</x-button>
@@ -32,7 +38,7 @@
              button would render and do nothing. It lives in the page header. --}}
     </div>
 
-    <div class="filters__narrow">
+    <div class="filters__narrow filters__narrow--panel" x-show="panelOpen" x-cloak>
         {{-- ★ (2026-08-29) The question itself, first: ملهاش / ليها / الكل.
              Blank stays «ملهاش برانش» — the blank state of this screen is the
              question it was built to answer. --}}

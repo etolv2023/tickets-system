@@ -7,7 +7,8 @@
      a place you create from), and the status select offers only the statuses a
      ticket in this queue can actually be in. --}}
 
-<form method="GET" action="{{ route('queues.ready') }}" class="filters">
+<form method="GET" action="{{ route('queues.ready') }}" class="filters"
+      x-data="{ panelOpen: false }">
     <div class="filters__bar">
         <input
             type="search"
@@ -17,14 +18,19 @@
             class="input filters__search"
         >
 
-        <x-button variant="secondary">فلترة</x-button>
+        <button type="button" class="btn btn--secondary" @click="panelOpen = !panelOpen"
+                :aria-expanded="panelOpen.toString()">
+            <x-icon name="filter" class="btn__icon" /> الفلاتر
+        </button>
+
+        <x-button variant="secondary">تطبيق</x-button>
 
         @if (array_filter($filters))
             <x-button variant="ghost" :href="route('queues.ready')">مسح</x-button>
         @endif
     </div>
 
-    <div class="filters__narrow">
+    <div class="filters__narrow filters__narrow--panel" x-show="panelOpen" x-cloak>
         <select name="status" class="select" aria-label="الحالة">
             <option value="">كل الحالات المفتوحة</option>
             @foreach ($statuses as $value => $label)

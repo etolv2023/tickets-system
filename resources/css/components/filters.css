@@ -61,6 +61,13 @@
     min-inline-size: 0;
 }
 
+.filters__narrow--panel {
+    padding: var(--space-3);
+    background-color: var(--surface-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius);
+}
+
 /* The person and their relation to the ticket are one question in two controls,
    so they share a cell and never wrap apart. */
 .filters__person {

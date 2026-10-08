@@ -67,22 +67,41 @@
                 $dayTickets = $outsideMonth ? collect() : ($ticketsByDay[$key] ?? collect());
                 $daySlas = $outsideMonth ? collect() : ($slasByDay[$key] ?? collect());
                 $totalItems = $daySubtasks->count() + $dayTickets->count() + $daySlas->count();
-                $cap = $view === 'month' ? 1 : ($view === 'week' ? 4 : $totalItems);
+                $summaryParts = collect([
+                    $daySubtasks->count() ? $daySubtasks->count() . ' مهمة' : null,
+                    $dayTickets->count() ? $dayTickets->count() . ' موعد' : null,
+                    $daySlas->count() ? $daySlas->count() . ' SLA' : null,
+                ])->filter()->implode(' · ');
+                $cap = $view === 'week' ? 4 : $totalItems;
                 $shown = 0;
             @endphp
 
-            {{-- One clip region for every kind, so nothing spills past the cell. --}}
-            <div data-items class="cal__body">
-                @include('calendar.partials._day-items', [
-                    'daySubtasks' => $daySubtasks,
-                    'dayTickets' => $dayTickets,
-                    'daySlas' => $daySlas,
-                    'cap' => $cap,
-                    'key' => $key,
-                ])
-            </div>
+            @if ($view === 'month')
+                {{-- Month is an overview, not seven tiny task lists. Long mixed
+                     Arabic/English titles were unreadable at this width; show
+                     an honest workload summary and open the readable day view. --}}
+                @if ($totalItems > 0)
+                    <a class="cal__day-summary"
+                       href="{{ route($routeName, array_merge(array_filter($filters), ['view' => 'day', 'date' => $key])) }}">
+                        <strong>{{ $totalItems }}</strong>
+                        <span>عنصر</span>
+                        <small>{{ $summaryParts }}</small>
+                    </a>
+                @endif
+            @else
+                {{-- One clip region for every kind, so nothing spills past the cell. --}}
+                <div data-items class="cal__body">
+                    @include('calendar.partials._day-items', [
+                        'daySubtasks' => $daySubtasks,
+                        'dayTickets' => $dayTickets,
+                        'daySlas' => $daySlas,
+                        'cap' => $cap,
+                        'key' => $key,
+                    ])
+                </div>
+            @endif
 
-            @if ($totalItems > $cap)
+            @if ($view !== 'month' && $totalItems > $cap)
                 <a class="cal__more"
                    href="{{ route($routeName, array_merge(array_filter($filters), ['view' => 'day', 'date' => $key])) }}">
                     +{{ $totalItems - $cap }} أكثر
