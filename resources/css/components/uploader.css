@@ -30,6 +30,21 @@
     transition: border-color var(--transition), background-color var(--transition);
 }
 
+.uploader__drop {
+    background: linear-gradient(135deg, color-mix(in srgb, var(--action-bg) 30%, var(--surface)), var(--surface));
+    transition: border-color var(--transition), background-color var(--transition), box-shadow var(--transition);
+}
+
+.uploader__drop:hover,
+.uploader__drop:focus-within {
+    box-shadow: inset 0 0 0 1px var(--action-line), var(--shadow-xs);
+}
+
+.gallery__item,
+.gallery__file {
+    box-shadow: var(--shadow-xs);
+}
+
 .uploader__drop > svg {
     color: var(--text-subtle);
     margin-block-end: var(--space-1);

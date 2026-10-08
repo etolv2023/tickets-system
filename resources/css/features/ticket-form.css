@@ -17,6 +17,24 @@
     min-width: 0;
 }
 
+.ticket-form__col {
+    min-width: 0;
+}
+
+.assign,
+.repeater {
+    border-radius: var(--radius-lg);
+}
+
+.repeater__row {
+    transition: background-color var(--transition), border-color var(--transition);
+}
+
+.repeater__row:focus-within {
+    background-color: color-mix(in srgb, var(--action-bg) 22%, var(--surface));
+    border-color: var(--action-line);
+}
+
 @media (max-width: 60rem) {
     .ticket-form {
         grid-template-columns: 1fr;

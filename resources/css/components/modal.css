@@ -34,6 +34,15 @@
     box-shadow: var(--shadow-lg);
 }
 
+.modal__panel {
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+}
+
+.modal__header {
+    background: linear-gradient(180deg, var(--surface), var(--surface-2));
+}
+
 /* On a phone the modal is the screen. Full-bleed gutters and a smaller radius
    stop it reading as a tiny card marooned in a dark field. */
 @media (max-width: 30rem) {

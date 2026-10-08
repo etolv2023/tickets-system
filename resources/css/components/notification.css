@@ -73,6 +73,14 @@
     transition: background-color var(--transition);
 }
 
+.notif {
+    transition: background-color var(--transition), box-shadow var(--transition);
+}
+
+.notif--unread {
+    background: linear-gradient(90deg, color-mix(in srgb, var(--action-bg) 72%, var(--surface)), var(--surface));
+}
+
 .notif:hover {
     background-color: var(--hover);
 }

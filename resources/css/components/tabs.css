@@ -19,6 +19,22 @@
     margin-block-end: var(--space-5);
 }
 
+.tabs {
+    padding: var(--space-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background-color: var(--surface-2);
+}
+
+.tabs__tab {
+    border-radius: var(--radius);
+}
+
+.tabs__tab--active {
+    background-color: var(--surface);
+    box-shadow: var(--shadow-xs);
+}
+
 .tabs__tab {
     display: inline-flex;
     align-items: center;

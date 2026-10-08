@@ -56,6 +56,12 @@ function mount() {
         e.target.closest('[data-date]')?.classList.remove('cal__day--drop');
     });
 
+    grid.addEventListener('dragend', () => {
+        grid.querySelectorAll('.cal__day--drop')
+            .forEach((cell) => cell.classList.remove('cal__day--drop'));
+        dragged = null;
+    });
+
     grid.addEventListener('drop', (e) => {
         const cell = e.target.closest('[data-date]');
 
@@ -95,7 +101,7 @@ function mount() {
                 // The save failed; putting it back is more honest than leaving
                 // the screen showing a date the server never accepted.
                 origin?.appendChild(item);
-                window.alert('مقدرناش نغيّر الموعد. حدّث الصفحة وجرّب تاني.');
+                document.dispatchEvent(new CustomEvent('calendar-save-failed'));
             });
     });
 }

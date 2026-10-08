@@ -102,6 +102,24 @@
     transition: transform var(--transition), border-color var(--transition);
 }
 
+.podium__place {
+    box-shadow: var(--shadow-sm);
+    transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+
+.podium__place:hover {
+    border-color: var(--action-line);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-0.1875rem);
+}
+
+.points-total {
+    background: linear-gradient(135deg, var(--action-bg), var(--surface));
+    border: 1px solid var(--action-line);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+}
+
 .podium__place:hover {
     transform: translateY(-2px);
     border-color: var(--border-strong);

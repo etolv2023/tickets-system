@@ -169,19 +169,31 @@
        (card/page 1.16:1, page/rail 1.12:1) because the redesigned cards carry
        a real two-layer shadow — luminance no longer does the separating alone.
        Every text step still clears AA on all four working surfaces. */
-    --bg: var(--n-3);
-    --surface: var(--n-1);
-    --surface-2: var(--n-2);
-    --surface-3: var(--n-3);
+    --bg: #f6f7fb;
+    --surface: #ffffff;
+    --surface-2: #f8fafc;
+    --surface-3: #f1f5f9;
     /* One step in front of a card — a popover, a dropdown menu, a tooltip.
        These sit above the card layer, so they get the one pure white. */
     --surface-raised: var(--n-0);
-    --nav-bg: var(--n-4);
+    --nav-bg: #111827;
     /* Hover inside the rail has to move against --nav-bg, not against --bg. */
-    --nav-hover: var(--n-5);
-    --hover: var(--n-3);
-    --active: var(--n-4);
-    --chip: var(--n-3);
+    --nav-hover: #1f2937;
+    --nav-text: #cbd5e1;
+    --nav-text-muted: #94a3b8;
+    --nav-text-strong: #f8fafc;
+    --nav-accent: #a5b4fc;
+    --nav-accent-bg: rgb(99 102 241 / 0.24);
+    --nav-accent-bg-soft: rgb(79 70 229 / 0.14);
+    --nav-accent-line: rgb(129 140 248 / 0.18);
+    --nav-accent-glow: rgb(129 140 248 / 0.7);
+    --brand-start: #766df4;
+    --brand-end: #4f46e5;
+    --brand-shadow: rgb(79 70 229 / 0.34);
+    --nav-border: rgb(255 255 255 / 0.08);
+    --hover: #f1f5f9;
+    --active: #e8edf5;
+    --chip: #eef2f7;
 
     /* A field is a well: one step behind the surface around it, so it reads as
        something you put things INTO. Focus then moves it one step forward.
@@ -191,8 +203,8 @@
        lighter, on a dark ground it also means lighter, and --surface is DARKER
        than --surface-2 in dark mode. Naming the intent instead of the plane is
        what keeps the component file free of a single theme-aware rule. */
-    --field-bg: var(--n-2);
-    --field-bg-focus: var(--n-0);
+    --field-bg: #f8fafc;
+    --field-bg-focus: #ffffff;
 
     /* ---- Text — three levels, each a ramp position ----
        Measured on the cool ramp: --text 14.4-16.7:1, --text-muted 6.3-8.1:1,
@@ -241,10 +253,10 @@
        all this hue. A status, priority, type or label: never.
        --action-bg is its own hex rather than an alias since indigo no longer
        owns the accent; --action-line is derived like every hue line. */
-    --action: #336299;
-    --action-hover: #2d5787;
+    --action: #4f46e5;
+    --action-hover: #4338ca;
     --action-text: #ffffff;
-    --action-bg: #e7eef6;
+    --action-bg: #eef2ff;
     --action-line: color-mix(in srgb, var(--action) 24%, var(--action-bg));
     /* The focus ring is an accessibility affordance, not decoration — and it
        is interactive feedback, so it speaks the interaction hue. */

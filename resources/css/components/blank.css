@@ -15,6 +15,12 @@
     text-align: center;
 }
 
+.blank {
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-xl);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--action-bg) 18%, var(--surface)), var(--surface));
+}
+
 .blank__title {
     font-size: var(--text-lg);
     font-weight: var(--weight-heavy);

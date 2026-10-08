@@ -20,6 +20,20 @@
     gap: var(--space-5);
 }
 
+.install {
+    background:
+        radial-gradient(circle at 12% 12%, color-mix(in srgb, var(--action) 14%, transparent), transparent 34rem),
+        var(--bg);
+}
+
+.install__box {
+    box-shadow: var(--shadow-lg);
+}
+
+.steps__dot {
+    box-shadow: 0 0 0 var(--space-1) var(--surface);
+}
+
 .install__brand {
     display: flex;
     align-items: center;

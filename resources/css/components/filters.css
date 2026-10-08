@@ -10,6 +10,15 @@
     flex-wrap: wrap;
 }
 
+.filters {
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.filters:focus-within {
+    border-color: color-mix(in srgb, var(--action) 28%, var(--border));
+}
+
 /* ★ (2026-08-02) Two-line variant, for a screen with more filters than fit a
    sane single row. The tickets bar had ten controls of six different widths in
    one flex-wrap: every viewport width broke them differently, so no control

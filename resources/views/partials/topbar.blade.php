@@ -26,7 +26,9 @@
     <form method="GET" action="{{ route('search') }}" class="topbar__search" role="search">
         <x-icon name="search" class="topbar__search-icon" />
         <input type="search" name="q" value="{{ request('q') }}"
-               placeholder="دوّر برقم أو عنوان أو شركة…" aria-label="بحث عالمي">
+               placeholder="دوّر برقم أو عنوان أو شركة…" aria-label="بحث عالمي"
+               aria-keyshortcuts="Control+K Meta+K /">
+        <kbd class="topbar__search-key" aria-hidden="true">⌘K</kbd>
     </form>
 
     <x-theme-toggle />

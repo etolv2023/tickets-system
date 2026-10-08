@@ -16,10 +16,10 @@
 .nav {
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
-    padding: var(--space-4) var(--space-3);
+    gap: var(--space-4);
+    padding: var(--space-5) var(--space-3) var(--space-4);
     background-color: var(--nav-bg);
-    border-inline-end: 1px solid var(--border);
+    border-inline-end: 1px solid var(--nav-border);
     /* Sticky rather than fixed-height: the rail holds its own viewport-tall
        box while the document scrolls past it, and the list inside scrolls on
        its own so the brand and the user card stay pinned. */
@@ -39,25 +39,28 @@
     align-items: center;
     gap: var(--space-2);
     padding-inline: var(--space-2);
-    padding-block-end: var(--space-2);
+    min-height: 2.75rem;
+    padding-block-end: var(--space-3);
     font-size: var(--text-base);
     font-weight: var(--weight-heavy);
     white-space: nowrap;
     overflow: hidden;
+    color: var(--nav-text-strong);
 }
 
 .nav__brand-mark {
-    width: 1.875rem;
-    height: 1.875rem;
-    border-radius: var(--radius);
-    background-color: var(--action);
-    color: var(--action-text);
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(145deg, var(--brand-start), var(--brand-end));
+    color: var(--text-inverse);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: var(--text-base);
+    font-size: var(--text-lg);
     font-weight: var(--weight-black);
     flex-shrink: 0;
+    box-shadow: 0 0 0 1px var(--nav-border), 0 8px 20px var(--brand-shadow);
 }
 
 /* اليوم stands alone above every group — the home screen, not one more row
@@ -67,7 +70,7 @@
     font-weight: var(--weight-bold);
     margin-block-end: var(--space-2);
     padding-block-end: var(--space-3);
-    border-block-end: 1px solid var(--border-subtle);
+    border-block-end: 1px solid var(--nav-border);
 }
 
 /* ---- The rail's scrollbar ----
@@ -127,7 +130,7 @@
     font-size: var(--text-2xs);
     font-weight: var(--weight-heavy);
     letter-spacing: 0.03em;
-    color: var(--text-subtle);
+    color: var(--nav-text-muted);
     white-space: nowrap;
 }
 
@@ -145,7 +148,7 @@
        in the same place whether or not the row is current. */
     padding-inline: var(--space-3) var(--space-2);
     border-radius: var(--radius);
-    color: var(--text-muted);
+    color: var(--nav-text);
     font-size: var(--text-md);
     font-weight: var(--weight-medium);
     white-space: nowrap;
@@ -156,7 +159,7 @@
    a step against the PAGE. Using it here moved the row the wrong direction. */
 .nav__link:hover {
     background-color: var(--nav-hover);
-    color: var(--text);
+    color: var(--nav-text-strong);
 }
 
 /* The current page — the one blue thing in the rail.
@@ -173,34 +176,35 @@
        rail's one hue gets a hint of depth instead of a second decoration.
        Still --action-bg at the bottom stop, so it never reads as a new
        colour, just a gentler edge on the one that was already there. */
-    background: linear-gradient(180deg, color-mix(in srgb, var(--action) 8%, var(--action-bg)), var(--action-bg));
-    color: var(--action);
+    background: linear-gradient(135deg, var(--nav-accent-bg), var(--nav-accent-bg-soft));
+    color: var(--nav-text-strong);
     font-weight: var(--weight-bold);
-    box-shadow: var(--shadow-xs);
+    box-shadow: inset 0 0 0 1px var(--nav-accent-line);
 }
 
 .nav__link[aria-current='page']::before {
     content: '';
     position: absolute;
     inset-inline-start: 0;
-    inset-block: 25%;
+    inset-block: 18%;
     width: var(--stripe-width);
     border-radius: var(--radius-full);
-    background-color: var(--action);
+    background-color: var(--nav-accent);
+    box-shadow: 0 0 12px var(--nav-accent-glow);
 }
 
 .nav__icon {
     flex-shrink: 0;
-    color: var(--text-subtle);
+    color: var(--nav-text-muted);
     transition: color var(--transition);
 }
 
 .nav__link:hover .nav__icon {
-    color: var(--text-muted);
+    color: var(--nav-text);
 }
 
 .nav__link[aria-current='page'] .nav__icon {
-    color: var(--action);
+    color: var(--nav-accent);
 }
 
 .nav__label {
@@ -212,13 +216,13 @@
     margin-inline-start: auto;
     font-family: var(--font-mono);
     font-size: var(--text-xs);
-    color: var(--text-subtle);
+    color: var(--nav-text-muted);
 }
 
 /* Footer: identity, and the way out. */
 .nav__foot {
     padding-block-start: var(--space-3);
-    border-block-start: 1px solid var(--border);
+    border-block-start: 1px solid var(--nav-border);
 }
 
 .nav__user {
@@ -259,11 +263,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    color: var(--nav-text-strong);
 }
 
 .nav__user-role {
     font-size: var(--text-xs);
-    color: var(--text-subtle);
+    color: var(--nav-text-muted);
     white-space: nowrap;
 }
 
@@ -278,7 +283,7 @@
     background: none;
     border: 0;
     border-radius: var(--radius);
-    color: var(--text-subtle);
+    color: var(--nav-text-muted);
     cursor: pointer;
     transition: background-color var(--transition), color var(--transition);
 }

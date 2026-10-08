@@ -7,6 +7,7 @@ import bell from './components/bell';
 import notifyPermission from './components/notify-permission';
 import registerSubmitGuard from './components/submit-guard';
 import registerStickyFilters from './components/sticky-filters';
+import registerGlobalShortcuts from './components/global-shortcuts';
 
 // Before Alpine, and before anything else can attach a submit handler: a
 // double-click on "إرسال" used to post the same comment three times.
@@ -15,6 +16,9 @@ registerSubmitGuard();
 // Writes each filter bar's last state. The matching restore runs inline in the
 // layout head — see the comment there for why it can't live in this bundle.
 registerStickyFilters();
+
+// Fast navigation for a ticketing tool: users search dozens of times a day.
+registerGlobalShortcuts();
 
 // Theme: tokens.css already follows prefers-color-scheme on its own. This store
 // only lets a user override the OS choice and remembers it. The initial value is
@@ -46,6 +50,14 @@ Alpine.store('theme', {
     toggle() {
         this.set(this.dark ? 'light' : 'dark');
     },
+});
+
+// Keep the icon and resolved theme honest when the user follows the operating
+// system and that preference changes while the app is open.
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (!document.documentElement.dataset.theme) {
+        Alpine.store('theme').dark = resolveDark();
+    }
 });
 
 // ★ (2026-08-29) Fullscreen.
@@ -211,6 +223,10 @@ Alpine.store('toast', {
 // the one and only place that gets to say so. It used to go nowhere.
 document.addEventListener('reorder-failed', () => {
     Alpine.store('toast').push('الترتيب الجديد ماتسجّلش. حدّث الصفحة وجرّب تاني.', 'error');
+});
+
+document.addEventListener('calendar-save-failed', () => {
+    Alpine.store('toast').push('مقدرناش نغيّر الموعد. رجّعناه لمكانه؛ جرّب تاني.', 'error');
 });
 
 // Copy-to-clipboard for a single value, with a two-second "copied" state.

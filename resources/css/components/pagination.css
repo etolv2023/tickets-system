@@ -37,6 +37,17 @@
     transition: background-color var(--transition), border-color var(--transition);
 }
 
+.pagination__link {
+    box-shadow: var(--shadow-xs);
+    transition: color var(--transition), border-color var(--transition),
+        background-color var(--transition), transform var(--transition), box-shadow var(--transition);
+}
+
+.pagination__link:hover {
+    transform: translateY(-0.0625rem);
+    box-shadow: var(--shadow-sm);
+}
+
 .pagination__link:hover {
     background-color: var(--surface-2);
     color: var(--text);

@@ -28,6 +28,26 @@
     background: var(--surface-2);
 }
 
+.gh-branch,
+.gh-repo,
+.gh-pull {
+    box-shadow: var(--shadow-xs);
+    transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+
+.gh-branch:hover,
+.gh-repo:hover,
+.gh-pull:hover {
+    border-color: var(--action-line);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-0.0625rem);
+}
+
+.gh-score {
+    background: linear-gradient(135deg, var(--action-bg), var(--surface));
+    border-color: var(--action-line);
+}
+
 .gh-branch__head {
     display: flex;
     flex-wrap: wrap;

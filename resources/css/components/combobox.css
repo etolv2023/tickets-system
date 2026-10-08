@@ -48,6 +48,16 @@
     box-shadow: var(--shadow-md);
 }
 
+.combobox__list {
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.combobox__item {
+    margin-inline: var(--space-1);
+    border-radius: var(--radius-sm);
+}
+
 /* Label above hint, not beside it. Side by side, a 192px filter box left the
    name 79px — an email fully readable and a person's name cut in half. */
 .combobox__item {

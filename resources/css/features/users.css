@@ -15,6 +15,20 @@
     text-align: start;
 }
 
+.generated-password,
+.import-summary {
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.perms__item {
+    transition: background-color var(--transition), color var(--transition);
+}
+
+.perms__item:hover {
+    background-color: color-mix(in srgb, var(--action-bg) 32%, var(--surface));
+}
+
 /* Import: the preview verdict per row. */
 .import-row__action {
     font-weight: var(--weight-medium);

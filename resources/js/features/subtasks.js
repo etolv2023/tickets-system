@@ -25,20 +25,26 @@ function mountSubtaskSorting() {
         ghostClass: 'subtask--ghost',
         dragClass: 'subtask--dragging',
 
-        onEnd() {
+        async onEnd() {
             const ids = [...list.querySelectorAll('[data-subtask-id]')].map((el) =>
                 Number(el.dataset.subtaskId)
             );
 
-            fetch(url, {
-                method: 'POST',
-                headers: jsonHeaders(),
-                body: JSON.stringify({ ids }),
-            }).catch(() => {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: jsonHeaders(),
+                    body: JSON.stringify({ ids }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Reorder failed');
+                }
+            } catch {
                 // The order is already correct on screen; a failed save means the
                 // next load will disagree, so say so rather than pretend.
                 list.dispatchEvent(new CustomEvent('reorder-failed', { bubbles: true }));
-            });
+            }
         },
     });
 }

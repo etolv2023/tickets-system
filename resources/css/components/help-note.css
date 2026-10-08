@@ -22,6 +22,11 @@
     padding-block-start: var(--space-3);
 }
 
+.help-note {
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xs);
+}
+
 .help-note__summary {
     cursor: pointer;
     font-size: var(--text-sm);

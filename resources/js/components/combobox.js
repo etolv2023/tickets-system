@@ -26,6 +26,7 @@ export default function combobox({ resource, value = null, label = null, scope =
         loading: false,
         highlighted: -1,
         timer: null,
+        controller: null,
 
         init() {
             // A dependent combobox (contacts under a company) clears itself
@@ -47,6 +48,7 @@ export default function combobox({ resource, value = null, label = null, scope =
         },
 
         destroy() {
+            this.controller?.abort();
             window.removeEventListener('scroll', this.reposition, true);
             window.removeEventListener('resize', this.reposition);
         },
@@ -100,6 +102,9 @@ export default function combobox({ resource, value = null, label = null, scope =
         },
 
         async search() {
+            this.controller?.abort();
+            const controller = new AbortController();
+            this.controller = controller;
             this.loading = true;
 
             try {
@@ -110,11 +115,20 @@ export default function combobox({ resource, value = null, label = null, scope =
                     url.searchParams.set('company', this.scopeValue);
                 }
 
-                const response = await fetch(url, { headers: { Accept: 'application/json' } });
+                const response = await fetch(url, {
+                    headers: { Accept: 'application/json' },
+                    signal: controller.signal,
+                });
                 this.results = response.ok ? (await response.json()).results : [];
             } catch (e) {
-                this.results = [];
+                if (e.name !== 'AbortError') {
+                    this.results = [];
+                }
             } finally {
+                if (this.controller !== controller) {
+                    return;
+                }
+
                 this.loading = false;
                 this.highlighted = this.results.length ? 0 : -1;
                 // The list just changed height, so where it should sit may

@@ -6,6 +6,39 @@
     background-color: var(--bg);
 }
 
+.portal__head {
+    background: linear-gradient(135deg, var(--nav-bg), color-mix(in srgb, var(--nav-bg) 78%, var(--action)));
+    border-block-end: 1px solid var(--nav-border);
+}
+
+.portal__head-inner {
+    color: var(--nav-text-strong);
+}
+
+.portal__ticket-head,
+.portal-composer {
+    box-shadow: var(--shadow-sm);
+}
+
+.portal-comment__bubble {
+    box-shadow: var(--shadow-xs);
+}
+
+.portal-comment--staff .portal-comment__bubble {
+    border-color: var(--action-line);
+    background-color: color-mix(in srgb, var(--action-bg) 55%, var(--surface));
+}
+
+.portal-file {
+    transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+
+.portal-file:hover {
+    border-color: var(--action-line);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-0.0625rem);
+}
+
 /* The brand sat alone in the middle of a full-width bar. Aligning its inner
    width with the body's puts it over the content instead of floating above it.
 

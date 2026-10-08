@@ -81,8 +81,9 @@
    sitting at the same size as a card title two panels down. */
 .ticket__title {
     font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
+    font-weight: var(--weight-black);
     line-height: var(--leading-tight);
+    letter-spacing: -0.015em;
 }
 
 .ticket__badges {
@@ -195,6 +196,7 @@
     border: 1px solid var(--border);
     border-radius: var(--radius);
     background-color: var(--surface);
+    box-shadow: var(--shadow-xs);
 }
 
 /* An internal note must be unmistakable at a glance — it's the one thing that

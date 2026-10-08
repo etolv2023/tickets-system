@@ -33,6 +33,12 @@
     pointer-events: auto;
 }
 
+.toast {
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(0.75rem);
+}
+
 .toast--success {
     --toast-color: var(--c-green);
 }

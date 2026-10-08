@@ -19,7 +19,7 @@
     background: none;
     border: 0;
     border-radius: var(--radius);
-    color: var(--text-subtle);
+    color: var(--nav-text-muted);
     cursor: pointer;
     /* Deliberately no hover fill — that treatment is a link's, and a header
        filling in on hover is what made it read as just another row. */
@@ -27,7 +27,7 @@
 }
 
 .nav-group__head:hover {
-    color: var(--text);
+    color: var(--nav-text-strong);
 }
 
 .nav-group__head:focus-visible {
@@ -44,7 +44,7 @@
 
 .nav-group__icon {
     flex-shrink: 0;
-    color: var(--text-subtle);
+    color: var(--nav-text-muted);
 }
 
 /* ---- Why the seven group hues are gone ----

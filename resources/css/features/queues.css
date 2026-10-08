@@ -19,6 +19,22 @@
     background-color: var(--surface);
 }
 
+.queue-card {
+    box-shadow: var(--shadow-sm);
+    transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+
+.queue-card:hover {
+    border-color: var(--action-line);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-0.125rem);
+}
+
+.queue-card__open {
+    color: var(--action);
+    font-weight: var(--weight-bold);
+}
+
 /* Waiting on a decision. Amber on the inline-start edge — the same edge the
    priority stripe uses, because that is where this layout puts a semantic bar.
    Approval cards carry no priority stripe, so the two never collide. */

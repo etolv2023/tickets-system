@@ -27,6 +27,21 @@
     min-width: 0;
 }
 
+.sheet {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+}
+
+.sheet__row {
+    transition: background-color var(--transition);
+}
+
+.sheet__row:not(.sheet__row--head):hover {
+    background-color: color-mix(in srgb, var(--action-bg) 28%, var(--surface));
+}
+
 .sheet__row {
     display: grid;
     grid-template-columns: var(--sheet-cols);

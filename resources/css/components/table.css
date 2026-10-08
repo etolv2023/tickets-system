@@ -26,6 +26,10 @@
     min-width: 0;
     overflow: auto;
     max-height: calc(100dvh - var(--topbar-height) - 16rem);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
 }
 
 .table {
@@ -52,7 +56,7 @@
     color: var(--text-subtle);
     white-space: nowrap;
     border-block-end: 1px solid var(--border);
-    background-color: var(--surface-2);
+    background-color: color-mix(in srgb, var(--surface-2) 88%, var(--action-bg));
     position: sticky;
     top: 0;
     z-index: 1;
@@ -86,7 +90,7 @@
 
 .table--hover tbody tr:hover,
 .table tbody tr:focus-within {
-    background-color: var(--hover);
+    background-color: color-mix(in srgb, var(--action-bg) 42%, var(--surface));
 }
 
 /* The row that IS the current thing — not just under the pointer. Same

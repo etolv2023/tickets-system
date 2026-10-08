@@ -5,6 +5,30 @@
     flex-direction: column;
 }
 
+.settings__group {
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.settings__row {
+    transition: background-color var(--transition);
+}
+
+.settings__row:hover {
+    background-color: color-mix(in srgb, var(--action-bg) 24%, transparent);
+}
+
+.flow__target {
+    box-shadow: var(--shadow-xs);
+    transition: border-color var(--transition), background-color var(--transition),
+        box-shadow var(--transition), transform var(--transition);
+}
+
+.flow__target:hover {
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-0.0625rem);
+}
+
 .settings__row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 18rem);

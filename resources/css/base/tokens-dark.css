@@ -70,19 +70,31 @@
     /* On a dark ground the card is the LIGHTER surface, so --surface reaches
        up the ramp while --bg stays at its foot — the same relationship as the
        light theme, read in the other direction. */
-    --bg: var(--n-3);
-    --surface: var(--n-1);
-    --surface-2: var(--n-4);
-    --surface-3: var(--n-5);
+    --bg: #0b1120;
+    --surface: #151d2e;
+    --surface-2: #1b2538;
+    --surface-3: #222d42;
     --surface-raised: var(--n-4);
-    --nav-bg: var(--n-0);
-    --nav-hover: var(--n-2);
+    --nav-bg: #070b14;
+    --nav-hover: #172033;
+    --nav-text: #cbd5e1;
+    --nav-text-muted: #7f8da3;
+    --nav-text-strong: #f8fafc;
+    --nav-accent: #a5b4fc;
+    --nav-accent-bg: rgb(99 102 241 / 0.24);
+    --nav-accent-bg-soft: rgb(79 70 229 / 0.14);
+    --nav-accent-line: rgb(129 140 248 / 0.18);
+    --nav-accent-glow: rgb(129 140 248 / 0.7);
+    --brand-start: #766df4;
+    --brand-end: #4f46e5;
+    --brand-shadow: rgb(79 70 229 / 0.34);
+    --nav-border: rgb(255 255 255 / 0.07);
     --hover: var(--n-4);
     --active: var(--n-5);
     --chip: var(--n-4);
 
-    --field-bg: var(--n-4);
-    --field-bg-focus: var(--n-5);
+    --field-bg: #111a2a;
+    --field-bg-focus: #1b2538;
 
     /* Measured on the cool dark ramp: --text 9.3-14.9:1, --text-muted
        6.6-10.5:1, --text-subtle 4.6-7.4:1 across n-1/n-3/n-4/n-5. */
@@ -97,10 +109,10 @@
     --border-subtle: rgb(226 234 245 / 0.09);
     --border-strong: rgb(226 234 245 / 0.38);
 
-    --action: #6ba1e0;
-    --action-hover: #82b1e8;
-    --action-text: #0f1523;
-    --action-bg: #1d2f47;
+    --action: #8b83ff;
+    --action-hover: #a49eff;
+    --action-text: #111327;
+    --action-bg: #28264f;
 
     --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.25);
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.28), 0 2px 8px rgb(0 0 0 / 0.22);
@@ -161,19 +173,31 @@
     /* On a dark ground the card is the LIGHTER surface, so --surface reaches
        up the ramp while --bg stays at its foot — the same relationship as the
        light theme, read in the other direction. */
-    --bg: var(--n-3);
-    --surface: var(--n-1);
-    --surface-2: var(--n-4);
-    --surface-3: var(--n-5);
+    --bg: #0b1120;
+    --surface: #151d2e;
+    --surface-2: #1b2538;
+    --surface-3: #222d42;
     --surface-raised: var(--n-4);
-    --nav-bg: var(--n-0);
-    --nav-hover: var(--n-2);
+    --nav-bg: #070b14;
+    --nav-hover: #172033;
+    --nav-text: #cbd5e1;
+    --nav-text-muted: #7f8da3;
+    --nav-text-strong: #f8fafc;
+    --nav-accent: #a5b4fc;
+    --nav-accent-bg: rgb(99 102 241 / 0.24);
+    --nav-accent-bg-soft: rgb(79 70 229 / 0.14);
+    --nav-accent-line: rgb(129 140 248 / 0.18);
+    --nav-accent-glow: rgb(129 140 248 / 0.7);
+    --brand-start: #766df4;
+    --brand-end: #4f46e5;
+    --brand-shadow: rgb(79 70 229 / 0.34);
+    --nav-border: rgb(255 255 255 / 0.07);
     --hover: var(--n-4);
     --active: var(--n-5);
     --chip: var(--n-4);
 
-    --field-bg: var(--n-4);
-    --field-bg-focus: var(--n-5);
+    --field-bg: #111a2a;
+    --field-bg-focus: #1b2538;
 
     /* Measured on the cool dark ramp: --text 9.3-14.9:1, --text-muted
        6.6-10.5:1, --text-subtle 4.6-7.4:1 across n-1/n-3/n-4/n-5. */
@@ -188,10 +212,10 @@
     --border-subtle: rgb(226 234 245 / 0.09);
     --border-strong: rgb(226 234 245 / 0.38);
 
-    --action: #6ba1e0;
-    --action-hover: #82b1e8;
-    --action-text: #0f1523;
-    --action-bg: #1d2f47;
+    --action: #8b83ff;
+    --action-hover: #a49eff;
+    --action-text: #111327;
+    --action-bg: #28264f;
 
     --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.25);
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.28), 0 2px 8px rgb(0 0 0 / 0.22);

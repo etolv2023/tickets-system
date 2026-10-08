@@ -22,6 +22,25 @@
     margin-block-start: var(--space-2);
 }
 
+.reports-filters,
+.reports-section {
+    border-radius: var(--radius-lg);
+}
+
+.reports-section {
+    box-shadow: var(--shadow-sm);
+}
+
+.reports-stats > a {
+    transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+
+.reports-stats > a:hover {
+    transform: translateY(-0.125rem);
+    box-shadow: var(--shadow-md);
+    border-color: var(--action-line);
+}
+
 .reports-table .u-nums {
     font-variant-numeric: tabular-nums;
     white-space: nowrap;

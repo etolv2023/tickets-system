@@ -27,6 +27,7 @@
     padding: var(--space-2);
     border: 1px solid var(--border);
     border-radius: var(--radius);
+    background-color: color-mix(in srgb, var(--surface-2) 72%, transparent);
 }
 
 /* A label and a count over a hairline: enough to read as a header without
@@ -96,6 +97,7 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     overflow: hidden;
+    box-shadow: var(--shadow-sm);
 }
 
 .board--standalone .board__head {

@@ -18,6 +18,28 @@
     overflow: hidden;
 }
 
+/* 2026 workspace pass: the month grid is one cohesive planning surface. */
+.cal {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.cal__head {
+    background: linear-gradient(180deg, var(--surface), var(--surface-2));
+}
+
+.cal__day {
+    transition: background-color var(--transition), box-shadow var(--transition);
+}
+
+.cal__day:hover {
+    background-color: color-mix(in srgb, var(--action-bg) 28%, var(--surface));
+    box-shadow: inset 0 0 0 1px var(--action-line);
+}
+
 .cal__head {
     padding-block: var(--space-2);
     text-align: center;
@@ -195,4 +217,3 @@
         var(--border) 4px
     );
 }
-

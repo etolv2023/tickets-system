@@ -15,8 +15,10 @@
     align-items: center;
     gap: var(--space-3);
     padding-inline: var(--space-5);
-    background-color: var(--bg);
-    border-block-end: 1px solid var(--border-subtle);
+    background-color: color-mix(in srgb, var(--surface) 92%, transparent);
+    border-block-end: 1px solid var(--border);
+    box-shadow: var(--shadow-xs);
+    backdrop-filter: blur(0.875rem) saturate(1.2);
     /* Stays with you while the document scrolls under it. */
     position: sticky;
     top: 0;
@@ -24,7 +26,7 @@
 }
 
 .topbar__title {
-    font-size: var(--text-base);
+    font-size: var(--text-lg);
     font-weight: var(--weight-heavy);
     line-height: var(--leading-tight);
     white-space: nowrap;
@@ -37,8 +39,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.0625rem;
-    height: 2.0625rem;
+    width: 2.35rem;
+    height: 2.35rem;
     flex: none;
     padding: 0;
     background-color: transparent;
@@ -70,7 +72,7 @@
     position: relative;
     display: flex;
     align-items: center;
-    width: 15rem;
+    width: min(22rem, 28vw);
 }
 
 .topbar__search-icon {
@@ -88,14 +90,34 @@
     width: 100%;
     padding-block: var(--space-2);
     padding-inline-start: calc(var(--space-6) + var(--space-1));
-    padding-inline-end: var(--space-3);
+    padding-inline-end: var(--space-7);
     background-color: var(--field-bg);
-    border: 1px solid transparent;
-    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
     color: var(--text);
     font-family: inherit;
     font-size: var(--text-sm);
     transition: background-color var(--transition), border-color var(--transition), box-shadow var(--transition);
+}
+
+.topbar__search-key {
+    position: absolute;
+    inset-inline-end: var(--space-2);
+    padding-block: var(--space-1);
+    padding-inline: var(--space-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background-color: var(--surface);
+    color: var(--text-subtle);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    line-height: 1;
+    pointer-events: none;
+}
+
+.topbar__search:focus-within .topbar__search-key {
+    border-color: var(--action-line);
+    color: var(--action);
 }
 
 .topbar__search input::placeholder {
@@ -105,7 +127,7 @@
 .topbar__search input:focus {
     outline: none;
     border-color: var(--action);
-    box-shadow: 0 0 0 3px var(--action-bg);
+    box-shadow: 0 0 0 3px var(--action-bg), var(--shadow-xs);
     background-color: var(--field-bg-focus);
 }
 
