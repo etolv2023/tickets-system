@@ -37,63 +37,6 @@
     flex-wrap: wrap;
 }
 
-/* Dense filter forms across the system share one disclosure pattern. The
-   search and actions remain in the command row; narrowing controls use this
-   responsive grid only when requested. */
-.filters--disclosure {
-    display: block;
-    padding: var(--space-2);
-    background-color: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-}
-
-.filters--disclosure .filters__bar {
-    inline-size: 100%;
-}
-
-.filters--disclosure .filters__search {
-    flex: 1 1 24rem;
-}
-
-.filters__disclosure-toggle[aria-expanded='true'] {
-    border-color: var(--action-line);
-    background-color: var(--action-bg);
-    color: var(--action);
-}
-
-.filters__disclosure-panel {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-    gap: var(--space-2);
-    inline-size: 100%;
-    margin-block-start: var(--space-2);
-    padding-block-start: var(--space-3);
-    border-block-start: 1px solid var(--border-subtle);
-}
-
-.filters__disclosure-panel[hidden] {
-    display: none;
-}
-
-.filters__disclosure-panel > *,
-.filters__disclosure-panel .input,
-.filters__disclosure-panel .select,
-.filters__disclosure-panel .filters__combobox {
-    inline-size: 100%;
-    min-inline-size: 0;
-}
-
-.filters__disclosure-panel .filters__narrow {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-    grid-column: 1 / -1;
-    margin: 0;
-    padding: 0;
-    border: 0;
-}
-
 /* Grid, not flex-wrap: equal tracks mean the controls line up in columns
    instead of stepping raggedly, and the count of columns changes only at real
    breakpoints rather than per-control. */
@@ -267,10 +210,6 @@
 
 @media (width < 48rem) {
 
-    .filters__disclosure-panel,
-    .filters__disclosure-panel .filters__narrow {
-        grid-template-columns: minmax(0, 1fr);
-    }
     /* Below this the two-column person cell and the date pair both stop fitting
        side by side; one column per control is the only honest layout left. */
     .filters__narrow,

@@ -162,16 +162,6 @@
     position: relative;
 }
 
-.table-tools {
-    display: flex;
-    justify-content: flex-end;
-    margin-block-end: var(--space-2);
-}
-
-.table__column--hidden {
-    display: none;
-}
-
 .table-columns__menu {
     position: absolute;
     z-index: 20;
@@ -185,9 +175,6 @@
     box-shadow: var(--shadow-lg);
 }
 
-.table-columns__menu[hidden] {
-    display: none;
-}
 
 .table-columns__option {
     display: flex;

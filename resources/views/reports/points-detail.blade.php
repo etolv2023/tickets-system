@@ -24,9 +24,23 @@
             </div>
         </div>
 
-        <form method="GET" action="{{ route('reports.points-detail') }}" class="filters">
-            <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" class="input filters__search"
-                   placeholder="دوّر برقم تذكرة أو عنوان صب تاسك أو سبب…" aria-label="بحث">
+        <form method="GET" action="{{ route('reports.points-detail') }}"
+              class="filters reports-ledger-filters" x-data="{ filtersOpen: false }">
+            <div class="filters__bar">
+                <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" class="input filters__search"
+                       placeholder="دوّر برقم تذكرة أو عنوان صب تاسك أو سبب…" aria-label="بحث">
+                <button type="button" class="btn btn--secondary" @click="filtersOpen = !filtersOpen"
+                        :aria-expanded="filtersOpen.toString()">
+                    <x-icon name="filter" class="btn__icon" /> الفلاتر
+                </button>
+                <x-button variant="secondary" size="sm">فلترة</x-button>
+
+                @if (array_filter($filters))
+                    <a class="btn btn--ghost btn--sm" href="{{ route('reports.points-detail') }}">مسح</a>
+                @endif
+            </div>
+
+            <div class="reports-ledger-filters__panel" x-show="filtersOpen" x-cloak>
 
             <div class="filters__combobox">
                 <x-combobox name="person" resource="users"
@@ -81,11 +95,7 @@
                 <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" aria-label="لتاريخ">
             </div>
 
-            <x-button variant="secondary" size="sm">فلترة</x-button>
-
-            @if (array_filter($filters))
-                <a class="btn btn--ghost btn--sm" href="{{ route('reports.points-detail') }}">مسح</a>
-            @endif
+            </div>
         </form>
 
         {{-- The totals describe what the filter selected, never the whole

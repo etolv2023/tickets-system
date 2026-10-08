@@ -9,8 +9,6 @@ import registerSubmitGuard from './components/submit-guard';
 import registerStickyFilters from './components/sticky-filters';
 import registerGlobalShortcuts from './components/global-shortcuts';
 import tableColumns from './components/table-columns';
-import registerFilterDisclosures from './components/filter-disclosure';
-import registerTableColumnPickers from './components/table-column-picker';
 
 // Before Alpine, and before anything else can attach a submit handler: a
 // double-click on "إرسال" used to post the same comment three times.
@@ -22,10 +20,6 @@ registerStickyFilters();
 
 // Fast navigation for a ticketing tool: users search dozens of times a day.
 registerGlobalShortcuts();
-
-// One compact filter interaction across lists, reports, queues and admin.
-registerFilterDisclosures();
-registerTableColumnPickers();
 
 Alpine.data('tableColumns', tableColumns);
 
