@@ -44,7 +44,7 @@
 .shell__body {
     --body-pad: var(--space-5);
     flex: 1;
-    padding: var(--space-6) var(--body-pad) var(--space-7);
+    padding: var(--space-4) var(--body-pad) var(--space-6);
 }
 
 /* The ceiling exists so a line of prose never runs the width of a 27" monitor.
@@ -60,7 +60,7 @@
     margin-inline: auto;
     display: flex;
     flex-direction: column;
-    gap: var(--space-5);
+    gap: var(--space-4);
 }
 
 .page--narrow {

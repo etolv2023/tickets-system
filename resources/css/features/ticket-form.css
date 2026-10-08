@@ -5,9 +5,18 @@
 
 .ticket-form {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.35fr) minmax(20rem, 0.85fr);
     gap: var(--space-4);
     align-items: start;
+}
+
+.page--ticket-workspace {
+    max-width: 100rem;
+    gap: var(--space-4);
+}
+
+.page--ticket-workspace .card__body {
+    padding: var(--space-4);
 }
 
 .ticket-form__col {

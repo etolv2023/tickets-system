@@ -65,7 +65,7 @@
 /* ★★ Rows grew from --space-3 to --space-4: the header stays a thin label
    strip, but the data underneath it is what people spend the day reading. */
 .table tbody td {
-    padding-block: var(--space-4);
+    padding-block: var(--space-3);
     padding-inline: var(--space-4);
     border-block-end: 1px solid var(--border-subtle);
     vertical-align: middle;
@@ -162,6 +162,16 @@
     position: relative;
 }
 
+.table-tools {
+    display: flex;
+    justify-content: flex-end;
+    margin-block-end: var(--space-2);
+}
+
+.table__column--hidden {
+    display: none;
+}
+
 .table-columns__menu {
     position: absolute;
     z-index: 20;
@@ -173,6 +183,10 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
+}
+
+.table-columns__menu[hidden] {
+    display: none;
 }
 
 .table-columns__option {

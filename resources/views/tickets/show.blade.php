@@ -8,7 +8,7 @@
 @endpush
 
 @section('content')
-    <div class="page">
+    <div class="page page--ticket-workspace">
         @include('tickets.partials._header')
         @include('tickets.partials._summary')
 

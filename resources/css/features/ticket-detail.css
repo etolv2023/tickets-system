@@ -6,8 +6,8 @@
        line, narrow enough that the body still reads as the main column. It was
        a bare 290px here, which is exactly the kind of number that gets copied
        into three other files and then disagrees with itself. */
-    grid-template-columns: minmax(0, 1fr) var(--aside-width);
-    gap: var(--space-5);
+    grid-template-columns: minmax(0, 1fr) clamp(19rem, 24vw, 24rem);
+    gap: var(--space-4);
     align-items: start;
 }
 

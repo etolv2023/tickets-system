@@ -19,17 +19,18 @@
     @foreach ($days as $day)
         @php
             $key = $day->toDateString();
+            $outsideMonth = $view === 'month' && $day->month !== $anchor->month;
             $holiday = $holidays[$key] ?? $holidays[$day->format('m-d')] ?? null;
             $isWorking = $holiday === null && in_array($day->dayOfWeek, array_map('intval', (array) \App\Models\Setting::get('work_days', [0,1,2,3,4])), true);
-            $daySubtasks = $subtasksByDay[$key] ?? collect();
-            $leavesToday = $items['leaves']->filter(fn ($l) => $l->covers($day));
+            $daySubtasks = $outsideMonth ? collect() : ($subtasksByDay[$key] ?? collect());
+            $leavesToday = $outsideMonth ? collect() : $items['leaves']->filter(fn ($l) => $l->covers($day));
         @endphp
 
         <div
             @class([
                 'cal__day',
                 'cal__day--full' => $view === 'day',
-                'cal__day--outside' => $view === 'month' && $day->month !== $anchor->month,
+                'cal__day--outside' => $outsideMonth,
                 'cal__day--off' => ! $isWorking,
                 'cal__day--today' => $day->isToday(),
             ])
@@ -63,10 +64,10 @@
                  * runs across all three kinds so the cap is the whole day, not
                  * per-kind.
                  */
-                $dayTickets = $ticketsByDay[$key] ?? collect();
-                $daySlas = $slasByDay[$key] ?? collect();
+                $dayTickets = $outsideMonth ? collect() : ($ticketsByDay[$key] ?? collect());
+                $daySlas = $outsideMonth ? collect() : ($slasByDay[$key] ?? collect());
                 $totalItems = $daySubtasks->count() + $dayTickets->count() + $daySlas->count();
-                $cap = $view === 'month' ? 2 : ($view === 'week' ? 4 : $totalItems);
+                $cap = $view === 'month' ? 1 : ($view === 'week' ? 4 : $totalItems);
                 $shown = 0;
             @endphp
 

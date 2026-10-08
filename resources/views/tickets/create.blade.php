@@ -3,7 +3,7 @@
 @section('title', 'فتح تذكرة')
 
 @section('content')
-    <div class="page">
+    <div class="page page--ticket-workspace">
         <div class="page__head">
             <div>
                 <h1 class="page-title">فتح تذكرة</h1>

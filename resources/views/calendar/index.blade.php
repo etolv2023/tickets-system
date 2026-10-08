@@ -9,8 +9,8 @@
 
 @section('content')
     {{-- ★★★★ (2026-07-21): a month/timeline grid, same case as the board. --}}
-    <div class="page page--wide">
-        <div class="page__head">
+    <div class="page page--wide page--calendar">
+        <div class="page__head cal__page-head">
             <div>
                 <h1 class="page-title">{{ $title }}</h1>
                 <p class="page-subtitle">

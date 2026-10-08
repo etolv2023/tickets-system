@@ -228,8 +228,8 @@
 
 .cal__day {
     gap: var(--space-1);
-    height: 9rem;
-    padding: var(--space-3);
+    height: clamp(6.75rem, 12vh, 7.5rem);
+    padding: var(--space-2);
 }
 
 .cal__body {
@@ -265,6 +265,32 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-xs);
+}
+
+.page--calendar {
+    gap: var(--space-3);
+}
+
+/* The topbar already names the calendar. Keep only the useful period label so
+   the grid starts higher and a month fits without a second oversized scroll. */
+.page--calendar .cal__page-head {
+    min-block-size: 0;
+    padding: 0;
+}
+
+.page--calendar .cal__page-head .page-title {
+    display: none;
+}
+
+.page--calendar .cal__page-head .page-subtitle {
+    margin: 0;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    color: var(--text-muted);
+}
+
+.page--calendar .filters--calendar {
+    margin-block: calc(var(--space-1) * -1);
 }
 
 .cal__views {
