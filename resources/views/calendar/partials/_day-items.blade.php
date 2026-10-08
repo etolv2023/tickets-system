@@ -37,10 +37,14 @@
     >
         {{-- A subtask says who and how long. A ticket deadline says neither —
              that is the difference you are meant to see without reading. --}}
+        <span class="cal__kind-label">صب تاسك</span>
         @if ($subtask->assignee)
             <span class="cal__who">{{ $subtask->assignee->initials() }}</span>
         @endif
-        <span class="cal__text">{{ $subtask->title }}</span>
+        <span class="cal__content">
+            <span class="cal__text">{{ $subtask->title }}</span>
+            <span class="cal__meta u-mono">{{ $subtask->ticket->ticket_number }}</span>
+        </span>
         @if ($subtask->estimated_hours)
             <span class="cal__hours u-mono">{{ rtrim(rtrim($subtask->estimated_hours, '0'), '.') }}س</span>
         @endif
@@ -55,8 +59,11 @@
     <a class="cal__ticket cal__ticket--{{ $ticket->priority->variant() }}"
        href="{{ route('tickets.show', $ticket) }}"
        title="استحقاق التذكرة — {{ $ticket->title }}">
-        <span class="cal__ticket-tag">تذكرة</span>
-        <span class="cal__text u-mono">{{ $ticket->ticket_number }}</span>
+        <span class="cal__ticket-tag cal__kind-label">موعد تذكرة</span>
+        <span class="cal__content">
+            <span class="cal__text">{{ $ticket->title }}</span>
+            <span class="cal__meta u-mono">{{ $ticket->ticket_number }}</span>
+        </span>
     </a>
     @php $shown++; @endphp
 @endforeach
@@ -68,7 +75,11 @@
     <a class="cal__sla" href="{{ route('tickets.show', $sla) }}"
        title="مهلة SLA — {{ $sla->title }}">
         <span class="cal__sla-dot"></span>
-        <span class="cal__text u-mono">{{ $sla->ticket_number }}</span>
+        <span class="cal__kind-label">مهلة SLA</span>
+        <span class="cal__content">
+            <span class="cal__text">{{ $sla->title }}</span>
+            <span class="cal__meta u-mono">{{ $sla->ticket_number }}</span>
+        </span>
     </a>
     @php $shown++; @endphp
 @endforeach

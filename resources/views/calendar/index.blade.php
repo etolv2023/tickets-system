@@ -13,6 +13,7 @@
         <div class="page__head cal__page-head">
             <div>
                 <h1 class="page-title">{{ $title }}</h1>
+                <span class="cal__eyebrow">مساحة التخطيط</span>
                 <p class="page-subtitle">
                     {{ $view === 'day'
                         ? $anchor->translatedFormat('l j F Y')
@@ -21,8 +22,10 @@
             </div>
         </div>
 
-        @include('calendar.partials._toolbar')
-        @include('calendar.partials._filters')
+        <section class="cal-controls" aria-label="أدوات الكاليندر">
+            @include('calendar.partials._toolbar')
+            @include('calendar.partials._filters')
+        </section>
 
         @if ($view === 'timeline')
             @include('calendar.partials._timeline')

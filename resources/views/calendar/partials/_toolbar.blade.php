@@ -9,13 +9,13 @@
 @endphp
 
 <div class="cal__bar">
-    <div class="row">
-        <x-button variant="ghost" size="sm" :href="route($routeName, $keep(['date' => $step['prev']->toDateString()]))">
-            ←
+    <div class="cal__navigation">
+        <x-button variant="ghost" size="sm" :href="route($routeName, $keep(['date' => $step['prev']->toDateString()]))" aria-label="الفترة السابقة">
+            <x-icon name="chevron-right" />
         </x-button>
         <x-button variant="secondary" size="sm" :href="route($routeName, $keep([]))">النهاردة</x-button>
-        <x-button variant="ghost" size="sm" :href="route($routeName, $keep(['date' => $step['next']->toDateString()]))">
-            →
+        <x-button variant="ghost" size="sm" :href="route($routeName, $keep(['date' => $step['next']->toDateString()]))" aria-label="الفترة التالية">
+            <x-icon name="chevron-left" />
         </x-button>
     </div>
 

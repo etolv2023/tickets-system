@@ -471,6 +471,16 @@
     gap: var(--space-3);
 }
 
+.cal-controls {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-2);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+}
+
 /* The topbar already names the calendar. Keep only the useful period label so
    the grid starts higher and a month fits without a second oversized scroll. */
 .page--calendar .cal__page-head {
@@ -482,6 +492,14 @@
     display: none;
 }
 
+.cal__eyebrow {
+    display: block;
+    margin-block-end: 2px;
+    color: var(--action);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-heavy);
+}
+
 .page--calendar .cal__page-head .page-subtitle {
     margin: 0;
     font-size: var(--text-sm);
@@ -490,11 +508,159 @@
 }
 
 .page--calendar .filters--calendar {
-    margin-block: calc(var(--space-1) * -1);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
 }
 
 .cal__views {
     padding: var(--space-1);
     background-color: var(--surface-2);
     border-radius: var(--radius);
+}
+
+.cal-controls .cal__bar {
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+}
+
+.cal__navigation {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+/* The day view is a work queue, not a seven-column calendar cell enlarged to
+   fill the page. Cards expose the title and ticket context without tooltips. */
+.cal--day {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: visible;
+}
+
+.cal--day .cal__day--full {
+    gap: var(--space-3);
+    min-block-size: 0;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.cal--day .cal__day--full:hover {
+    background: transparent;
+    box-shadow: none;
+}
+
+.cal--day .cal__top {
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+
+.cal--day .cal__num {
+    display: block;
+    block-size: auto;
+    min-inline-size: 0;
+    color: var(--text);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-heavy);
+}
+
+.cal--day .cal__body {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+}
+
+.cal--day .cal__item,
+.cal--day .cal__ticket,
+.cal--day .cal__sla {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-3);
+    min-block-size: 5rem;
+    padding: var(--space-3);
+    border: 1px solid var(--border);
+    border-inline-start: 4px solid var(--item-color, var(--ticket-color, var(--c-urgent)));
+    border-radius: var(--radius-lg);
+    background-color: var(--surface);
+    color: var(--text);
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+    text-decoration: none;
+    white-space: normal;
+    box-shadow: var(--shadow-xs);
+    cursor: pointer;
+}
+
+.cal--day .cal__sla {
+    border-inline-start-color: var(--c-urgent);
+}
+
+.cal--day .cal__item:hover,
+.cal--day .cal__ticket:hover,
+.cal--day .cal__sla:hover {
+    border-color: var(--action-line);
+    background-color: var(--surface);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+.cal--day .cal__content {
+    display: grid;
+    gap: var(--space-1);
+}
+
+.cal--day .cal__text {
+    font-weight: var(--weight-bold);
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.cal--day .cal__meta,
+.cal--day .cal__kind-label {
+    display: inline-flex;
+}
+
+.cal--day .cal__meta {
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+}
+
+.cal--day .cal__kind-label {
+    align-items: center;
+    justify-content: center;
+    align-self: start;
+    padding: 3px var(--space-2);
+    border-radius: var(--radius-full);
+    background-color: var(--surface-3);
+    color: var(--text-muted);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-heavy);
+}
+
+.cal--day .cal__ticket-tag {
+    background-color: color-mix(in srgb, var(--ticket-color) 14%, var(--surface));
+    color: var(--ticket-color);
+}
+
+.cal--day .cal__who,
+.cal--day .cal__hours {
+    min-inline-size: 2rem;
+    block-size: 2rem;
+    font-size: var(--text-xs);
+}
+
+@media (width < 64rem) {
+    .cal--day .cal__body {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }

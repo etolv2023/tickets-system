@@ -87,6 +87,19 @@
     text-overflow: ellipsis;
 }
 
+.cal__content {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex: 1;
+    min-width: 0;
+}
+
+.cal__meta,
+.cal__kind-label {
+    display: none;
+}
+
 .cal__hours {
     flex: none;
     font-size: var(--text-2xs);
