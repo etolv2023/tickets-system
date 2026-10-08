@@ -28,7 +28,7 @@
     "src": "public/fonts/plex-mono-500-latin.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-bh2eEih-.css",
+    "file": "assets/app-BBK9nGFh.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -37,7 +37,7 @@
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-cxLMyH18.js",
+    "file": "assets/app-E01p6ql4.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true

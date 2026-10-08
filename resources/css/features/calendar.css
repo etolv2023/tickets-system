@@ -175,8 +175,168 @@
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius);
     background-color: var(--surface-2);
+    inline-size: 100%;
     color: var(--text);
+    font-family: inherit;
+    text-align: start;
+    cursor: pointer;
     transition: border-color var(--transition), background-color var(--transition);
+}
+
+/* The later compact month rule must not win over the day view. */
+.cal__day--full {
+    height: auto;
+    min-height: 18rem;
+    overflow: visible;
+}
+
+.cal-preview {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal);
+    display: grid;
+    place-items: center;
+    padding: var(--space-5);
+}
+
+.cal-preview__backdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background-color: var(--overlay);
+    backdrop-filter: blur(4px);
+}
+
+.cal-preview__panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    inline-size: min(48rem, 100%);
+    max-block-size: min(44rem, calc(100dvh - var(--space-7)));
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+.cal-preview__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-block-end: 1px solid var(--border);
+    background-color: var(--surface-2);
+}
+
+.cal-preview__heading,
+.cal-preview__heading > div {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.cal-preview__heading > div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0;
+}
+
+.cal-preview__heading span {
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+}
+
+.cal-preview__body {
+    overflow-y: auto;
+    padding: var(--space-2);
+}
+
+.cal-preview__item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-3);
+    inline-size: 100%;
+    padding: var(--space-3);
+    border: 0;
+    border-block-end: 1px solid var(--border-subtle);
+    background: none;
+    color: var(--text);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.cal-preview__item:hover {
+    background-color: var(--hover);
+}
+
+.cal-preview__item-main {
+    min-inline-size: 0;
+}
+
+.cal-preview__item-main strong,
+.cal-preview__item-main small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cal-preview__item-main small {
+    margin-block-start: var(--space-1);
+    color: var(--text-muted);
+}
+
+.cal-preview__kind {
+    padding: 3px var(--space-2);
+    border-radius: var(--radius-full);
+    background-color: var(--surface-3);
+    color: var(--text-muted);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-bold);
+}
+
+.cal-preview__kind--sla { background-color: var(--c-red-bg); color: var(--c-red); }
+.cal-preview__kind--ticket { background-color: var(--c-amber-bg); color: var(--c-amber); }
+.cal-preview__kind--subtask { background-color: var(--action-bg); color: var(--action); }
+
+.cal-preview__detail {
+    overflow-y: auto;
+    padding: var(--space-5);
+}
+
+.cal-preview__detail h2 {
+    margin-block: var(--space-3) var(--space-2);
+    font-size: var(--text-xl);
+}
+
+.cal-preview__detail p {
+    color: var(--text-muted);
+}
+
+.cal-preview__detail dl {
+    display: grid;
+    gap: var(--space-2);
+    margin-block-start: var(--space-5);
+}
+
+.cal-preview__detail dl > div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding-block: var(--space-2);
+    border-block-end: 1px solid var(--border-subtle);
+}
+
+.cal-preview__detail dt { color: var(--text-muted); }
+
+@media (width < 40rem) {
+    .cal-preview { padding: 0; }
+    .cal-preview__panel { inline-size: 100%; max-block-size: 100dvh; block-size: 100dvh; border-radius: 0; }
+    .cal-preview__head { align-items: flex-start; flex-direction: column; }
 }
 
 .cal__day-summary:hover {
