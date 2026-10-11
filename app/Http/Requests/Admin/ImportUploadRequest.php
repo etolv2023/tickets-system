@@ -23,7 +23,10 @@ class ImportUploadRequest extends FormRequest
             'type' => ['required', Rule::enum(ImportType::class)],
             // The extension is the first filter only; ImportService re-checks the
             // real bytes with finfo before reading anything (CLAUDE.md § 5).
-            'file' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:10240'],
+            // `extensions`, not `mimes`: mimes guesses an extension from the
+            // bytes, and a CSV's bytes are plain text, so every real .csv was
+            // refused as "txt" before it reached that check.
+            'file' => ['required', 'file', 'extensions:xlsx,xls,csv', 'max:10240'],
         ];
     }
 
