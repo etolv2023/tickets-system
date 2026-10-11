@@ -37,12 +37,12 @@ class UpdateTicketTypeRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name_ar' => 'الاسم',
-            'name_en' => 'الاسم بالإنجليزية',
-            'color' => 'اللون',
-            'icon' => 'الأيقونة',
-            'needs_approval' => 'يحتاج موافقة',
-            'default_points' => 'النقاط الافتراضية',
+            'name_ar' => __('الاسم'),
+            'name_en' => __('الاسم بالإنجليزية'),
+            'color' => __('اللون'),
+            'icon' => __('الأيقونة'),
+            'needs_approval' => __('يحتاج موافقة'),
+            'default_points' => __('النقاط الافتراضية'),
         ];
     }
 }

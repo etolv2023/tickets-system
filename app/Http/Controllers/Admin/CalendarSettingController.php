@@ -36,7 +36,7 @@ class CalendarSettingController extends Controller
             'date' => ['required', 'date'],
             'name' => ['required', 'string', 'max:100'],
             'is_recurring' => ['boolean'],
-        ], [], ['date' => 'التاريخ', 'name' => 'الاسم']);
+        ], [], ['date' => __('التاريخ'), 'name' => __('الاسم')]);
 
         $holiday = Holiday::create($data + ['is_recurring' => $request->boolean('is_recurring')]);
 

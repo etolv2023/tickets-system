@@ -34,19 +34,19 @@ class TimeEntryRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'hours' => 'الساعات',
-            'spent_on' => 'التاريخ',
-            'note' => 'الملاحظة',
-            'subtask_id' => 'الصب تاسك',
+            'hours' => __('الساعات'),
+            'spent_on' => __('التاريخ'),
+            'note' => __('الملاحظة'),
+            'subtask_id' => __('الصب تاسك'),
         ];
     }
 
     public function messages(): array
     {
         return [
-            'spent_on.before_or_equal' => 'مينفعش تسجّل وقت في المستقبل.',
-            'hours.min' => 'أقل وقت ممكن تسجّله ربع ساعة.',
-            'hours.max' => 'مينفعش تسجّل أكتر من 24 ساعة في اليوم الواحد.',
+            'spent_on.before_or_equal' => __('مينفعش تسجّل وقت في المستقبل.'),
+            'hours.min' => __('أقل وقت ممكن تسجّله ربع ساعة.'),
+            'hours.max' => __('مينفعش تسجّل أكتر من 24 ساعة في اليوم الواحد.'),
         ];
     }
 }

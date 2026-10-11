@@ -72,7 +72,7 @@ class SubtaskStatusRequest extends FormRequest
 
                 $validator->errors()->add(
                     'status',
-                    'حدّد صاحب الصب تاسك الأول — الشغل اللي مالوش صاحب مش بياخد نقط.'
+                    __('حدّد صاحب الصب تاسك الأول — الشغل اللي مالوش صاحب مش بياخد نقط.')
                 );
             },
         ];
@@ -83,6 +83,6 @@ class SubtaskStatusRequest extends FormRequest
      */
     public function attributes(): array
     {
-        return ['status' => 'الحالة'];
+        return ['status' => __('الحالة')];
     }
 }

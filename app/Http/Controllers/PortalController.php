@@ -109,7 +109,7 @@ class PortalController extends Controller
 
         if (RateLimiter::tooManyAttempts($key, self::MAX_ATTEMPTS)) {
             throw ValidationException::withMessages([
-                'password' => 'محاولات كتير غلط. جرب تاني بعد ' . RateLimiter::availableIn($key) . ' ثانية.',
+                'password' => __('محاولات كتير غلط. جرب تاني بعد :seconds ثانية.', ['seconds' => RateLimiter::availableIn($key)]),
             ]);
         }
 
@@ -121,7 +121,7 @@ class PortalController extends Controller
         if ($ticket === null || ! $ticket->checkPortalPassword($data['password'])) {
             RateLimiter::hit($key);
 
-            throw ValidationException::withMessages(['password' => 'رقم التذكرة أو الباسورد غلط.']);
+            throw ValidationException::withMessages(['password' => __('رقم التذكرة أو الباسورد غلط.')]);
         }
 
         RateLimiter::clear($key);
@@ -145,7 +145,7 @@ class PortalController extends Controller
 
         if ($request->hasFile('files') && RateLimiter::tooManyAttempts($key, self::MAX_UPLOADS_PER_HOUR)) {
             throw ValidationException::withMessages([
-                'files' => 'رفعت ملفات كتير. جرّب تاني بعد ' . ceil(RateLimiter::availableIn($key) / 60) . ' دقيقة.',
+                'files' => __('رفعت ملفات كتير. جرّب تاني بعد :minutes دقيقة.', ['minutes' => ceil(RateLimiter::availableIn($key) / 60)]),
             ]);
         }
 
@@ -166,7 +166,7 @@ class PortalController extends Controller
                 report($e);
 
                 throw ValidationException::withMessages([
-                    'files' => 'حصلت مشكلة وإحنا بنحفظ الملف. الرسالة اتسجلت، جرّب ترفعه تاني.',
+                    'files' => __('حصلت مشكلة وإحنا بنحفظ الملف. الرسالة اتسجلت، جرّب ترفعه تاني.'),
                 ]);
             }
         }

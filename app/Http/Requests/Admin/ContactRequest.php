@@ -43,17 +43,17 @@ class ContactRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'erp_employee_id.unique' => 'رقم الموظف ده مستخدم قبل كده في نفس الشركة.',
+            'erp_employee_id.unique' => __('رقم الموظف ده مستخدم قبل كده في نفس الشركة.'),
         ];
     }
 
     public function attributes(): array
     {
         return [
-            'name' => 'اسم جهة الاتصال',
-            'erp_employee_id' => 'رقم الموظف في الـ ERP',
-            'email' => 'الإيميل',
-            'phone' => 'التليفون',
+            'name' => __('اسم جهة الاتصال'),
+            'erp_employee_id' => __('رقم الموظف في الـ ERP'),
+            'email' => __('الإيميل'),
+            'phone' => __('التليفون'),
         ];
     }
 }

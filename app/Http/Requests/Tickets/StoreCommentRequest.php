@@ -43,11 +43,11 @@ class StoreCommentRequest extends FormRequest
 
     public function attributes(): array
     {
-        return ['body' => 'التعليق', 'attachments' => 'المرفقات', 'attachments.*' => 'المرفق'];
+        return ['body' => __('التعليق'), 'attachments' => __('المرفقات'), 'attachments.*' => __('المرفق')];
     }
 
     public function messages(): array
     {
-        return ['body.required' => 'اكتب تعليق الأول.'];
+        return ['body.required' => __('اكتب تعليق الأول.')];
     }
 }

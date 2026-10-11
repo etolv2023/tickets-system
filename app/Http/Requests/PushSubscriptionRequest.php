@@ -32,6 +32,6 @@ class PushSubscriptionRequest extends FormRequest
      */
     public function attributes(): array
     {
-        return ['endpoint' => 'عنوان الاشتراك'];
+        return ['endpoint' => __('عنوان الاشتراك')];
     }
 }

@@ -37,7 +37,7 @@ class SubtaskScheduleController extends Controller
 
         $data = $request->validate([
             'due_date' => ['required', 'date'],
-        ], [], ['due_date' => 'تاريخ الاستحقاق']);
+        ], [], ['due_date' => __('تاريخ الاستحقاق')]);
 
         $due = CarbonImmutable::parse($data['due_date']);
 

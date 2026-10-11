@@ -28,10 +28,10 @@ class UpdatePriorityRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name_ar' => 'الاسم',
-            'name_en' => 'الاسم بالإنجليزية',
-            'color' => 'اللون',
-            'sla_hours' => 'مهلة الـ SLA',
+            'name_ar' => __('الاسم'),
+            'name_en' => __('الاسم بالإنجليزية'),
+            'color' => __('اللون'),
+            'sla_hours' => __('مهلة الـ SLA'),
         ];
     }
 }

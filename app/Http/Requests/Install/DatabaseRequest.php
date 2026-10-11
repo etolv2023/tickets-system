@@ -29,7 +29,7 @@ class DatabaseRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'db_database.regex' => 'اسم قاعدة البيانات لازم يكون حروف إنجليزية وأرقام و _ بس.',
+            'db_database.regex' => __('اسم قاعدة البيانات لازم يكون حروف إنجليزية وأرقام و _ بس.'),
         ];
     }
 }

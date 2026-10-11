@@ -26,14 +26,14 @@ class RestoreUploadRequest extends FormRequest
 
     public function attributes(): array
     {
-        return ['file' => 'ملف الباك أب', 'confirm' => 'كلمة التأكيد'];
+        return ['file' => __('ملف الباك أب'), 'confirm' => __('كلمة التأكيد')];
     }
 
     public function messages(): array
     {
         return [
-            'file.max' => 'الملف كبير أوي. الحد 500 ميجا.',
-            'confirm.in' => 'لازم تكتب «' . BackupService::CONFIRM_PHRASE . '» بالظبط عشان تأكد.',
+            'file.max' => __('الملف كبير أوي. الحد 500 ميجا.'),
+            'confirm.in' => __('لازم تكتب «:phrase» بالظبط عشان تأكد.', ['phrase' => BackupService::CONFIRM_PHRASE]),
         ];
     }
 }

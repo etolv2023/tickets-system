@@ -32,19 +32,19 @@ class StoreSubtaskStatusRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'key' => 'المفتاح',
-            'name_ar' => 'الاسم',
-            'name_en' => 'الاسم بالإنجليزية',
-            'color' => 'اللون',
-            'needs_reason' => 'يحتاج سبب',
+            'key' => __('المفتاح'),
+            'name_ar' => __('الاسم'),
+            'name_en' => __('الاسم بالإنجليزية'),
+            'color' => __('اللون'),
+            'needs_reason' => __('يحتاج سبب'),
         ];
     }
 
     public function messages(): array
     {
         return [
-            'key.regex' => 'المفتاح لازم يكون حروف إنجليزي صغير وأرقام و_ بس، وميبدأش برقم.',
-            'key.unique' => 'المفتاح ده مستخدم قبل كده.',
+            'key.regex' => __('المفتاح لازم يكون حروف إنجليزي صغير وأرقام و_ بس، وميبدأش برقم.'),
+            'key.unique' => __('المفتاح ده مستخدم قبل كده.'),
         ];
     }
 }

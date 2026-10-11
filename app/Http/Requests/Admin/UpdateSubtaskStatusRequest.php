@@ -32,10 +32,10 @@ class UpdateSubtaskStatusRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name_ar' => 'الاسم',
-            'name_en' => 'الاسم بالإنجليزية',
-            'color' => 'اللون',
-            'needs_reason' => 'يحتاج سبب',
+            'name_ar' => __('الاسم'),
+            'name_en' => __('الاسم بالإنجليزية'),
+            'color' => __('اللون'),
+            'needs_reason' => __('يحتاج سبب'),
         ];
     }
 }

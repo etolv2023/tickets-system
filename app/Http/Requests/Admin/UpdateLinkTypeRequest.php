@@ -28,11 +28,11 @@ class UpdateLinkTypeRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name_ar' => 'الاسم من التذكرة',
-            'name_en' => 'الاسم من التذكرة بالإنجليزية',
-            'inverse_label_ar' => 'الاسم العكسي',
-            'inverse_label_en' => 'الاسم العكسي بالإنجليزية',
-            'color' => 'اللون',
+            'name_ar' => __('الاسم من التذكرة'),
+            'name_en' => __('الاسم من التذكرة بالإنجليزية'),
+            'inverse_label_ar' => __('الاسم العكسي'),
+            'inverse_label_en' => __('الاسم العكسي بالإنجليزية'),
+            'color' => __('اللون'),
         ];
     }
 }

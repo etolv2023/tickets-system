@@ -46,20 +46,20 @@ class GithubRepositoryRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name' => 'الاسم',
-            'owner' => 'المالك',
-            'repo' => 'الريبو',
-            'side' => 'الجانب',
-            'default_branch' => 'الفرع الافتراضي',
+            'name' => __('الاسم'),
+            'owner' => __('المالك'),
+            'repo' => __('الريبو'),
+            'side' => __('الجانب'),
+            'default_branch' => __('الفرع الافتراضي'),
         ];
     }
 
     public function messages(): array
     {
         return [
-            'owner.regex' => 'اسم المالك على جيت هب حروف وأرقام وشرطة بس.',
-            'repo.regex' => 'اسم الريبو حروف وأرقام و . _ - بس.',
-            'repo.unique' => 'الريبو ده مضاف قبل كده.',
+            'owner.regex' => __('اسم المالك على جيت هب حروف وأرقام وشرطة بس.'),
+            'repo.regex' => __('اسم الريبو حروف وأرقام و . _ - بس.'),
+            'repo.unique' => __('الريبو ده مضاف قبل كده.'),
         ];
     }
 }

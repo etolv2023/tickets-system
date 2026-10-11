@@ -75,24 +75,24 @@ class UpdateTicketRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'title' => 'العنوان',
-            'description' => 'الوصف',
-            'type' => 'النوع',
-            'priority' => 'الأولوية',
-            'module' => 'الموديول',
-            'due_date' => 'تاريخ التسليم',
-            'client_user_code' => 'يوزر الدخول',
-            'page_url' => 'لينك الصفحة',
-            'attachments' => 'المرفقات',
-            'attachments.*' => 'المرفق',
+            'title' => __('العنوان'),
+            'description' => __('الوصف'),
+            'type' => __('النوع'),
+            'priority' => __('الأولوية'),
+            'module' => __('الموديول'),
+            'due_date' => __('تاريخ التسليم'),
+            'client_user_code' => __('يوزر الدخول'),
+            'page_url' => __('لينك الصفحة'),
+            'attachments' => __('المرفقات'),
+            'attachments.*' => __('المرفق'),
         ];
     }
 
     public function messages(): array
     {
         return [
-            'client_user_code.digits_between' => 'يوزر الدخول أرقام بس.',
-            'page_url.url' => 'اللينك لازم يبدأ بـ http:// أو https://.',
+            'client_user_code.digits_between' => __('يوزر الدخول أرقام بس.'),
+            'page_url.url' => __('اللينك لازم يبدأ بـ http:// أو https://.'),
         ];
     }
 }

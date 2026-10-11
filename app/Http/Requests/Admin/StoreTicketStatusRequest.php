@@ -32,18 +32,18 @@ class StoreTicketStatusRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'key' => 'المفتاح',
-            'name_ar' => 'الاسم',
-            'color' => 'اللون',
-            'is_open' => 'مفتوحة',
+            'key' => __('المفتاح'),
+            'name_ar' => __('الاسم'),
+            'color' => __('اللون'),
+            'is_open' => __('مفتوحة'),
         ];
     }
 
     public function messages(): array
     {
         return [
-            'key.regex' => 'المفتاح لازم يكون حروف إنجليزي صغير وأرقام و_ بس، وميبدأش برقم.',
-            'key.unique' => 'المفتاح ده مستخدم قبل كده.',
+            'key.regex' => __('المفتاح لازم يكون حروف إنجليزي صغير وأرقام و_ بس، وميبدأش برقم.'),
+            'key.unique' => __('المفتاح ده مستخدم قبل كده.'),
         ];
     }
 }

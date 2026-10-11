@@ -30,7 +30,7 @@ class PortalCommentRequest extends FormRequest
             // words from getting as far as the purifier.
             'body' => ['required', 'string', 'max:40000', function (string $attribute, mixed $value, callable $fail) {
                 if (mb_strlen(trim(strip_tags((string) $value))) > 5000) {
-                    $fail('الرسالة أطول من المسموح (5000 حرف).');
+                    $fail(__('الرسالة أطول من المسموح (5000 حرف).'));
                 }
             }],
 
@@ -46,18 +46,18 @@ class PortalCommentRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'body' => 'التعليق',
-            'files' => 'المرفقات',
-            'files.*' => 'المرفق',
+            'body' => __('التعليق'),
+            'files' => __('المرفقات'),
+            'files.*' => __('المرفق'),
         ];
     }
 
     public function messages(): array
     {
         return [
-            'body.required' => 'اكتب رسالتك الأول.',
-            'files.max' => 'مسموح بـ :max ملفات في الرسالة الواحدة.',
-            'files.*.max' => 'الملف أكبر من المسموح.',
+            'body.required' => __('اكتب رسالتك الأول.'),
+            'files.max' => __('مسموح بـ :max ملفات في الرسالة الواحدة.'),
+            'files.*.max' => __('الملف أكبر من المسموح.'),
         ];
     }
 }

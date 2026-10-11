@@ -99,11 +99,11 @@ class GithubIdentityController extends Controller
             $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
 
             if (! $allowExistingUser && filled($user->github_login)) {
-                throw ValidationException::withMessages(['user_id' => 'الشخص ده مربوط بحساب GitHub بالفعل.']);
+                throw ValidationException::withMessages(['user_id' => __('الشخص ده مربوط بحساب GitHub بالفعل.')]);
             }
             if (User::query()->where('id', '!=', $user->id)
                 ->whereRaw('LOWER(github_login) = ?', [mb_strtolower($login)])->exists()) {
-                throw ValidationException::withMessages(['github_login' => 'حساب GitHub ده مربوط بشخص بالفعل.']);
+                throw ValidationException::withMessages(['github_login' => __('حساب GitHub ده مربوط بشخص بالفعل.')]);
             }
 
             $user->forceFill(['github_login' => trim($login)])->save();

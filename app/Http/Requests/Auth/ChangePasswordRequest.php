@@ -23,7 +23,7 @@ class ChangePasswordRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'password.different' => 'كلمة السر الجديدة لازم تكون مختلفة عن الحالية.',
+            'password.different' => __('كلمة السر الجديدة لازم تكون مختلفة عن الحالية.'),
         ];
     }
 }

@@ -178,7 +178,7 @@ class StoreTicketRequest extends FormRequest
                     ->exists();
 
                 if (! $belongs) {
-                    $validator->errors()->add('contact_id', 'جهة الاتصال دي مش تابعة للشركة المختارة.');
+                    $validator->errors()->add('contact_id', __('جهة الاتصال دي مش تابعة للشركة المختارة.'));
                 }
             },
         ];
@@ -187,35 +187,35 @@ class StoreTicketRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'company_id' => 'الشركة',
-            'requested_by' => 'طالب الشغل',
-            'is_internal' => 'نوع التذكرة',
-            'contact_id' => 'جهة الاتصال',
-            'reporter_name' => 'اسم المُبلغ',
-            'title' => 'العنوان',
-            'description' => 'الوصف',
-            'type' => 'النوع',
-            'priority' => 'الأولوية',
-            'module' => 'الموديول',
-            'due_date' => 'تاريخ التسليم',
-            'client_user_code' => 'يوزر الدخول',
-            'page_url' => 'لينك الصفحة',
-            'attachments' => 'المرفقات',
-            'attachments.*' => 'المرفق',
-            'subtasks' => 'الصب تاسكس',
-            'subtasks.*.title' => 'عنوان الصب تاسك',
-            'subtasks.*.role_id' => 'صاحب الصب تاسك',
-            'subtasks.*.due_date' => 'تاريخ استحقاق الصب تاسك',
+            'company_id' => __('الشركة'),
+            'requested_by' => __('طالب الشغل'),
+            'is_internal' => __('نوع التذكرة'),
+            'contact_id' => __('جهة الاتصال'),
+            'reporter_name' => __('اسم المُبلغ'),
+            'title' => __('العنوان'),
+            'description' => __('الوصف'),
+            'type' => __('النوع'),
+            'priority' => __('الأولوية'),
+            'module' => __('الموديول'),
+            'due_date' => __('تاريخ التسليم'),
+            'client_user_code' => __('يوزر الدخول'),
+            'page_url' => __('لينك الصفحة'),
+            'attachments' => __('المرفقات'),
+            'attachments.*' => __('المرفق'),
+            'subtasks' => __('الصب تاسكس'),
+            'subtasks.*.title' => __('عنوان الصب تاسك'),
+            'subtasks.*.role_id' => __('صاحب الصب تاسك'),
+            'subtasks.*.due_date' => __('تاريخ استحقاق الصب تاسك'),
         ];
     }
 
     public function messages(): array
     {
         return [
-            'subtasks.*.role_id.required' => 'لازم تحدد الصب تاسك دي بتاعة مين من اللي وزّعت عليهم.',
-            'subtasks.*.role_id.in' => 'الصب تاسك لازم تبقى لواحد من اللي وزّعت عليهم التذكرة.',
-            'client_user_code.digits_between' => 'يوزر الدخول أرقام بس.',
-            'page_url.url' => 'اللينك لازم يبدأ بـ http:// أو https://.',
+            'subtasks.*.role_id.required' => __('لازم تحدد الصب تاسك دي بتاعة مين من اللي وزّعت عليهم.'),
+            'subtasks.*.role_id.in' => __('الصب تاسك لازم تبقى لواحد من اللي وزّعت عليهم التذكرة.'),
+            'client_user_code.digits_between' => __('يوزر الدخول أرقام بس.'),
+            'page_url.url' => __('اللينك لازم يبدأ بـ http:// أو https://.'),
         ];
     }
 }

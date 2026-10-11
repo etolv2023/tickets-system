@@ -29,13 +29,13 @@ class ImportUploadRequest extends FormRequest
 
     public function attributes(): array
     {
-        return ['file' => 'الملف', 'type' => 'نوع الاستيراد'];
+        return ['file' => __('الملف'), 'type' => __('نوع الاستيراد')];
     }
 
     public function messages(): array
     {
         return [
-            'file.max' => 'الملف كبير أوي. الحد 10 ميجا و ' . ImportService::MAX_ROWS . ' صف.',
+            'file.max' => __('الملف كبير أوي. الحد 10 ميجا و :rows صف.', ['rows' => ImportService::MAX_ROWS]),
         ];
     }
 }

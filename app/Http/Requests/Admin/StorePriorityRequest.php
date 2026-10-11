@@ -29,19 +29,19 @@ class StorePriorityRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'key' => 'المفتاح',
-            'name_ar' => 'الاسم',
-            'name_en' => 'الاسم بالإنجليزية',
-            'color' => 'اللون',
-            'sla_hours' => 'مهلة الـ SLA',
+            'key' => __('المفتاح'),
+            'name_ar' => __('الاسم'),
+            'name_en' => __('الاسم بالإنجليزية'),
+            'color' => __('اللون'),
+            'sla_hours' => __('مهلة الـ SLA'),
         ];
     }
 
     public function messages(): array
     {
         return [
-            'key.regex' => 'المفتاح لازم يكون حروف إنجليزي صغير وأرقام و_ بس، وميبدأش برقم.',
-            'key.unique' => 'المفتاح ده مستخدم قبل كده.',
+            'key.regex' => __('المفتاح لازم يكون حروف إنجليزي صغير وأرقام و_ بس، وميبدأش برقم.'),
+            'key.unique' => __('المفتاح ده مستخدم قبل كده.'),
         ];
     }
 }

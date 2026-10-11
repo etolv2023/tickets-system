@@ -29,6 +29,6 @@ class BoardMoveRequest extends FormRequest
      */
     public function attributes(): array
     {
-        return ['column' => 'العمود'];
+        return ['column' => __('العمود')];
     }
 }

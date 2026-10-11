@@ -450,7 +450,7 @@ class TicketController extends Controller
         $data = $request->validate([
             'labels' => ['nullable', 'array'],
             'labels.*' => ['integer', 'exists:labels,id'],
-        ], [], ['labels' => 'اللابلز']);
+        ], [], ['labels' => __('اللابلز')]);
 
         $ticket->labels()->sync($data['labels'] ?? []);
 

@@ -31,9 +31,9 @@ class UpdateTicketStatusRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name_ar' => 'الاسم',
-            'color' => 'اللون',
-            'is_open' => 'مفتوحة',
+            'name_ar' => __('الاسم'),
+            'color' => __('اللون'),
+            'is_open' => __('مفتوحة'),
         ];
     }
 }

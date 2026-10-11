@@ -78,7 +78,7 @@ class SubtaskRequest extends FormRequest
 
                 if (\Carbon\Carbon::parse($due)->endOfDay()->gt($ticket->sla_due_at)) {
                     session()->flash('subtask_warning',
-                        'تحذير: تاريخ الاستحقاق بعد مهلة الـ SLA بتاعة التذكرة. اتسجّل برضه.');
+                        __('تحذير: تاريخ الاستحقاق بعد مهلة الـ SLA بتاعة التذكرة. اتسجّل برضه.'));
                 }
             },
         ];
@@ -87,25 +87,25 @@ class SubtaskRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'title' => 'العنوان',
-            'description' => 'الوصف',
-            'assignee_id' => 'المسؤول',
-            'role_id' => 'الرول',
-            'status' => 'الحالة',
-            'start_date' => 'تاريخ البداية',
-            'due_date' => 'تاريخ الاستحقاق',
-            'estimated_hours' => 'التقدير بالساعات',
-            'points' => 'النقاط',
-            'blocked_reason' => 'سبب التوقف',
+            'title' => __('العنوان'),
+            'description' => __('الوصف'),
+            'assignee_id' => __('المسؤول'),
+            'role_id' => __('الرول'),
+            'status' => __('الحالة'),
+            'start_date' => __('تاريخ البداية'),
+            'due_date' => __('تاريخ الاستحقاق'),
+            'estimated_hours' => __('التقدير بالساعات'),
+            'points' => __('النقاط'),
+            'blocked_reason' => __('سبب التوقف'),
         ];
     }
 
     public function messages(): array
     {
         return [
-            'due_date.after_or_equal' => 'تاريخ الاستحقاق مينفعش يكون قبل تاريخ البداية.',
-            'blocked_reason.required' => 'لازم تكتب سبب التوقف.',
-            'assignee_id.required' => 'حدّد صاحب الصب تاسك قبل ما تخلّصها — الشغل اللي مالوش صاحب مش بياخد نقط.',
+            'due_date.after_or_equal' => __('تاريخ الاستحقاق مينفعش يكون قبل تاريخ البداية.'),
+            'blocked_reason.required' => __('لازم تكتب سبب التوقف.'),
+            'assignee_id.required' => __('حدّد صاحب الصب تاسك قبل ما تخلّصها — الشغل اللي مالوش صاحب مش بياخد نقط.'),
         ];
     }
 }

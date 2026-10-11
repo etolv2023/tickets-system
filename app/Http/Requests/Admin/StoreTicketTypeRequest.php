@@ -39,21 +39,21 @@ class StoreTicketTypeRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'key' => 'المفتاح',
-            'name_ar' => 'الاسم',
-            'name_en' => 'الاسم بالإنجليزية',
-            'color' => 'اللون',
-            'icon' => 'الأيقونة',
-            'needs_approval' => 'يحتاج موافقة',
-            'default_points' => 'النقاط الافتراضية',
+            'key' => __('المفتاح'),
+            'name_ar' => __('الاسم'),
+            'name_en' => __('الاسم بالإنجليزية'),
+            'color' => __('اللون'),
+            'icon' => __('الأيقونة'),
+            'needs_approval' => __('يحتاج موافقة'),
+            'default_points' => __('النقاط الافتراضية'),
         ];
     }
 
     public function messages(): array
     {
         return [
-            'key.regex' => 'المفتاح لازم يكون حروف إنجليزي صغير وأرقام و_ بس، وميبدأش برقم.',
-            'key.unique' => 'المفتاح ده مستخدم قبل كده.',
+            'key.regex' => __('المفتاح لازم يكون حروف إنجليزي صغير وأرقام و_ بس، وميبدأش برقم.'),
+            'key.unique' => __('المفتاح ده مستخدم قبل كده.'),
         ];
     }
 }

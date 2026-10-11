@@ -64,8 +64,8 @@ class LinkBranchRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'github_repository_id' => 'الريبو',
-            'branch_name' => 'اسم البرانش',
+            'github_repository_id' => __('الريبو'),
+            'branch_name' => __('اسم البرانش'),
         ];
     }
 }

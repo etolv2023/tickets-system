@@ -40,19 +40,19 @@ class ChangeTicketStatusRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'to_status' => 'الحالة الجديدة',
-            'recipient_user_id' => 'الشخص من التيم',
-            'recipient_contact_id' => 'الشخص من الشركة',
-            'note' => 'ملاحظة',
+            'to_status' => __('الحالة الجديدة'),
+            'recipient_user_id' => __('الشخص من التيم'),
+            'recipient_contact_id' => __('الشخص من الشركة'),
+            'note' => __('ملاحظة'),
         ];
     }
 
     public function messages(): array
     {
         return [
-            'to_status.in' => 'مينفعش تنقل التذكرة للحالة دي.',
-            'recipient_user_id.required_if' => 'لازم تختار الشخص من التيم.',
-            'recipient_contact_id.required_if' => 'لازم تختار الشخص من الشركة.',
+            'to_status.in' => __('مينفعش تنقل التذكرة للحالة دي.'),
+            'recipient_user_id.required_if' => __('لازم تختار الشخص من التيم.'),
+            'recipient_contact_id.required_if' => __('لازم تختار الشخص من الشركة.'),
         ];
     }
 }

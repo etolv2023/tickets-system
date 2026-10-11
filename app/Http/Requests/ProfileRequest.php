@@ -43,7 +43,7 @@ class ProfileRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'discord_user_id.regex' => 'ده لازم يكون الـ ID الرقمي بتاعك (17 لـ 20 رقم) — مش اسم المستخدم. شغّل Developer Mode في ديسكورد، وبعدين كليك يمين على اسمك واختار «Copy User ID».',
+            'discord_user_id.regex' => __('ده لازم يكون الـ ID الرقمي بتاعك (17 لـ 20 رقم) — مش اسم المستخدم. شغّل Developer Mode في ديسكورد، وبعدين كليك يمين على اسمك واختار «Copy User ID».'),
         ];
     }
 

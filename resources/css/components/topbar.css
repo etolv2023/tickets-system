@@ -30,6 +30,11 @@
     font-weight: var(--weight-heavy);
     line-height: var(--leading-tight);
     white-space: nowrap;
+    /* Gives way to the controls instead of pushing the bell off a phone
+       screen: a long title (a ticket's, or an English one) truncates. */
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Shared shape for every square control in the bar — a ghost: no fill, no

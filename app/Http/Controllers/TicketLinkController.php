@@ -25,7 +25,7 @@ class TicketLinkController extends Controller
         $data = $request->validate([
             'to_ticket_id' => ['required', 'integer', 'exists:tickets,id'],
             'type' => ['required', Rule::in(array_keys(LinkTypeDefinition::map()))],
-        ], [], ['to_ticket_id' => 'التذكرة', 'type' => 'نوع الربط']);
+        ], [], ['to_ticket_id' => __('التذكرة'), 'type' => __('نوع الربط')]);
 
         $target = Ticket::findOrFail($data['to_ticket_id']);
 

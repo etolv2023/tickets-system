@@ -74,7 +74,7 @@ class UserRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'discord_user_id.regex' => 'الـ Discord ID لازم يكون رقم (17 لـ 20 رقم)، مش اسم المستخدم.',
+            'discord_user_id.regex' => __('الـ Discord ID لازم يكون رقم (17 لـ 20 رقم)، مش اسم المستخدم.'),
         ];
     }
 }

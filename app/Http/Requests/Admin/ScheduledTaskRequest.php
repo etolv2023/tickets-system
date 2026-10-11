@@ -55,7 +55,7 @@ class ScheduledTaskRequest extends FormRequest
                 if (! CronPreset::isValid($cron)) {
                     $validator->errors()->add(
                         'cron',
-                        'الصيغة دي مش cron صحيح. الشكل خمس خانات — دقيقة، ساعة، يوم الشهر، الشهر، يوم الأسبوع.'
+                        __('الصيغة دي مش cron صحيح. الشكل خمس خانات — دقيقة، ساعة، يوم الشهر، الشهر، يوم الأسبوع.')
                     );
                 }
             },
@@ -71,12 +71,12 @@ class ScheduledTaskRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'frequency' => 'التكرار',
-            'minute' => 'الدقيقة',
-            'hour' => 'الساعة',
-            'weekday' => 'يوم الأسبوع',
-            'monthday' => 'يوم الشهر',
-            'cron' => 'صيغة الـ cron',
+            'frequency' => __('التكرار'),
+            'minute' => __('الدقيقة'),
+            'hour' => __('الساعة'),
+            'weekday' => __('يوم الأسبوع'),
+            'monthday' => __('يوم الشهر'),
+            'cron' => __('صيغة الـ cron'),
         ];
     }
 }

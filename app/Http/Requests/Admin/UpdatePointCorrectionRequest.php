@@ -39,11 +39,11 @@ class UpdatePointCorrectionRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'user_id' => 'المستخدم',
-            'points' => 'النقاط',
-            'role_id' => 'الدور',
-            'reason' => 'السبب',
-            'ticket_number' => 'رقم التذكرة',
+            'user_id' => __('المستخدم'),
+            'points' => __('النقاط'),
+            'role_id' => __('الدور'),
+            'reason' => __('السبب'),
+            'ticket_number' => __('رقم التذكرة'),
         ];
     }
 }

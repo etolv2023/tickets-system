@@ -45,10 +45,10 @@ class PointValueRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'values.*.required' => 'سيبت خانة سعر فاضية — حط صفر لو النوع ده مش مدفوع.',
-            'values.*.numeric' => 'سعر النقطة لازم يكون رقم.',
-            'values.*.min' => 'سعر النقطة مينفعش يكون بالسالب.',
-            'values.*.max' => 'السعر ده كبير أوي — راجع الرقم.',
+            'values.*.required' => __('سيبت خانة سعر فاضية — حط صفر لو النوع ده مش مدفوع.'),
+            'values.*.numeric' => __('سعر النقطة لازم يكون رقم.'),
+            'values.*.min' => __('سعر النقطة مينفعش يكون بالسالب.'),
+            'values.*.max' => __('السعر ده كبير أوي — راجع الرقم.'),
         ];
     }
 }

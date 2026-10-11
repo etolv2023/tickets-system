@@ -38,12 +38,12 @@ class CompanyRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'code.regex' => 'الكود لازم يكون حروف إنجليزية وأرقام و - و _ بس.',
+            'code.regex' => __('الكود لازم يكون حروف إنجليزية وأرقام و - و _ بس.'),
         ];
     }
 
     public function attributes(): array
     {
-        return ['name' => 'اسم الشركة', 'code' => 'الكود', 'notes' => 'ملاحظات'];
+        return ['name' => __('اسم الشركة'), 'code' => __('الكود'), 'notes' => __('ملاحظات')];
     }
 }
