@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'بورد التيم')
+@section('title', __('ui.nav.team_board'))
 
 @push('scripts')
     {{-- Dragging cards between columns, plus the subtask controls the cards
@@ -14,17 +14,14 @@
     <div class="page page--wide">
         <div class="page__head">
             <div>
-                <h1 class="page-title">بورد التيم</h1>
-                <p class="page-subtitle">
-                    الشغل المفتوح مقسّم بالـ{{ $lane === 'priority' ? 'أولوية' : 'مسؤول' }}،
-                    والمقفول بتاع {{ $months[$period] }}.
-                </p>
+                <h1 class="page-title">{{ __('ui.nav.team_board') }}</h1>
+                <p class="page-subtitle">{{ __('ui.board.team_intro', ['lane' => $lane === 'priority' ? __('ui.board.lane_priority') : __('ui.board.lane_assignee'), 'month' => $months[$period]]) }}</p>
             </div>
             <div class="page__actions">
                 <x-button :variant="$lane === 'assignee' ? 'secondary' : 'ghost'" size="sm"
-                          :href="route('board.team', ['lane' => 'assignee'])">بالمسؤول</x-button>
+                          :href="route('board.team', ['lane' => 'assignee'])">{{ __('ui.board.by_assignee') }}</x-button>
                 <x-button :variant="$lane === 'priority' ? 'secondary' : 'ghost'" size="sm"
-                          :href="route('board.team', ['lane' => 'priority'])">بالأولوية</x-button>
+                          :href="route('board.team', ['lane' => 'priority'])">{{ __('ui.board.by_priority') }}</x-button>
             </div>
         </div>
 
@@ -44,9 +41,7 @@
              If the ceiling bit, say so and point at the screen that doesn't cap. --}}
         @if ($shown < $total)
             <x-alert>
-                البورد بيعرض <strong>{{ $shown }}</strong> من <strong>{{ $total }}</strong> تذكرة —
-                البورد مش مصمم لأكتر من كده.
-                للصورة الكاملة استخدم <a href="{{ route('tickets.index') }}">قائمة التذاكر</a> بالفلاتر.
+                {{ __('ui.board.limit', ['shown' => $shown, 'total' => $total]) }}
             </x-alert>
         @endif
 
@@ -79,7 +74,7 @@
                                     <span class="board__count">
                                         {{ $column['tickets']->count() }}
                                         @if ($column['hidden'] > 0)
-                                            <span title="فيه {{ $column['hidden'] }} كمان مش معروضين">+{{ $column['hidden'] }}</span>
+                                            <span title="{{ __('ui.board.more_hidden', ['count' => $column['hidden']]) }}">+{{ $column['hidden'] }}</span>
                                         @endif
                                     </span>
                                 </header>
@@ -99,7 +94,7 @@
             </x-card>
         @empty
             <x-card>
-                <p class="card__empty">مفيش شغل مفتوح دلوقتي.</p>
+                <p class="card__empty">{{ __('ui.board.empty_team') }}</p>
             </x-card>
         @endforelse
     </div>

@@ -4,9 +4,9 @@
      in DashboardService::slaBreachesByPriority (guarded against an all-zero
      month), never here (CLAUDE.md § 3). Meters are explicitly allowed; this is a
      bar, not a chart. --}}
-<x-card title="نظرة على الـ SLA" flush>
+<x-card :title="__('ui.today.sla_overview')" flush>
     <x-slot:actions>
-        <span class="u-subtle">خروقات الشهر ده</span>
+        <span class="u-subtle">{{ __('ui.today.breaches_month') }}</span>
     </x-slot:actions>
 
     @forelse ($slaByPriority as $row)
@@ -22,7 +22,7 @@
     @empty
         <div class="today__clear">
             <x-icon name="check-circle" class="today__clear-glyph" />
-            مفيش خرق للمهلة الشهر ده.
+            {{ __('ui.today.no_breaches_month') }}
         </div>
     @endforelse
 </x-card>

@@ -1,19 +1,17 @@
 {{-- ★★★★ New (2026-07-20). Same row shape as tickets/index, capped to the
      latest few and scoped to what this user can see. Empty state is the shared
      one-line all-clear strip, never a padded void. --}}
-<x-card title="آخر التذاكر" flush>
+<x-card :title="__('ui.today.recent_tickets')" flush>
     <x-slot:actions>
-        <a class="today__q-hint" href="{{ route('tickets.index') }}">عرض الكل</a>
+        <a class="today__q-hint" href="{{ route('tickets.index') }}">{{ __('ui.common.view_all') }}</a>
     </x-slot:actions>
 
     <div class="table-wrap">
         <table class="table table--hover">
             <thead>
                 <tr>
-                    <th>الرقم</th>
-                    <th>العنوان</th>
-                    <th>الحالة</th>
-                    <th>العمر</th>
+                    <th>{{ __('ui.today.number') }}</th><th>{{ __('ui.today.title') }}</th>
+                    <th>{{ __('ui.today.status') }}</th><th>{{ __('ui.today.age') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -39,7 +37,7 @@
                         <td colspan="4">
                             <div class="today__clear">
                                 <x-icon name="check-circle" class="today__clear-glyph" />
-                                مفيش تذاكر لسه.
+                                {{ __('ui.today.no_tickets') }}
                             </div>
                         </td>
                     </tr>

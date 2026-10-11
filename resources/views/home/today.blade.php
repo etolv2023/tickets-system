@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'اليوم')
+@section('title', __('ui.nav.today'))
 
 @section('content')
     {{-- ★★★★★ (2026-07-21) redesign — "الشريط الحي" / Live Spine. Three zones

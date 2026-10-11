@@ -15,11 +15,11 @@
             @click="$store.sidebar.toggle()"
             :aria-expanded="($store.sidebar.isMobile ? $store.sidebar.open : !$store.sidebar.collapsed).toString()"
             aria-controls="app-nav"
-            aria-label="القائمة الجانبية" data-tooltip="القائمة الجانبية">
+            aria-label="{{ __('ui.common.sidebar') }}" data-tooltip="{{ __('ui.common.sidebar') }}">
         <x-icon name="sidebar" />
     </button>
 
-    <h1 class="topbar__title">@yield('title', 'الرئيسية')</h1>
+    <h1 class="topbar__title">@yield('title', __('ui.common.home'))</h1>
 
     <div class="spacer"></div>
 
@@ -34,7 +34,7 @@
     <form method="GET" action="{{ route('search') }}" class="topbar__search" role="search">
         <x-icon name="search" class="topbar__search-icon" />
         <input type="search" name="q" value="{{ request('q') }}"
-               placeholder="دوّر برقم أو عنوان أو شركة…" aria-label="بحث عالمي"
+               placeholder="{{ __('ui.common.search_placeholder') }}" aria-label="{{ __('ui.common.search') }}"
                aria-keyshortcuts="Control+K Meta+K /">
         <kbd class="topbar__search-key" aria-hidden="true">⌘K</kbd>
     </form>
@@ -51,8 +51,8 @@
          until the next page load. --}}
     <a href="{{ route('notifications.index') }}" class="topbar__btn bell tooltip--end tooltip--below"
        x-data="bell({{ (int) $unreadCount }})"
-       :aria-label="count > 0 ? `الإشعارات — ${label} جديد` : 'الإشعارات'"
-       aria-label="الإشعارات" data-tooltip="الإشعارات">
+       :aria-label="count > 0 ? `{{ __('ui.common.notifications') }} — ${label}` : '{{ __('ui.common.notifications') }}'"
+       aria-label="{{ __('ui.common.notifications') }}" data-tooltip="{{ __('ui.common.notifications') }}">
         <x-icon name="bell" />
         <span class="bell__count" x-show="count > 0" x-cloak x-text="label"></span>
     </a>

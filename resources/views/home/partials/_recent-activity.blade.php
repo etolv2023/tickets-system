@@ -4,16 +4,16 @@
      rail and its empty state is a one-line strip — never the full-width empty
      box it used to be. --}}
 @if ($recentActivity !== null)
-    <x-card title="آخر نشاط" flush>
+    <x-card :title="__('ui.today.recent_activity')" flush>
         <x-slot:actions>
-            <a class="today__q-hint" href="{{ route('admin.audit.index') }}">السجل كامل</a>
+            <a class="today__q-hint" href="{{ route('admin.audit.index') }}">{{ __('ui.today.full_log') }}</a>
         </x-slot:actions>
 
         <div class="activity-feed">
             @forelse ($recentActivity as $log)
                 <div class="activity-row">
                     <x-icon name="activity" class="activity-row__glyph" />
-                    <span class="activity-row__actor">{{ $log->actor_name ?? 'النظام' }}</span>
+                    <span class="activity-row__actor">{{ $log->actor_name ?? __('ui.today.system') }}</span>
                     <span class="activity-row__verb u-mono u-ltr">{{ $log->action }}</span>
                     @if ($log->subject_type)
                         <span class="activity-row__subject u-mono">{{ class_basename($log->subject_type) }} #{{ $log->subject_id }}</span>
@@ -25,7 +25,7 @@
             @empty
                 <div class="today__clear">
                     <x-icon name="check-circle" class="today__clear-glyph" />
-                    مفيش نشاط مسجّل لسه.
+                    {{ __('ui.today.no_activity') }}
                 </div>
             @endforelse
         </div>

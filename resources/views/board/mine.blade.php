@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'بوردي')
+@section('title', __('ui.nav.my_board'))
 
 @push('scripts')
     {{-- Dragging cards between columns, plus the subtask controls the cards
@@ -14,11 +14,8 @@
     <div class="page page--wide">
         <div class="page__head">
             <div>
-                <h1 class="page-title">بوردي</h1>
-                <p class="page-subtitle">
-                    الشغل المسند ليك انت بس. عمود «مغلقة» بيوري {{ $months[$period] }} —
-                    الباقي في <a href="{{ route('tickets.index') }}">التذاكر</a>.
-                </p>
+                <h1 class="page-title">{{ __('ui.nav.my_board') }}</h1>
+                <p class="page-subtitle">{{ __('ui.board.my_intro', ['month' => $months[$period]]) }}</p>
             </div>
         </div>
 
@@ -42,8 +39,8 @@
         @if ($isEmpty)
             <x-card>
                 <div class="board__blank">
-                    <p class="board__blank-title">مفيش حاجة مسندة ليك دلوقتي.</p>
-                    <p>أول ما تتسند ليك تذكرة هتلاقيها هنا في عمود «مسندة إليّ».</p>
+                    <p class="board__blank-title">{{ __('ui.board.empty_mine') }}</p>
+                    <p>{{ __('ui.board.empty_mine_hint') }}</p>
                 </div>
             </x-card>
         @else
@@ -59,7 +56,7 @@
                                 {{ $column['tickets']->count() }}
                                 @if ($column['hidden'] > 0)
                                     {{-- Never hide a cap silently. --}}
-                                    <span title="فيه {{ $column['hidden'] }} كمان مش معروضين">+{{ $column['hidden'] }}</span>
+                                    <span title="{{ __('ui.board.more_hidden', ['count' => $column['hidden']]) }}">+{{ $column['hidden'] }}</span>
                                 @endif
                             </span>
                         </header>

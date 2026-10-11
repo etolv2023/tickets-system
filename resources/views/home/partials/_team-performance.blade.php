@@ -4,18 +4,18 @@
      (the bar is additive, never a replacement for the figures). load_pct is
      computed in DashboardService::teamPerformance, never here (CLAUDE.md § 3). --}}
 @if ($teamPerformance !== null)
-    <x-card title="حِمل الفريق" flush>
+    <x-card :title="__('ui.today.team_load')" flush>
         <x-slot:actions>
-            <a class="today__q-hint" href="{{ route('reports.index') }}">التقرير كامل</a>
+            <a class="today__q-hint" href="{{ route('reports.index') }}">{{ __('ui.today.full_report') }}</a>
         </x-slot:actions>
 
         <div class="table-wrap">
             <table class="table table--hover">
                 <thead>
                     <tr>
-                        <th>الموظف</th>
-                        <th class="table__cell--num">التذاكر المفتوحة</th>
-                        <th>الحِمل</th>
+                        <th>{{ __('ui.today.employee') }}</th>
+                        <th class="table__cell--num">{{ __('ui.today.open_tickets') }}</th>
+                        <th>{{ __('ui.today.load') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -39,7 +39,7 @@
                             <td colspan="3">
                                 <div class="today__clear">
                                     <x-icon name="check-circle" class="today__clear-glyph" />
-                                    مفيش شغل مفتوح على حد.
+                                    {{ __('ui.today.no_open_work') }}
                                 </div>
                             </td>
                         </tr>

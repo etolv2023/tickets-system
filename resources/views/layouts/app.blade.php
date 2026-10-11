@@ -7,7 +7,7 @@
     {{-- Namespaces anything this browser remembers for the person using it, so a
          shared machine never restores someone else's saved filters. --}}
     <meta name="user-id" content="{{ auth()->id() }}">
-    <title>@yield('title', 'الرئيسية') — {{ $appName }}</title>
+    <title>@yield('title', __('ui.common.home')) — {{ $appName }}</title>
     {{-- The uploaded logo wins; the SVG below is the default mark. The type
          hint is only emitted for the SVG, because an uploaded logo may be a
          PNG and a wrong MIME hint on rel=icon is worse than none. --}}

@@ -4,8 +4,8 @@
      wash), so they stay a calm scoreboard while the header pulse-chips carry the
      live "act now" heat. The "نظرة عامة" label moved to the zone divider. --}}
 <div class="today-stats">
-    <x-stat-tile variant="slate" icon="ticket" :figure="$kpis['open']" caption="تذكرة مفتوحة دلوقتي" />
-    <x-stat-tile variant="green" icon="check-circle" :figure="$kpis['resolvedThisMonth']" caption="اتحلت الشهر ده" />
-    <x-stat-tile variant="teal" icon="timer" :figure="$kpis['avgResolutionHours']" unit="س" caption="متوسط ساعات الحل" />
-    <x-stat-tile variant="amber" icon="alert" :figure="$kpis['slaBreachesThisMonth']" caption="خرق SLA الشهر ده" />
+    <x-stat-tile variant="slate" icon="ticket" :figure="$kpis['open']" :caption="__('ui.today.open_tickets')" />
+    <x-stat-tile variant="green" icon="check-circle" :figure="$kpis['resolvedThisMonth']" :caption="__('ui.today.resolved_month')" />
+    <x-stat-tile variant="teal" icon="timer" :figure="$kpis['avgResolutionHours']" :unit="__('ui.today.hours_short')" :caption="__('ui.today.average_resolution')" />
+    <x-stat-tile variant="amber" icon="alert" :figure="$kpis['slaBreachesThisMonth']" :caption="__('ui.today.sla_breaches_month')" />
 </div>

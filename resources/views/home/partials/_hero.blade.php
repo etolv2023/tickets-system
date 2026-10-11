@@ -12,45 +12,45 @@
         </div>
 
         <div class="today__hero-text">
-            <h1 class="today__greeting">أهلاً، {{ $user->name }}</h1>
+            <h1 class="today__greeting">{{ __('ui.common.hello', ['name' => $user->name]) }}</h1>
             <p class="today__date">{{ now(config('app.display_timezone'))->translatedFormat('l j F Y') }}</p>
         </div>
 
         <div class="today__hero-actions">
             <a class="btn btn--primary btn--sm" href="{{ route('tickets.create') }}">
-                <x-icon name="plus" class="btn__icon" /> تذكرة جديدة
+                <x-icon name="plus" class="btn__icon" /> {{ __('ui.common.new_ticket') }}
             </a>
             <a class="btn btn--secondary btn--sm" href="{{ route('calendar.mine') }}">
-                <x-icon name="calendar" class="btn__icon" /> كاليندري
+                <x-icon name="calendar" class="btn__icon" /> {{ __('ui.today.calendar') }}
             </a>
         </div>
     </div>
 
-    <nav class="pulse-strip" aria-label="اختصارات الشغل المستحق">
+    <nav class="pulse-strip" aria-label="{{ __('ui.today.actions_label') }}">
         <a @class(['pulse-chip', 'pulse-chip--red', 'pulse-chip--active' => $counts['onFire'] > 0]) href="#sec-onfire">
             <x-icon name="alert" class="pulse-chip__icon" />
             <span class="pulse-chip__figure">{{ $counts['onFire'] }}</span>
-            <span class="pulse-chip__label">بيولّع</span>
+            <span class="pulse-chip__label">{{ __('ui.today.overdue') }}</span>
         </a>
 
         @can('features.approve')
             <a @class(['pulse-chip', 'pulse-chip--amber', 'pulse-chip--active' => $counts['awaitingMe'] > 0]) href="#sec-approve">
                 <x-icon name="inbox" class="pulse-chip__icon" />
                 <span class="pulse-chip__figure">{{ $counts['awaitingMe'] }}</span>
-                <span class="pulse-chip__label">قراري</span>
+                <span class="pulse-chip__label">{{ __('ui.today.awaiting_approval') }}</span>
             </a>
         @endcan
 
         <a @class(['pulse-chip', 'pulse-chip--teal', 'pulse-chip--active' => $counts['blockingOthers'] > 0]) href="#sec-blocking">
             <x-icon name="block" class="pulse-chip__icon" />
             <span class="pulse-chip__figure">{{ $counts['blockingOthers'] }}</span>
-            <span class="pulse-chip__label">مأخّر</span>
+            <span class="pulse-chip__label">{{ __('ui.today.blocking') }}</span>
         </a>
 
         <a @class(['pulse-chip', 'pulse-chip--green', 'pulse-chip--active' => $counts['onMyPlate'] > 0]) href="#sec-plate">
             <x-icon name="list-checks" class="pulse-chip__icon" />
             <span class="pulse-chip__figure">{{ $counts['onMyPlate'] }}</span>
-            <span class="pulse-chip__label">دماغي</span>
+            <span class="pulse-chip__label">{{ __('ui.today.due_tasks') }}</span>
         </a>
     </nav>
 </div>

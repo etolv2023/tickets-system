@@ -6,7 +6,7 @@
      (.overview-grid): a gated widget a role can't see simply doesn't emit and
      the rest repack with no hole (CLAUDE.md § 6 — no full-width empty box). --}}
 <div class="zone-head">
-    <h2 class="zone-head__title">نظرة عامة على الفريق</h2>
+    <h2 class="zone-head__title">{{ __('ui.common.team_overview') }}</h2>
     <span class="zone-head__meta">{{ now(config('app.display_timezone'))->translatedFormat('F Y') }}</span>
 </div>
 

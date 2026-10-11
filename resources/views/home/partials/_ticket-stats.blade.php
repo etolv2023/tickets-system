@@ -3,20 +3,20 @@
      never here (CLAUDE.md § 3). The meter is a bar filled to the done ratio in
      green — a meter, not a chart — so "how much of this type is closed" reads at
      a glance beside the exact counts. --}}
-<x-card title="إحصائيات التذاكر" flush>
+<x-card :title="__('ui.today.ticket_statistics')" flush>
     <x-slot:actions>
-        <span class="u-subtle">الشهر ده</span>
+        <span class="u-subtle">{{ __('ui.today.this_month') }}</span>
     </x-slot:actions>
 
     <div class="table-wrap">
         <table class="table">
             <thead>
                 <tr>
-                    <th>النوع</th>
-                    <th class="table__cell--num">الإجمالي</th>
-                    <th class="table__cell--num">محلولة</th>
-                    <th class="table__cell--num">مفتوحة</th>
-                    <th>الإنجاز</th>
+                    <th>{{ __('ui.today.type') }}</th>
+                    <th class="table__cell--num">{{ __('ui.today.total') }}</th>
+                    <th class="table__cell--num">{{ __('ui.today.resolved') }}</th>
+                    <th class="table__cell--num">{{ __('ui.today.open') }}</th>
+                    <th>{{ __('ui.today.completion') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -37,7 +37,7 @@
                         <td colspan="5">
                             <div class="today__clear">
                                 <x-icon name="check-circle" class="today__clear-glyph" />
-                                مفيش تذاكر اتفتحت الشهر ده.
+                                {{ __('ui.today.no_tickets_month') }}
                             </div>
                         </td>
                     </tr>
