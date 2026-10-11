@@ -44,6 +44,9 @@ class RoleController extends Controller
         $role = Role::create([
             'key' => $request->validated('key'),
             'name_ar' => $request->validated('name_ar'),
+            'name_en' => $request->validated('name_en'),
+            'description_ar' => $request->validated('description_ar'),
+            'description_en' => $request->validated('description_en'),
             'is_system' => false,
             'assignable_on_tickets' => $request->boolean('assignable_on_tickets'),
             'logs_work' => $request->boolean('logs_work'),
@@ -89,8 +92,8 @@ class RoleController extends Controller
         // and permissions stay editable. assignable_on_tickets is editable on
         // every role, system or not — a plain attribute, not gated by is_system.
         $data = $role->is_system
-            ? ['name_ar' => $request->validated('name_ar')]
-            : $request->safe()->only('key', 'name_ar');
+            ? $request->safe()->only('name_ar', 'name_en', 'description_ar', 'description_en')
+            : $request->safe()->only('key', 'name_ar', 'name_en', 'description_ar', 'description_en');
 
         $role->update($data + [
             'assignable_on_tickets' => $request->boolean('assignable_on_tickets'),
@@ -132,6 +135,9 @@ class RoleController extends Controller
         $copy = Role::create([
             'key' => $this->uniqueCopyKey($role->key),
             'name_ar' => "{$role->name_ar} (نسخة)",
+            'name_en' => $role->name_en ? "{$role->name_en} (Copy)" : null,
+            'description_ar' => $role->description_ar,
+            'description_en' => $role->description_en,
             'is_system' => false,
             'assignable_on_tickets' => $role->assignable_on_tickets,
             'logs_work' => $role->logs_work,

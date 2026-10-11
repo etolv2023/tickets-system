@@ -10,24 +10,24 @@
      role already taken drops out of the next row's list, so the same role can
      never be assigned twice — which the nine-select version couldn't express
      either way. --}}
-<x-card title="التوزيع">
+<x-card title="فريق التنفيذ ومسؤولياته">
     <x-slot:actions>
         <span class="u-subtle" x-text="rows.length ? `${rows.length} متسند` : 'مفيش'"></span>
     </x-slot:actions>
 
     <div class="assign">
         <p class="field__hint">
-            مين هيشتغل على التذكرة دي؟ كل واحد بتضيفه بياخد صب تاسك بداية أول ما التوزيع يشتغل.
-            لو التذكرة فيتشر أو موديول جديد، التوزيع بيستنى موافقة الأدمن الأول.
+            اختر المسؤول عن كل تخصص مطلوب. الإسناد يحدد «من المسؤول وبأي صفة»، ثم ينشئ النظام مهمة بداية لمتابعة عمله.
+            طلبات المزايا أو الوحدات الجديدة لا تبدأ قبل الموافقة الإدارية.
         </p>
 
         <template x-for="(row, index) in rows" :key="index">
             <div class="assign__row">
                 <div class="assign__field">
-                    <label class="label" :for="`assign-role-${index}`">الدور</label>
+                    <label class="label" :for="`assign-role-${index}`">المسؤولية المطلوبة</label>
                     <select class="select" x-model="row.roleId" :id="`assign-role-${index}`"
                             @change="row.userId = ''">
-                        <option value="">— اختار دور —</option>
+                        <option value="">— اختر المسؤولية —</option>
                         <template x-for="role in rolesFor(row.roleId)" :key="role.id">
                             <option :value="role.id" x-text="role.name"></option>
                         </template>
@@ -35,13 +35,13 @@
                 </div>
 
                 <div class="assign__field">
-                    <label class="label" :for="`assign-user-${index}`">الشخص</label>
+                    <label class="label" :for="`assign-user-${index}`">المسؤول</label>
                     {{-- The name carries the role id, so the payload stays exactly
                          what the server already expects: role_assignments[ROLE]=USER. --}}
                     <select class="select" x-model="row.userId" :id="`assign-user-${index}`"
                             :name="row.roleId ? `role_assignments[${row.roleId}]` : ''"
                             :disabled="! row.roleId">
-                        <option value="">— اختار شخص —</option>
+                        <option value="">— اختر شخصًا —</option>
                         <template x-for="person in candidatesFor(row.roleId)" :key="person.id">
                             <option :value="person.id" x-text="person.name"></option>
                         </template>
@@ -49,7 +49,7 @@
                 </div>
 
                 <button type="button" class="repeater__remove" @click="rows.splice(index, 1)"
-                        aria-label="شيل السطر">
+                        aria-label="إزالة المسؤولية">
                     <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" fill="none" />
                     </svg>
@@ -58,13 +58,13 @@
         </template>
 
         <template x-if="! rows.length">
-            <p class="assign__empty">لسه محدش متسند. التذكرة تقدر تتفتح من غير توزيع وتتوزّع بعدين.</p>
+            <p class="assign__empty">لم يُحدد فريق التنفيذ بعد. يمكن حفظ التذكرة الآن وإسناد المسؤوليات لاحقًا.</p>
         </template>
 
         <x-button variant="ghost" size="sm" type="button"
                   @click="rows.push({ roleId: '', userId: '' })"
                   x-bind:disabled="rows.length >= roles.length">
-            + أضف شخص
+            + إضافة مسؤولية
         </x-button>
     </div>
 </x-card>

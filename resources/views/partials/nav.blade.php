@@ -78,7 +78,7 @@
             <a href="{{ route('profile.edit') }}" class="nav__user-meta" title="حسابي"
                @if (request()->routeIs('profile.*')) aria-current="page" @endif>
                 <div class="nav__user-name">{{ $user->name }}</div>
-                <div class="nav__user-role">{{ $user->role->name_ar }}</div>
+                <div class="nav__user-role">{{ $user->role->label() }}</div>
             </a>
 
             <form method="POST" action="{{ route('logout') }}">

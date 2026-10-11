@@ -7,7 +7,7 @@
         <div class="page__head">
             <div>
                 <h1 class="page-title">الأدوار والصلاحيات</h1>
-                <p class="page-subtitle">الصلاحيات في قاعدة البيانات — تقدر تغيّر أي تركيبة من غير ما نلمس كود.</p>
+                <p class="page-subtitle">الدور يصف مسؤولية الشخص، والصلاحيات تحدد ما يستطيع الوصول إليه وتنفيذه.</p>
             </div>
             <div class="page__actions">
                 <x-button variant="primary" :href="route('admin.roles.create')">دور جديد</x-button>
@@ -38,12 +38,13 @@
                         @forelse ($roles as $role)
                             <tr>
                                 <td>
-                                    {{ $role->name_ar }}
+                                    <strong>{{ $role->label() }}</strong>
+                                    @if ($role->description())<div class="u-subtle">{{ $role->description() }}</div>@endif
                                     @if ($role->is_system)
                                         <x-badge variant="neutral">أساسي</x-badge>
                                     @endif
                                     @if ($role->isAssignableOnTickets())
-                                        <x-badge variant="neutral">في التوزيع</x-badge>
+                                        <x-badge variant="neutral">قابل للإسناد</x-badge>
                                     @endif
                                 </td>
                                 <td class="u-mono u-ltr">{{ $role->key }}</td>
@@ -63,7 +64,7 @@
                                         </form>
 
                                         @if ($role->users_count > 0)
-                                            <span class="settings__locked">عليه مستخدمين</span>
+                                            <span class="settings__locked">مرتبط بمستخدمين</span>
                                         @else
                                             <form
                                                 method="POST"
@@ -80,7 +81,7 @@
                             </tr>
                         @empty
                             <tr class="table__empty">
-                                <td colspan="5">مفيش أدوار.</td>
+                                <td colspan="5">لا توجد أدوار.</td>
                             </tr>
                         @endforelse
                     </tbody>

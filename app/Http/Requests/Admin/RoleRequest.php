@@ -26,6 +26,9 @@ class RoleRequest extends FormRequest
                 Rule::unique('roles', 'key')->ignore($role?->id),
             ],
             'name_ar' => ['required', 'string', 'max:100'],
+            'name_en' => ['nullable', 'string', 'max:100'],
+            'description_ar' => ['nullable', 'string', 'max:255'],
+            'description_en' => ['nullable', 'string', 'max:255'],
             'assignable_on_tickets' => ['nullable', 'boolean'],
             // Two role behaviours the distribution rework made into flags
             // (2026-07-24): logs_work → the assignment gets a بدأت/خلصت work

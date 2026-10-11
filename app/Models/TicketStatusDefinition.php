@@ -29,7 +29,7 @@ class TicketStatusDefinition extends Model
      */
     public const COLORS = Label::COLORS;
 
-    protected $fillable = ['key', 'name_ar', 'color', 'is_system', 'is_open', 'position'];
+    protected $fillable = ['key', 'name_ar', 'name_en', 'description_ar', 'description_en', 'color', 'is_system', 'is_open', 'position'];
 
     protected function casts(): array
     {
@@ -100,6 +100,18 @@ class TicketStatusDefinition extends Model
     public static function options(): array
     {
         return array_map(fn (self $s) => $s->name_ar, static::map());
+    }
+
+    public function label(): string
+    {
+        return app()->isLocale('en') && filled($this->name_en) ? $this->name_en : $this->name_ar;
+    }
+
+    public function description(): ?string
+    {
+        return app()->isLocale('en') && filled($this->description_en)
+            ? $this->description_en
+            : $this->description_ar;
     }
 
     /** @return array<int, string> */

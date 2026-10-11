@@ -2,7 +2,8 @@
 @can('changeStatus', $ticket)
     @if ($nextStatuses->isNotEmpty())
         {{-- Open by default: the single most-used control on this screen. --}}
-        <x-collapsible-card title="غيّر الحالة" name="status-change" :open="true">
+        <x-collapsible-card title="تحديث مرحلة التذكرة" name="status-change" :open="true">
+            <p class="field__hint">اختر المرحلة التي تصف وضع الالتزام الآن. لا تستخدم «تم الحل» لمجرد انتهاء البرمجة؛ يجب اعتماد النتيجة أولًا.</p>
             <form method="POST" action="{{ route('tickets.status.change', $ticket) }}"
                   class="form-stack" x-data="{ recipient: '' }">
                 @csrf
@@ -13,18 +14,24 @@
 
                 <x-field name="to_status" label="الحالة الجديدة" required>
                     <select id="to_status" name="to_status" class="select" required>
-                        <option value="">— اختار —</option>
+                        <option value="">— اختر المرحلة —</option>
                         @foreach ($nextStatuses as $s)
-                            <option value="{{ $s->key }}" @selected(old('to_status') === $s->key)>{{ $s->name_ar }}</option>
+                            <option value="{{ $s->key }}" @selected(old('to_status') === $s->key)>{{ $s->label() }}</option>
                         @endforeach
                     </select>
                 </x-field>
 
-                <x-field name="recipient_type" label="مستنيين رد مين؟" hint="اختياري — اختيار مستلم بيعمل صب تاسك متابعة تلقائي للمسؤول عن التذكرة.">
+                @foreach ($nextStatuses as $s)
+                    @if ($s->description())
+                        <p class="field__hint"><strong>{{ $s->label() }}:</strong> {{ $s->description() }}</p>
+                    @endif
+                @endforeach
+
+                <x-field name="recipient_type" label="الطرف المنتظر منه رد" hint="اختياري — ينشئ النظام مهمة متابعة تلقائية لمسؤول التذكرة.">
                     <select id="recipient_type" name="recipient_type" class="select" x-model="recipient">
-                        <option value="">من غير مستلم</option>
-                        <option value="team">حد من التيم</option>
-                        <option value="company">حد من الشركة</option>
+                        <option value="">لا يوجد طرف منتظر</option>
+                        <option value="team">عضو من الفريق</option>
+                        <option value="company">جهة اتصال لدى العميل</option>
                     </select>
                 </x-field>
 
@@ -58,7 +65,7 @@
                     <textarea id="note" name="note" class="textarea" rows="2">{{ old('note') }}</textarea>
                 </x-field>
 
-                <x-button variant="primary" size="sm">غيّر الحالة</x-button>
+                <x-button variant="primary" size="sm">حفظ المرحلة الجديدة</x-button>
             </form>
         </x-collapsible-card>
     @endif

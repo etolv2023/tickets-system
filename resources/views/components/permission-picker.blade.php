@@ -64,8 +64,11 @@
                             @checked(in_array($permission->id, $chosen, false))
                         >
                         <span class="perms__label">
-                            {{ $permission->name_ar }}
+                            {{ $permission->label() }}
                             <span class="perms__key u-mono u-ltr">{{ $permission->key }}</span>
+                            @if ($permission->description_ar)
+                                <small>{{ app()->isLocale('en') && $permission->description_en ? $permission->description_en : $permission->description_ar }}</small>
+                            @endif
                             @if ($inherited !== null && in_array($permission->id, $inherited, false))
                                 <span class="perms__inherited">من الدور</span>
                             @endif

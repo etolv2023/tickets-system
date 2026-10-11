@@ -8,13 +8,13 @@
             <div class="stack stack--tight">
                 @if ($ticket->client_notified_at)
                     <p class="field__hint">
-                        اتبلغ {{ $ticket->client_notified_at->diffForHumans() }}.
+                        تم تسجيل إبلاغ العميل {{ $ticket->client_notified_at->diffForHumans() }}.
                     </p>
                 @else
                     @can('notifyClient', $ticket)
                         <form method="POST" action="{{ route('tickets.notify', $ticket) }}">
                             @csrf
-                            <x-button variant="secondary" size="sm" block>تم إبلاغ العميل</x-button>
+                            <x-button variant="secondary" size="sm" block>تسجيل إبلاغ العميل</x-button>
                         </form>
                     @endcan
                 @endif
@@ -25,12 +25,12 @@
                             @csrf
                             <x-button variant="primary" size="sm" block
                                       :disabled="$ticket->client_notified_at === null">
-                                اقفل التذكرة
+                                إغلاق التذكرة نهائيًا
                             </x-button>
                         </form>
 
                         @unless ($ticket->client_notified_at)
-                            <p class="field__hint">لازم تبلغ العميل الأول.</p>
+                            <p class="field__hint">يلزم تسجيل إبلاغ العميل قبل الإغلاق.</p>
                         @endunless
                     @endif
                 @endcan

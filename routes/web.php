@@ -53,6 +53,7 @@ use App\Http\Controllers\GithubAuditController;
 use App\Http\Controllers\GithubUnmatchedBranchController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InstallController;
+use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\TicketBranchController;
 use App\Http\Controllers\TicketCommentController;
 use App\Http\Controllers\TicketController;
@@ -137,6 +138,7 @@ Route::get('/__diag/slow-ticket/{ticket}', function (\App\Models\Ticket $ticket)
 Route::get('/__diag/fast', fn () => 'fast');
 
 Route::middleware('auth')->group(function () {
+    Route::post('/locale', [LocaleController::class, 'update'])->name('locale.update');
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
     // Stays reachable while must_change_password is set — ForcePasswordChange

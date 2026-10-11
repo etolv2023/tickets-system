@@ -11,7 +11,12 @@ class Permission extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['key', 'group', 'name_ar'];
+    protected $fillable = ['key', 'group', 'name_ar', 'name_en', 'description_ar', 'description_en'];
+
+    public function label(): string
+    {
+        return app()->isLocale('en') && filled($this->name_en) ? $this->name_en : $this->name_ar;
+    }
 
     protected static function booted(): void
     {

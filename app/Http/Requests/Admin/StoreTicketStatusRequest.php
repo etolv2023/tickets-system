@@ -20,6 +20,9 @@ class StoreTicketStatusRequest extends FormRequest
             // never shown to anyone (name_ar is what renders).
             'key' => ['required', 'string', 'max:30', 'regex:/^[a-z][a-z0-9_]*$/', 'unique:ticket_statuses,key'],
             'name_ar' => ['required', 'string', 'max:100'],
+            'name_en' => ['nullable', 'string', 'max:100'],
+            'description_ar' => ['nullable', 'string', 'max:255'],
+            'description_en' => ['nullable', 'string', 'max:255'],
             // Only the semantic palette — no free colour picker (§ 6).
             'color' => ['required', Rule::in(array_keys(Label::COLORS))],
             'is_open' => ['required', 'boolean'],

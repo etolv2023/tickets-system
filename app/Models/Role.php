@@ -25,7 +25,7 @@ class Role extends Model
 
     public const BY_ID_CACHE_KEY = 'roles.by_id';
 
-    protected $fillable = ['key', 'name_ar', 'is_system', 'assignable_on_tickets', 'logs_work', 'is_tester'];
+    protected $fillable = ['key', 'name_ar', 'name_en', 'description_ar', 'description_en', 'is_system', 'assignable_on_tickets', 'logs_work', 'is_tester'];
 
     protected function casts(): array
     {
@@ -63,6 +63,18 @@ class Role extends Model
     public function permissions(): BelongsToMany
     {
         return $this->belongsToMany(Permission::class);
+    }
+
+    public function label(): string
+    {
+        return app()->isLocale('en') && filled($this->name_en) ? $this->name_en : $this->name_ar;
+    }
+
+    public function description(): ?string
+    {
+        return app()->isLocale('en') && filled($this->description_en)
+            ? $this->description_en
+            : $this->description_ar;
     }
 
     /**

@@ -60,7 +60,12 @@ final class TicketStatusValue
 
     public function label(): string
     {
-        return $this->label;
+        return TicketStatusDefinition::map()[$this->value]?->label() ?? $this->label;
+    }
+
+    public function description(): ?string
+    {
+        return TicketStatusDefinition::map()[$this->value]?->description();
     }
 
     public function variant(): string

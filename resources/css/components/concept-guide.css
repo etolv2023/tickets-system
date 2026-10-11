@@ -1,0 +1,21 @@
+.concept-guide {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    border: 1px solid var(--border);
+    border-inline-start: 4px solid var(--c-teal);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+}
+
+.concept-guide__head h2 { margin: 0; font-size: var(--text-lg); }
+.concept-guide__head p { margin: var(--space-1) 0 0; color: var(--text-muted); }
+.concept-guide__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.concept-guide__grid--three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.concept-guide__item { display: grid; gap: var(--space-1); padding: var(--space-3); border-radius: var(--radius); background: var(--surface-2); }
+.concept-guide__item span { color: var(--text-muted); font-size: var(--text-sm); line-height: 1.7; }
+.concept-guide--points { border-inline-start-color: var(--c-amber); }
+
+@media (max-width: 900px) {
+    .concept-guide__grid, .concept-guide__grid--three { grid-template-columns: 1fr; }
+}

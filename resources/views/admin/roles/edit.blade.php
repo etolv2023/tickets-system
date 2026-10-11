@@ -7,7 +7,7 @@
         <div class="page__head">
             <div>
                 <h1 class="page-title">تعديل «{{ $role->name_ar }}»</h1>
-                <p class="page-subtitle">أي تغيير هنا بيسري فوراً على كل مستخدم على الدور ده.</p>
+                <p class="page-subtitle">تسري التغييرات فورًا على جميع المستخدمين المرتبطين بهذا الدور.</p>
             </div>
         </div>
 

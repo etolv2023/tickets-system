@@ -20,6 +20,9 @@ class UpdateTicketStatusRequest extends FormRequest
             // stores, and every place that names a status by key would go
             // stale silently if it could change underneath them.
             'name_ar' => ['required', 'string', 'max:100'],
+            'name_en' => ['nullable', 'string', 'max:100'],
+            'description_ar' => ['nullable', 'string', 'max:255'],
+            'description_en' => ['nullable', 'string', 'max:255'],
             'color' => ['required', Rule::in(array_keys(Label::COLORS))],
             'is_open' => ['required', 'boolean'],
         ];

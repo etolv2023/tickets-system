@@ -15,6 +15,7 @@
 @endphp
 
 @section('content')
+    <x-points-guide />
     {{-- ★★★★★ (2026-07-21): a proper hero for the number people come here to
          see, same stat-tile component the home page and points-report already
          use — not a new pattern, just this screen's first real use of it. --}}
@@ -25,7 +26,7 @@
                     <x-icon name="star" class="u-icon-accent" />
                     نقاطي
                 </h1>
-                <p class="page-subtitle">النقاط بتتصرف مرة واحدة أول ما التذكرة تتحل.</p>
+                <p class="page-subtitle">تُحتسب النقاط مرة واحدة عند اعتماد الحل، وتظهر الخصومات والتصحيحات كسجلات مستقلة قابلة للمراجعة.</p>
             </div>
             <div class="page__actions">
                 <x-export-button route="export.my-points" />
@@ -40,13 +41,13 @@
 
             <div class="stat-tile stat-tile--slate">
                 <div class="stat-tile__figure">{{ $awardsCount }}</div>
-                <div class="stat-tile__caption">مرة اتصرفلك فيها نقط</div>
+                <div class="stat-tile__caption">عمليات استحقاق نقاط</div>
             </div>
 
             @if ($lastEarned)
                 <div class="stat-tile stat-tile--green">
                     <div class="stat-tile__figure u-mono">{{ $lastEarned->format('j M') }}</div>
-                    <div class="stat-tile__caption">آخر نقطة اتصرفت</div>
+                    <div class="stat-tile__caption">آخر عملية استحقاق</div>
                 </div>
             @endif
 
@@ -73,18 +74,18 @@
 
             @if ($isAll)
                 <a class="btn btn--ghost btn--sm" href="{{ route('reports.my-points') }}">
-                    ارجع للشهر الحالي
+                    العودة إلى الشهر الحالي
                 </a>
             @else
                 <a class="btn btn--ghost btn--sm" href="{{ route('reports.my-points', ['period' => 'all']) }}">
                     <x-icon name="clock" class="btn__icon" />
-                    كل النقاط
+                    عرض السجل الكامل
                 </a>
             @endif
         </div>
 
         @if ($isAll)
-            <x-alert>بتشوف كل النقاط اللي اتصرفتلك من أول يوم — مش الشهر الحالي بس.</x-alert>
+            <x-alert>يعرض هذا النطاق سجل النقاط بالكامل منذ أول عملية، وليس الشهر الحالي فقط.</x-alert>
         @endif
 
         <x-card flush>

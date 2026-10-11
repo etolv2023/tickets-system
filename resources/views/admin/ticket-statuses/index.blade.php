@@ -7,10 +7,7 @@
         <div class="page__head">
             <div>
                 <h1 class="page-title">حالات التذاكر</h1>
-                <p class="page-subtitle">
-                    الحالات الأساسية (العشرة الرمادي فاتح تحتها) بتحرّكها الأتمتة نفسها — تقدر تغيّر اسمها/لونها
-                    بس. الحالات الي انت ضايفها تقدر تحذفها لو مفيش تذاكر واقفة عليها دلوقتي.
-                </p>
+                <p class="page-subtitle">عرّف كل مرحلة باسم واضح ووصف يشرح معناها ونتيجتها. الحالات الأساسية مرتبطة بأتمتة النظام، أما الحالات المخصصة فتخدم الاستثناءات التشغيلية.</p>
             </div>
         </div>
 
@@ -20,11 +17,16 @@
 
         <x-form-errors />
 
-        <x-card title="حالة جديدة">
+        <x-workflow-guide />
+
+        <x-card title="إضافة مرحلة مخصصة">
             <form method="POST" action="{{ route('admin.ticket-statuses.store') }}" class="form-grid">
                 @csrf
-                <x-field name="key" label="المفتاح" required hint="إنجليزي، زي on_hold — ميتغيّرش بعد كده." />
-                <x-field name="name_ar" label="الاسم" required />
+                <x-field name="key" label="المفتاح الداخلي" required hint="حروف إنجليزية مثل on_hold، ولا يمكن تغييره لاحقًا." />
+                <x-field name="name_ar" label="الاسم بالعربية" required />
+                <x-field name="name_en" label="English name" dir="ltr" />
+                <x-field name="description_ar" label="شرح المرحلة بالعربية" hint="متى تستخدم؟ وما النتيجة المتوقعة منها؟" />
+                <x-field name="description_en" label="English description" dir="ltr" />
                 <x-field name="color" label="اللون" required>
                     <select id="color" name="color" class="select" required>
                         @foreach ($colors as $value => $label)
@@ -32,14 +34,14 @@
                         @endforeach
                     </select>
                 </x-field>
-                <x-field name="is_open" label="مفتوحة؟" hint="لسه محتاجة شغل — بتفرق في تقارير SLA والكاليندر.">
+                <x-field name="is_open" label="هل الالتزام ما زال قائمًا؟" hint="الحالة المفتوحة تعني أن العميل ما زال ينتظر إجراءً أو نتيجة.">
                     <select id="is_open" name="is_open" class="select" required>
                         <option value="1">مفتوحة</option>
                         <option value="0">مقفولة</option>
                     </select>
                 </x-field>
                 <div class="form-actions">
-                    <x-button variant="primary">أضف</x-button>
+                    <x-button variant="primary">إضافة المرحلة</x-button>
                 </div>
             </form>
         </x-card>
@@ -59,17 +61,20 @@
                         @foreach ($statuses as $s)
                             <tr>
                                 <td>
-                                    <x-badge :variant="$s->color">{{ $s->name_ar }}</x-badge>
+                                    <x-badge :variant="$s->color">{{ $s->label() }}</x-badge>
                                     <span class="u-subtle u-mono">{{ $s->key }}</span>
                                     @if ($s->is_system)
-                                        <span class="u-subtle">— أساسية</span>
+                                        <span class="u-subtle">— مرتبطة بسير العمل الأساسي</span>
                                     @endif
                                 </td>
                                 <td colspan="2">
                                     <form method="POST" action="{{ route('admin.ticket-statuses.update', $s) }}" class="opt-form">
                                         @csrf
                                         @method('PUT')
-                                        <input type="text" name="name_ar" value="{{ $s->name_ar }}" class="input opt-form__name">
+                                        <input type="text" name="name_ar" value="{{ $s->name_ar }}" class="input opt-form__name" aria-label="الاسم بالعربية">
+                                        <input type="text" name="name_en" value="{{ $s->name_en }}" class="input opt-form__name" dir="ltr" aria-label="English name">
+                                        <input type="text" name="description_ar" value="{{ $s->description_ar }}" class="input" aria-label="شرح المرحلة بالعربية">
+                                        <input type="hidden" name="description_en" value="{{ $s->description_en }}">
                                         <select name="color" class="select filters__select">
                                             @foreach ($colors as $value => $label)
                                                 <option value="{{ $value }}" @selected($s->color === $value)>{{ $label }}</option>
@@ -108,12 +113,10 @@
             <div class="flow__intro">
                 <p><strong>ده بيتحكم في زرار «غيّر الحالة» على التذكرة.</strong></p>
                 <p class="u-muted">
-                    كل بلوك تحت بيقول: التذكرة لما تكون في الحالة دي، الموظف يقدر يوديها فين.
-                    اللي مش متعلّم عليه مش هيظهر له في القائمة أصلاً.
+                    يحدد كل قسم المراحل التي يمكن الانتقال إليها يدويًا من المرحلة الحالية. الخيارات غير المحددة لن تظهر للمستخدم.
                 </p>
                 <p class="u-muted">
-                    ده <strong>مش</strong> بيلغي الأتمتة — النظام لسه بيحرّك التذكرة لوحده لما الشغل
-                    يخلص. الجدول ده للنقلات اليدوية بس.
+                    لا يلغي ذلك الأتمتة؛ ما زال النظام يحدّث المرحلة عند اكتمال العمل أو اعتماد الاختبار. هذه الخيارات للانتقالات اليدوية فقط.
                 </p>
             </div>
 
@@ -127,7 +130,7 @@
                             && isset($edges["{$from->id}-{$to->id}"]))->count();
                     @endphp
 
-                    <x-collapsible-section :title="'من ' . $from->name_ar"
+                    <x-collapsible-section :title="'من ' . $from->label()"
                                            :meta="$outgoing . ' انتقال'"
                                            :open="false">
                         <div class="flow__targets">
@@ -139,7 +142,7 @@
                                            name="transitions[{{ $from->id }}][{{ $to->id }}]"
                                            value="1"
                                            @checked(isset($edges["{$from->id}-{$to->id}"]))>
-                                    <span>{{ $to->name_ar }}</span>
+                                    <span>{{ $to->label() }}</span>
                                 </label>
                             @endforeach
                         </div>

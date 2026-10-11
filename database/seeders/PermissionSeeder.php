@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Permission;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 /**
  * The permission list from PLAN.md § 2. Seeded, never hardcoded in a Gate (F00.3).
@@ -159,7 +160,13 @@ class PermissionSeeder extends Seeder
             foreach ($items as $key => $nameAr) {
                 Permission::updateOrCreate(
                     ['key' => $key],
-                    ['group' => $group, 'name_ar' => $nameAr]
+                    [
+                        'group' => $group,
+                        'name_ar' => $nameAr,
+                        'name_en' => Str::headline(Str::after($key, '.') . ' ' . Str::before($key, '.')),
+                        'description_ar' => 'صلاحية وصول مستقلة؛ منحها لا يغيّر مسؤولية المستخدم داخل التذكرة.',
+                        'description_en' => 'An independent access permission; granting it does not assign ticket responsibility.',
+                    ]
                 );
             }
         }
