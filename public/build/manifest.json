@@ -32,7 +32,7 @@
     "src": "public/fonts/plex-mono-500-latin.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-CNyQfxx5.css",
+    "file": "assets/app-IRk4zphg.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -41,7 +41,7 @@
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-BmKVlFy9.js",
+    "file": "assets/app-BzCV46lL.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -50,7 +50,7 @@
     ]
   },
   "resources/js/features/board.js": {
-    "file": "assets/board-CK_Eism5.js",
+    "file": "assets/board-YteJtDSq.js",
     "name": "board",
     "src": "resources/js/features/board.js",
     "isEntry": true,
@@ -69,7 +69,7 @@
     ]
   },
   "resources/js/features/subtasks.js": {
-    "file": "assets/subtasks-5Tky8kUs.js",
+    "file": "assets/subtasks-RDrFT0aY.js",
     "name": "subtasks",
     "src": "resources/js/features/subtasks.js",
     "isEntry": true,

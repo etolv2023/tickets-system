@@ -1915,5 +1915,8 @@
     ":count ساعة": "{1} :count hour|[0,*] :count hours",
     ":count يوم": "{1} :count day|[0,*] :count days",
     "إلغاء التصحيح #:id (:note) — :reason": "Reversal of correction #:id (:note) — :reason",
-    "إلغاء التصحيح #:id — :reason": "Reversal of correction #:id — :reason"
+    "إلغاء التصحيح #:id — :reason": "Reversal of correction #:id — :reason",
+    "جارٍ التحميل…": "Loading…",
+    "تعذّر تحميل المهام الفرعية. أغلقها وافتحها للمحاولة مرة أخرى.": "Could not load the subtasks. Close and reopen to try again.",
+    "تعذّر تحميل عناصر هذا اليوم. أغلق النافذة وافتحها للمحاولة مرة أخرى.": "Could not load this day. Close the window and reopen it to try again."
 }

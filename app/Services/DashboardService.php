@@ -36,13 +36,44 @@ class DashboardService
 
     /**
      * The list's own length unless it was truncated, in which case the real
-     * total is worth one extra COUNT.
+     * total rides on every row as list_total (COUNT(*) OVER (), computed
+     * before the LIMIT) — the same number the old extra COUNT query gave,
+     * without the query. The COUNT stays as the fallback.
      */
     public function totalFor($rows, callable $query): int
     {
-        return $rows->count() < self::LIST_LIMIT
-            ? $rows->count()
-            : $query()->count();
+        if ($rows->count() < self::LIST_LIMIT) {
+            return $rows->count();
+        }
+
+        $total = $rows->first()?->list_total;
+
+        return $total !== null ? (int) $total : $query()->count();
+    }
+
+    /** The total of the whole filtered set, on every row, before the LIMIT. */
+    private const LIST_TOTAL = 'COUNT(*) OVER () AS list_total';
+
+    /**
+     * Company and requester for every ticket the four lists show, in one query
+     * each — every list used to load its own, so the same two tables were read
+     * up to four times on one page.
+     *
+     * @param  iterable<int, \Illuminate\Support\Collection>  $lists
+     */
+    public function loadOwners(iterable $lists): void
+    {
+        $tickets = new \Illuminate\Database\Eloquent\Collection();
+
+        foreach ($lists as $list) {
+            foreach ($list as $ticket) {
+                if ($ticket instanceof Ticket) {
+                    $tickets->push($ticket);
+                }
+            }
+        }
+
+        $tickets->load(['company:id,name', 'requester:id,name']);
     }
 
     /* Each list below is split into a query and a fetch, so the tile above it
@@ -68,7 +99,9 @@ class DashboardService
     {
         return $this->onMyPlateQuery($userId)
             ->select(['id', 'ticket_id', 'title', 'due_date', 'status', 'side', 'estimated_hours'])
-            ->with(['ticket:id,ticket_number,title,priority,company_id,requested_by', 'ticket.company:id,name', 'ticket.requester:id,name'])
+            ->selectRaw(self::LIST_TOTAL)
+            // company/requester: loadOwners(), once for all four lists.
+            ->with(['ticket:id,ticket_number,title,priority,company_id,requested_by'])
             ->orderBy('due_date')
             ->limit(self::LIST_LIMIT)
             ->get();
@@ -88,7 +121,7 @@ class DashboardService
     {
         return $this->onFireQuery($user)
             ->select(['id', 'ticket_number', 'title', 'company_id', 'requested_by', 'priority', 'status', 'sla_due_at', 'reported_at'])
-            ->with('company:id,name', 'requester:id,name')
+            ->selectRaw(self::LIST_TOTAL)
             ->defaultOrder()
             ->limit(self::LIST_LIMIT)
             ->get();
@@ -108,7 +141,7 @@ class DashboardService
 
         return $this->awaitingMeQuery($user)
             ->select(['id', 'ticket_number', 'title', 'company_id', 'requested_by', 'type', 'priority', 'reported_at', 'sla_due_at', 'status'])
-            ->with('company:id,name', 'requester:id,name')
+            ->selectRaw(self::LIST_TOTAL)
             ->defaultOrder()
             ->limit(self::LIST_LIMIT)
             ->get();
@@ -134,7 +167,8 @@ class DashboardService
     {
         return $this->blockingOthersQuery($userId)
             ->select(['id', 'ticket_number', 'title', 'company_id', 'requested_by', 'priority', 'status', 'sla_due_at', 'reported_at'])
-            ->with(['company:id,name', 'requester:id,name', 'outgoingLinks.toTicket:id,ticket_number,title,status'])
+            ->selectRaw(self::LIST_TOTAL)
+            ->with(['outgoingLinks.toTicket:id,ticket_number,title,status'])
             ->defaultOrder()
             ->limit(self::LIST_LIMIT)
             ->get();

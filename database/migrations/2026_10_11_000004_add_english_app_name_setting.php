@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -26,12 +25,12 @@ return new class extends Migration
             ]);
         }
 
-        Cache::forget('settings.all');
+        \App\Models\Setting::forgetCache();
     }
 
     public function down(): void
     {
         DB::table('settings')->where('key', 'app_name_en')->delete();
-        Cache::forget('settings.all');
+        \App\Models\Setting::forgetCache();
     }
 };

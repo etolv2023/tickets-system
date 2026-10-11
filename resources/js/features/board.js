@@ -112,7 +112,58 @@ function report(message) {
     }
 }
 
+/**
+ * A card's subtask rows arrive the first time its accordion opens
+ * (BoardController::subtasks). `toggle` does not bubble, so this listens in
+ * the capture phase — one listener for every card on the board.
+ */
+function mountLazySubtasks() {
+    document.addEventListener('toggle', (event) => {
+        const details = event.target;
+
+        if (details instanceof HTMLDetailsElement && details.open && details.dataset.lazySubtasks && !details.dataset.loaded) {
+            loadSubtasks(details);
+        }
+    }, true);
+}
+
+async function loadSubtasks(details) {
+    const list = details.querySelector('[data-subtask-list]');
+
+    details.dataset.loaded = 'loading';
+    note(list, t('جارٍ التحميل…'));
+
+    try {
+        const response = await fetch(details.dataset.lazySubtasks, {
+            headers: { Accept: 'text/html', 'X-Requested-With': 'XMLHttpRequest' },
+        });
+
+        if (!response.ok) {
+            throw new Error();
+        }
+
+        // Our own server-rendered, escaped Blade — the same markup the card
+        // used to print inline.
+        list.innerHTML = await response.text();
+        mountSubtaskStatus(list);
+        details.dataset.loaded = 'true';
+    } catch {
+        // Closing and reopening the card tries again.
+        note(list, t('تعذّر تحميل المهام الفرعية. أغلقها وافتحها للمحاولة مرة أخرى.'));
+        delete details.dataset.loaded;
+    }
+}
+
+function note(list, text) {
+    const item = document.createElement('li');
+
+    item.className = 'tcard__subtask-note';
+    item.textContent = text;
+    list.replaceChildren(item);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     mountBoardDragging();
+    mountLazySubtasks();
     mountSubtaskStatus();
 });

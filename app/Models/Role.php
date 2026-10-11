@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\RequestMemo;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -42,7 +43,7 @@ class Role extends Model
         // Permissions are read on every authorization check, so the map is
         // cached forever and busted on write (CLAUDE.md § 4.7).
         static::saved(function () {
-            Cache::forget(self::CACHE_KEY);
+            self::forgetPermissionMap();
             Cache::forget(self::ID_MAP_KEY);
             Cache::forget(self::ASSIGNABLE_CACHE_KEY);
             Cache::forget(self::WORK_LOGGING_CACHE_KEY);
@@ -51,7 +52,7 @@ class Role extends Model
         });
 
         static::deleted(function () {
-            Cache::forget(self::CACHE_KEY);
+            self::forgetPermissionMap();
             Cache::forget(self::ID_MAP_KEY);
             Cache::forget(self::ASSIGNABLE_CACHE_KEY);
             Cache::forget(self::WORK_LOGGING_CACHE_KEY);
@@ -88,7 +89,7 @@ class Role extends Model
     {
         $this->permissions()->sync($permissionIds);
 
-        Cache::forget(self::CACHE_KEY);
+        self::forgetPermissionMap();
     }
 
     public function users(): HasMany
@@ -103,9 +104,16 @@ class Role extends Model
      *
      * @return array<int, array<int, string>>
      */
+    /** Busts the cached map and this request's copy of it (PermissionMemo). */
+    public static function forgetPermissionMap(): void
+    {
+        Cache::forget(self::CACHE_KEY);
+        app(RequestMemo::class)->forget(self::CACHE_KEY);
+    }
+
     public static function permissionMap(): array
     {
-        return Cache::rememberForever(self::CACHE_KEY, function () {
+        return app(RequestMemo::class)->remember(self::CACHE_KEY, fn () => Cache::rememberForever(self::CACHE_KEY, function () {
             return static::query()
                 ->with('permissions:id,key')
                 ->get(['id'])
@@ -113,7 +121,7 @@ class Role extends Model
                     $role->id => $role->permissions->pluck('key')->all(),
                 ])
                 ->all();
-        });
+        }));
     }
 
     /**

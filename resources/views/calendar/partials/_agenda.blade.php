@@ -3,8 +3,13 @@
      * The mobile face of the month/week views (< 60rem). A 7-column grid can't
      * be read on a phone — the chips overlap and truncate to nothing — so below
      * the breakpoint we drop the grid entirely and render a vertical agenda:
-     * one full-width section per day that actually has something on it, with its
-     * items listed in full and uncapped. The user scrolls; nothing is crammed.
+     * one full-width section per day that actually has something on it.
+     *
+     * ★ Capped at 8 items a day, with a "+N" link into the day view,
+     * which lists them all — the same move the week grid makes. Uncapped, a
+     * busy team month was two thousand rows: more than a second to render on
+     * every visit (the agenda is in the page on desktop too, only hidden) and
+     * a list nobody reads on a phone.
      *
      * Desktop keeps the grid (_grid). Only one of the two is visible at a time
      * (calendar-agenda.css), so this never shows next to the grid.
@@ -35,6 +40,7 @@
             $daySlas = $slasByDay[$key] ?? collect();
             $leavesToday = $items['leaves']->filter(fn ($l) => $l->covers($day));
             $total = $daySubtasks->count() + $dayTickets->count() + $daySlas->count();
+            $cap = min($total, 8);
         @endphp
 
         {{-- A day with nothing on it is silence, not a row. --}}
@@ -65,10 +71,16 @@
                     'daySubtasks' => $daySubtasks,
                     'dayTickets' => $dayTickets,
                     'daySlas' => $daySlas,
-                    'cap' => $total,
+                    'cap' => $cap,
                     'key' => $key,
                 ])
             </div>
+            @if ($total > $cap)
+                <a class="cal__more"
+                   href="{{ route($routeName, array_merge(array_filter($filters), ['view' => 'day', 'date' => $key])) }}">
+                    {{ __('+:count أكثر', ['count' => $total - $cap]) }}
+                </a>
+            @endif
         </section>
     @endforeach
 

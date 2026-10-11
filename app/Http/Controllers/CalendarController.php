@@ -8,6 +8,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Services\CalendarService;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -25,6 +26,34 @@ class CalendarController extends Controller
     public function mine(Request $request): View
     {
         return $this->render($request, $request->user()->id, __('تقويمي'));
+    }
+
+    /** One day of «my» calendar, for the day preview (JSON). */
+    public function mineDay(Request $request): JsonResponse
+    {
+        return $this->day($request, $request->user()->id);
+    }
+
+    /** One day of the team calendar, for the day preview (JSON). */
+    public function teamDay(Request $request): JsonResponse
+    {
+        abort_unless($request->user()->hasPermission('reports.view'), 403);
+
+        return $this->day($request, null);
+    }
+
+    /**
+     * The same items the page shows for that day — same filters, same scope —
+     * asked for when the day is opened rather than shipped with the page.
+     */
+    private function day(Request $request, ?int $onlyUserId): JsonResponse
+    {
+        $data = $request->validate(['date' => ['required', 'date_format:Y-m-d']]);
+        $day = CarbonImmutable::parse($data['date']);
+
+        $filters = $request->only('assignee', 'company', 'type', 'priority', 'role', 'show', 'status');
+
+        return response()->json($this->calendar->previewRows($this->calendar->itemsBetween($day, $day, $filters, $onlyUserId)));
     }
 
     /** F13 — the whole team's. */

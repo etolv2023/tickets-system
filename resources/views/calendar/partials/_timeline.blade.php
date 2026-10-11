@@ -5,6 +5,10 @@
      * exists.
      */
     $byPerson = $items['subtasks']->groupBy('assignee_id');
+    // Bucketed once by person and day. Filtering each person's list again for
+    // every one of the month's cells was person × day × subtask date
+    // comparisons — two seconds on a month of two thousand subtasks.
+    $byPersonDay = $items['subtasks']->groupBy(fn ($s) => $s->assignee_id . '|' . $s->due_date->toDateString());
     $shown = $users->filter(fn ($u) => $byPerson->has($u->id) || $items['leaves']->contains('user_id', $u->id));
     $workDays = array_map('intval', (array) \App\Models\Setting::get('work_days', [0, 1, 2, 3, 4]));
 @endphp
@@ -25,14 +29,18 @@
                         $holiday = $holidays[$key] ?? $holidays[$day->format('m-d')] ?? null;
                         $isWorking = $holiday === null && in_array($day->dayOfWeek, $workDays, true);
                         $onLeave = $items['leaves']->contains(fn ($l) => $l->user_id === $person->id && $l->covers($day));
-                        $theirs = ($byPerson[$person->id] ?? collect())->filter(fn ($s) => $s->due_date->toDateString() === $key);
+                        $theirs = $byPersonDay[$person->id . '|' . $key] ?? collect();
                     @endphp
 
                     <div @class(['timeline-grid__cell', 'timeline-grid__cell--off' => ! $isWorking || $onLeave])
                          data-date="{{ $key }}"
                          title="{{ $day->translatedFormat('j M') }}{{ $holiday ? ' — ' . $holiday : '' }}{{ $onLeave ? __(' — إجازة') : '' }}">
                         <div data-items class="stack stack--tight">
-                            @foreach ($theirs as $subtask)
+                            {{-- Three chips a cell, then "+N" into that person's day:
+                                 a busy day was dozens of ten-letter chips no one
+                                 could read, and the cell's capacity meter already
+                                 says how loaded it is. --}}
+                            @foreach ($theirs->take(3) as $subtask)
                                 <a @class([
                                        'cal__item',
                                        'cal__item--' . $subtask->ticket->priority->variant(),
@@ -48,6 +56,13 @@
                                     {{ Str::limit($subtask->title, 10) }}
                                 </a>
                             @endforeach
+
+                            @if ($theirs->count() > 3)
+                                <a class="cal__more"
+                                   href="{{ route($routeName, array_merge(array_filter($filters), ['view' => 'day', 'date' => $key, 'assignee' => $person->id])) }}">
+                                    {{ __('+:count أكثر', ['count' => $theirs->count() - 3]) }}
+                                </a>
+                            @endif
                         </div>
 
                         @isset($capacity[$meterKey])

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\RequestMemo;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -103,7 +104,7 @@ class User extends Authenticatable
      */
     protected static function booted(): void
     {
-        static::deleted(fn () => Cache::forget(self::OVERRIDES_CACHE_KEY));
+        static::deleted(fn () => self::forgetOverrideMap());
     }
 
     public function role(): BelongsTo
@@ -207,14 +208,14 @@ class User extends Authenticatable
      */
     public static function overrideMap(): array
     {
-        return Cache::rememberForever(self::OVERRIDES_CACHE_KEY, function () {
+        return app(RequestMemo::class)->remember(self::OVERRIDES_CACHE_KEY, fn () => Cache::rememberForever(self::OVERRIDES_CACHE_KEY, function () {
             return DB::table('permission_user')
                 ->join('permissions', 'permissions.id', '=', 'permission_user.permission_id')
                 ->get(['permission_user.user_id', 'permissions.key', 'permission_user.granted'])
                 ->groupBy('user_id')
                 ->map(fn ($rows) => $rows->mapWithKeys(fn ($row) => [$row->key => (bool) $row->granted])->all())
                 ->all();
-        });
+        }));
     }
 
     /**
@@ -230,7 +231,14 @@ class User extends Authenticatable
             collect($verdicts)->map(fn (bool $granted) => ['granted' => $granted])->all()
         );
 
+        self::forgetOverrideMap();
+    }
+
+    /** Busts the cached map and this request's copy of it (PermissionMemo). */
+    public static function forgetOverrideMap(): void
+    {
         Cache::forget(self::OVERRIDES_CACHE_KEY);
+        app(RequestMemo::class)->forget(self::OVERRIDES_CACHE_KEY);
     }
 
     /** Initials for the avatar fallback — first letter of the first two words. */

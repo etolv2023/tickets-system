@@ -62,9 +62,11 @@
 @import './features/ticket-form.css';
 @import './features/board.css';
 @import './features/board-card.css';
+@import './features/board-card-subtasks.css';
 @import './features/subtasks.css';
 @import './features/timesheet.css';
 @import './features/calendar.css';
+@import './features/calendar-preview.css';
 @import './features/calendar-event.css';
 @import './features/calendar-agenda.css';
 @import './features/calendar-timeline.css';

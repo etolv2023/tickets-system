@@ -170,6 +170,18 @@ class BoardController extends Controller
         return ['id', 'ticket_id', 'title', 'status', 'side', 'role_id', 'assignee_id', 'position'];
     }
 
+    /**
+     * What the board's drop rules read off each subtask (hasGatingSubtasks()):
+     * status, role and owner. The rows themselves are no longer printed on the
+     * board — the accordion fetches them — so titles are not loaded for it.
+     *
+     * @return array<int, string>
+     */
+    private static function gatingColumns(): array
+    {
+        return ['id', 'ticket_id', 'status', 'role_id', 'assignee_id'];
+    }
+
     /** Cap per column. Anything beyond this is reported, never silently cut. */
     private const COLUMN_LIMIT = 100;
 
@@ -206,11 +218,11 @@ class BoardController extends Controller
             // One extra query for the whole board, not one per card. Still no
             // assignee RELATION — the card shows no name, and that would be a
             // second query. assignee_id itself is not optional though: see
-            // subtaskColumns().
+            // subtaskColumns() and gatingColumns().
             ->with([
                 'company:id,name', 'requester:id,name',
                 'workLogs:id,ticket_id,user_id,role_id,status', 'workLogs.role:id,name_ar,name_en',
-                'subtasks' => fn ($q) => $q->select(self::subtaskColumns()),
+                'subtasks' => fn ($q) => $q->select(self::gatingColumns()),
                 // One subquery-joined row per ticket, not every image on every
                 // ticket. Loaded whole rather than with a column list: a
                 // one-of-many relation joins the table to itself under an
@@ -298,6 +310,25 @@ class BoardController extends Controller
         return $columns;
     }
 
+    /**
+     * One card's subtask rows, for its accordion (ticket-card.blade.php). The
+     * board itself still loads subtasks — the drop rules read them — but no
+     * longer renders them, which was most of a full board's render time.
+     */
+    public function subtasks(Ticket $ticket): View
+    {
+        $this->authorize('view', $ticket);
+
+        // roleAssignments: each row's @can('update') goes through
+        // TicketPolicy::view, which reads it — loaded once, not per row.
+        $ticket->load([
+            'subtasks' => fn ($q) => $q->select(self::subtaskColumns()),
+            'roleAssignments:id,ticket_id,user_id,role_id',
+        ]);
+
+        return view('partials.board._card-subtasks', ['ticket' => $ticket]);
+    }
+
     /** F12.2 — the same board over every ticket, in swimlanes. */
     public function team(Request $request): View
     {
@@ -321,7 +352,7 @@ class BoardController extends Controller
                 'company:id,name', 'requester:id,name',
                 'workLogs:id,ticket_id,user_id,role_id,status', 'workLogs.role:id,name_ar,name_en',
                 'incomingLinks.fromTicket:id,status',
-                'subtasks' => fn ($q) => $q->select(self::subtaskColumns()),
+                'subtasks' => fn ($q) => $q->select(self::gatingColumns()),
                 // One subquery-joined row per ticket, not every image on every
                 // ticket. Loaded whole rather than with a column list: a
                 // one-of-many relation joins the table to itself under an

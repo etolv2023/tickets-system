@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\RequestMemo;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
@@ -13,8 +14,8 @@ class Setting extends Model
 
     protected static function booted(): void
     {
-        static::saved(fn () => Cache::forget(self::CACHE_KEY));
-        static::deleted(fn () => Cache::forget(self::CACHE_KEY));
+        static::saved(fn () => self::forgetCache());
+        static::deleted(fn () => self::forgetCache());
     }
 
     /**
@@ -24,12 +25,20 @@ class Setting extends Model
      */
     public static function all_cached(): array
     {
-        return Cache::rememberForever(self::CACHE_KEY, function () {
+        // Held for the request too (RequestMemo): read on nearly every screen,
+        // in places once per calendar cell.
+        return app(RequestMemo::class)->remember(self::CACHE_KEY, fn () => Cache::rememberForever(self::CACHE_KEY, function () {
             return static::query()
                 ->get(['key', 'value', 'type'])
                 ->mapWithKeys(fn (self $s) => [$s->key => $s->typedValue()])
                 ->all();
-        });
+        }));
+    }
+
+    public static function forgetCache(): void
+    {
+        Cache::forget(self::CACHE_KEY);
+        app(RequestMemo::class)->forget(self::CACHE_KEY);
     }
 
     public static function get(string $key, mixed $default = null): mixed

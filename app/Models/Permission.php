@@ -20,8 +20,8 @@ class Permission extends Model
 
     protected static function booted(): void
     {
-        static::saved(fn () => Cache::forget(Role::CACHE_KEY));
-        static::deleted(fn () => Cache::forget(Role::CACHE_KEY));
+        static::saved(fn () => Role::forgetPermissionMap());
+        static::deleted(fn () => Role::forgetPermissionMap());
     }
 
     public function roles(): BelongsToMany

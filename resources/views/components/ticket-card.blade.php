@@ -74,43 +74,17 @@
          board's own way of moving a ticket, and a select beside it competes
          with the drag for the same job. --}}
 
-    {{-- Native <details>: no JavaScript to open it, keyboard-accessible, and
-         collapsed by default so a board of 300 cards never lays the rows out.
-         Rendered only when the subtasks relation was eager-loaded — the board
-         loads it, other callers of this card may not. --}}
-    @if ($ticket->subtasks_total > 0 && $ticket->relationLoaded('subtasks'))
-        <details class="tcard__subtasks">
+    {{-- Native <details>, collapsed by default. Its rows are fetched the first
+         time it is opened (board.js → BoardController::subtasks): rendering
+         every card's rows up front was most of a full board's render time,
+         for lists that are almost never opened. --}}
+    @if ($ticket->subtasks_total > 0)
+        <details class="tcard__subtasks" data-lazy-subtasks="{{ route('board.subtasks', $ticket) }}">
             <summary class="tcard__subtasks-summary">
                 {{ __('المهام الفرعية') }} <span data-subtask-counter>{{ $ticket->subtasks_done }}/{{ $ticket->subtasks_total }}</span>
             </summary>
 
-            <ul class="tcard__subtask-list">
-                @foreach ($ticket->subtasks as $subtask)
-                    <li class="tcard__subtask" data-subtask-id="{{ $subtask->id }}">
-                        <span @class(['tcard__subtask-title', 'tcard__subtask-title--done' => $subtask->status->isDone()])>
-                            {{ $subtask->title }}
-                        </span>
-
-                        @can('update', [$subtask, $ticket])
-                            @if (! $subtask->status->needsReason())
-                                <select class="select select--sm" aria-label="{{ __('حالة :name', ['name' => $subtask->title]) }}"
-                                        data-subtask-status="{{ route('subtasks.status', $subtask) }}"
-                                        data-current="{{ $subtask->status->value }}">
-                                    @foreach (\App\Models\SubtaskStatusDefinition::quickChangeKeys() as $optionKey)
-                                        <option value="{{ $optionKey }}" @selected($subtask->status->value === $optionKey)>{{ \App\Casts\SubtaskStatusValue::for($optionKey)->label() }}</option>
-                                    @endforeach
-                                </select>
-                            @else
-                                <x-badge :variant="$subtask->status->variant()">{{ $subtask->status->label() }}</x-badge>
-                            @endif
-                        @else
-                            <x-badge :variant="$subtask->status->variant()">{{ $subtask->status->label() }}</x-badge>
-                        @endcan
-
-                        <p class="subtask__message" data-subtask-message role="status" aria-live="polite"></p>
-                    </li>
-                @endforeach
-            </ul>
+            <ul class="tcard__subtask-list" data-subtask-list></ul>
         </details>
     @endif
 

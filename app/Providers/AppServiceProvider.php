@@ -27,6 +27,10 @@ class AppServiceProvider extends ServiceProvider
         // container cannot work it out on its own.
         $this->app->singleton(VirusScanner::class, fn () => VirusScanner::fromConfig());
 
+        // Scoped, not singleton: forgotten between queue jobs, so a worker
+        // that outlives a permission change does not keep the old map.
+        $this->app->scoped(\App\Support\RequestMemo::class);
+
         /*
          * ★ (2026-08-29) F29 — and it MUST be a singleton.
          *

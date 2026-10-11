@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\RequestMemo;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
@@ -18,8 +19,8 @@ class Holiday extends Model
 
     protected static function booted(): void
     {
-        static::saved(fn () => Cache::forget(self::CACHE_KEY));
-        static::deleted(fn () => Cache::forget(self::CACHE_KEY));
+        static::saved(fn () => self::forgetCache());
+        static::deleted(fn () => self::forgetCache());
     }
 
     /**
@@ -32,11 +33,18 @@ class Holiday extends Model
      */
     public static function map(): array
     {
-        return Cache::rememberForever(self::CACHE_KEY, fn () => static::all()
+        // Held for the request too (RequestMemo): the calendar asks once per day.
+        return app(RequestMemo::class)->remember(self::CACHE_KEY, fn () => Cache::rememberForever(self::CACHE_KEY, fn () => static::all()
             ->mapWithKeys(fn (self $h) => [
                 $h->is_recurring ? $h->date->format('m-d') : $h->date->toDateString() => $h->name,
             ])
-            ->all());
+            ->all()));
+    }
+
+    public static function forgetCache(): void
+    {
+        Cache::forget(self::CACHE_KEY);
+        app(RequestMemo::class)->forget(self::CACHE_KEY);
     }
 
     public static function nameFor(\Carbon\CarbonInterface $date): ?string

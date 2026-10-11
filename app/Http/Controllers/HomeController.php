@@ -42,6 +42,7 @@ class HomeController extends Controller
         $onFire = $this->dashboard->onFire($user);
         $awaitingMe = $this->dashboard->awaitingMe($user);
         $blockingOthers = $this->dashboard->blockingOthers($user->id);
+        $this->dashboard->loadOwners([$onMyPlate->pluck('ticket'), $onFire, $awaitingMe, $blockingOthers]);
 
         $period = CarbonImmutable::now()->format('Y-m');
         [$from, $to] = $this->reports->periodBounds($period);

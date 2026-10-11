@@ -122,9 +122,10 @@ function announce(select, payload) {
         region.textContent = payload.message ?? '';
     }
 
-    // The ticket-level counter ("3/7") lives outside the row.
+    // The ticket-level counter ("3/7") lives outside the row. On the board
+    // every card has one, so only this card's counter is the ticket's.
     if (payload.done !== undefined) {
-        document.querySelectorAll('[data-subtask-counter]').forEach((el) => {
+        (select.closest('.tcard') ?? document).querySelectorAll('[data-subtask-counter]').forEach((el) => {
             el.textContent = `${payload.done}/${payload.total}`;
         });
     }

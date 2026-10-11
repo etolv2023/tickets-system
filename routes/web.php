@@ -199,6 +199,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/calendar/me', [CalendarController::class, 'mine'])->name('calendar.mine');
     Route::get('/calendar/team', [CalendarController::class, 'team'])
         ->middleware('permission:reports.view')->name('calendar.team');
+    // The day preview's rows, fetched when a day is opened.
+    Route::get('/calendar/me/day', [CalendarController::class, 'mineDay'])->name('calendar.mine.day');
+    Route::get('/calendar/team/day', [CalendarController::class, 'teamDay'])
+        ->middleware('permission:reports.view')->name('calendar.team.day');
     Route::patch('/subtasks/{subtask}/schedule', [SubtaskScheduleController::class, 'move'])
         ->name('subtasks.schedule');
 
@@ -240,6 +244,11 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/my-board', [BoardController::class, 'mine'])
         ->middleware('permission:worklog.manage')->name('board.mine');
+    // A card's subtask rows, fetched when its accordion is first opened.
+    // Guarded by TicketPolicy::view inside — anyone who can see the ticket
+    // already sees these rows on its own page.
+    Route::get('tickets/{ticket}/board-subtasks', [BoardController::class, 'subtasks'])
+        ->name('board.subtasks');
     Route::get('/board', [BoardController::class, 'team'])
         ->middleware('permission:tickets.view.all')->name('board.team');
     Route::get('/approvals', [QueueController::class, 'approvals'])->name('queues.approvals');

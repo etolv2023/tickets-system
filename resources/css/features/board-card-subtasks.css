@@ -1,0 +1,77 @@
+/* A board card's subtask accordion, split out of board-card.css (the
+   300-line rule). Its rows are fetched the first time it opens. */
+
+/* Collapsed by default, so 300 cards never lay their rows out. */
+.tcard__subtasks {
+    border-block-start: 1px solid var(--border-subtle);
+    padding-block-start: var(--space-2);
+}
+
+.tcard__subtasks-summary {
+    cursor: pointer;
+    font-size: var(--text-2xs);
+    color: var(--text-muted);
+    list-style: none;
+}
+
+.tcard__subtasks-summary::-webkit-details-marker {
+    display: none;
+}
+
+/* The disclosure arrow is drawn, so the template carries no glyph and the
+   direction follows the writing mode rather than a hardcoded side. */
+.tcard__subtasks-summary::before {
+    content: '';
+    display: inline-block;
+    inline-size: 0;
+    block-size: 0;
+    margin-inline-end: var(--space-1);
+    border-block-start: 4px solid transparent;
+    border-block-end: 4px solid transparent;
+    border-inline-end: 5px solid currentColor;
+    transition: transform var(--transition);
+}
+
+.tcard__subtasks[open] .tcard__subtasks-summary::before {
+    transform: rotate(-90deg);
+}
+
+.tcard__subtask-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-block-start: var(--space-2);
+    list-style: none;
+}
+
+/* Wraps on a narrow card rather than pushing the select off the edge — the
+   board runs one column wide on a phone. */
+.tcard__subtask {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+}
+
+.tcard__subtask-title {
+    flex: 1 1 8rem;
+    font-size: var(--text-2xs);
+    line-height: var(--leading-normal);
+    color: var(--text-muted);
+}
+
+.tcard__subtask-title--done {
+    text-decoration: line-through;
+    color: var(--text-subtle);
+}
+
+.tcard__subtask .subtask__message {
+    flex-basis: 100%;
+}
+
+/* "Loading…" or a failed fetch, in place of the rows. */
+.tcard__subtask-note {
+    font-size: var(--text-sm);
+    color: var(--text-subtle);
+}

@@ -124,6 +124,51 @@ class CalendarService
     }
 
     /**
+     * One day's items as the day preview lists them (the modal a month or
+     * week cell opens). Fetched for the clicked day only — embedding every
+     * day's rows in the page was megabytes of JSON on a busy month.
+     *
+     * @param  array{subtasks: Collection, tickets: Collection, slas: Collection}  $items
+     * @return array<int, array<string, mixed>>
+     */
+    public function previewRows(array $items): array
+    {
+        $rows = [];
+
+        foreach ($items['subtasks'] as $subtask) {
+            $rows[] = [
+                'kind' => 'subtask',
+                'kindLabel' => __('مهمة فرعية'),
+                'title' => $subtask->title,
+                'ticketNumber' => $subtask->ticket->ticket_number,
+                'ticketTitle' => $subtask->ticket->title,
+                'url' => route('tickets.show', $subtask->ticket_id),
+                'assignee' => $subtask->assignee?->name,
+                'hours' => $subtask->estimated_hours,
+                'overdue' => $subtask->isOverdue(),
+            ];
+        }
+
+        foreach ([['ticket', __('موعد تذكرة'), $items['tickets']], ['sla', __('مهلة SLA'), $items['slas']]] as [$kind, $label, $tickets]) {
+            foreach ($tickets as $ticket) {
+                $rows[] = [
+                    'kind' => $kind,
+                    'kindLabel' => $label,
+                    'title' => $ticket->title,
+                    'ticketNumber' => $ticket->ticket_number,
+                    'ticketTitle' => $ticket->title,
+                    'url' => route('tickets.show', $ticket),
+                    'assignee' => null,
+                    'hours' => null,
+                    'overdue' => $ticket->isOverdue(),
+                ];
+            }
+        }
+
+        return $rows;
+    }
+
+    /**
      * Load vs capacity per person per day (F14).
      *
      * @param  Collection<int, TicketSubtask>  $subtasks
