@@ -55,8 +55,8 @@ class AuditExport implements FromQuery, WithHeadings, WithMapping, WithTitle, Sh
         return $this->sanitizeRow([
             $log->created_at?->timezone(config('app.display_timezone'))->format('Y-m-d H:i:s'),
             $log->user?->name ?? __('النظام'),
-            $log->action,
-            $log->subject_type === null ? null : class_basename($log->subject_type),
+            ActivityLog::actionLabel($log->action),
+            $log->subject_type === null ? null : ActivityLog::subjectLabel($log->subject_type),
             $log->subject_id,
             $log->changes === null ? null : json_encode($log->changes, JSON_UNESCAPED_UNICODE),
             $log->ip,

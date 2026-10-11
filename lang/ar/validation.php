@@ -1,8 +1,9 @@
 <?php
 
 /**
- * Arabic validation messages. Only the rules the app actually uses are here;
- * anything missing falls back to the English default rather than a blank string.
+ * Arabic validation messages for every rule Laravel ships. fallback_locale is
+ * ar, so a missing rule would not fall back to English — it would print its
+ * raw key (validation.distinct). Keep this list complete.
  */
 return [
     'accepted' => 'يجب الموافقة على :attribute.',
@@ -35,10 +36,14 @@ return [
     'file' => 'يجب أن يكون :attribute ملفًا.',
     'filled' => 'يجب أن يحتوي :attribute على قيمة.',
     'gt' => [
+        'array' => 'يجب أن يحتوي :attribute على أكثر من :value عناصر.',
+        'file' => 'يجب أن يكون حجم :attribute أكبر من :value كيلوبايت.',
         'numeric' => 'يجب أن يكون :attribute أكبر من :value.',
         'string' => 'يجب أن يكون :attribute أطول من :value حروف.',
     ],
     'gte' => [
+        'array' => 'يجب أن يحتوي :attribute على :value عناصر أو أكثر.',
+        'file' => 'يجب ألا يقل حجم :attribute عن :value كيلوبايت.',
         'numeric' => 'يجب أن يكون :attribute أكبر من :value أو مساويًا له.',
         'string' => 'يجب ألا يقل :attribute عن :value حروف.',
     ],
@@ -48,10 +53,14 @@ return [
     'ip' => 'يجب أن يكون :attribute عنوان IP صالحًا.',
     'json' => 'يجب أن يكون :attribute نص JSON صالحًا.',
     'lt' => [
+        'array' => 'يجب أن يحتوي :attribute على أقل من :value عناصر.',
+        'file' => 'يجب أن يكون حجم :attribute أصغر من :value كيلوبايت.',
         'numeric' => 'يجب أن يكون :attribute أصغر من :value.',
         'string' => 'يجب أن يكون :attribute أقصر من :value حروف.',
     ],
     'lte' => [
+        'array' => 'يجب ألا يحتوي :attribute على أكثر من :value عناصر.',
+        'file' => 'يجب ألا يزيد حجم :attribute عن :value كيلوبايت.',
         'numeric' => 'يجب أن يكون :attribute أصغر من :value أو مساويًا له.',
         'string' => 'يجب ألا يزيد :attribute عن :value حروف.',
     ],
@@ -91,6 +100,68 @@ return [
     'uploaded' => 'تعذّر رفع :attribute.',
     'url' => 'يجب أن يكون :attribute رابطًا صالحًا.',
 
+    // Rules the app does not use today, so a new rule never prints a raw key.
+    'accepted_if' => 'يجب الموافقة على :attribute عندما تكون قيمة :other هي :value.',
+    'any_of' => 'قيمة :attribute غير صالحة.',
+    'ascii' => 'يجب أن يحتوي :attribute على حروف وأرقام ورموز إنجليزية فقط.',
+    'can' => 'يحتوي :attribute على قيمة غير مسموح بها.',
+    'contains' => 'يجب أن يحتوي :attribute على قيمة مطلوبة غير موجودة.',
+    'date_equals' => 'يجب أن يكون :attribute تاريخًا مساويًا لـ :date.',
+    'decimal' => 'يجب أن يحتوي :attribute على :decimal منازل عشرية.',
+    'declined' => 'يجب رفض :attribute.',
+    'declined_if' => 'يجب رفض :attribute عندما تكون قيمة :other هي :value.',
+    'dimensions' => 'أبعاد صورة :attribute غير صالحة.',
+    'distinct' => 'يحتوي :attribute على قيمة مكررة.',
+    'doesnt_contain' => 'يجب ألا يحتوي :attribute على أي من القيم التالية: :values.',
+    'doesnt_end_with' => 'يجب ألا ينتهي :attribute بأي من القيم التالية: :values.',
+    'doesnt_start_with' => 'يجب ألا يبدأ :attribute بأي من القيم التالية: :values.',
+    'encoding' => 'يجب أن يكون :attribute بترميز :encoding.',
+    'enum' => 'قيمة :attribute المختارة غير صالحة.',
+    'extensions' => 'يجب أن يكون امتداد :attribute أحد الامتدادات التالية: :values.',
+    'hex_color' => 'يجب أن يكون :attribute لونًا سداسيًا عشريًا صالحًا.',
+    'in_array' => 'يجب أن تكون قيمة :attribute موجودة في :other.',
+    'in_array_keys' => 'يجب أن يحتوي :attribute على مفتاح واحد على الأقل من المفاتيح التالية: :values.',
+    'ipv4' => 'يجب أن يكون :attribute عنوان IPv4 صالحًا.',
+    'ipv6' => 'يجب أن يكون :attribute عنوان IPv6 صالحًا.',
+    'list' => 'يجب أن يكون :attribute قائمة.',
+    'lowercase' => 'يجب أن يكون :attribute بحروف صغيرة.',
+    'mac_address' => 'يجب أن يكون :attribute عنوان MAC صالحًا.',
+    'max_digits' => 'يجب ألا يحتوي :attribute على أكثر من :max أرقام.',
+    'min_digits' => 'يجب أن يحتوي :attribute على :min أرقام على الأقل.',
+    'missing' => 'يجب ألا يكون :attribute موجودًا.',
+    'missing_if' => 'يجب ألا يكون :attribute موجودًا عندما تكون قيمة :other هي :value.',
+    'missing_unless' => 'يجب ألا يكون :attribute موجودًا ما لم تكن قيمة :other هي :value.',
+    'missing_with' => 'يجب ألا يكون :attribute موجودًا عند وجود :values.',
+    'missing_with_all' => 'يجب ألا يكون :attribute موجودًا عند وجود :values.',
+    'multiple_of' => 'يجب أن يكون :attribute من مضاعفات :value.',
+    'not_regex' => 'صيغة :attribute غير صحيحة.',
+    'present_if' => 'يجب أن يكون :attribute موجودًا عندما تكون قيمة :other هي :value.',
+    'present_unless' => 'يجب أن يكون :attribute موجودًا ما لم تكن قيمة :other هي :value.',
+    'present_with' => 'يجب أن يكون :attribute موجودًا عند وجود :values.',
+    'present_with_all' => 'يجب أن يكون :attribute موجودًا عند وجود :values.',
+    'prohibited_if' => 'حقل :attribute غير مسموح به عندما تكون قيمة :other هي :value.',
+    'prohibited_if_accepted' => 'حقل :attribute غير مسموح به عند الموافقة على :other.',
+    'prohibited_if_declined' => 'حقل :attribute غير مسموح به عند رفض :other.',
+    'prohibited_unless' => 'حقل :attribute غير مسموح به ما لم تكن قيمة :other ضمن :values.',
+    'prohibits' => 'حقل :attribute يمنع وجود :other.',
+    'required_array_keys' => 'يجب أن يحتوي :attribute على قيم للمفاتيح التالية: :values.',
+    'required_if_accepted' => 'حقل :attribute مطلوب عند الموافقة على :other.',
+    'required_if_declined' => 'حقل :attribute مطلوب عند رفض :other.',
+    'required_unless' => 'حقل :attribute مطلوب ما لم تكن قيمة :other ضمن :values.',
+    'required_with_all' => 'حقل :attribute مطلوب عند وجود :values.',
+    'required_without_all' => 'حقل :attribute مطلوب عند عدم وجود أي من :values.',
+    'timezone' => 'يجب أن يكون :attribute منطقة زمنية صالحة.',
+    'uppercase' => 'يجب أن يكون :attribute بحروف كبيرة.',
+    'ulid' => 'يجب أن يكون :attribute معرّف ULID صالحًا.',
+    'uuid' => 'يجب أن يكون :attribute معرّف UUID صالحًا.',
+    'password' => [
+        'letters' => 'يجب أن يحتوي :attribute على حرف واحد على الأقل.',
+        'mixed' => 'يجب أن يحتوي :attribute على حرف كبير وحرف صغير على الأقل.',
+        'numbers' => 'يجب أن يحتوي :attribute على رقم واحد على الأقل.',
+        'symbols' => 'يجب أن يحتوي :attribute على رمز واحد على الأقل.',
+        'uncompromised' => 'ظهرت قيمة :attribute في تسريب بيانات. يُرجى اختيار :attribute مختلف.',
+    ],
+
     'custom' => [],
 
     /**
@@ -113,6 +184,7 @@ return [
         'db_username' => 'اسم المستخدم',
         'db_password' => 'كلمة مرور قاعدة البيانات',
         'app_name' => 'اسم النظام',
+        'app_name_en' => 'اسم النظام بالإنجليزية',
         'app_logo' => 'شعار النظام',
         'key' => 'الكود',
         'name_ar' => 'الاسم بالعربية',

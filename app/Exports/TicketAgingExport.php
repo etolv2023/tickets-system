@@ -9,8 +9,9 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithTitle;
 
-class TicketAgingExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize
+class TicketAgingExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithTitle
 {
     use Exportable, SanitizesCells;
 
@@ -26,6 +27,8 @@ class TicketAgingExport implements FromCollection, WithHeadings, WithMapping, Sh
         }
         return $rows;
     }
+    public function title(): string { return __('أعمار التذاكر المفتوحة'); }
+
     public function headings(): array { return [__('القسم'), __('العمر بالأيام'), __('البند'), __('مفتوحة'), __('منها متأخرة')]; }
     public function map($row): array { return $this->sanitizeRow([$row->section, $row->bucket, $row->item, $row->count, $row->overdue]); }
 }

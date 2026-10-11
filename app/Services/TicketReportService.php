@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use App\Casts\PriorityValue;
+use App\Casts\TicketStatusValue;
+use App\Casts\TicketTypeValue;
 use App\Models\Ticket;
 use App\Models\TicketTypeDefinition;
 use App\Models\User;
@@ -257,7 +260,12 @@ class TicketReportService
             ->select(['t.id', 't.ticket_number', 't.title', 't.type', 't.priority', 't.status', 't.module'])
             ->selectRaw("{$deadline} deadline_at", [$this->displayTimezone()])
             ->selectRaw("TIMESTAMPDIFF(SECOND, {$deadline}, UTC_TIMESTAMP()) / 3600 overdue_hours", [$this->displayTimezone()])
-            ->orderByDesc('overdue_hours')->limit(20)->get();
+            ->orderByDesc('overdue_hours')->limit(20)->get()
+            ->each(function ($row) {
+                $row->type_name = $this->definitionLabel('type', (string) $row->type);
+                $row->priority_name = $this->definitionLabel('priority', (string) $row->priority);
+                $row->status_name = $this->definitionLabel('status', (string) $row->status);
+            });
 
         return ['summary' => $summary, 'worst_overdue' => $worst];
     }
@@ -363,6 +371,21 @@ class TicketReportService
     {
         return DB::query()->fromSub(clone $aged, 'aged')
             ->selectRaw("age_bucket, {$column} `key`, COUNT(DISTINCT id) ticket_count, COUNT(DISTINCT CASE WHEN overdue = 1 THEN id END) overdue_count")
-            ->groupBy('age_bucket', $column)->orderByRaw($this->ageBucketOrderSql())->orderBy($column)->get();
+            ->groupBy('age_bucket', $column)->orderByRaw($this->ageBucketOrderSql())->orderBy($column)->get()
+            ->each(fn ($row) => $row->name = $this->definitionLabel($column, (string) $row->key));
+    }
+
+    /**
+     * The display name of a type/priority/status key, in the reader's language.
+     * Read off the cached definition maps, so naming a row costs no query.
+     */
+    private function definitionLabel(string $column, string $key): string
+    {
+        return match ($column) {
+            'type' => TicketTypeValue::for($key)->label(),
+            'priority' => PriorityValue::for($key)->label(),
+            'status' => TicketStatusValue::for($key)->label(),
+            default => $key,
+        };
     }
 }

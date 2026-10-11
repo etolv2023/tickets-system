@@ -549,3 +549,9 @@ Route::middleware('auth')->group(function () {
         });
     });
 });
+
+// An unknown url gets a 404 that went through the web middleware, so the page
+// knows the visitor's chosen language from the session. Without a matching
+// route Laravel renders the 404 before any middleware runs, and it always
+// came out in the default language.
+Route::fallback(fn () => abort(404));

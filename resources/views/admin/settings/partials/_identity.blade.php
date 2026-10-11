@@ -19,6 +19,23 @@
 
         <div class="settings__row">
             <div>
+                <div class="settings__row-label">{{ __('اسم النظام بالإنجليزية') }}</div>
+                <p class="settings__row-hint">{{ __('يظهر في الواجهة الإنجليزية. إذا تُرك فارغًا يظهر الاسم العربي.') }}</p>
+            </div>
+            <div class="settings__row-control">
+                <input
+                    type="text"
+                    id="app_name_en"
+                    name="app_name_en"
+                    value="{{ old('app_name_en', $values['app_name_en'] ?? '') }}"
+                    dir="ltr"
+                    @class(['input', 'input--invalid' => $errors->has('app_name_en')])
+                >
+            </div>
+        </div>
+
+        <div class="settings__row">
+            <div>
                 <div class="settings__row-label">{{ __('الشعار') }}</div>
                 <p class="settings__row-hint">{{ __('PNG أو JPG أو WEBP، بحد أقصى 2 ميغابايت. تُعاد معالجته ويُصغَّر إلى 400×120.') }}</p>
             </div>

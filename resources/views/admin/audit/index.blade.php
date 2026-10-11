@@ -28,14 +28,14 @@
             <select name="action" class="select filters__select">
                 <option value="">{{ __('جميع الإجراءات') }}</option>
                 @foreach ($actions as $action)
-                    <option value="{{ $action }}" @selected(($filters['action'] ?? '') === $action)>{{ $action }}</option>
+                    <option value="{{ $action }}" @selected(($filters['action'] ?? '') === $action)>{{ \App\Models\ActivityLog::actionLabel($action) }}</option>
                 @endforeach
             </select>
 
             <select name="subject" class="select filters__select">
                 <option value="">{{ __('جميع الكائنات') }}</option>
                 @foreach ($subjects as $class => $label)
-                    <option value="{{ __($label) }}" @selected(($filters['subject'] ?? '') === $label)>{{ __($label) }}</option>
+                    <option value="{{ $label }}" @selected(($filters['subject'] ?? '') === $label)>{{ \App\Models\ActivityLog::subjectLabel($label) }}</option>
                 @endforeach
             </select>
 
@@ -81,10 +81,10 @@
                                         <span class="u-subtle">{{ __('النظام') }}</span>
                                     @endif
                                 </td>
-                                <td class="u-mono u-ltr">{{ $log->action }}</td>
+                                <td title="{{ $log->action }}">{{ \App\Models\ActivityLog::actionLabel($log->action) }}</td>
                                 <td>
                                     @if ($log->subject_type)
-                                        <span class="u-subtle">{{ class_basename($log->subject_type) }}</span>
+                                        <span class="u-subtle">{{ \App\Models\ActivityLog::subjectLabel($log->subject_type) }}</span>
                                         <span class="u-mono">#{{ $log->subject_id }}</span>
                                     @else
                                         —

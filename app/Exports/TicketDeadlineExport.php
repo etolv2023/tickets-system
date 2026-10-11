@@ -10,8 +10,9 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithTitle;
 
-class TicketDeadlineExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize
+class TicketDeadlineExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithTitle
 {
     use Exportable, SanitizesCells;
 
@@ -32,13 +33,15 @@ class TicketDeadlineExport implements FromCollection, WithHeadings, WithMapping,
             return $row;
         }));
     }
+    public function title(): string { return __('تقرير المواعيد وSLA'); }
+
     public function headings(): array { return [__('القسم'), __('رقم التذكرة'), __('العنوان / البند'), __('النوع'), __('الأولوية'), __('الحالة'), __('الوحدة'), __('الموعد'), __('ساعات التأخير / القيمة')]; }
     public function map($row): array
     {
         $deadline = ($row->deadline_at ?? null)
             ? CarbonImmutable::parse($row->deadline_at, 'UTC')->setTimezone(config('app.display_timezone'))->format('Y-m-d H:i')
             : null;
-        return $this->sanitizeRow([$row->section, $row->ticket_number ?? null, $row->title, $row->type ?? null,
-            $row->priority ?? null, $row->status ?? null, $row->module ?? null, $deadline, $row->overdue_hours ?? $row->value ?? null]);
+        return $this->sanitizeRow([$row->section, $row->ticket_number ?? null, $row->title, $row->type_name ?? null,
+            $row->priority_name ?? null, $row->status_name ?? null, $row->module ?? null, $deadline, $row->overdue_hours ?? $row->value ?? null]);
     }
 }

@@ -12,9 +12,9 @@ enum ImportType: string
     public function label(): string
     {
         return match ($this) {
-            self::Companies => 'الشركات',
-            self::Contacts => 'جهات الاتصال',
-            self::Users => 'المستخدمون',
+            self::Companies => __('الشركات'),
+            self::Contacts => __('جهات الاتصال'),
+            self::Users => __('المستخدمون'),
         };
     }
 
@@ -47,13 +47,20 @@ enum ImportType: string
         };
     }
 
-    /** @return array<int, string> one sample row for the template */
+    /**
+     * One sample row for the template, in the language the template is
+     * downloaded in — it is example data, so it reads as the reader writes.
+     *
+     * @return array<int, string>
+     */
     public function sampleRow(): array
     {
+        $en = app()->isLocale('en');
+
         return match ($this) {
-            self::Companies => ['شركة النيل للتجارة', 'NILE', '1', 'عميل من 2019'],
-            self::Contacts => ['NILE', 'أحمد فتحي', 'EMP-1042', 'ahmed@nile.example', '01000000000', '1'],
-            self::Users => ['سارة مجدي', 'sara@etolv.net', 'frontend', 'frontend', '1'],
+            self::Companies => [$en ? 'Nile Trading Co.' : 'شركة النيل للتجارة', 'NILE', '1', $en ? 'Client since 2019' : 'عميل من 2019'],
+            self::Contacts => ['NILE', $en ? 'Ahmed Fathy' : 'أحمد فتحي', 'EMP-1042', 'ahmed@nile.example', '01000000000', '1'],
+            self::Users => [$en ? 'Sara Magdy' : 'سارة مجدي', 'sara@etolv.net', 'frontend', '1'],
         };
     }
 }

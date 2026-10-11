@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Casts\PriorityValue;
+use App\Casts\TicketTypeValue;
 use App\Exports\Concerns\CachesSheets;
 use App\Exports\Sheets\ArraySheet;
 use App\Services\ReportService;

@@ -1,0 +1,11 @@
+/* The status code above an error screen's heading — the one number a person
+   reads out to whoever they ask for help. */
+.error-page__code {
+    font-family: var(--font-mono);
+    font-size: var(--text-3xl);
+    font-weight: var(--weight-bold);
+    color: var(--text-subtle);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    margin-block-end: var(--space-2);
+}

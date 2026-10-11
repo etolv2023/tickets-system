@@ -88,7 +88,7 @@ class TicketsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, 
             // Same words as the list's marker, so the sheet and the screen agree.
             $ticket->hasDeadline()
                 ? ($ticket->missedDeadlines() !== []
-                    ? __('متأخرة: ') . implode(__('، '), array_map(fn ($k) => Ticket::DEADLINE_LABELS[$k], $ticket->missedDeadlines()))
+                    ? __('متأخرة: ') . implode(__('، '), array_map(fn ($k) => __(Ticket::DEADLINE_LABELS[$k]), $ticket->missedDeadlines()))
                     : __('في الموعد'))
                 : null,
             $ticket->original_estimate_hours,

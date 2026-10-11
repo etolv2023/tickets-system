@@ -17,7 +17,7 @@
     </div>
     <x-card :title="__('أكثر التذاكر تأخيرًا')" flush><div class="table-wrap"><table class="table table--hover reports-table">
         <thead><tr><th>{{ __('التذكرة') }}</th><th>{{ __('العنوان') }}</th><th>{{ __('النوع') }}</th><th>{{ __('الأولوية') }}</th><th>{{ __('الموعد') }}</th><th>{{ __('ساعات التأخير') }}</th></tr></thead>
-        <tbody>@forelse ($report['worst_overdue'] as $ticket)<tr><td class="u-nums"><a href="{{ route('tickets.show', $ticket->id) }}">{{ $ticket->ticket_number }}</a></td><td>{{ $ticket->title }}</td><td>{{ $ticket->type }}</td><td>{{ $ticket->priority }}</td><td class="u-nums">{{ $ticket->deadline_at }}</td><td class="u-nums">{{ number_format($ticket->overdue_hours, 1) }}</td></tr>
+        <tbody>@forelse ($report['worst_overdue'] as $ticket)<tr><td class="u-nums"><a href="{{ route('tickets.show', $ticket->id) }}">{{ $ticket->ticket_number }}</a></td><td>{{ $ticket->title }}</td><td>{{ $ticket->type_name }}</td><td>{{ $ticket->priority_name }}</td><td class="u-nums">{{ $ticket->deadline_at }}</td><td class="u-nums">{{ number_format($ticket->overdue_hours, 1) }}</td></tr>
         @empty<tr class="table__empty"><td colspan="6">{{ __('لا توجد تذاكر متأخرة.') }}</td></tr>@endforelse</tbody>
     </table></div></x-card>
 </div>

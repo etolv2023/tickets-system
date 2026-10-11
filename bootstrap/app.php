@@ -64,6 +64,15 @@ return Application::configure(basePath: dirname(__DIR__))
             before: AuthenticatesRequests::class,
             prepend: EnsureInstalled::class,
         );
+
+        // Same trick for the language. Appended, SetLocale ran after
+        // SubstituteBindings and the throttle, so a 404 for a missing ticket or
+        // a 429 rendered before the visitor's language was set — always Arabic.
+        // Pinned ahead of auth it still runs after StartSession, which it reads.
+        $middleware->prependToPriorityList(
+            before: AuthenticatesRequests::class,
+            prepend: SetLocale::class,
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

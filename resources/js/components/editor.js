@@ -115,6 +115,72 @@ const SIMPLE = [['bold', 'italic'], [{ list: 'ordered' }, { list: 'bullet' }], [
  * edit form has no uploader — the user is told, rather than the paste silently
  * doing nothing.
  */
+/**
+ * Quill names its controls in English and in two places: each toolbar button
+ * carries its format name as aria-label ("bold", "list: ordered"), and the
+ * snow theme writes the header picker and the link tooltip's words from CSS
+ * ('Normal', 'Visit URL:', 'Save'). Both are relabelled here in the UI
+ * language — the header picker through the data-label hook the theme already
+ * reads, the tooltip through custom properties that editor.css feeds into
+ * those same `content` rules.
+ */
+const BUTTON_LABELS = {
+    bold: 'غامق',
+    italic: 'مائل',
+    underline: 'تسطير',
+    'list:ordered': 'قائمة مرقّمة',
+    'list:bullet': 'قائمة نقطية',
+    'direction:rtl': 'من اليمين إلى اليسار',
+    'direction:ltr': 'من اليسار إلى اليمين',
+    link: 'رابط',
+    blockquote: 'اقتباس',
+    'code-block': 'كتلة كود',
+    clean: 'إزالة التنسيق',
+};
+
+const HEADER_LABELS = { 3: 'عنوان رئيسي', 4: 'عنوان فرعي', '': 'نص عادي' };
+
+const TOOLTIP_TEXT = {
+    '--ql-text-visit': 'فتح الرابط:',
+    '--ql-text-enter-link': 'أدخل الرابط:',
+    '--ql-text-edit': 'تعديل',
+    '--ql-text-save': 'حفظ',
+    '--ql-text-remove': 'إزالة',
+};
+
+function translateChrome(quill) {
+    const bar = quill.getModule('toolbar')?.container;
+
+    bar?.querySelectorAll('button').forEach((button) => {
+        const format = [...button.classList].find((c) => c.startsWith('ql-'))?.slice(3);
+        const label = BUTTON_LABELS[button.value ? `${format}:${button.value}` : format];
+
+        if (label) {
+            button.setAttribute('aria-label', t(label));
+            button.title = t(label);
+        }
+    });
+
+    const header = bar?.querySelector('.ql-picker.ql-header');
+
+    if (header) {
+        header.querySelectorAll('.ql-picker-item').forEach((item) => {
+            item.dataset.label = t(HEADER_LABELS[item.dataset.value ?? '']);
+        });
+
+        // The label only copies data-label when a selection moves; seed it
+        // with the plain-text name so it is right before the first click.
+        header.querySelector('.ql-picker-label')?.setAttribute('data-label', t(HEADER_LABELS['']));
+        header.querySelector('.ql-picker-label')?.setAttribute('aria-label', t('نوع الفقرة'));
+    }
+
+    Object.entries(TOOLTIP_TEXT).forEach(([property, text]) => {
+        quill.container.style.setProperty(property, JSON.stringify(t(text)));
+    });
+
+    quill.theme.tooltip?.textbox?.setAttribute('data-link', 'https://');
+}
+
 export const FILES_EVENT = 'editor:files';
 
 function imagesFrom(dataTransfer) {
@@ -596,6 +662,7 @@ export default function editor({ name, value = '', placeholder = '', simple = fa
             });
 
             quill.root.setAttribute('dir', 'rtl');
+            translateChrome(quill);
 
             /**
              * ★ (2026-08-04) Quill's selection reader is missing a null check,

@@ -38,6 +38,7 @@
 @import './components/filters.css';
 @import './components/pagination.css';
 @import './components/editor.css';
+@import './components/editor-tooltip.css';
 @import './components/prose.css';
 @import './components/uploader.css';
 @import './components/notification.css';
@@ -49,6 +50,7 @@
 @import './components/corner-controls.css';
 
 @import './features/auth.css';
+@import './features/error-page.css';
 @import './features/install.css';
 @import './features/today.css';
 @import './features/settings.css';

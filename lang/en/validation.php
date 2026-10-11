@@ -22,6 +22,7 @@ return [
         'db_username' => 'username',
         'db_password' => 'database password',
         'app_name' => 'system name',
+        'app_name_en' => 'English system name',
         'app_logo' => 'system logo',
         'key' => 'key',
         'name_ar' => 'Arabic name',

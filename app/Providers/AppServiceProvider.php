@@ -83,10 +83,23 @@ class AppServiceProvider extends ServiceProvider
     private function configureViews(): void
     {
         View::composer(['layouts.app', 'layouts.auth', 'layouts.portal'], function ($view) {
-            $view->with([
-                'appName' => Setting::get('app_name', 'نظام التذاكر'),
-                'appLogo' => Setting::get('app_logo'),
-            ]);
+            // The error pages render through layouts.auth too, and a 500 may be
+            // the database itself being down — so a failed read falls back to
+            // the defaults instead of turning the error page into a second one.
+            try {
+                $name = Setting::get('app_name', 'نظام التذاكر');
+                $logo = Setting::get('app_logo');
+
+                // The English UI shows the English name when one is set.
+                if (app()->isLocale('en') && filled(Setting::get('app_name_en'))) {
+                    $name = Setting::get('app_name_en');
+                }
+            } catch (\Throwable) {
+                $name = __('نظام التذاكر');
+                $logo = null;
+            }
+
+            $view->with(['appName' => $name, 'appLogo' => $logo]);
         });
 
         // The bell's unread count. One cheap COUNT per page for a logged-in

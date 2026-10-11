@@ -15,6 +15,8 @@ class UpdateSettingsRequest extends FormRequest
     {
         return [
             'app_name' => ['required', 'string', 'max:100'],
+            // Shown in the English UI; empty falls back to the Arabic name.
+            'app_name_en' => ['nullable', 'string', 'max:100'],
             // The extension is only a first filter; SettingService re-checks the
             // real MIME with finfo before touching the file (CLAUDE.md § 5).
             'app_logo' => ['nullable', 'file', 'mimes:png,jpg,jpeg,webp', 'max:2048'],

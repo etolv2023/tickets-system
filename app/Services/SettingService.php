@@ -19,6 +19,7 @@ class SettingService
     /** Column types by key, so a value round-trips as the right PHP type. */
     private const TYPES = [
         'app_name' => 'string',
+        'app_name_en' => 'string',
         'app_logo' => 'string',
         'daily_capacity_hours' => 'float',
         'week_start_day' => 'int',

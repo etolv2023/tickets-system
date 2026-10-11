@@ -14,9 +14,9 @@
                 <div class="activity-row">
                     <x-icon name="activity" class="activity-row__glyph" />
                     <span class="activity-row__actor">{{ $log->actor_name ?? __('ui.today.system') }}</span>
-                    <span class="activity-row__verb u-mono u-ltr">{{ $log->action }}</span>
+                    <span class="activity-row__verb">{{ \App\Models\ActivityLog::actionLabel($log->action) }}</span>
                     @if ($log->subject_type)
-                        <span class="activity-row__subject u-mono">{{ class_basename($log->subject_type) }} #{{ $log->subject_id }}</span>
+                        <span class="activity-row__subject u-mono">{{ \App\Models\ActivityLog::subjectLabel($log->subject_type) }} #{{ $log->subject_id }}</span>
                     @endif
                     <span class="activity-row__time">
                         {{ $log->created_at->timezone(config('app.display_timezone'))->diffForHumans() }}

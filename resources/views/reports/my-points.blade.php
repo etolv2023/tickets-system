@@ -46,7 +46,7 @@
 
             @if ($lastEarned)
                 <div class="stat-tile stat-tile--green">
-                    <div class="stat-tile__figure u-mono">{{ $lastEarned->format('j M') }}</div>
+                    <div class="stat-tile__figure u-mono">{{ $lastEarned->translatedFormat('j M') }}</div>
                     <div class="stat-tile__caption">{{ __('آخر عملية احتساب') }}</div>
                 </div>
             @endif

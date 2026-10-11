@@ -9,8 +9,9 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithTitle;
 
-class TicketPerformanceExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize
+class TicketPerformanceExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithTitle
 {
     use Exportable, SanitizesCells;
 
@@ -36,6 +37,8 @@ class TicketPerformanceExport implements FromCollection, WithHeadings, WithMappi
 
         return $rows;
     }
+
+    public function title(): string { return __('أداء الموظف'); }
 
     public function headings(): array { return [__('القسم'), __('البند'), __('القيمة')]; }
 

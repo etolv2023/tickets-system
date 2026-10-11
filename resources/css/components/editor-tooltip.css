@@ -1,0 +1,8 @@
+/* Quill's snow theme writes these words in English from CSS. editor.js sets
+   the custom properties from the UI language; the English fallbacks keep the
+   theme's own text if the script never ran. */
+.ql-snow .ql-tooltip::before { content: var(--ql-text-visit, "Visit URL:"); }
+.ql-snow .ql-tooltip[data-mode=link]::before { content: var(--ql-text-enter-link, "Enter link:"); }
+.ql-snow .ql-tooltip a.ql-action::after { content: var(--ql-text-edit, "Edit"); }
+.ql-snow .ql-tooltip.ql-editing a.ql-action::after { content: var(--ql-text-save, "Save"); }
+.ql-snow .ql-tooltip a.ql-remove::before { content: var(--ql-text-remove, "Remove"); }

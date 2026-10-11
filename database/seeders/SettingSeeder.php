@@ -16,6 +16,8 @@ class SettingSeeder extends Seeder
     {
         $defaults = [
             ['key' => 'app_name', 'value' => 'نظام التذاكر', 'type' => 'string'],
+            // English default only beside the Arabic default — see run().
+            ['key' => 'app_name_en', 'value' => 'Ticketing System', 'type' => 'string'],
             ['key' => 'app_logo', 'value' => null, 'type' => 'string'],
             // Productive hours, not clocked hours. PLAN.md § 12 #10
             ['key' => 'daily_capacity_hours', 'value' => '6', 'type' => 'float'],
@@ -38,7 +40,16 @@ class SettingSeeder extends Seeder
             ['key' => 'mail_from_name', 'value' => null, 'type' => 'string'],
         ];
 
+        // An install whose Arabic name was already changed must not gain a
+        // generic English one: the English UI would then show "Ticketing System"
+        // instead of the company's own name. Empty falls back to the Arabic.
+        $renamed = Setting::where('key', 'app_name')->where('value', '!=', 'نظام التذاكر')->exists();
+
         foreach ($defaults as $setting) {
+            if ($setting['key'] === 'app_name_en' && $renamed) {
+                continue;
+            }
+
             // Only insert what's missing: never clobber a value an admin edited.
             Setting::firstOrCreate(
                 ['key' => $setting['key']],
