@@ -69,7 +69,7 @@ class PointsSummaryExport implements WithMultipleSheets
             ['الموظف', 'الدور', 'دعم', 'فرونت', 'باك', 'تيست', 'ديف أوبس', 'عدد المرات', 'الإجمالي'],
             collect($rows)->map(fn ($r) => [
                 $r->user?->name ?? '—',
-                $r->user?->role?->name_ar ?? '—',
+                $r->user?->role?->label() ?? '—',
                 (float) $r->support,
                 (float) $r->frontend,
                 (float) $r->backend,
@@ -103,7 +103,7 @@ class PointsSummaryExport implements WithMultipleSheets
             ['الجهة / الدور', 'صفوف', 'الإجمالي', 'النسبة'],
             collect($rows)->map(fn ($r) => [
                 // Same fallback the screen prints: a role-based row has no side.
-                $r->side?->label() ?? $r->role?->name_ar ?? '—',
+                $r->side?->label() ?? $r->role?->label() ?? '—',
                 $r->awards,
                 (float) $r->total,
                 $total > 0 ? round(($r->total / $total) * 100) . '٪' : '—',

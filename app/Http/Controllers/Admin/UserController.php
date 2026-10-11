@@ -41,7 +41,7 @@ class UserController extends Controller
                 ->orderBy('name')
                 ->paginate(25)
                 ->withQueryString(),
-            'roles' => Role::orderBy('id')->get(['id', 'name_ar']),
+            'roles' => Role::orderBy('id')->get(['id', 'name_ar', 'name_en']),
             'filters' => $request->only('q', 'role', 'status'),
         ]);
     }
@@ -345,7 +345,7 @@ class UserController extends Controller
     private function formData(): array
     {
         return [
-            'roles' => Role::orderBy('id')->get(['id', 'name_ar', 'key']),
+            'roles' => Role::orderBy('id')->get(['id', 'name_ar', 'name_en', 'key']),
         ];
     }
 }

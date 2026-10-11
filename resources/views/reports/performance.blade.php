@@ -19,7 +19,7 @@
     @foreach (['by_type' => 'حسب النوع', 'by_status' => 'حسب الحالة', 'by_priority' => 'حسب الأولوية', 'by_module' => 'حسب الموديول'] as $key => $title)
         <x-card :title="$title" flush class="reports-section">
             <div class="table-wrap"><table class="table reports-table"><thead><tr><th>البند</th><th>العدد</th></tr></thead><tbody>
-            @forelse ($report[$key] as $row)<tr><td>{{ $row->name_ar ?? $row->key }}</td><td class="u-nums">
+            @forelse ($report[$key] as $row)<tr><td>{{ $row->name ?? $row->key }}</td><td class="u-nums">
                 @if (($key !== 'by_module' || $row->key !== '—') && (empty($filters['assignee']) || (int) $filters['assignee'] === $user->id) && (empty($filters['relation']) || $filters['relation'] === 'assigned') && (empty($filters[match ($key) { 'by_type' => 'type', 'by_status' => 'status', 'by_priority' => 'priority', default => 'module' }]) || $filters[match ($key) { 'by_type' => 'type', 'by_status' => 'status', 'by_priority' => 'priority', default => 'module' }] === $row->key))
                     <a href="{{ route('tickets.index', array_merge($drilldown, ['assignee' => $user->id, 'relation' => 'assigned', match ($key) { 'by_type' => 'type', 'by_status' => 'status', 'by_priority' => 'priority', default => 'module' } => $row->key])) }}">{{ $row->ticket_count }}</a>
                 @else

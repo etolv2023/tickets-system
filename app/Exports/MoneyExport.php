@@ -121,7 +121,7 @@ class MoneyExport implements WithMultipleSheets
             'سعر النقطة',
             ['النوع', 'المفتاح', 'سعر النقطة'],
             TicketTypeDefinition::orderBy('position')->get()
-                ->map(fn ($t) => [$t->name_ar, $t->key, (float) $t->point_value])
+                ->map(fn ($t) => [$t->label(), $t->key, (float) $t->point_value])
                 ->all(),
         );
     }

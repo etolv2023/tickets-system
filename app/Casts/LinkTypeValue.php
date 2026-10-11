@@ -20,7 +20,9 @@ final class LinkTypeValue
     private function __construct(
         public readonly string $value,
         private readonly string $label,
+        private readonly ?string $labelEn,
         private readonly string $inverseLabel,
+        private readonly ?string $inverseLabelEn,
         private readonly string $colorVariant,
     ) {
     }
@@ -36,7 +38,9 @@ final class LinkTypeValue
         return self::$instances[$key] = new self(
             value: $key,
             label: $row->name_ar ?? $key,
+            labelEn: filled($row?->name_en) ? $row->name_en : null,
             inverseLabel: $row->inverse_label_ar ?? ($row->name_ar ?? $key),
+            inverseLabelEn: filled($row?->inverse_label_en) ? $row->inverse_label_en : (filled($row?->name_en) ? $row->name_en : null),
             colorVariant: $row->color ?? 'neutral',
         );
     }
@@ -49,13 +53,13 @@ final class LinkTypeValue
     /** How it reads from the source ticket. */
     public function label(): string
     {
-        return $this->label;
+        return app()->isLocale('en') && $this->labelEn !== null ? $this->labelEn : $this->label;
     }
 
     /** How the same row reads from the other ticket. F10 */
     public function inverseLabel(): string
     {
-        return $this->inverseLabel;
+        return app()->isLocale('en') && $this->inverseLabelEn !== null ? $this->inverseLabelEn : $this->inverseLabel;
     }
 
     public function variant(): string

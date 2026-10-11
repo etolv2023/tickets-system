@@ -209,7 +209,7 @@ class BoardController extends Controller
             // subtaskColumns().
             ->with([
                 'company:id,name', 'requester:id,name',
-                'workLogs:id,ticket_id,user_id,role_id,status', 'workLogs.role:id,name_ar',
+                'workLogs:id,ticket_id,user_id,role_id,status', 'workLogs.role:id,name_ar,name_en',
                 'subtasks' => fn ($q) => $q->select(self::subtaskColumns()),
                 // One subquery-joined row per ticket, not every image on every
                 // ticket. Loaded whole rather than with a column list: a
@@ -319,7 +319,7 @@ class BoardController extends Controller
             ])
             ->with([
                 'company:id,name', 'requester:id,name',
-                'workLogs:id,ticket_id,user_id,role_id,status', 'workLogs.role:id,name_ar',
+                'workLogs:id,ticket_id,user_id,role_id,status', 'workLogs.role:id,name_ar,name_en',
                 'incomingLinks.fromTicket:id,status',
                 'subtasks' => fn ($q) => $q->select(self::subtaskColumns()),
                 // One subquery-joined row per ticket, not every image on every

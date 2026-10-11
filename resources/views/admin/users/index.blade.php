@@ -54,7 +54,7 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td>{{ $user->role->name_ar }}</td>
+                                <td>{{ $user->role->label() }}</td>
                                 <td class="u-nums">
                                     {{ $user->last_login_at?->timezone(config('app.display_timezone'))->diffForHumans() ?? 'مدخلش لسه' }}
                                 </td>

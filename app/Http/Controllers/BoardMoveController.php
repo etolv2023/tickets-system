@@ -164,7 +164,7 @@ class BoardMoveController extends Controller
 
     private function labelFor(string $key): string
     {
-        return TicketStatusDefinition::map()[$key]->name_ar ?? $key;
+        return (TicketStatusDefinition::map()[$key] ?? null)?->label() ?? $key;
     }
 
     /**

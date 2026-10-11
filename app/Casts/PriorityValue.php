@@ -17,6 +17,7 @@ final class PriorityValue
     private function __construct(
         public readonly string $value,
         private readonly string $label,
+        private readonly ?string $labelEn,
         private readonly string $colorVariant,
         private readonly int $hours,
         public readonly bool $isSystem,
@@ -44,6 +45,7 @@ final class PriorityValue
         return self::$instances[$key] = new self(
             value: $key,
             label: $row->name_ar ?? $key,
+            labelEn: filled($row?->name_en) ? $row->name_en : null,
             colorVariant: $row->color ?? 'slate',
             hours: $row->sla_hours ?? 24,
             isSystem: $row->is_system ?? false,
@@ -60,7 +62,7 @@ final class PriorityValue
 
     public function label(): string
     {
-        return $this->label;
+        return app()->isLocale('en') && $this->labelEn !== null ? $this->labelEn : $this->label;
     }
 
     public function variant(): string

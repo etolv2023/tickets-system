@@ -25,6 +25,7 @@ final class TicketStatusValue
     private function __construct(
         public readonly string $value,
         private readonly string $label,
+        private readonly ?string $labelEn,
         private readonly string $colorVariant,
         private readonly bool $open,
         public readonly bool $isSystem,
@@ -46,6 +47,7 @@ final class TicketStatusValue
         return self::$instances[$key] = new self(
             value: $key,
             label: $row->name_ar ?? $key,
+            labelEn: filled($row?->name_en) ? $row->name_en : null,
             colorVariant: $row->color ?? 'slate',
             open: $row->is_open ?? true,
             isSystem: $row->is_system ?? false,
@@ -60,12 +62,12 @@ final class TicketStatusValue
 
     public function label(): string
     {
-        return TicketStatusDefinition::map()[$this->value]?->label() ?? $this->label;
+        return app()->isLocale('en') && $this->labelEn !== null ? $this->labelEn : $this->label;
     }
 
     public function description(): ?string
     {
-        return TicketStatusDefinition::map()[$this->value]?->description();
+        return (TicketStatusDefinition::map()[$this->value] ?? null)?->description();
     }
 
     public function variant(): string

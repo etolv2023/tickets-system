@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasLocalizedName;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
@@ -11,6 +12,8 @@ use Illuminate\Support\Facades\Cache;
  */
 class PriorityDefinition extends Model
 {
+    use HasLocalizedName;
+
     protected $table = 'priorities';
 
     public const CACHE_KEY = 'priorities.map';
@@ -18,7 +21,7 @@ class PriorityDefinition extends Model
     /** @var array<string, string> the semantic palette a priority colour may come from (§ 6). */
     public const COLORS = Label::COLORS;
 
-    protected $fillable = ['key', 'name_ar', 'color', 'sla_hours', 'is_system', 'position'];
+    protected $fillable = ['key', 'name_ar', 'name_en', 'color', 'sla_hours', 'is_system', 'position'];
 
     protected function casts(): array
     {
@@ -42,9 +45,9 @@ class PriorityDefinition extends Model
         );
     }
 
-    /** @return array<string, string> key => name_ar, ordered for a <select> */
+    /** @return array<string, string> key => localized name, ordered for a <select> */
     public static function options(): array
     {
-        return array_map(fn (self $p) => $p->name_ar, static::map());
+        return array_map(fn (self $p) => $p->label(), static::map());
     }
 }

@@ -29,7 +29,7 @@
         <x-field :name="'role_id_' . $correction->id" label="الدور" required>
             <select id="role_id_{{ $correction->id }}" name="role_id" class="select" required>
                 @foreach ($roles as $role)
-                    <option value="{{ $role->id }}" @selected($correction->role_id === $role->id)>{{ $role->name_ar }}</option>
+                    <option value="{{ $role->id }}" @selected($correction->role_id === $role->id)>{{ $role->label() }}</option>
                 @endforeach
             </select>
         </x-field>

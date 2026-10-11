@@ -44,7 +44,7 @@ class SubtaskStatusController extends Controller
             action: 'subtask_status.created',
             userId: $request->user()->id,
             subject: $status,
-            changes: ['to' => $status->only('key', 'name_ar', 'needs_reason')],
+            changes: ['to' => $status->only('key', 'name_ar', 'name_en', 'needs_reason')],
             ip: $request->ip(),
             userAgent: $request->userAgent(),
         );
@@ -54,12 +54,12 @@ class SubtaskStatusController extends Controller
 
     public function update(UpdateSubtaskStatusRequest $request, SubtaskStatusDefinition $subtaskStatus, ActivityLogger $logger): RedirectResponse
     {
-        $before = $subtaskStatus->only('name_ar', 'color', 'needs_reason');
+        $before = $subtaskStatus->only('name_ar', 'name_en', 'color', 'needs_reason');
 
         // A system status's needs_reason is behavioural (done/in_progress must
         // never demand a reason, blocked must); only its name and colour move.
         $data = $subtaskStatus->is_system
-            ? $request->safe()->only('name_ar', 'color')
+            ? $request->safe()->only('name_ar', 'name_en', 'color')
             : $request->validated();
 
         $subtaskStatus->update($data);
@@ -68,7 +68,7 @@ class SubtaskStatusController extends Controller
             action: 'subtask_status.updated',
             userId: $request->user()->id,
             subject: $subtaskStatus,
-            changes: ['from' => $before, 'to' => $subtaskStatus->only('name_ar', 'color', 'needs_reason')],
+            changes: ['from' => $before, 'to' => $subtaskStatus->only('name_ar', 'name_en', 'color', 'needs_reason')],
             ip: $request->ip(),
             userAgent: $request->userAgent(),
         );

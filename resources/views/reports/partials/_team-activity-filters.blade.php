@@ -98,7 +98,7 @@
         <select name="role" class="select filters__select">
             <option value="">كل الأدوار</option>
             @foreach ($roles as $role)
-                <option value="{{ $role->id }}" @selected((int) ($filters['role'] ?? 0) === $role->id)>{{ $role->name_ar }}</option>
+                <option value="{{ $role->id }}" @selected((int) ($filters['role'] ?? 0) === $role->id)>{{ $role->label() }}</option>
             @endforeach
         </select>
 

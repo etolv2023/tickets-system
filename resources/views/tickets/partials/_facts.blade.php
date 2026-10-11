@@ -96,7 +96,7 @@
              role, no hardcoded frontend/backend/tester/devops. --}}
         @forelse ($ticket->roleAssignments as $assignment)
             <div class="facts__row">
-                <span class="facts__label">{{ $assignment->role->name_ar }}</span>
+                <span class="facts__label">{{ $assignment->role->label() }}</span>
                 <span class="facts__value">{{ $assignment->user?->name ?? '—' }}</span>
             </div>
         @empty

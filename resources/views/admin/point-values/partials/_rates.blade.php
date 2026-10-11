@@ -19,7 +19,7 @@
                         @php $value = \App\Casts\TicketTypeValue::for($t->key); @endphp
                         <tr>
                             <td>
-                                <x-badge :variant="$value->variant()" :icon="$value->icon()">{{ $t->name_ar }}</x-badge>
+                                <x-badge :variant="$value->variant()" :icon="$value->icon()">{{ $t->label() }}</x-badge>
                                 <span class="u-subtle u-mono">{{ $t->key }}</span>
                             </td>
                             <td class="u-mono">{{ (float) $t->default_points }}</td>
@@ -29,7 +29,7 @@
                                            value="{{ (float) $t->point_value }}"
                                            step="0.25" min="0" max="100000"
                                            class="input rate-cell__input"
-                                           aria-label="سعر النقطة لـ {{ $t->name_ar }}">
+                                           aria-label="سعر النقطة لـ {{ $t->label() }}">
                                     <span class="settings__unit">للنقطة</span>
                                 </div>
                             </td>

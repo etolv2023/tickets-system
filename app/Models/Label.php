@@ -46,7 +46,7 @@ class Label extends Model
         'slate' => 'رمادي',
     ];
 
-    protected $fillable = ['name', 'color', 'created_by'];
+    protected $fillable = ['name', 'name_en', 'color', 'created_by'];
 
     protected static function booted(): void
     {
@@ -68,8 +68,14 @@ class Label extends Model
     {
         return Cache::rememberForever(
             self::PICKER_CACHE_KEY,
-            fn () => static::query()->orderBy('name')->get(['id', 'name', 'color'])
+            fn () => static::query()->orderBy('name')->get(['id', 'name', 'name_en', 'color'])
         );
+    }
+
+    /** `name` is the Arabic name; English is optional and falls back to it. */
+    public function label(): string
+    {
+        return app()->isLocale('en') && filled($this->name_en) ? $this->name_en : $this->name;
     }
 
     public function tickets(): BelongsToMany

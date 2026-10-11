@@ -96,10 +96,10 @@ class TicketStatusDefinition extends Model
         });
     }
 
-    /** @return array<string, string> key => name_ar, ordered for a <select> */
+    /** @return array<string, string> key => localized name, ordered for a <select> */
     public static function options(): array
     {
-        return array_map(fn (self $s) => $s->name_ar, static::map());
+        return array_map(fn (self $s) => $s->label(), static::map());
     }
 
     public function label(): string

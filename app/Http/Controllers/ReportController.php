@@ -141,7 +141,7 @@ class ReportController extends Controller
                 'creator:id,name',
                 // F06 role-assignment extension: a role-based row's side is
                 // null — this is what the blade falls back to instead.
-                'role:id,name_ar',
+                'role:id,name_ar,name_en',
             ])
             ->when($filters['person'] ?? null, fn ($q, $v) => $q->where('user_id', $v))
             ->when($filters['period'] ?? null, fn ($q, $v) => $q->forPeriod($v))
@@ -203,7 +203,7 @@ class ReportController extends Controller
         $transactions = $request->user()->pointTransactions()
             // F06 role-assignment extension: a role-based row's side is null —
             // this is what the blade falls back to instead.
-            ->with('ticket:id,ticket_number,title,type', 'subtask:id,title', 'role:id,name_ar')
+            ->with('ticket:id,ticket_number,title,type', 'subtask:id,title', 'role:id,name_ar,name_en')
             ->when(! $isAll, fn ($q) => $q->forPeriod($period))
             ->orderByDesc('created_at')
             ->get();
@@ -254,7 +254,7 @@ class ReportController extends Controller
                     'id', 'ticket_id', 'title', 'assignee_id', 'side', 'role_id', 'status',
                     'start_date', 'due_date', 'estimated_hours', 'spent_hours', 'completed_at',
                 ])
-                ->with(['assignee:id,name,avatar_path,is_active', 'role:id,name_ar', 'ticket:id,ticket_number,title,company_id,requested_by,type'])
+                ->with(['assignee:id,name,avatar_path,is_active', 'role:id,name_ar,name_en', 'ticket:id,ticket_number,title,company_id,requested_by,type'])
                 ->filter(\App\Support\TeamActivityFilters::forSubtasks($filters))
                 ->orderByDesc('due_date')
                 ->paginate(25, ['*'], 'subtasks_page')

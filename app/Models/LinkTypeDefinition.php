@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasLocalizedName;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\Cache;
  */
 class LinkTypeDefinition extends Model
 {
+    use HasLocalizedName;
+
     protected $table = 'link_types';
 
     public const CACHE_KEY = 'link_types.map';
@@ -21,7 +24,7 @@ class LinkTypeDefinition extends Model
     /** @var array<string, string> the semantic palette a link colour may come from. */
     public const COLORS = Label::COLORS;
 
-    protected $fillable = ['key', 'name_ar', 'inverse_label_ar', 'color', 'is_system', 'position'];
+    protected $fillable = ['key', 'name_ar', 'name_en', 'inverse_label_ar', 'inverse_label_en', 'color', 'is_system', 'position'];
 
     protected function casts(): array
     {
@@ -48,9 +51,9 @@ class LinkTypeDefinition extends Model
         );
     }
 
-    /** @return array<string, string> key => name_ar, ordered for a <select> */
+    /** @return array<string, string> key => localized name, ordered for a <select> */
     public static function options(): array
     {
-        return array_map(fn (self $t) => $t->name_ar, static::map());
+        return array_map(fn (self $t) => $t->label(), static::map());
     }
 }

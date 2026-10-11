@@ -113,6 +113,23 @@ class RoleSeeder extends Seeder
     /** Roles that put a ticket in the testing queue (F16). Was the tester_id column. */
     private const IS_TESTER = ['tester'];
 
+    /**
+     * English name and both descriptions per role. Kept here, not only in the
+     * backfill migration, because on a fresh install that migration runs
+     * before any role exists and so fills nothing.
+     *
+     * @var array<string, array{0: string, 1: string, 2: string}>
+     */
+    private const TEXTS = [
+        'admin' => ['System administrator', 'يدير إعدادات النظام والمستخدمين والصلاحيات؛ ليس جهة تنفيذ تلقائيًا.', 'Manages system settings, users and permissions; not a delivery owner by default.'],
+        'manager' => ['Team manager', 'يخطط العمل ويوزّعه ويتابع الأداء والاعتمادات.', 'Plans and assigns work, and follows up on performance and approvals.'],
+        'support' => ['Customer support', 'يستقبل طلب العميل ويتابعه ويبلّغه بالنتيجة.', 'Receives the client request, follows it up and reports the outcome.'],
+        'frontend' => ['Frontend developer', 'ينفذ واجهات وتجربة المستخدم الخاصة بالتذكرة.', 'Delivers the interface and user experience work on the ticket.'],
+        'backend' => ['Backend developer', 'ينفذ منطق الخادم والبيانات والتكاملات.', 'Delivers server logic, data and integrations.'],
+        'devops' => ['DevOps engineer', 'يتولى النشر والبنية التحتية والعمليات التشغيلية.', 'Owns deployment, infrastructure and operations.'],
+        'tester' => ['Quality assurance', 'يتحقق من النتيجة ويعتمد الحل أو يعيده للتنفيذ.', 'Verifies the result and approves the fix or returns it to delivery.'],
+    ];
+
     public function run(): void
     {
         $permissionIds = Permission::pluck('id', 'key');
@@ -122,6 +139,9 @@ class RoleSeeder extends Seeder
                 ['key' => $key],
                 [
                     'name_ar' => $definition['name'],
+                    'name_en' => self::TEXTS[$key][0],
+                    'description_ar' => self::TEXTS[$key][1],
+                    'description_en' => self::TEXTS[$key][2],
                     'is_system' => true,
                     'assignable_on_tickets' => in_array($key, self::ASSIGNABLE_ON_TICKETS, true),
                     'logs_work' => in_array($key, self::LOGS_WORK, true),

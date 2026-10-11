@@ -48,7 +48,7 @@ class ReportService
             ->where('user_id', $user->id)
             ->forPeriod($period)
             ->groupBy('side', 'role_id')
-            ->with('role:id,name_ar')
+            ->with('role:id,name_ar,name_en')
             ->get();
 
         return [
@@ -167,7 +167,7 @@ class ReportService
             ->forPeriod($period)
             ->groupBy('user_id')
             ->orderByDesc('total')
-            ->with('user:id,name,avatar_path,is_active,role_id', 'user.role:id,name_ar')
+            ->with('user:id,name,avatar_path,is_active,role_id', 'user.role:id,name_ar,name_en')
             ->get();
 
         // F06 role-assignment extension: same reasoning as employeeProfile()'s
@@ -179,7 +179,7 @@ class ReportService
             ->forPeriod($period)
             ->groupBy('side', 'role_id')
             ->orderByDesc('total')
-            ->with('role:id,name_ar')
+            ->with('role:id,name_ar,name_en')
             ->get();
 
         // Where the points came from, broken down by the ticket's type.
@@ -285,7 +285,7 @@ class ReportService
     public function moneyReport(string $period): array
     {
         $rates = collect(\App\Models\TicketTypeDefinition::map())
-            ->map(fn ($t) => ['name' => $t->name_ar, 'rate' => (float) $t->point_value]);
+            ->map(fn ($t) => ['name' => $t->label(), 'rate' => (float) $t->point_value]);
 
         $grouped = PointTransaction::query()
             ->leftJoin('tickets', 'tickets.id', '=', 'point_transactions.ticket_id')

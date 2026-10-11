@@ -9,7 +9,7 @@
                 <x-badge variant="neutral">{{ $ticket->module }}</x-badge>
             @endif
             @foreach ($ticket->labels as $label)
-                <x-badge :variant="$label->color">{{ $label->name }}</x-badge>
+                <x-badge :variant="$label->color">{{ $label->label() }}</x-badge>
             @endforeach
             @if ($ticket->isBlocked())
                 <span class="blocked-flag">

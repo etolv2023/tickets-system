@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\PointTransaction;
 use App\Models\Ticket;
 use App\Models\TicketSubtask;
+use App\Support\Locale;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -96,7 +97,7 @@ class PointEngineService
                 ->whereDoesntHave('pointTransaction')
                 // F06 role-assignment extension: awardSubtask() reads
                 // ->role->name_ar for a role-based subtask.
-                ->with('role:id,name_ar')
+                ->with('role:id,name_ar,name_en')
                 ->get();
 
             foreach ($subtasks as $subtask) {
@@ -197,7 +198,9 @@ class PointEngineService
         $label = $earner['earner'];
         unset($earner['earner']);
 
-        $head = "{$ticket->type->label()} — {$label} (";
+        // The reason is stored, so it is written in Arabic whatever the UI
+        // language of whoever resolved the ticket.
+        $head = Locale::as('ar', fn () => "{$ticket->type->label()} — {$label} (");
         // Titles are validated at max:255 on their own, so an unguarded
         // "{type} — {earner} ({title})" can overflow VARCHAR(255) and abort the
         // resolve in strict mode. The title is what gives.

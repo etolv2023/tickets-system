@@ -59,7 +59,7 @@
                 {{-- A subtask is categorised by its role now (2026-07-24); an
                      untagged one is general work. --}}
                 @if ($subtask->role)
-                    <x-badge variant="neutral">{{ $subtask->role->name_ar }}</x-badge>
+                    <x-badge variant="neutral">{{ $subtask->role->label() }}</x-badge>
                 @endif
 
                 @if ($subtask->assignee)

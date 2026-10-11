@@ -38,14 +38,14 @@ class EmployeeProfileExport implements WithMultipleSheets
     {
         $rows = [
             ['الموظف', $this->employee->name],
-            ['الدور', $this->employee->role?->name_ar],
+            ['الدور', $this->employee->role?->label()],
             ['الشهر', $this->period],
         ];
 
         // Types are admin-defined now, so the list comes from the table rather
         // than from a fixed enum (2026-08-19).
         foreach (TicketTypeDefinition::orderBy('position')->get() as $type) {
-            $rows[] = [$type->name_ar, $data['byType'][$type->key] ?? 0];
+            $rows[] = [$type->label(), $data['byType'][$type->key] ?? 0];
         }
 
         $rows[] = ['إجمالي نقاط الشهر', (float) $data['pointsTotal']];
@@ -67,7 +67,7 @@ class EmployeeProfileExport implements WithMultipleSheets
             ['الجهة / الدور', 'الإجمالي'],
             collect($rows)->map(fn ($r) => [
                 // A role-based award has side = null and role_id set instead.
-                $r->side?->label() ?? $r->role?->name_ar ?? '—',
+                $r->side?->label() ?? $r->role?->label() ?? '—',
                 (float) $r->total,
             ])->all(),
         );

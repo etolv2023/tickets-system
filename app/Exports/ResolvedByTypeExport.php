@@ -41,7 +41,7 @@ class ResolvedByTypeExport implements WithMultipleSheets
     private function matrix(array $data): ArraySheet
     {
         $rows = collect($data['rows'])->map(function ($row) use ($data) {
-            $cells = [$row->user->name, $row->user->role?->name_ar];
+            $cells = [$row->user->name, $row->user->role?->label()];
 
             foreach (array_keys($data['types']) as $key) {
                 $cells[] = $row->counts[$key] ?? 0;

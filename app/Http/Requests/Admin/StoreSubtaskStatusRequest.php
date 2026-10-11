@@ -23,6 +23,7 @@ class StoreSubtaskStatusRequest extends FormRequest
         return [
             'key' => ['required', 'string', 'max:30', 'regex:/^[a-z][a-z0-9_]*$/', 'unique:subtask_statuses,key'],
             'name_ar' => ['required', 'string', 'max:100'],
+            'name_en' => ['nullable', 'string', 'max:100'],
             'color' => ['required', Rule::in(array_keys(Label::COLORS))],
             'needs_reason' => ['boolean'],
         ];
@@ -33,6 +34,7 @@ class StoreSubtaskStatusRequest extends FormRequest
         return [
             'key' => 'المفتاح',
             'name_ar' => 'الاسم',
+            'name_en' => 'الاسم بالإنجليزية',
             'color' => 'اللون',
             'needs_reason' => 'يحتاج سبب',
         ];

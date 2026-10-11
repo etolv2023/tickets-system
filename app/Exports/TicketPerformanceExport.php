@@ -30,7 +30,7 @@ class TicketPerformanceExport implements FromCollection, WithHeadings, WithMappi
         $rows = collect($labels)->map(fn ($label, $key) => (object) ['section' => 'الإجمالي', 'item' => $label, 'value' => $this->report[$key] ?? null]);
         foreach (['by_type' => 'النوع', 'by_status' => 'الحالة', 'by_priority' => 'الأولوية', 'by_module' => 'الموديول'] as $key => $section) {
             $rows = $rows->concat(collect($this->report[$key])->map(fn ($row) => (object) [
-                'section' => $section, 'item' => $row->name_ar ?? $row->key, 'value' => $row->ticket_count,
+                'section' => $section, 'item' => $row->name ?? $row->key, 'value' => $row->ticket_count,
             ]));
         }
 

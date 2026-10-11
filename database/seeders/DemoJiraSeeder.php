@@ -105,18 +105,18 @@ class DemoJiraSeeder extends Seeder
     private function seedLabels(int $adminId): void
     {
         $labels = [
-            'عاجل للعميل' => 'red',
-            'ريجريشن' => 'red',
+            'عاجل للعميل' => ['red', 'Client urgent'],
+            'ريجريشن' => ['red', 'Regression'],
             // Teal, not blue — blue is reserved for interactive chrome and the
             // seeder runs AFTER the blue→teal remap migration, so a blue row
             // here would sneak the forbidden hue back in.
-            'محتاج تصميم' => 'teal',
-            'أداء' => 'green',
-            'مستني رد العميل' => 'amber',
+            'محتاج تصميم' => ['teal', 'Needs design'],
+            'أداء' => ['green', 'Performance'],
+            'مستني رد العميل' => ['amber', 'Awaiting client reply'],
         ];
 
-        foreach ($labels as $name => $color) {
-            Label::updateOrCreate(['name' => $name], ['color' => $color, 'created_by' => $adminId]);
+        foreach ($labels as $name => [$color, $nameEn]) {
+            Label::updateOrCreate(['name' => $name], ['name_en' => $nameEn, 'color' => $color, 'created_by' => $adminId]);
         }
 
         $tickets = Ticket::orderBy('id')->limit(4)->get();

@@ -6,6 +6,7 @@ use App\Models\PointTransaction;
 use App\Models\Setting;
 use App\Models\Ticket;
 use App\Models\TicketSubtask;
+use App\Support\Locale;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -292,7 +293,7 @@ class LatePenaltyService
             // dead-end status an admin adds are all out.
             ->onLiveTicket()
             ->withCount(['pointTransactions as point_transactions_count' => fn ($q) => $q->where('type', 'penalty')])
-            ->with(['ticket', 'role:id,name_ar']);
+            ->with(['ticket', 'role:id,name_ar,name_en']);
     }
 
     /**
@@ -307,6 +308,13 @@ class LatePenaltyService
      * unguarded sentence could overflow the column and abort the whole sweep.
      */
     private function reason(Ticket $ticket, TicketSubtask $subtask, Carbon $asOf): string
+    {
+        // Stored text — names and dates alike are written in Arabic, whatever
+        // the UI language of the request that triggered the charge.
+        return Locale::as('ar', fn () => $this->buildReason($ticket, $subtask, $asOf));
+    }
+
+    private function buildReason(Ticket $ticket, TicketSubtask $subtask, Carbon $asOf): string
     {
         $earner = $subtask->role_id !== null
             ? $subtask->role->name_ar

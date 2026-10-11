@@ -38,7 +38,7 @@ class PointsLedgerExport implements FromQuery, WithHeadings, WithMapping, WithTi
     {
         return PointTransaction::query()
             ->with([
-                'user:id,name,role_id', 'user.role:id,name_ar',
+                'user:id,name,role_id', 'user.role:id,name_ar,name_en',
                 // A closure, not a column list: the description needs a
                 // bounded raw select and the string form cannot express one.
                 'ticket' => fn ($q) => $q
@@ -51,7 +51,7 @@ class PointsLedgerExport implements FromQuery, WithHeadings, WithMapping, WithTi
                     ->selectRaw($this->descriptionSelect('description')),
                 'creator:id,name',
                 // A role-based row's side is null; this is the fallback.
-                'role:id,name_ar',
+                'role:id,name_ar,name_en',
             ])
             // The same definition the screen uses — one scope, two callers.
             ->filter($this->filters)
@@ -75,7 +75,7 @@ class PointsLedgerExport implements FromQuery, WithHeadings, WithMapping, WithTi
             $row->created_at?->timezone(config('app.display_timezone'))->format('Y-m-d H:i'),
             $row->period,
             $row->user?->name,
-            $row->user?->role?->name_ar,
+            $row->user?->role?->label(),
             $row->ticket?->ticket_number,
             $row->ticket?->title,
             $row->ticket?->originLabel(),

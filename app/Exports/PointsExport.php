@@ -41,7 +41,7 @@ class PointsExport implements FromArray, WithHeadings, WithTitle, ShouldAutoSize
         return $rows->values()->map(fn ($row, $i) => $this->sanitizeRow([
             $i + 1,
             $row->user?->name ?? '—',
-            $row->user?->role?->name_ar ?? '—',
+            $row->user?->role?->label() ?? '—',
             (float) $row->total,
             $row->awards,
             $this->period,

@@ -48,7 +48,7 @@ class MyPointsExport implements FromQuery, WithHeadings, WithMapping, WithTitle,
                 'subtask' => fn ($q) => $q
                     ->select(['id', 'title'])
                     ->selectRaw($this->descriptionSelect('description')),
-                'role:id,name_ar',
+                'role:id,name_ar,name_en',
             ])
             ->where('user_id', $this->user->id)
             ->when($this->period !== null, fn ($q) => $q->forPeriod($this->period))

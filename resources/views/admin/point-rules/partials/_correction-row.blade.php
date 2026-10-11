@@ -21,7 +21,7 @@
      different screen, and a modifier of it here would read as the same thing. --}}
 <tr @class(['correction--void' => $void])>
     <td>{{ $correction->user->name }}</td>
-    <td>{{ $correction->role?->name_ar ?? $correction->side?->label() ?? '—' }}</td>
+    <td>{{ $correction->role?->label() ?? $correction->side?->label() ?? '—' }}</td>
     <td class="table__cell--num points-cell">{{ rtrim(rtrim($correction->points, '0'), '.') }}</td>
 
     <td class="u-subtle">

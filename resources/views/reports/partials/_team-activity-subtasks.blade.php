@@ -29,7 +29,7 @@
                                 </a>
                                 <span class="u-subtle">{{ $subtask->ticket->title }}</span>
                             </td>
-                            <td><x-badge variant="neutral">{{ $subtask->role?->name_ar ?? 'عام' }}</x-badge></td>
+                            <td><x-badge variant="neutral">{{ $subtask->role?->label() ?? 'عام' }}</x-badge></td>
                             <td><x-badge :variant="$subtask->status->variant()">{{ $subtask->status->label() }}</x-badge></td>
                             <td>
                                 @if ($subtask->assignee)

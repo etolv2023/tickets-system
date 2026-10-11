@@ -84,7 +84,7 @@ class TicketController extends Controller
             ]))
             // Role-based assignment (2026-07-24): the assignee avatars come from
             // the ticket's role assignments, not the four dropped columns.
-            ->with(['company:id,name,code', 'requester:id,name', 'creator:id,name', 'roleAssignments.user:id,name,avatar_path,is_active', 'labels:id,name,color'])
+            ->with(['company:id,name,code', 'requester:id,name', 'creator:id,name', 'roleAssignments.user:id,name,avatar_path,is_active', 'labels:id,name,name_en,color'])
             ->visibleTo($request->user())
             ->filter($filters)
             ->sortBy($filters['sort'] ?? null)

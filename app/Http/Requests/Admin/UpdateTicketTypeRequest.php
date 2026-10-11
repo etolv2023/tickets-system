@@ -24,6 +24,7 @@ class UpdateTicketTypeRequest extends FormRequest
         // The key is never editable — it's what tickets.type actually stores.
         return [
             'name_ar' => ['required', 'string', 'max:100'],
+            'name_en' => ['nullable', 'string', 'max:100'],
             'color' => ['required', Rule::in(array_keys(Label::COLORS))],
             'icon' => ['required', Rule::in(array_keys(TicketTypeDefinition::ICONS))],
             'needs_approval' => ['boolean'],
@@ -37,6 +38,7 @@ class UpdateTicketTypeRequest extends FormRequest
     {
         return [
             'name_ar' => 'الاسم',
+            'name_en' => 'الاسم بالإنجليزية',
             'color' => 'اللون',
             'icon' => 'الأيقونة',
             'needs_approval' => 'يحتاج موافقة',

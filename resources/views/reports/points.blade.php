@@ -116,7 +116,7 @@
                                         <x-avatar :user="$row->user" size="sm" />
                                         <span>
                                             {{ $row->user->name }}
-                                            <small class="u-subtle">{{ $row->user->role?->name_ar }}</small>
+                                            <small class="u-subtle">{{ $row->user->role?->label() }}</small>
                                         </span>
                                     </a>
                                 </td>
@@ -181,7 +181,7 @@
                     <tbody>
                         @forelse ($bySide as $row)
                             <tr>
-                                <td>{{ $row->side?->label() ?? $row->role?->name_ar ?? '—' }}</td>
+                                <td>{{ $row->side?->label() ?? $row->role?->label() ?? '—' }}</td>
                                 <td class="table__cell--num u-subtle">{{ $row->awards }}</td>
                                 <td class="table__cell--num points-cell">{{ $n($row->total) }}</td>
                                 <td class="table__cell--num">

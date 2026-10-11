@@ -96,12 +96,12 @@ class LookupController extends Controller
     private function labels(string $term): array
     {
         return Label::query()
-            ->select(['id', 'name', 'color'])
-            ->when($term !== '', fn ($q) => $q->where('name', 'like', "%{$term}%"))
+            ->select(['id', 'name', 'name_en', 'color'])
+            ->when($term !== '', fn ($q) => $q->where(fn ($q) => $q->where('name', 'like', "%{$term}%")->orWhere('name_en', 'like', "%{$term}%")))
             ->orderBy('name')
             ->limit(self::LIMIT)
             ->get()
-            ->map(fn (Label $l) => ['id' => $l->id, 'label' => $l->name, 'variant' => $l->color])
+            ->map(fn (Label $l) => ['id' => $l->id, 'label' => $l->label(), 'variant' => $l->color])
             ->all();
     }
 

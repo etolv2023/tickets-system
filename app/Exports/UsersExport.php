@@ -62,7 +62,7 @@ class UsersExport implements FromQuery, WithHeadings, WithMapping, WithTitle, Sh
         return $this->sanitizeRow([
             $user->name,
             $user->email,
-            $user->role?->name_ar,
+            $user->role?->label(),
             (float) $user->daily_capacity_hours,
             $user->deleted_at !== null ? 'محذوف' : ($user->is_active ? 'مفعّل' : 'موقوف'),
             $user->must_change_password ? 'أيوه' : 'لأ',

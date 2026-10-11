@@ -70,7 +70,7 @@ class SearchController extends Controller
     {
         return TicketSubtask::query()
             ->select(['id', 'ticket_id', 'title', 'status', 'side', 'role_id'])
-            ->with('ticket:id,ticket_number,title', 'role:id,name_ar')
+            ->with('ticket:id,ticket_number,title', 'role:id,name_ar,name_en')
             ->where('title', 'like', "%{$term}%")
             // Subtasks have no fulltext index of their own; the visibility gate
             // is what matters, and the row count here is small.

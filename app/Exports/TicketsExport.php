@@ -46,7 +46,7 @@ class TicketsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, 
             ->selectRaw($this->descriptionSelect('description'))
             // Role-based assignment (2026-07-24): the sheet lists every role
             // holder in one column instead of four fixed ones.
-            ->with(['company:id,name', 'requester:id,name', 'roleAssignments.role:id,name_ar', 'roleAssignments.user:id,name', 'creator:id,name'])
+            ->with(['company:id,name', 'requester:id,name', 'roleAssignments.role:id,name_ar,name_en', 'roleAssignments.user:id,name', 'creator:id,name'])
             // The same visibility gate as the screen. An export is not a
             // back door around row-level access.
             ->visibleTo($this->user)
@@ -78,7 +78,7 @@ class TicketsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, 
             $ticket->status->label(),
             $ticket->creator?->name,
             $ticket->roleAssignments
-                ->map(fn ($a) => "{$a->role->name_ar}: {$a->user?->name}")
+                ->map(fn ($a) => "{$a->role->label()}: {$a->user?->name}")
                 ->implode('، '),
             $ticket->reported_at?->timezone(config('app.display_timezone'))->format('Y-m-d H:i'),
             $ticket->sla_due_at?->timezone(config('app.display_timezone'))->format('Y-m-d H:i'),

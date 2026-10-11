@@ -50,7 +50,7 @@
                             <x-avatar :user="$row['person']" size="sm" />
                             <span>
                                 {{ $row['person']?->name ?? '—' }}
-                                <small class="u-subtle">{{ $row['role']?->name_ar }}</small>
+                                <small class="u-subtle">{{ $row['role']?->label() }}</small>
                             </span>
                         </div>
 
@@ -76,7 +76,7 @@
                             <span class="row">
                                 <x-avatar :user="$row['person']" size="sm" />
                                 {{ $row['person']?->name }}
-                                <span class="u-subtle">{{ $row['role']?->name_ar }}</span>
+                                <span class="u-subtle">{{ $row['role']?->label() }}</span>
                             </span>
                             <x-badge variant="neutral">{{ $row['existing']->score }}/10</x-badge>
                         </div>

@@ -24,6 +24,7 @@ class StoreTicketTypeRequest extends FormRequest
         return [
             'key' => ['required', 'string', 'max:30', 'regex:/^[a-z][a-z0-9_]*$/', 'unique:ticket_types,key'],
             'name_ar' => ['required', 'string', 'max:100'],
+            'name_en' => ['nullable', 'string', 'max:100'],
             // Only the semantic palette — no free colour picker (§ 6).
             'color' => ['required', Rule::in(array_keys(Label::COLORS))],
             // Only an icon the <x-icon> component actually draws.
@@ -40,6 +41,7 @@ class StoreTicketTypeRequest extends FormRequest
         return [
             'key' => 'المفتاح',
             'name_ar' => 'الاسم',
+            'name_en' => 'الاسم بالإنجليزية',
             'color' => 'اللون',
             'icon' => 'الأيقونة',
             'needs_approval' => 'يحتاج موافقة',

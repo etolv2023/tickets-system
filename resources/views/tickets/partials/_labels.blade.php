@@ -3,7 +3,7 @@
         @if ($ticket->labels->isNotEmpty())
             <div class="row row--wrap">
                 @foreach ($ticket->labels as $label)
-                    <x-badge :variant="$label->color">{{ $label->name }}</x-badge>
+                    <x-badge :variant="$label->color">{{ $label->label() }}</x-badge>
                 @endforeach
             </div>
         @endif
@@ -25,7 +25,7 @@
                                 <input type="checkbox" name="labels[]" value="{{ $label->id }}" class="checkbox"
                                        @checked($ticket->labels->contains('id', $label->id))>
                                 <span class="checkbox-row__label">
-                                    <x-badge :variant="$label->color">{{ $label->name }}</x-badge>
+                                    <x-badge :variant="$label->color">{{ $label->label() }}</x-badge>
                                 </span>
                             </label>
                         @endforeach

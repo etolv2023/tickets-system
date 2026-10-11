@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasLocalizedName;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
@@ -16,6 +17,8 @@ use Illuminate\Support\Facades\Cache;
  */
 class SubtaskStatusDefinition extends Model
 {
+    use HasLocalizedName;
+
     protected $table = 'subtask_statuses';
 
     public const CACHE_KEY = 'subtask_statuses.map';
@@ -23,7 +26,7 @@ class SubtaskStatusDefinition extends Model
     /** @var array<string, string> the semantic palette a status colour may come from. */
     public const COLORS = Label::COLORS;
 
-    protected $fillable = ['key', 'name_ar', 'color', 'needs_reason', 'is_system', 'position'];
+    protected $fillable = ['key', 'name_ar', 'name_en', 'color', 'needs_reason', 'is_system', 'position'];
 
     protected function casts(): array
     {
@@ -50,10 +53,10 @@ class SubtaskStatusDefinition extends Model
         );
     }
 
-    /** @return array<string, string> key => name_ar, ordered for a <select> */
+    /** @return array<string, string> key => localized name, ordered for a <select> */
     public static function options(): array
     {
-        return array_map(fn (self $s) => $s->name_ar, static::map());
+        return array_map(fn (self $s) => $s->label(), static::map());
     }
 
     /**

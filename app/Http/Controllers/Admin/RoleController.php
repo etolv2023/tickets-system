@@ -64,7 +64,7 @@ class RoleController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return redirect()->route('admin.roles.index')->with('status', "تم إنشاء دور «{$role->name_ar}».");
+        return redirect()->route('admin.roles.index')->with('status', "تم إنشاء دور «{$role->label()}».");
     }
 
     public function edit(Role $role): View
@@ -118,7 +118,7 @@ class RoleController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return redirect()->route('admin.roles.index')->with('status', "تم تحديث دور «{$role->name_ar}».");
+        return redirect()->route('admin.roles.index')->with('status', "تم تحديث دور «{$role->label()}».");
     }
 
     /**
@@ -156,7 +156,7 @@ class RoleController extends Controller
         );
 
         return redirect()->route('admin.roles.edit', $copy)
-            ->with('status', "اتنسخ دور «{$role->name_ar}» — سمّيه واحفظ.");
+            ->with('status', "اتنسخ دور «{$role->label()}» — سمّيه واحفظ.");
     }
 
     private function uniqueCopyKey(string $baseKey): string
@@ -176,7 +176,7 @@ class RoleController extends Controller
     {
         $this->authorize('delete', $role);
 
-        $name = $role->name_ar;
+        $name = $role->label();
 
         $logger->log(
             action: 'role.deleted',

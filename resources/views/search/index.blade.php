@@ -77,7 +77,7 @@
                                     </a>
                                     <div class="today__row-meta">
                                         <span class="u-mono u-ltr">{{ $subtask->ticket->ticket_number }}</span>
-                                        @if ($subtask->role)· {{ $subtask->role->name_ar }}@endif
+                                        @if ($subtask->role)· {{ $subtask->role->label() }}@endif
                                     </div>
                                 </div>
                                 <x-badge :variant="$subtask->status->variant()">{{ $subtask->status->label() }}</x-badge>

@@ -59,7 +59,7 @@
             <select name="role" class="select filters__select" aria-label="الدور">
                 <option value="">كل الأدوار</option>
                 @foreach ($roles as $role)
-                    <option value="{{ $role->id }}" @selected((int) ($filters['role'] ?? 0) === $role->id)>{{ $role->name_ar }}</option>
+                    <option value="{{ $role->id }}" @selected((int) ($filters['role'] ?? 0) === $role->id)>{{ $role->label() }}</option>
                 @endforeach
             </select>
 
@@ -172,7 +172,7 @@
                                     @endif
                                 </td>
 
-                                <td>{{ $row->side?->label() ?? $row->role?->name_ar ?? '—' }}</td>
+                                <td>{{ $row->side?->label() ?? $row->role?->label() ?? '—' }}</td>
 
                                 {{-- Where the number came from: an automatic award,
                                      or a person who typed a correction. The second

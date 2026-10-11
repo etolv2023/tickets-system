@@ -11,7 +11,7 @@
         <option value="">كل الأدوار</option>
         @foreach ($roles as $role)
             <option value="{{ $role->id }}" @selected((string) ($filters['role'] ?? '') === (string) $role->id)>
-                {{ $role->name_ar }}
+                {{ $role->label() }}
             </option>
         @endforeach
     </select>

@@ -208,6 +208,6 @@ class PointTransaction extends Model
      */
     public function sideLabel(): string
     {
-        return $this->side?->label() ?? $this->role?->name_ar ?? '—';
+        return $this->side?->label() ?? $this->role?->label() ?? '—';
     }
 }

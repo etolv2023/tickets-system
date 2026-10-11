@@ -30,7 +30,7 @@
                                     {{ $row->user->name }}
                                 </a>
                                 @if ($row->user->role)
-                                    <span class="u-subtle">{{ $row->user->role->name_ar }}</span>
+                                    <span class="u-subtle">{{ $row->user->role->label() }}</span>
                                 @endif
                             </div>
                         </td>

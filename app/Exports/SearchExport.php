@@ -75,7 +75,7 @@ class SearchExport implements WithMultipleSheets
     {
         $rows = TicketSubtask::query()
             ->select(['id', 'ticket_id', 'title', 'status', 'side', 'role_id'])
-            ->with('ticket:id,ticket_number,title', 'role:id,name_ar')
+            ->with('ticket:id,ticket_number,title', 'role:id,name_ar,name_en')
             ->where('title', 'like', "%{$this->term}%")
             ->whereHas('ticket', fn ($q) => $q->visibleTo($this->user))
             ->limit(15)
@@ -88,7 +88,7 @@ class SearchExport implements WithMultipleSheets
                 $s->ticket?->ticket_number,
                 $s->ticket?->title,
                 $s->title,
-                $s->role?->name_ar ?? $s->side?->label() ?? '—',
+                $s->role?->label() ?? $s->side?->label() ?? '—',
                 $s->status->label(),
             ])->all(),
         );

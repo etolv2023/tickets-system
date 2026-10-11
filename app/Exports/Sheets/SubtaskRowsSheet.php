@@ -38,7 +38,7 @@ class SubtaskRowsSheet implements FromQuery, WithHeadings, WithMapping, WithTitl
             ->selectRaw($this->descriptionSelect('description'))
             ->with([
                 'assignee:id,name',
-                'role:id,name_ar',
+                'role:id,name_ar,name_en',
                 'ticket:id,ticket_number,title,company_id,requested_by,type',
                 'ticket.company:id,name',
                 'ticket.requester:id,name',
@@ -68,7 +68,7 @@ class SubtaskRowsSheet implements FromQuery, WithHeadings, WithMapping, WithTitl
             $s->title,
             $s->assignee?->name,
             // Role-based since 2026-07-24; older rows still carry a fixed side.
-            $s->role?->name_ar ?? $s->side?->label() ?? '—',
+            $s->role?->label() ?? $s->side?->label() ?? '—',
             $s->status->label(),
             $s->start_date?->format('Y-m-d'),
             $s->due_date?->format('Y-m-d'),

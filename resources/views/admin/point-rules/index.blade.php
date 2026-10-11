@@ -49,7 +49,7 @@
                     <x-field name="role_id" label="الدور" required>
                         <select id="role_id" name="role_id" class="select" required>
                             @foreach ($roles as $role)
-                                <option value="{{ $role->id }}" @selected((int) old('role_id') === $role->id)>{{ $role->name_ar }}</option>
+                                <option value="{{ $role->id }}" @selected((int) old('role_id') === $role->id)>{{ $role->label() }}</option>
                             @endforeach
                         </select>
                     </x-field>

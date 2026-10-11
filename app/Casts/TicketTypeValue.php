@@ -22,6 +22,7 @@ final class TicketTypeValue
     private function __construct(
         public readonly string $value,
         private readonly string $label,
+        private readonly ?string $labelEn,
         private readonly string $colorVariant,
         private readonly string $iconName,
         private readonly bool $needsApproval,
@@ -41,6 +42,7 @@ final class TicketTypeValue
         return self::$instances[$key] = new self(
             value: $key,
             label: $row->name_ar ?? $key,
+            labelEn: filled($row?->name_en) ? $row->name_en : null,
             colorVariant: $row->color ?? 'neutral',
             // A type deleted while still on old tickets falls back to the
             // neutral "undefined" glyph rather than rendering nothing.
@@ -64,7 +66,7 @@ final class TicketTypeValue
 
     public function label(): string
     {
-        return $this->label;
+        return app()->isLocale('en') && $this->labelEn !== null ? $this->labelEn : $this->label;
     }
 
     /** Badge variant — the palette colour stored on the row (§ 6). */

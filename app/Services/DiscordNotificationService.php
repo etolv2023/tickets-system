@@ -6,10 +6,12 @@ use App\Jobs\SendDiscordMessage;
 use App\Models\Ticket;
 use App\Models\TicketDiscordMessage;
 use App\Models\TicketSubtask;
+use App\Casts\SubtaskStatusValue;
 use App\Casts\TicketStatusValue;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\DiscordPresenter as P;
+use App\Support\Locale;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -381,7 +383,7 @@ class DiscordNotificationService
     ): void {
         $this->guard($ticket, function () use ($ticket, $subtask, $from, $to, $actorId, $created, $synced) {
             // Explicit: preventLazyLoading is on in development.
-            $subtask->loadMissing('role:id,key,name_ar');
+            $subtask->loadMissing('role:id,key,name_ar,name_en');
 
             // The subtask's own title and role are already in memory, so they
             // cost nothing to freeze — and freezing them is right: a step
@@ -391,7 +393,7 @@ class DiscordNotificationService
                 'subtask' => [
                     'id' => $subtask->id,
                     'title' => $subtask->title,
-                    'role' => $subtask->role?->name_ar,
+                    'role' => $subtask->role?->label(),
                     'role_key' => $subtask->role?->key,
                 ],
                 'from_id' => $from,
@@ -456,7 +458,7 @@ class DiscordNotificationService
                 return;
             }
 
-            $subtask->loadMissing('role:id,key,name_ar');
+            $subtask->loadMissing('role:id,key,name_ar,name_en');
 
             $this->record([
                 'ticket_id' => $ticket->id,
@@ -466,10 +468,12 @@ class DiscordNotificationService
                     'subtask' => [
                         'id' => $subtask->id,
                         'title' => $subtask->title,
-                        'role' => $subtask->role?->name_ar,
+                        'role' => $subtask->role?->label(),
                         'role_key' => $subtask->role?->key,
                     ],
-                    'from' => $fromLabel,
+                    // Re-read under the Arabic locale: the caller's label is in
+                    // the request's UI language.
+                    'from' => SubtaskStatusValue::for($fromKey)->label(),
                     'from_key' => $fromKey,
                     'to' => $subtask->status->label(),
                     'to_key' => $subtask->status->value,
@@ -746,7 +750,9 @@ class DiscordNotificationService
         }
 
         try {
-            $body();
+            // Every label frozen into a Discord payload is written in Arabic,
+            // whatever the UI language of the request that triggered it.
+            Locale::as('ar', $body);
         } catch (\Throwable $e) {
             Log::warning('discord announcement failed to queue', [
                 'ticket_id' => $ticket->id,
@@ -848,7 +854,7 @@ class DiscordNotificationService
         $ticket->load([
             'roleAssignments:id,ticket_id,role_id,user_id',
             'roleAssignments.user:id,name,discord_user_id',
-            'roleAssignments.role:id,name_ar',
+            'roleAssignments.role:id,name_ar,name_en',
         ]);
 
         $held = $ticket->roleAssignments->keyBy('role_id');
@@ -870,7 +876,7 @@ class DiscordNotificationService
 
                 return [
                     'role_key' => $role->key,
-                    'role' => $role->name_ar,
+                    'role' => $role->label(),
                     'user' => $assignment?->user?->name,
                     'discord_id' => $assignment?->user?->discord_user_id ?: null,
                 ];

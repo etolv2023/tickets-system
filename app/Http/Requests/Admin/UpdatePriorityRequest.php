@@ -19,6 +19,7 @@ class UpdatePriorityRequest extends FormRequest
             // The key is never editable — it's what tickets.priority actually
             // stores, and SlaService reads sla_hours off this exact row.
             'name_ar' => ['required', 'string', 'max:100'],
+            'name_en' => ['nullable', 'string', 'max:100'],
             'color' => ['required', Rule::in(array_keys(Label::COLORS))],
             'sla_hours' => ['required', 'integer', 'between:1,8760'],
         ];
@@ -28,6 +29,7 @@ class UpdatePriorityRequest extends FormRequest
     {
         return [
             'name_ar' => 'الاسم',
+            'name_en' => 'الاسم بالإنجليزية',
             'color' => 'اللون',
             'sla_hours' => 'مهلة الـ SLA',
         ];

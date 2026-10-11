@@ -57,7 +57,7 @@
                 @endif
 
                 @foreach ($ticket->labels as $label)
-                    <x-badge :variant="$label->color" class="badge--sm">{{ $label->name }}</x-badge>
+                    <x-badge :variant="$label->color" class="badge--sm">{{ $label->label() }}</x-badge>
                 @endforeach
             </div>
         @endif

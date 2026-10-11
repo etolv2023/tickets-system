@@ -584,8 +584,8 @@ class TicketWorkflowService
                 ->implode('، ');
 
             $problems[] = $userId === null
-                ? "مينفعش تشيل التوزيع عن دور «{$role->name_ar}» لأن فيه صب تاسك لسه مفتوحة: {$list}."
-                : "مينفعش تغيّر توزيع دور «{$role->name_ar}» لـ"
+                ? "مينفعش تشيل التوزيع عن دور «{$role->label()}» لأن فيه صب تاسك لسه مفتوحة: {$list}."
+                : "مينفعش تغيّر توزيع دور «{$role->label()}» لـ"
                     . (User::whereKey($userId)->value('name') ?? "#{$userId}")
                     . " لأن فيه صب تاسك لسه مفتوحة ومع حد تاني: {$list}.";
         }
@@ -770,7 +770,7 @@ class TicketWorkflowService
         $unfinished = $ticket->workLogs()
             ->where('status', '!=', 'done')
             ->whereIn('role_id', $assignedRoleIds)
-            ->with('role:id,name_ar')
+            ->with('role:id,name_ar,name_en')
             ->get()
             ->reject(fn (TicketWorkLog $log) => $this->completionWaived($log, $partners));
 

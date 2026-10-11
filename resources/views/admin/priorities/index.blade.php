@@ -1,15 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'الأولويات')
+@section('title', __('الأولويات'))
 
 @section('content')
     <div class="page">
         <div class="page__head">
             <div>
-                <h1 class="page-title">الأولويات</h1>
+                <h1 class="page-title">{{ __('الأولويات') }}</h1>
                 <p class="page-subtitle">
-                    الأولويات الأساسية (تحتها رمادي فاتح) بتحرّكها الأتمتة نفسها — تقدر تغيّر اسمها/لونها/مهلتها
-                    بس. الي انت ضايفها تقدر تحذفها لو مفيش تذاكر واقفة عليها دلوقتي.
+                    {{ __('الأولويات الأساسية (تحتها «أساسية») بتحرّكها الأتمتة نفسها — تقدر تغيّر اسمها/لونها/مهلتها بس. الي انت ضايفها تقدر تحذفها لو مفيش تذاكر واقفة عليها دلوقتي.') }}
                 </p>
             </div>
         </div>
@@ -20,21 +19,22 @@
 
         <x-form-errors />
 
-        <x-card title="أولوية جديدة">
+        <x-card :title="__('أولوية جديدة')">
             <form method="POST" action="{{ route('admin.priorities.store') }}" class="form-grid">
                 @csrf
-                <x-field name="key" label="المفتاح" required hint="إنجليزي، زي blocker — ميتغيّرش بعد كده." />
-                <x-field name="name_ar" label="الاسم" required />
-                <x-field name="color" label="اللون" required>
+                <x-field name="key" :label="__('المفتاح')" required :hint="__('إنجليزي، زي :example — ميتغيّرش بعد كده.', ['example' => 'blocker'])" />
+                <x-field name="name_ar" :label="__('الاسم بالعربية')" required />
+                <x-field name="name_en" :label="__('الاسم بالإنجليزية')" dir="ltr" :hint="__('اختياري — لو فاضي بيظهر الاسم العربي.')" />
+                <x-field name="color" :label="__('اللون')" required>
                     <select id="color" name="color" class="select" required>
                         @foreach ($colors as $value => $label)
-                            <option value="{{ $value }}">{{ $label }}</option>
+                            <option value="{{ $value }}">{{ __($label) }}</option>
                         @endforeach
                     </select>
                 </x-field>
-                <x-field name="sla_hours" label="مهلة الـ SLA (ساعة)" type="number" required min="1" max="8760" />
+                <x-field name="sla_hours" :label="__('مهلة الـ SLA (ساعة)')" type="number" required min="1" max="8760" />
                 <div class="form-actions">
-                    <x-button variant="primary">أضف</x-button>
+                    <x-button variant="primary">{{ __('أضف') }}</x-button>
                 </div>
             </form>
         </x-card>
@@ -44,8 +44,8 @@
                 <table class="table table--hover">
                     <thead>
                         <tr>
-                            <th>الأولوية</th>
-                            <th colspan="3">اللون / المهلة</th>
+                            <th>{{ __('الأولوية') }}</th>
+                            <th colspan="3">{{ __('الاسم / اللون / المهلة') }}</th>
                             <th class="table__cell--actions"></th>
                         </tr>
                     </thead>
@@ -53,35 +53,36 @@
                         @foreach ($priorities as $p)
                             <tr>
                                 <td>
-                                    <x-badge :variant="$p->color">{{ $p->name_ar }}</x-badge>
+                                    <x-badge :variant="$p->color">{{ $p->label() }}</x-badge>
                                     <span class="u-subtle u-mono">{{ $p->key }}</span>
                                     @if ($p->is_system)
-                                        <span class="u-subtle">— أساسية</span>
+                                        <span class="u-subtle">— {{ __('أساسية') }}</span>
                                     @endif
                                 </td>
                                 <td colspan="3">
                                     <form method="POST" action="{{ route('admin.priorities.update', $p) }}" class="opt-form">
                                         @csrf
                                         @method('PUT')
-                                        <input type="text" name="name_ar" value="{{ $p->name_ar }}" class="input opt-form__name">
+                                        <input type="text" name="name_ar" value="{{ $p->name_ar }}" class="input opt-form__name" aria-label="{{ __('الاسم بالعربية') }}" placeholder="{{ __('الاسم بالعربية') }}">
+                                        <input type="text" name="name_en" value="{{ $p->name_en }}" class="input opt-form__name" dir="ltr" aria-label="{{ __('الاسم بالإنجليزية') }}" placeholder="{{ __('الاسم بالإنجليزية') }}">
                                         <select name="color" class="select filters__select">
                                             @foreach ($colors as $value => $label)
-                                                <option value="{{ $value }}" @selected($p->color === $value)>{{ $label }}</option>
+                                                <option value="{{ $value }}" @selected($p->color === $value)>{{ __($label) }}</option>
                                             @endforeach
                                         </select>
                                         <input type="number" name="sla_hours" value="{{ $p->sla_hours }}" min="1" max="8760"
-                                               class="input opt-form__num">
-                                        <span class="settings__unit">ساعة</span>
-                                        <x-button variant="ghost" size="sm">حفظ</x-button>
+                                               class="input opt-form__num" aria-label="{{ __('مهلة الـ SLA (ساعة)') }}">
+                                        <span class="settings__unit">{{ __('ساعة') }}</span>
+                                        <x-button variant="ghost" size="sm">{{ __('حفظ') }}</x-button>
                                     </form>
                                 </td>
                                 <td class="table__cell--actions">
                                     @unless ($p->is_system)
                                         <form method="POST" action="{{ route('admin.priorities.destroy', $p) }}"
-                                              onsubmit="return confirm('متأكد من حذف «{{ $p->name_ar }}»؟')">
+                                              onsubmit="return confirm(@js(__('متأكد من حذف «:name»؟', ['name' => $p->label()])))">
                                             @csrf
                                             @method('DELETE')
-                                            <x-button variant="ghost" size="sm">حذف</x-button>
+                                            <x-button variant="ghost" size="sm">{{ __('حذف') }}</x-button>
                                         </form>
                                     @endunless
                                 </td>

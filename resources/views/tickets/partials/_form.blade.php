@@ -61,7 +61,7 @@
                     @foreach ($priorities as $priority)
                         <option value="{{ $priority->key }}"
                                 @selected(old('priority', $ticket?->priority?->value ?? 'medium') === $priority->key)>
-                            {{ $priority->name_ar }} — {{ $priority->sla_hours }} ساعة
+                            {{ $priority->label() }} — {{ $priority->sla_hours }} ساعة
                         </option>
                     @endforeach
                 </select>
@@ -87,7 +87,7 @@
             <div x-data="{
                      roles: @js($assignable['roles']->map(fn ($e) => [
                          'id' => $e['role']->id,
-                         'name' => $e['role']->name_ar,
+                         'name' => $e['role']->label(),
                          'candidates' => $e['candidates']->map(fn ($u) => ['id' => $u->id, 'name' => $u->name])->values(),
                      ])->values()),
                      rows: Object.entries(@js((object) old('role_assignments', [])))

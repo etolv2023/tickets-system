@@ -44,7 +44,7 @@ class LinkTypeController extends Controller
             action: 'link_type.created',
             userId: $request->user()->id,
             subject: $type,
-            changes: ['to' => $type->only('key', 'name_ar', 'inverse_label_ar')],
+            changes: ['to' => $type->only('key', 'name_ar', 'name_en', 'inverse_label_ar', 'inverse_label_en')],
             ip: $request->ip(),
             userAgent: $request->userAgent(),
         );
@@ -54,7 +54,7 @@ class LinkTypeController extends Controller
 
     public function update(UpdateLinkTypeRequest $request, LinkTypeDefinition $linkType, ActivityLogger $logger): RedirectResponse
     {
-        $before = $linkType->only('name_ar', 'inverse_label_ar', 'color');
+        $before = $linkType->only('name_ar', 'name_en', 'inverse_label_ar', 'inverse_label_en', 'color');
 
         $linkType->update($request->validated());
 
@@ -62,7 +62,7 @@ class LinkTypeController extends Controller
             action: 'link_type.updated',
             userId: $request->user()->id,
             subject: $linkType,
-            changes: ['from' => $before, 'to' => $linkType->only('name_ar', 'inverse_label_ar', 'color')],
+            changes: ['from' => $before, 'to' => $linkType->only('name_ar', 'name_en', 'inverse_label_ar', 'inverse_label_en', 'color')],
             ip: $request->ip(),
             userAgent: $request->userAgent(),
         );

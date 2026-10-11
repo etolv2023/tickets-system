@@ -15,8 +15,8 @@ use Illuminate\Database\Seeder;
 class DemoCustomStatusSeeder extends Seeder
 {
     private const CUSTOM_STATUSES = [
-        ['key' => 'awaiting_reply', 'name_ar' => 'استفسار', 'color' => 'amber', 'position' => 10],
-        ['key' => 'blocked', 'name_ar' => 'بلوك', 'color' => 'red', 'position' => 11],
+        ['key' => 'awaiting_reply', 'name_ar' => 'استفسار', 'name_en' => 'Awaiting reply', 'color' => 'amber', 'position' => 10],
+        ['key' => 'blocked', 'name_ar' => 'بلوك', 'name_en' => 'Blocked', 'color' => 'red', 'position' => 11],
     ];
 
     /** Any of these open system statuses may move into either custom status, and back. */

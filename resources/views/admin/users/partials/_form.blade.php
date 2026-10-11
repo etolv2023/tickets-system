@@ -16,7 +16,7 @@
                             @class(['select', 'select--invalid' => $errors->has('role_id')])>
                         @foreach ($roles as $role)
                             <option value="{{ $role->id }}" @selected((int) old('role_id', $user?->role_id) === $role->id)>
-                                {{ $role->name_ar }}
+                                {{ $role->label() }}
                             </option>
                         @endforeach
                     </select>

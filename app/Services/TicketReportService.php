@@ -183,7 +183,7 @@ class TicketReportService
 
         return DB::query()->fromSub($tickets, 't')
             ->leftJoin('ticket_statuses as s', 's.key', '=', 't.status')
-            ->selectRaw("COALESCE(NULLIF(t.module, ''), '—') `key`, COALESCE(NULLIF(t.module, ''), '—') name_ar")
+            ->selectRaw("COALESCE(NULLIF(t.module, ''), '—') `key`, COALESCE(NULLIF(t.module, ''), '—') name")
             ->selectRaw('COUNT(*) total')
             ->selectRaw('SUM(CASE WHEN s.is_open = 1 THEN 1 ELSE 0 END) open_count')
             ->selectRaw('SUM(CASE WHEN s.is_open = 0 AND t.resolved_at IS NOT NULL THEN 1 ELSE 0 END) resolved_count')
@@ -308,8 +308,8 @@ class TicketReportService
             ->leftJoin('ticket_role_assignments as a', function ($join) use ($userId) {
                 $join->on('a.ticket_id', '=', 't.id')->where('a.user_id', '=', $userId);
             })
-            ->selectRaw('d.`key`, d.name_ar, COUNT(DISTINCT CASE WHEN a.user_id IS NOT NULL THEN t.id END) ticket_count')
-            ->groupBy('d.key', 'd.name_ar', 'd.position')->orderBy('d.position')->get();
+            ->selectRaw('d.`key`, ' . $this->definitionNameSql() . ' name, COUNT(DISTINCT CASE WHEN a.user_id IS NOT NULL THEN t.id END) ticket_count')
+            ->groupBy('d.key', 'd.name_ar', 'd.name_en', 'd.position')->orderBy('d.position')->get();
     }
 
     private function moduleBreakdown($tickets, int $userId): Collection
@@ -330,10 +330,16 @@ class TicketReportService
         return DB::table("{$table} as d")
             ->leftJoinSub($tickets, 't', fn ($join) => $join->on("t.{$column}", '=', 'd.key'))
             ->leftJoin('ticket_statuses as s', 's.key', '=', 't.status')
-            ->selectRaw('d.`key`, d.name_ar, COUNT(t.id) total')
+            ->selectRaw('d.`key`, ' . $this->definitionNameSql() . ' name, COUNT(t.id) total')
             ->selectRaw('SUM(CASE WHEN s.is_open = 1 THEN 1 ELSE 0 END) open_count')
             ->selectRaw('SUM(CASE WHEN s.is_open = 0 AND t.resolved_at IS NOT NULL THEN 1 ELSE 0 END) resolved_count')
-            ->groupBy('d.key', 'd.name_ar', 'd.position')->orderBy('d.position')->get();
+            ->groupBy('d.key', 'd.name_ar', 'd.name_en', 'd.position')->orderBy('d.position')->get();
+    }
+
+    /** A fixed column expression, never user input: English name with the Arabic one as fallback. */
+    private function definitionNameSql(): string
+    {
+        return app()->isLocale('en') ? "COALESCE(NULLIF(d.name_en, ''), d.name_ar)" : 'd.name_ar';
     }
 
     private function ageBucketSql(): string

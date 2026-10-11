@@ -57,8 +57,9 @@ class LabelController extends Controller
     {
         return $request->validate([
             'name' => ['required', 'string', 'max:50', Rule::unique('labels', 'name')->ignore($label?->id)],
+            'name_en' => ['nullable', 'string', 'max:50'],
             // Only the semantic palette — no free colour picker (§ 6).
             'color' => ['required', Rule::in(array_keys(Label::COLORS))],
-        ], [], ['name' => 'اسم اللابل', 'color' => 'اللون']);
+        ], [], ['name' => 'اسم اللابل', 'name_en' => 'اسم اللابل بالإنجليزية', 'color' => 'اللون']);
     }
 }

@@ -69,7 +69,7 @@
                                             <form
                                                 method="POST"
                                                 action="{{ route('admin.roles.destroy', $role) }}"
-                                                onsubmit="return confirm('متأكد إنك عايز تحذف دور «{{ $role->name_ar }}»؟')"
+                                                onsubmit="return confirm('متأكد إنك عايز تحذف دور «{{ $role->label() }}»؟')"
                                             >
                                                 @csrf
                                                 @method('DELETE')

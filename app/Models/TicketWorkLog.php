@@ -42,7 +42,7 @@ class TicketWorkLog extends Model
     /** The role's Arabic name — what the my-work panel and cards used to get from side->label(). */
     public function roleLabel(): string
     {
-        return $this->role?->name_ar ?? '—';
+        return $this->role?->label() ?? '—';
     }
 
     public function statusLabel(): string

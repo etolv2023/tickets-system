@@ -45,7 +45,7 @@ class PointRuleController extends Controller
                     'user:id,name',
                     'ticket:id,ticket_number,title',
                     'correctedBy:id,name',
-                    'role:id,name_ar',
+                    'role:id,name_ar,name_en',
                     // ★ (2026-08-29) Whether this row still stands, and what it
                     // was replaced by. Eager-loaded because the view asks per
                     // row and Model::preventLazyLoading() would (rightly) throw

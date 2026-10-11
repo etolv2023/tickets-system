@@ -44,7 +44,7 @@ class TicketRowsSheet implements FromQuery, WithHeadings, WithMapping, WithTitle
             ->selectRaw($this->descriptionSelect('description'))
             ->with([
                 'company:id,name', 'requester:id,name',
-                'roleAssignments.role:id,name_ar', 'roleAssignments.user:id,name',
+                'roleAssignments.role:id,name_ar,name_en', 'roleAssignments.user:id,name',
             ])
             ->filter($this->filters)
             ->defaultOrder();
@@ -71,7 +71,7 @@ class TicketRowsSheet implements FromQuery, WithHeadings, WithMapping, WithTitle
             $t->type->label(),
             $t->priority->label(),
             $t->status->label(),
-            $t->roleAssignments->map(fn ($a) => "{$a->role->name_ar}: {$a->user?->name}")->implode('، '),
+            $t->roleAssignments->map(fn ($a) => "{$a->role->label()}: {$a->user?->name}")->implode('، '),
             $t->reported_at?->timezone($tz)->format('Y-m-d H:i'),
             $t->sla_due_at?->timezone($tz)->format('Y-m-d H:i'),
             $t->due_date?->format('Y-m-d'),

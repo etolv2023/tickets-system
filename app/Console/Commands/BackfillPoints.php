@@ -50,7 +50,7 @@ class BackfillPoints extends Command
             ->whereHas('ticket', fn ($q) => $q->whereNotNull('resolved_at'))
             // F06 role-assignment extension: awardSubtask() reads
             // ->role->name_ar for a role-based subtask.
-            ->with('ticket', 'role:id,name_ar')
+            ->with('ticket', 'role:id,name_ar,name_en')
             ->get()
             ->filter(fn (TicketSubtask $subtask) => ! (
                 $subtask->ticket->type->needsApproval() && $subtask->ticket->approval_status !== 'approved'

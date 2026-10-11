@@ -14,7 +14,7 @@
 
         @php $currentRoleAssignments = $ticket->roleAssignments->pluck('user_id', 'role_id'); @endphp
         @forelse ($assignable['roles'] as $entry)
-            <x-field name="role_assignments[{{ $entry['role']->id }}]" :label="$entry['role']->name_ar">
+            <x-field name="role_assignments[{{ $entry['role']->id }}]" :label="$entry['role']->label()">
                 <select id="role_assignments_{{ $entry['role']->id }}" name="role_assignments[{{ $entry['role']->id }}]" class="select">
                     <option value="">— غير مسندة —</option>
                     @foreach ($entry['candidates'] as $person)

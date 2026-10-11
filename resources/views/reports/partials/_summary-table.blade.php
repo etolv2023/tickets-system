@@ -5,7 +5,7 @@
             <tbody>
                 @forelse ($rows as $row)
                     <tr>
-                        <td>{{ $row->name_ar }}</td>
+                        <td>{{ $row->name }}</td>
                         <td class="u-nums">@if (($by !== 'module' || $row->key !== '—') && (empty($filters[$by]) || $filters[$by] === $row->key))<a href="{{ route('tickets.index', array_merge($drilldown, [$by => $row->key])) }}">{{ $row->total }}</a>@else{{ $row->total }}@endif</td>
                         <td class="u-nums">
                             @if ($row->open_count > 0 && ($by !== 'module' || $row->key !== '—') && (empty($filters[$by]) || $filters[$by] === $row->key))

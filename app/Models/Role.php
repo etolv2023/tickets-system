@@ -212,7 +212,7 @@ class Role extends Model
     {
         return Cache::rememberForever(
             self::ASSIGNABLE_CACHE_KEY,
-            fn () => static::assignableOnTickets()->orderBy('name_ar')->get(['id', 'key', 'name_ar', 'logs_work', 'is_tester'])
+            fn () => static::assignableOnTickets()->orderBy('name_ar')->get(['id', 'key', 'name_ar', 'name_en', 'logs_work', 'is_tester'])
         );
     }
 }

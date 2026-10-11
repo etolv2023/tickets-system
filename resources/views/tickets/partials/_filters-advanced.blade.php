@@ -27,7 +27,7 @@
         </div>
         <div class="filters__combobox"><x-combobox name="culprit" resource="users" :value="$filters['culprit'] ?? null" :selected="$selectedCulprit" placeholder="متسبب الاكسبشن" /></div>
         <select name="branch" class="select" aria-label="البرانش"><option value="">البرانش: الكل</option><option value="none" @selected(($filters['branch'] ?? '') === 'none')>من غير برانش</option><option value="has" @selected(($filters['branch'] ?? '') === 'has')>ليها برانش</option></select>
-        <select name="label" class="select" aria-label="اللابل"><option value="">أي لابل</option>@foreach ($labels as $label)<option value="{{ $label->id }}" @selected((int) ($filters['label'] ?? 0) === $label->id)>{{ $label->name }}</option>@endforeach</select>
+        <select name="label" class="select" aria-label="اللابل"><option value="">أي لابل</option>@foreach ($labels as $label)<option value="{{ $label->id }}" @selected((int) ($filters['label'] ?? 0) === $label->id)>{{ $label->label() }}</option>@endforeach</select>
         <input type="search" name="module" value="{{ $filters['module'] ?? '' }}" class="input" placeholder="الموديول" aria-label="الموديول">
         <select name="origin" class="select" aria-label="مصدر التذكرة"><option value="">المصدر: الكل</option>@foreach (\App\Models\Ticket::ORIGINS as $value => $label)<option value="{{ $value }}" @selected(($filters['origin'] ?? '') === $value)>{{ $label }}</option>@endforeach</select>
         <select name="approval" class="select" aria-label="الموافقة"><option value="">الموافقة: الكل</option>@foreach (\App\Models\Ticket::APPROVALS as $value => $label)<option value="{{ $value }}" @selected(($filters['approval'] ?? '') === $value)>{{ $label }}</option>@endforeach</select>
