@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\PointTransaction;
 use App\Models\Ticket;
+use App\Support\Phrase;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -61,7 +62,7 @@ class PointCorrectionService
         $ticket = $this->resolveTicket($data['ticket_number'] ?? null);
 
         return DB::transaction(function () use ($correction, $data, $userId, $ticket) {
-            $reversal = $this->reversalFor($correction, $userId, 'عُدِّل');
+            $reversal = $this->reversalFor($correction, $userId, Phrase::text('عُدِّل'));
 
             $replacement = PointTransaction::create([
                 'user_id' => $data['user_id'],
@@ -108,8 +109,16 @@ class PointCorrectionService
      * scale — the column holds at most 999.99 — and the database re-rounds to
      * two places on the way in regardless.
      */
-    private function reversalFor(PointTransaction $correction, int $userId, ?string $note): PointTransaction
+    private function reversalFor(PointTransaction $correction, int $userId, string|array|null $note): PointTransaction
     {
+        // The note is either text somebody typed (kept as typed) or the fixed
+        // «عُدِّل» marker (a Phrase reference, so it reads in English too). The
+        // corrected row's own reason is always hand-typed, so it is quoted as is.
+        $params = ['id' => $correction->id, 'reason' => $correction->reason];
+        $reason = is_array($note) || $note
+            ? new Phrase('إلغاء التصحيح #:id (:note) — :reason', $params + ['note' => $note])
+            : new Phrase('إلغاء التصحيح #:id — :reason', $params);
+
         return PointTransaction::create([
             'user_id' => $correction->user_id,
             'ticket_id' => $correction->ticket_id,
@@ -119,9 +128,8 @@ class PointCorrectionService
             'type' => 'correction',
             'created_by' => $userId,
             'period' => $correction->period,
-            'reason' => trim('إلغاء التصحيح #' . $correction->id
-                . ($note ? ' (' . $note . ')' : '')
-                . ' — ' . $correction->reason),
+            'reason' => trim($reason->render('ar')),
+            'reason_phrase' => $reason->toArray(),
             'reverses_id' => $correction->id,
         ]);
     }

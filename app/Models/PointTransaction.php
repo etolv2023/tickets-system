@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Phrase;
 use App\Enums\PointSide;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -28,6 +29,9 @@ class PointTransaction extends Model
         // charge": 'award' once ever, 'penalty:YYYY-MM-DD' once per day.
         'charge_key',
         'created_by', 'period', 'reason',
+        // The same reason as a translation key + parameters, for rows the
+        // system writes; null on hand-typed and older rows.
+        'reason_phrase',
         // ★ (2026-08-29) The two links that let a manual correction be undone
         // without the ledger ever being rewritten — see the migration.
         'reverses_id', 'replaces_id',
@@ -38,8 +42,23 @@ class PointTransaction extends Model
         return [
             'side' => PointSide::class,
             'points' => 'decimal:2',
+            'reason_phrase' => 'array',
             'created_at' => 'datetime',
         ];
+    }
+
+    /**
+     * The reason in the reader's language when the system wrote it, otherwise
+     * exactly what was stored (a hand-typed correction, or a row from before
+     * reasons were kept as phrases).
+     */
+    public function reasonText(): ?string
+    {
+        $phrase = $this->reason_phrase;
+
+        return is_array($phrase) && isset($phrase['key'])
+            ? (new Phrase($phrase['key'], $phrase['params'] ?? []))->render()
+            : $this->reason;
     }
 
     protected static function booted(): void

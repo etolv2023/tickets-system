@@ -6,7 +6,7 @@ use App\Models\PointTransaction;
 use App\Models\Setting;
 use App\Models\Ticket;
 use App\Models\TicketSubtask;
-use App\Support\Locale;
+use App\Support\Phrase;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -176,7 +176,8 @@ class LatePenaltyService
                 // Unlike an award it has no resolved_at to belong to — the work
                 // is, by definition, not delivered.
                 'period' => $asOf->format('Y-m'),
-                'reason' => $this->reason($ticket, $subtask, $asOf),
+                'reason' => ($reason = $this->reason($ticket, $subtask, $asOf))->render('ar'),
+                'reason_phrase' => $reason->toArray(),
             ]);
 
             return true;
@@ -306,19 +307,15 @@ class LatePenaltyService
      * The subtask title is what gets trimmed when the sentence runs long, never
      * the explanation: titles are validated at max:255 on their own, so an
      * unguarded sentence could overflow the column and abort the whole sweep.
+     *
+     * Built as a Phrase: `reason` keeps the Arabic sentence it always held, and
+     * `reason_phrase` lets a screen print the same sentence in English.
      */
-    private function reason(Ticket $ticket, TicketSubtask $subtask, Carbon $asOf): string
-    {
-        // Stored text — names and dates alike are written in Arabic, whatever
-        // the UI language of the request that triggered the charge.
-        return Locale::as('ar', fn () => $this->buildReason($ticket, $subtask, $asOf));
-    }
-
-    private function buildReason(Ticket $ticket, TicketSubtask $subtask, Carbon $asOf): string
+    private function reason(Ticket $ticket, TicketSubtask $subtask, Carbon $asOf): Phrase
     {
         $earner = $subtask->role_id !== null
-            ? $subtask->role->name_ar
-            : $subtask->side->toPointSide()->label();
+            ? Phrase::role($subtask->role_id)
+            : Phrase::pointSide($subtask->side->toPointSide()->value);
 
         $deadline = $subtask->deadline();
 
@@ -327,26 +324,31 @@ class LatePenaltyService
         // Saying "متأخرة 0 يوم" to somebody who blew a four-hour
         // deadline by ninety minutes is how a payout row starts an argument.
         $exact = $subtask->due_at !== null;
-        $due = $exact
-            ? $deadline->translatedFormat('j M Y - H:i')
-            : $deadline->translatedFormat('j M Y');
+        $due = Phrase::date($deadline, $exact ? 'j M Y - H:i' : 'j M Y');
         $late = $exact
             ? $this->lateness($deadline, $asOf)
-            : ((int) $deadline->copy()->startOfDay()->diffInDays($asOf->copy()->startOfDay())) . ' يوم';
+            : Phrase::count(':count يوم', (int) $deadline->copy()->startOfDay()->diffInDays($asOf->copy()->startOfDay()));
 
         $note = $this->wasCharged($subtask)
-            ? "خصم تأخير متراكم ({$asOf->translatedFormat('j M')}): ما زالت متأخرة عن {$due} بمقدار {$late} — الخصم التراكمي مفعّل، لذا يُخصم يوميًا"
-            : "خصم تأخير: كان موعد استحقاقها {$due} وتأخرت {$late}";
+            ? new Phrase('خصم تأخير متراكم (:day): ما زالت متأخرة عن :due بمقدار :late — الخصم التراكمي مفعّل، لذا يُخصم يوميًا', [
+                'day' => Phrase::date($asOf, 'j M'), 'due' => $due, 'late' => $late,
+            ])
+            : new Phrase('خصم تأخير: كان موعد استحقاقها :due وتأخرت :late', ['due' => $due, 'late' => $late]);
 
-        $head = "{$ticket->type->label()} — {$earner} (";
-        $tail = ") — {$note}";
+        $sentence = fn (string $title) => new Phrase(':type — :earner (:title) — :note', [
+            'type' => Phrase::ticketType($ticket->type->value),
+            'earner' => $earner,
+            'title' => $title,
+            'note' => Phrase::nested($note),
+        ]);
 
-        $room = 255 - mb_strlen($head) - mb_strlen($tail);
+        // Measured on the Arabic sentence, which is what `reason` stores.
+        $room = 255 - mb_strlen($sentence('')->render('ar'));
         $title = mb_strlen($subtask->title) > $room
             ? mb_substr($subtask->title, 0, max(0, $room - 1)) . '…'
             : $subtask->title;
 
-        return $head . $title . $tail;
+        return $sentence($title);
     }
 
     /**
@@ -357,18 +359,18 @@ class LatePenaltyService
      * it. Past a day it reads in days, which is how the accumulating charge has
      * always described itself.
      */
-    private function lateness(Carbon $deadline, Carbon $asOf): string
+    private function lateness(Carbon $deadline, Carbon $asOf): array
     {
         $minutes = (int) $deadline->diffInMinutes($asOf, absolute: true);
 
         if ($minutes < 60) {
-            return max(1, $minutes) . ' دقيقة';
+            return Phrase::count(':count دقيقة', max(1, $minutes));
         }
 
         if ($minutes < 60 * 24) {
-            return intdiv($minutes, 60) . ' ساعة';
+            return Phrase::count(':count ساعة', intdiv($minutes, 60));
         }
 
-        return intdiv($minutes, 60 * 24) . ' يوم';
+        return Phrase::count(':count يوم', intdiv($minutes, 60 * 24));
     }
 }

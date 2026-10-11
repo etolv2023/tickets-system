@@ -1906,5 +1906,14 @@
     "عذرًا!": "Whoops!",
     "مرحبًا!": "Hello!",
     "مع التحية،": "Regards,",
-    "إذا لم يعمل زر «:actionText»، فانسخ الرابط التالي والصقه في متصفحك:": "If the “:actionText” button does not work, copy and paste the link below into your browser:"
+    "إذا لم يعمل زر «:actionText»، فانسخ الرابط التالي والصقه في متصفحك:": "If the “:actionText” button does not work, copy and paste the link below into your browser:",
+    ":type — :earner (:title)": ":type — :earner (:title)",
+    ":type — :earner (:title) — :note": ":type — :earner (:title) — :note",
+    "خصم تأخير: كان موعد استحقاقها :due وتأخرت :late": "Late penalty: it was due :due and is :late late",
+    "خصم تأخير متراكم (:day): ما زالت متأخرة عن :due بمقدار :late — الخصم التراكمي مفعّل، لذا يُخصم يوميًا": "Accumulated late penalty (:day): still :late past its :due deadline — accumulation is on, so it is charged daily",
+    ":count دقيقة": "{1} :count minute|[0,*] :count minutes",
+    ":count ساعة": "{1} :count hour|[0,*] :count hours",
+    ":count يوم": "{1} :count day|[0,*] :count days",
+    "إلغاء التصحيح #:id (:note) — :reason": "Reversal of correction #:id (:note) — :reason",
+    "إلغاء التصحيح #:id — :reason": "Reversal of correction #:id — :reason"
 }

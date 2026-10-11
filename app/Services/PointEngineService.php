@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\PointTransaction;
 use App\Models\Ticket;
 use App\Models\TicketSubtask;
-use App\Support\Locale;
+use App\Support\Phrase;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -121,7 +121,7 @@ class PointEngineService
         if ($subtask->role_id !== null) {
             $this->createTransaction($ticket, $subtask, $period, [
                 'role_id' => $subtask->role_id,
-                'earner' => $subtask->role->name_ar,
+                'earner' => Phrase::role($subtask->role_id),
             ]);
 
             return;
@@ -136,8 +136,34 @@ class PointEngineService
 
         $this->createTransaction($ticket, $subtask, $period, [
             'side' => $side->value,
-            'earner' => $side->label(),
+            'earner' => Phrase::pointSide($side->value),
         ]);
+    }
+
+    /**
+     * "{type} — {earner} ({subtask title})", as a Phrase so a screen can print
+     * it in English. `reason` stores its Arabic rendering, as it always did.
+     *
+     * Titles are validated at max:255 on their own, so an unguarded sentence
+     * can overflow VARCHAR(255) and abort the resolve in strict mode. The title
+     * is what gives, measured on the Arabic sentence that is stored.
+     *
+     * @param  array<string, mixed>  $earner  a Phrase reference (role or side)
+     */
+    private function awardReason(Ticket $ticket, array $earner, string $subtaskTitle): Phrase
+    {
+        $sentence = fn (string $title) => new Phrase(':type — :earner (:title)', [
+            'type' => Phrase::ticketType($ticket->type->value),
+            'earner' => $earner,
+            'title' => $title,
+        ]);
+
+        $room = 255 - mb_strlen($sentence('')->render('ar'));
+        $title = mb_strlen($subtaskTitle) > $room
+            ? mb_substr($subtaskTitle, 0, max(0, $room - 1)) . '…'
+            : $subtaskTitle;
+
+        return $sentence($title);
     }
 
     /**
@@ -183,7 +209,7 @@ class PointEngineService
      * and two versions of this rule drifting apart would mean the screen
      * promising points the payout doesn't give.
      *
-     * @param  array{side?: string, role_id?: int, earner: string}  $earner
+     * @param  array{side?: string, role_id?: int, earner: array}  $earner  earner: a Phrase reference
      */
     private function createTransaction(Ticket $ticket, TicketSubtask $subtask, string $period, array $earner): void
     {
@@ -195,19 +221,8 @@ class PointEngineService
             return;
         }
 
-        $label = $earner['earner'];
+        $reason = $this->awardReason($ticket, $earner['earner'], $subtask->title);
         unset($earner['earner']);
-
-        // The reason is stored, so it is written in Arabic whatever the UI
-        // language of whoever resolved the ticket.
-        $head = Locale::as('ar', fn () => "{$ticket->type->label()} — {$label} (");
-        // Titles are validated at max:255 on their own, so an unguarded
-        // "{type} — {earner} ({title})" can overflow VARCHAR(255) and abort the
-        // resolve in strict mode. The title is what gives.
-        $room = 255 - mb_strlen($head) - 1;
-        $title = mb_strlen($subtask->title) > $room
-            ? mb_substr($subtask->title, 0, max(0, $room - 1)) . '…'
-            : $subtask->title;
 
         try {
             PointTransaction::create([
@@ -218,7 +233,8 @@ class PointEngineService
                 'type' => 'award',
                 'charge_key' => 'award',
                 'period' => $period,
-                'reason' => $head . $title . ')',
+                'reason' => $reason->render('ar'),
+                'reason_phrase' => $reason->toArray(),
             ] + $earner);
         } catch (UniqueConstraintViolationException) {
             // Guard 3 fired: this exact subtask already has a row. Nothing to

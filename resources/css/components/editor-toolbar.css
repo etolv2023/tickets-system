@@ -1,0 +1,111 @@
+/* The editor's toolbar and its block-format picker, split out of editor.css
+   (the 300-line rule). Loaded right after it, so these still follow Quill's
+   snow theme, which editor.css imports. */
+
+/* ---- Toolbar ---- */
+
+.editor .ql-toolbar.ql-snow {
+    border: 0;
+    border-block-end: 1px solid var(--border-subtle);
+    background-color: var(--surface);
+    padding: var(--space-2) var(--space-3);
+    font-family: var(--font-ar);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+}
+
+/* Snow separates its groups with a physical right margin. Kill it and let the
+   flex gap do the work, with a slightly wider space between groups. */
+.editor .ql-toolbar.ql-snow .ql-formats {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.editor .ql-toolbar.ql-snow .ql-formats + .ql-formats {
+    margin-inline-start: var(--space-2);
+}
+
+.editor .ql-snow.ql-toolbar button,
+.editor .ql-snow.ql-toolbar .ql-picker-label {
+    border-radius: var(--radius-sm);
+    color: var(--text-subtle);
+    transition: background-color var(--transition), color var(--transition);
+}
+
+/* Quill draws its glyphs as stroke/fill attributes on inline SVG, so the icons
+   have to be retinted rather than inheriting currentColor. Quiet by default. */
+.editor .ql-snow .ql-stroke,
+.editor .ql-snow .ql-stroke-miter {
+    stroke: var(--text-subtle);
+}
+
+.editor .ql-snow .ql-fill {
+    fill: var(--text-subtle);
+}
+
+.editor .ql-snow.ql-toolbar button:hover,
+.editor .ql-snow.ql-toolbar button:focus-visible,
+.editor .ql-snow.ql-toolbar button.ql-active {
+    background-color: var(--hover);
+    color: var(--text);
+}
+
+.editor .ql-snow.ql-toolbar button:hover .ql-stroke,
+.editor .ql-snow.ql-toolbar button:focus-visible .ql-stroke,
+.editor .ql-snow.ql-toolbar button.ql-active .ql-stroke,
+.editor .ql-snow.ql-toolbar .ql-picker-label:hover .ql-stroke,
+.editor .ql-snow.ql-toolbar .ql-picker-label.ql-active .ql-stroke {
+    stroke: var(--text);
+}
+
+.editor .ql-snow.ql-toolbar button:hover .ql-fill,
+.editor .ql-snow.ql-toolbar button:focus-visible .ql-fill,
+.editor .ql-snow.ql-toolbar button.ql-active .ql-fill,
+.editor .ql-snow.ql-toolbar .ql-picker-label:hover .ql-fill {
+    fill: var(--text);
+}
+
+/* ---- The block-format picker ("Normal ▾") — a bordered chip, per the design ---- */
+
+.editor .ql-snow .ql-picker {
+    color: var(--text-muted);
+    font-family: var(--font-ar);
+    font-size: var(--text-xs);
+}
+
+.editor .ql-snow .ql-picker-label {
+    border: 1px solid var(--border);
+    padding-inline: var(--space-2);
+    color: var(--text-muted);
+}
+
+.editor .ql-snow .ql-picker-label:hover,
+.editor .ql-snow .ql-picker.ql-expanded .ql-picker-label {
+    border-color: var(--border-strong);
+    color: var(--text);
+}
+
+.editor .ql-snow .ql-picker-options {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    padding: var(--space-1);
+    z-index: var(--z-dropdown);
+}
+
+.editor .ql-snow .ql-picker-item {
+    color: var(--text-muted);
+    border-radius: var(--radius-sm);
+    padding: var(--space-1) var(--space-2);
+}
+
+.editor .ql-snow .ql-picker-item:hover,
+.editor .ql-snow .ql-picker-item.ql-selected {
+    background-color: var(--hover);
+    color: var(--text);
+}

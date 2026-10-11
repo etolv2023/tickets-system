@@ -5,7 +5,10 @@ namespace App\Support;
 use App\Casts\LinkTypeValue;
 use App\Casts\SubtaskStatusValue;
 use App\Casts\TicketStatusValue;
+use App\Casts\TicketTypeValue;
+use App\Enums\PointSide;
 use App\Models\Role;
+use Illuminate\Support\Carbon;
 
 /**
  * A sentence stored as a translation key plus its parameters, rendered in
@@ -51,6 +54,33 @@ final class Phrase
     public static function nested(self $phrase): array
     {
         return ['ref' => 'phrase', 'key' => $phrase->key, 'params' => $phrase->params];
+    }
+
+    public static function ticketType(string $key): array
+    {
+        return ['ref' => 'ticket_type', 'key' => $key];
+    }
+
+    /** One of the fixed point sides (PointSide), for a row with no role. */
+    public static function pointSide(string $value): array
+    {
+        return ['ref' => 'point_side', 'key' => $value];
+    }
+
+    /**
+     * A moment printed with month names in the reader's language. Stored as
+     * the wall-clock time it was printed at, so reading it back does no
+     * timezone arithmetic of its own.
+     */
+    public static function date(\DateTimeInterface $at, string $format): array
+    {
+        return ['ref' => 'date', 'key' => $at->format('Y-m-d H:i:s'), 'format' => $format];
+    }
+
+    /** A number with its unit, e.g. ":count ساعة", counted in the reader's language. */
+    public static function count(string $key, int $count): array
+    {
+        return ['ref' => 'count', 'key' => $key, 'count' => $count];
     }
 
     /** A fixed phrase used as a parameter (e.g. "no reason given"). */
@@ -120,6 +150,10 @@ final class Phrase
             'link_type' => LinkTypeValue::for((string) $ref['key'])->label(),
             'link_type_inverse' => LinkTypeValue::for((string) $ref['key'])->inverseLabel(),
             'role' => Role::byId()->get((int) $ref['key'])?->label() ?? '—',
+            'ticket_type' => TicketTypeValue::for((string) $ref['key'])->label(),
+            'point_side' => PointSide::tryFrom((string) $ref['key'])?->label() ?? (string) $ref['key'],
+            'date' => Carbon::parse((string) $ref['key'])->translatedFormat((string) ($ref['format'] ?? 'j M Y')),
+            'count' => trans_choice((string) $ref['key'], (int) ($ref['count'] ?? 0), ['count' => (int) ($ref['count'] ?? 0)]),
             'text' => __((string) $ref['key']),
             'phrase' => (new self((string) $ref['key'], $ref['params'] ?? []))->render(),
             default => (string) ($ref['key'] ?? ''),

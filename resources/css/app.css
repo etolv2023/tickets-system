@@ -38,6 +38,7 @@
 @import './components/filters.css';
 @import './components/pagination.css';
 @import './components/editor.css';
+@import './components/editor-toolbar.css';
 @import './components/editor-tooltip.css';
 @import './components/prose.css';
 @import './components/uploader.css';

@@ -129,7 +129,7 @@
                                     @endif
                                 </td>
                                 <td>{{ $row->side?->label() ?? $row->role?->label() ?? '—' }}</td>
-                                <td class="u-subtle">{{ $row->reason }}</td>
+                                <td class="u-subtle">{{ $row->reasonText() }}</td>
                                 <td @class(['table__cell--num', 'points-cell--negative' => $row->points < 0])>
                                     {{ rtrim(rtrim($row->points, '0'), '.') }}
                                 </td>

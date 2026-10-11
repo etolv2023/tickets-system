@@ -25,7 +25,7 @@
     <td class="table__cell--num points-cell">{{ rtrim(rtrim($correction->points, '0'), '.') }}</td>
 
     <td class="u-subtle">
-        {{ $correction->reason }}
+        {{ $correction->reasonText() }}
 
         @if ($correction->isReversal())
             <x-badge variant="slate">{{ __('سطر إلغاء') }}</x-badge>

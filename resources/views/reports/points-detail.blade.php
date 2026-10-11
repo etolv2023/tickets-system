@@ -166,7 +166,7 @@
                                          خناقة. الخصم بس هو الي بيجيب سببه معاه —
                                          الصرف العادي سببه واضح من باقي الصف. --}}
                                     @if ($row->type === 'penalty' && $row->reason)
-                                        <span class="tickets__company">{{ $row->reason }}</span>
+                                        <span class="tickets__company">{{ $row->reasonText() }}</span>
                                     @endif
                                 </td>
 

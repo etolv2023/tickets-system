@@ -88,7 +88,7 @@ class PointsLedgerExport implements FromQuery, WithHeadings, WithMapping, WithTi
             // Only a correction has an author: nobody "made" a late penalty,
             // the due date did.
             $row->type === 'correction' ? $row->creator?->name : null,
-            $row->reason,
+            $row->reasonText(),
             (float) $row->points,
             $this->plainDescription($row->ticket?->description_excerpt),
             $this->plainDescription($row->subtask?->description_excerpt),
