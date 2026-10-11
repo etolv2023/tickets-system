@@ -3,20 +3,20 @@
      person who cannot find the id simply leaves the field empty and never
      gets the notification. --}}
 <details class="help-note">
-    <summary class="help-note__summary">{{ __('أجيب الـ ID ده منين؟') }}</summary>
+    <summary class="help-note__summary">{{ __('من أين أحصل على هذا المعرّف؟') }}</summary>
 
     <div class="help-note__body">
-        <p><strong>{{ __('مهم:') }}</strong> {{ __('ده رقم، مش اسم المستخدم. اسم المستخدم بيتكتب نص عادي ومبيعملش إشعار.') }}</p>
+        <p><strong>{{ __('مهم:') }}</strong> {{ __('إنه رقم، وليس اسم المستخدم. اسم المستخدم يُكتب نصًا عاديًا ولا يُرسل إشعارًا.') }}</p>
 
         <ol>
-            <li>{{ __('افتح ديسكورد →') }} <span class="u-ltr u-mono">Settings</span> {{ __('(الترس جنب اسمك)') }}</li>
-            <li><span class="u-ltr u-mono">Advanced</span> {{ __('→ شغّل') }} <span class="u-ltr u-mono">Developer Mode</span></li>
-            <li>{{ __('ارجع لأي سيرفر، كليك يمين على اسمك أو صورتك') }}</li>
-            <li>{{ __('اختار') }} <span class="u-ltr u-mono">Copy User ID</span> {{ __('— والصقه فوق') }}</li>
+            <li>{{ __('فتح Discord ←') }} <span class="u-ltr u-mono">Settings</span> {{ __('(رمز الترس بجوار اسمك)') }}</li>
+            <li><span class="u-ltr u-mono">Advanced</span> {{ __('← فعّل') }} <span class="u-ltr u-mono">Developer Mode</span></li>
+            <li>{{ __('عُد إلى أي خادم، وانقر بزر الفأرة الأيمن على اسمك أو صورتك') }}</li>
+            <li>{{ __('اختر') }} <span class="u-ltr u-mono">Copy User ID</span> {{ __('— والصقه أعلاه') }}</li>
         </ol>
 
         <p class="u-subtle">
-            {{ __('على الموبايل:') }} <span class="u-ltr u-mono">Settings → Behavior → Developer Mode</span>{{ __('، وبعدين اضغط مطوّل على اسمك واختار') }} <span class="u-ltr u-mono">Copy User ID</span>.
+            {{ __('على الهاتف المحمول:') }} <span class="u-ltr u-mono">Settings → Behavior → Developer Mode</span>{{ __('، ثم اضغط مطولًا على اسمك واختر') }} <span class="u-ltr u-mono">Copy User ID</span>.
         </p>
     </div>
 </details>

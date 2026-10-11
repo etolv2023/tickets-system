@@ -1,16 +1,16 @@
 @extends('layouts.auth')
 
-@section('title', __('تغيير كلمة السر'))
+@section('title', __('تغيير كلمة المرور'))
 
 @section('content')
     <x-card>
         <div class="form-stack">
             <div class="auth__head">
-                <h1 class="auth__title">{{ __('تغيير كلمة السر') }}</h1>
+                <h1 class="auth__title">{{ __('تغيير كلمة المرور') }}</h1>
                 @if ($forced)
-                    <p class="auth__sub">{{ __('حسابك اتعمل بكلمة سر مؤقتة. لازم تغيّرها قبل ما تكمل.') }}</p>
+                    <p class="auth__sub">{{ __('أُنشئ حسابك بكلمة مرور مؤقتة. يجب تغييرها قبل المتابعة.') }}</p>
                 @else
-                    <p class="auth__sub">{{ __('اختار كلمة سر جديدة — 10 حروف على الأقل.') }}</p>
+                    <p class="auth__sub">{{ __('اختر كلمة مرور جديدة — 10 أحرف على الأقل.') }}</p>
                 @endif
             </div>
 
@@ -22,7 +22,7 @@
 
                 <x-field
                     name="current_password"
-                    :label="__('كلمة السر الحالية')"
+                    :label="__('كلمة المرور الحالية')"
                     type="password"
                     required
                     autofocus
@@ -31,22 +31,22 @@
 
                 <x-field
                     name="password"
-                    :label="__('كلمة السر الجديدة')"
+                    :label="__('كلمة المرور الجديدة')"
                     type="password"
                     required
-                    :hint="__('10 حروف على الأقل.')"
+                    :hint="__('10 أحرف على الأقل.')"
                     autocomplete="new-password"
                 />
 
                 <x-field
                     name="password_confirmation"
-                    :label="__('تأكيد كلمة السر الجديدة')"
+                    :label="__('تأكيد كلمة المرور الجديدة')"
                     type="password"
                     required
                     autocomplete="new-password"
                 />
 
-                <x-button variant="primary" block>{{ __('حفظ كلمة السر') }}</x-button>
+                <x-button variant="primary" block>{{ __('حفظ كلمة المرور') }}</x-button>
             </form>
         </div>
     </x-card>

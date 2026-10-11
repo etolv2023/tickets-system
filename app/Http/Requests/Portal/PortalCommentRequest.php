@@ -55,9 +55,9 @@ class PortalCommentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'body.required' => __('اكتب رسالتك الأول.'),
-            'files.max' => __('مسموح بـ :max ملفات في الرسالة الواحدة.'),
-            'files.*.max' => __('الملف أكبر من المسموح.'),
+            'body.required' => __('اكتب رسالتك أولًا.'),
+            'files.max' => __('يُسمح بـ :max ملفات في الرسالة الواحدة.'),
+            'files.*.max' => __('الملف أكبر من الحجم المسموح.'),
         ];
     }
 }

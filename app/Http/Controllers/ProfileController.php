@@ -35,6 +35,6 @@ class ProfileController extends Controller
 
         return redirect()
             ->route('profile.edit')
-            ->with('status', __('اتحفظ.'));
+            ->with('status', __('تم الحفظ.'));
     }
 }

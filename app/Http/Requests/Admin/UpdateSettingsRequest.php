@@ -59,8 +59,8 @@ class UpdateSettingsRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'work_days.required' => __('اختار يوم عمل واحد على الأقل.'),
-            'work_day_end.after' => __('نهاية الدوام لازم تكون بعد بدايته.'),
+            'work_days.required' => __('اختر يوم عمل واحدًا على الأقل.'),
+            'work_day_end.after' => __('يجب أن تكون نهاية الدوام بعد بدايته.'),
         ];
     }
 }

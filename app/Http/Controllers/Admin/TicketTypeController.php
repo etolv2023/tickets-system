@@ -50,7 +50,7 @@ class TicketTypeController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', __('تم إضافة نوع «:name».', ['name' => $data['name_ar']]));
+        return back()->with('status', __('تمت إضافة النوع «:name».', ['name' => $data['name_ar']]));
     }
 
     public function update(UpdateTicketTypeRequest $request, TicketTypeDefinition $ticketType, ActivityLogger $logger): RedirectResponse
@@ -78,7 +78,7 @@ class TicketTypeController extends Controller
         abort_unless($request->user()->hasPermission('settings.manage'), 403);
 
         if ($ticketType->is_system) {
-            return back()->withErrors(['type' => __('الأنواع الأساسية للنظام مينفعش تتحذف.')]);
+            return back()->withErrors(['type' => __('لا يمكن حذف الأنواع الأساسية للنظام.')]);
         }
 
         $name = $ticketType->name_ar;
@@ -88,7 +88,7 @@ class TicketTypeController extends Controller
         } catch (QueryException $e) {
             // FK on tickets.type is RESTRICT on purpose — a ticket sitting on
             // this type right now must not lose it silently.
-            return back()->withErrors(['type' => __('فيه تذاكر لسه بنوع «:name» — غيّرها الأول.', ['name' => $name])]);
+            return back()->withErrors(['type' => __('توجد تذاكر من النوع «:name» — غيّرها أولًا.', ['name' => $name])]);
         }
 
         $logger->log(
@@ -100,6 +100,6 @@ class TicketTypeController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', __('تم حذف نوع «:name».', ['name' => $name]));
+        return back()->with('status', __('تم حذف النوع «:name».', ['name' => $name]));
     }
 }

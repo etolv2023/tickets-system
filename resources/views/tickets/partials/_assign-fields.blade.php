@@ -2,7 +2,7 @@
      means the starter subtask exists from the ticket's first moment.
 
      ★ (2026-08-02) Was one dropdown per assignable role, all nine rendered at
-     once and all reading "— مفيش —". Nine identical empty selects is the single
+     once and all reading "— لا يوجد —". Nine identical empty selects is the single
      biggest thing wrong with this page: it fills half the form to say nothing,
      and the two or three roles a real ticket actually needs are lost in it.
 
@@ -12,7 +12,7 @@
      either way. --}}
 <x-card :title="__('فريق التنفيذ ومسؤولياته')">
     <x-slot:actions>
-        <span class="u-subtle" x-text="rows.length ? rows.length + ' ' + {{ Js::from(__('متسند')) }} : {{ Js::from(__('مفيش')) }}"></span>
+        <span class="u-subtle" x-text="rows.length ? rows.length + ' ' + {{ Js::from(__('مُسند')) }} : {{ Js::from(__('لا يوجد')) }}"></span>
     </x-slot:actions>
 
     <div class="assign">

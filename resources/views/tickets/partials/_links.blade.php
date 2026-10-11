@@ -1,8 +1,8 @@
 @php
     /*
      * F10: a link is stored once, from one side. The outgoing rows read with
-     * their own label ("بتبلوك"); the incoming rows are the SAME rows seen from
-     * the other end, so they read with the inverse ("مبلوكة بـ").
+     * their own label ("يعطّل"); the incoming rows are the SAME rows seen from
+     * the other end, so they read with the inverse ("معطَّلة بسبب").
      */
     $rows = $ticket->outgoingLinks
         ->map(fn ($l) => ['link' => $l, 'label' => $l->type->label(), 'other' => $l->toTicket])
@@ -15,12 +15,12 @@
     <div class="stack stack--tight">
         @if ($ticket->isBlocked())
             <x-alert variant="error">
-                {{ __('التذكرة دي مبلوكة بتذكرة تانية لسه مقفلتش.') }}
+                {{ __('هذه التذكرة معطَّلة بسبب تذكرة أخرى لم تُغلق بعد.') }}
             </x-alert>
         @endif
 
         @if ($rows->isEmpty())
-            <p class="field__hint">{{ __('مفيش روابط.') }}</p>
+            <p class="field__hint">{{ __('لا توجد روابط.') }}</p>
         @else
             <div class="links">
                 @foreach ($rows as $row)
@@ -61,9 +61,9 @@
                 {{-- Searched server-side by number OR title: nobody remembers
                      TK-2026-00147, they remember "the double-tax invoice one". --}}
                 <x-combobox name="to_ticket_id" resource="tickets" :label="__('التذكرة')" required
-                            :placeholder="__('اكتب رقم التذكرة أو جزء من عنوانها…')" />
+                            :placeholder="__('اكتب رقم التذكرة أو جزءًا من عنوانها…')" />
 
-                <x-button variant="secondary" size="sm" block>{{ __('اربط') }}</x-button>
+                <x-button variant="secondary" size="sm" block>{{ __('ربط') }}</x-button>
             </form>
         @endcan
     </div>

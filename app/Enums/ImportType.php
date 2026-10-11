@@ -14,7 +14,7 @@ enum ImportType: string
         return match ($this) {
             self::Companies => 'الشركات',
             self::Contacts => 'جهات الاتصال',
-            self::Users => 'المستخدمين',
+            self::Users => 'المستخدمون',
         };
     }
 

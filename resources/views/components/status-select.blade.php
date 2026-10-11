@@ -7,7 +7,7 @@
     $next = \App\Models\TicketStatusDefinition::transitionMap()[$ticket->status->value] ?? [];
     $names = \App\Models\TicketStatusDefinition::options();
 
-    // "جاري العمل" and "تم التطوير" are derived from ticket_work_logs, so they
+    // "قيد التنفيذ" and "اكتمل التطوير" are derived from ticket_work_logs, so they
     // belong to the بدأت / خلصت buttons, not to a picker. Offering them here
     // let the badge and the work logs drift apart.
     $next = array_values(array_diff($next, \App\Services\TicketWorkflowService::COMPUTED_STATUSES));
@@ -20,7 +20,7 @@
              full "غيّر الحالة" panel on the ticket page. --}}
         <form method="POST" action="{{ route('tickets.status.change', $ticket) }}" class="status-select">
             @csrf
-            <select name="to_status" class="select select--sm" aria-label="{{ __('غيّر حالة :number', ['number' => $ticket->ticket_number]) }}"
+            <select name="to_status" class="select select--sm" aria-label="{{ __('تغيير حالة :number', ['number' => $ticket->ticket_number]) }}"
                     x-data @change="$el.value && $el.form.submit()">
                 <option value="">{{ $ticket->status->label() }}</option>
                 @foreach ($next as $key)

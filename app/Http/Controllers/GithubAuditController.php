@@ -54,9 +54,9 @@ class GithubAuditController extends Controller
      * the other way, and «الكل» is how you see the ratio. One column, one WHERE.
      */
     public const BRANCH_MODES = [
-        'none' => 'ملهاش برانش',
-        'has' => 'ليها برانش',
-        'all' => 'الكل — ببرانش ومن غيره',
+        'none' => 'بلا فرع',
+        'has' => 'لها فرع',
+        'all' => 'الكل — بفرع ودون فرع',
     ];
 
     public function index(Request $request): View
@@ -142,7 +142,7 @@ class GithubAuditController extends Controller
     }
 
     /**
-     * ★ (2026-08-29) "زامن دلوقتي" — read GitHub now instead of waiting for
+     * ★ (2026-08-29) "مزامنة الآن" — read GitHub now instead of waiting for
      * 03:00.
      *
      * On github.audit rather than settings.manage: the person who has just been
@@ -155,20 +155,20 @@ class GithubAuditController extends Controller
     public function sync(Request $request): RedirectResponse
     {
         if (! config('github.enabled') || blank(config('github.token'))) {
-            return back()->withErrors(['sync' => __('التكامل مقفول أو التوكن ناقص — راجع GITHUB_ENABLED و GITHUB_TOKEN.')]);
+            return back()->withErrors(['sync' => __('التكامل معطّل أو رمز الوصول غير موجود — راجع GITHUB_ENABLED وGITHUB_TOKEN.')]);
         }
 
         $repositories = GithubRepository::activeList();
 
         if ($repositories === []) {
-            return back()->withErrors(['sync' => __('مفيش ريبوز مفعّلة.')]);
+            return back()->withErrors(['sync' => __('لا توجد مستودعات مفعّلة.')]);
         }
 
         foreach ($repositories as $repository) {
             SyncGithubRepository::dispatch($repository->id);
         }
 
-        return back()->with('status', trans_choice(':count ريبو اتحطوا في طابور المزامنة. حدّث الصفحة بعد شوية.', count($repositories)));
+        return back()->with('status', trans_choice('أُضيف :count مستودع إلى قائمة انتظار المزامنة. حدّث الصفحة بعد قليل.|أُضيف مستودع واحد إلى قائمة انتظار المزامنة. حدّث الصفحة بعد قليل.|أُضيف مستودعان إلى قائمة انتظار المزامنة. حدّث الصفحة بعد قليل.|أُضيفت :count مستودعات إلى قائمة انتظار المزامنة. حدّث الصفحة بعد قليل.|أُضيف :count مستودعًا إلى قائمة انتظار المزامنة. حدّث الصفحة بعد قليل.|أُضيف :count مستودع إلى قائمة انتظار المزامنة. حدّث الصفحة بعد قليل.', count($repositories)));
     }
 
     /**

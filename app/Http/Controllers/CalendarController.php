@@ -24,7 +24,7 @@ class CalendarController extends Controller
     /** Only this person's work. */
     public function mine(Request $request): View
     {
-        return $this->render($request, $request->user()->id, __('كاليندري'));
+        return $this->render($request, $request->user()->id, __('تقويمي'));
     }
 
     /** F13 — the whole team's. */
@@ -32,7 +32,7 @@ class CalendarController extends Controller
     {
         abort_unless($request->user()->hasPermission('reports.view'), 403);
 
-        return $this->render($request, null, __('كاليندر التيم'));
+        return $this->render($request, null, __('تقويم الفريق'));
     }
 
     private function render(Request $request, ?int $onlyUserId, string $title): View

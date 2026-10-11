@@ -62,7 +62,7 @@ class TimesheetExport implements WithMultipleSheets
             return $row;
         })->values()->all();
 
-        $footer = ['', 'إجمالي اليوم'];
+        $footer = ['', __('إجمالي اليوم')];
 
         foreach ($days as $day) {
             $footer[] = (float) ($week['byDay'][$day->toDateString()] ?? 0);
@@ -72,11 +72,11 @@ class TimesheetExport implements WithMultipleSheets
         $rows[] = $footer;
 
         return new ArraySheet(
-            'الأسبوع',
+            __('الأسبوع'),
             array_merge(
-                ['رقم التذكرة', 'عنوان التذكرة'],
+                [__('رقم التذكرة'), __('عنوان التذكرة')],
                 $days->map(fn ($d) => $d->translatedFormat('D j M'))->all(),
-                ['إجمالي'],
+                [__('إجمالي')],
             ),
             $rows,
         );
@@ -85,8 +85,8 @@ class TimesheetExport implements WithMultipleSheets
     private function entries(iterable $entries): ArraySheet
     {
         return new ArraySheet(
-            'التسجيلات',
-            ['التاريخ', 'رقم التذكرة', 'عنوان التذكرة', 'الصب تاسك', 'ملاحظة', 'ساعات'],
+            __('التسجيلات'),
+            [__('التاريخ'), __('رقم التذكرة'), __('عنوان التذكرة'), __('المهمة الفرعية'), __('ملاحظة'), __('ساعات')],
             collect($entries)->map(fn ($e) => [
                 $e->spent_on->format('Y-m-d'),
                 $e->ticket?->ticket_number,

@@ -8,9 +8,9 @@
             <div>
                 <h1 class="page-title">{{ __('تصحيحات النقاط') }}</h1>
                 <p class="page-subtitle">
-                    {{ __('كل صب تاسك بيتصرف بنقاطه هو — تتعدّل من جوه الصب تاسك نفسه. الشاشة دي للتصحيح اليدوي بس.') }}
+                    {{ __('تُحتسب لكل مهمة فرعية نقاطها الخاصة — وتُعدَّل من داخل المهمة الفرعية نفسها. هذه الشاشة للتصحيح اليدوي فقط.') }}
                     <br>
-                    {{ __('الإلغاء والتعديل بيتكتبوا كسطر عكسي —') }} <strong>{{ __('مفيش سطر بيتمسح من الدفتر') }}</strong>{{ __('، عشان تقرير أي شهر يفضل مطابق للي اتصرف فيه.') }}
+                    {{ __('يُسجَّل الإلغاء والتعديل كسطر عكسي —') }} <strong>{{ __('لا يُحذف أي سطر من الدفتر') }}</strong>{{ __('، ليبقى تقرير أي شهر مطابقًا لما احتُسب فيه.') }}
                 </p>
             </div>
         </div>
@@ -31,14 +31,14 @@
 
         {{-- F18: a manual correction — a new row, never an edit to what's already
              paid. Positive tops someone up, negative claws a mistake back. --}}
-        <x-card :title="__('تصحيح يدوي')" :meta="__('سطر جديد في دفتر النقاط — مش تعديل على المصروف')">
+        <x-card :title="__('تصحيح يدوي')" :meta="__('سطر جديد في دفتر النقاط — وليس تعديلًا على ما احتُسب')">
             <form method="POST" action="{{ route('admin.point-rules.corrections.store') }}" class="form-stack">
                 @csrf
 
                 <div class="form-grid">
                     <x-field name="user_id" :label="__('المستخدم')" required>
                         <select id="user_id" name="user_id" class="select" required>
-                            <option value="">{{ __('— اختار —') }}</option>
+                            <option value="">{{ __('— اختر —') }}</option>
                             @foreach ($users as $user)
                                 <option value="{{ $user->id }}" @selected(old('user_id') == $user->id)>{{ $user->name }}</option>
                             @endforeach
@@ -55,7 +55,7 @@
 
                     <x-field name="points" :label="__('النقاط')" type="number" step="0.5" required
                              :value="old('points')"
-                             :hint="__('رقم موجب يضيف، رقم سالب يخصم.')" />
+                             :hint="__('الرقم الموجب يُضيف، والسالب يخصم.')" />
 
                     <x-field name="ticket_number" :label="__('رقم التذكرة (اختياري)')" :value="old('ticket_number')"
                              placeholder="TK-2026-00001" />
@@ -64,7 +64,7 @@
                 <x-field name="reason" :label="__('السبب')" required :value="old('reason')" />
 
                 <div class="form-actions">
-                    <x-button variant="primary" size="sm">{{ __('سجّل التصحيح') }}</x-button>
+                    <x-button variant="primary" size="sm">{{ __('تسجيل التصحيح') }}</x-button>
                 </div>
             </form>
         </x-card>
@@ -98,7 +98,7 @@
                         @forelse ($corrections as $row)
                             @include('admin.point-rules.partials._correction-row', ['correction' => $row])
                         @empty
-                            <tr class="table__empty"><td colspan="8">{{ __('مفيش تصحيحات لسه.') }}</td></tr>
+                            <tr class="table__empty"><td colspan="8">{{ __('لا توجد تصحيحات بعد.') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>

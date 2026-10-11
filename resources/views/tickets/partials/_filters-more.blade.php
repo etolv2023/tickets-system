@@ -6,14 +6,14 @@
         <x-combobox name="label" resource="labels"
                     :value="$filters['label'] ?? null"
                     :selected="$selectedLabel"
-                    :placeholder="__('أي لابل')" />
+                    :placeholder="__('أي وسم')" />
     </div>
 
     <div class="filters__combobox">
         <x-combobox name="creator" resource="users"
                     :value="$filters['creator'] ?? null"
                     :selected="$selectedCreator"
-                    :placeholder="__('فتحها: أي حد')" />
+                    :placeholder="__('أنشأها: أي شخص')" />
     </div>
 
     <select name="origin" class="select" aria-label="{{ __('مصدر التذكرة') }}">
@@ -30,15 +30,15 @@
         @endforeach
     </select>
 
-    <select name="subtasks" class="select" aria-label="{{ __('الصب تاسكس') }}">
-        <option value="">{{ __('الصب تاسكس: الكل') }}</option>
+    <select name="subtasks" class="select" aria-label="{{ __('المهام الفرعية') }}">
+        <option value="">{{ __('المهام الفرعية: الكل') }}</option>
         @foreach (\App\Models\Ticket::SUBTASK_STATES as $value => $label)
             <option value="{{ $value }}" @selected(($filters['subtasks'] ?? '') === $value)>{{ __($label) }}</option>
         @endforeach
     </select>
 
     <input type="search" name="module" value="{{ $filters['module'] ?? '' }}" class="input"
-           placeholder="{{ __('الموديول…') }}" aria-label="{{ __('الموديول') }}">
+           placeholder="{{ __('الوحدة…') }}" aria-label="{{ __('الوحدة') }}">
 
     <select name="sort" class="select" aria-label="{{ __('الترتيب') }}">
         @foreach (\App\Models\Ticket::SORTS as $value => $label)
@@ -49,7 +49,7 @@
     {{-- The range and the column it runs against are one question, so they
          share one cell: "تاريخ الحل من … إلى …". --}}
     <div class="filters__dates">
-        <select name="date_basis" class="select" aria-label="{{ __('الفترة على أي تاريخ') }}">
+        <select name="date_basis" class="select" aria-label="{{ __('الفترة حسب أي تاريخ') }}">
             @foreach (\App\Models\Ticket::DATE_BASES as $value => $label)
                 <option value="{{ $value }}" @selected(($filters['date_basis'] ?? 'reported_at') === $value)>{{ __($label) }}</option>
             @endforeach
@@ -58,7 +58,7 @@
             <span class="filters__range-label">{{ __('من') }}</span>
             <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" aria-label="{{ __('من تاريخ') }}">
             <span class="filters__range-label">{{ __('إلى') }}</span>
-            <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" aria-label="{{ __('لتاريخ') }}">
+            <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" aria-label="{{ __('حتى تاريخ') }}">
         </div>
     </div>
 </div>

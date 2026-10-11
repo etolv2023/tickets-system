@@ -39,7 +39,7 @@ class PriorityController extends Controller
             'position' => (int) PriorityDefinition::max('position') + 1,
         ]);
 
-        return back()->with('status', __('تم إضافة أولوية «:name».', ['name' => $data['name_ar']]));
+        return back()->with('status', __('تمت إضافة الأولوية «:name».', ['name' => $data['name_ar']]));
     }
 
     public function update(UpdatePriorityRequest $request, PriorityDefinition $priority): RedirectResponse
@@ -54,7 +54,7 @@ class PriorityController extends Controller
         abort_unless($request->user()->hasPermission('settings.manage'), 403);
 
         if ($priority->is_system) {
-            return back()->withErrors(['priority' => __('الأولويات الأساسية للنظام مينفعش تتحذف.')]);
+            return back()->withErrors(['priority' => __('لا يمكن حذف الأولويات الأساسية للنظام.')]);
         }
 
         $name = $priority->name_ar;
@@ -64,9 +64,9 @@ class PriorityController extends Controller
         } catch (QueryException $e) {
             // FK on tickets.priority is RESTRICT on purpose — a ticket sitting
             // on this priority right now must not lose it silently.
-            return back()->withErrors(['priority' => __('فيه تذاكر لسه بأولوية «:name» — غيّرها الأول.', ['name' => $name])]);
+            return back()->withErrors(['priority' => __('توجد تذاكر بالأولوية «:name» — غيّرها أولًا.', ['name' => $name])]);
         }
 
-        return back()->with('status', __('تم حذف أولوية «:name».', ['name' => $name]));
+        return back()->with('status', __('تم حذف الأولوية «:name».', ['name' => $name]));
     }
 }

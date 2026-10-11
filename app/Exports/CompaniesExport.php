@@ -36,7 +36,7 @@ class CompaniesExport implements FromQuery, WithHeadings, WithMapping, WithTitle
 
     public function headings(): array
     {
-        return ['الشركة', 'الكود', 'جهات الاتصال', 'الحالة', 'ملاحظات'];
+        return [__('الشركة'), __('الكود'), __('جهات الاتصال'), __('الحالة'), __('ملاحظات')];
     }
 
     /** @param Company $company */
@@ -46,13 +46,13 @@ class CompaniesExport implements FromQuery, WithHeadings, WithMapping, WithTitle
             $company->name,
             $company->code,
             $company->contacts_count,
-            $company->is_active ? 'مفعّلة' : 'موقوفة',
+            $company->is_active ? __('مفعّلة') : __('موقوفة'),
             $company->notes,
         ]);
     }
 
     public function title(): string
     {
-        return 'الشركات';
+        return __('الشركات');
     }
 }

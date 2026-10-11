@@ -95,11 +95,11 @@ class SettingService
         $mime = (new finfo(FILEINFO_MIME_TYPE))->file($file->getRealPath());
 
         if (! in_array($mime, self::LOGO_MIMES, true)) {
-            throw new RuntimeException('الملف ده مش صورة صالحة. المسموح: PNG أو JPG أو WEBP.');
+            throw new RuntimeException(__('هذا الملف ليس صورة صالحة. المسموح: PNG أو JPG أو WEBP.'));
         }
 
         if (@getimagesize($file->getRealPath()) === false) {
-            throw new RuntimeException('مقدرتش أقرا الصورة دي. جرّب ملف تاني.');
+            throw new RuntimeException(__('تعذّرت قراءة هذه الصورة. جرّب ملفًا آخر.'));
         }
     }
 

@@ -18,13 +18,13 @@
             type="search"
             name="q"
             value="{{ $filters['q'] ?? '' }}"
-            placeholder="{{ __('ابحث بالعنوان أو الوصف، أو الصق رقم تذكرة') }}"
+            placeholder="{{ __('ابحث بالعنوان أو الوصف، أو الصق رقم التذكرة') }}"
             class="input filters__search"
         >
 
         <button type="button" class="btn btn--secondary" @click="panelOpen = !panelOpen"
                 :aria-expanded="panelOpen.toString()">
-            <x-icon name="filter" class="btn__icon" /> {{ __('الفلاتر') }}
+            <x-icon name="filter" class="btn__icon" /> {{ __('عوامل التصفية') }}
         </button>
 
         <x-button variant="secondary">{{ __('تطبيق') }}</x-button>
@@ -42,7 +42,7 @@
         {{-- ★ (2026-08-29) The question itself, first: ملهاش / ليها / الكل.
              Blank stays «ملهاش برانش» — the blank state of this screen is the
              question it was built to answer. --}}
-        <select name="branch" class="select" aria-label="{{ __('البرانش') }}">
+        <select name="branch" class="select" aria-label="{{ __('الفرع') }}">
             @foreach ($branchModes as $value => $label)
                 <option value="{{ $value }}" @selected($mode === $value)>{{ __($label) }}</option>
             @endforeach
@@ -51,9 +51,9 @@
         {{-- Blank means "اتقفلت" here, not "everything": the default state of
              this screen is the question it exists to answer. --}}
         <select name="status" class="select" aria-label="{{ __('الحالة') }}">
-            <option value="">{{ __('اتقفلت (محلولة أو مغلقة)') }}</option>
-            <option value="all" @selected(($filters['status'] ?? '') === 'all')>{{ __('كل الحالات') }}</option>
-            <option value="open" @selected(($filters['status'] ?? '') === 'open')>{{ __('لسه مفتوحة') }}</option>
+            <option value="">{{ __('أُغلقت (محلولة أو مغلقة)') }}</option>
+            <option value="all" @selected(($filters['status'] ?? '') === 'all')>{{ __('جميع الحالات') }}</option>
+            <option value="open" @selected(($filters['status'] ?? '') === 'open')>{{ __('ما زالت مفتوحة') }}</option>
             @foreach ($statuses as $value => $label)
                 <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ __($label) }}</option>
             @endforeach
@@ -64,8 +64,8 @@
              split across a backend repo and three frontends it is usually the
              more useful one. The wording follows the mode so the two selects
              read as one sentence rather than contradicting each other. --}}
-        <select name="repo" class="select" aria-label="{{ __('الريبو') }}">
-            <option value="">{{ __('في أي ريبو') }}</option>
+        <select name="repo" class="select" aria-label="{{ __('المستودع') }}">
+            <option value="">{{ __('في أي مستودع') }}</option>
             @foreach ($repositories as $repository)
                 <option value="{{ $repository->id }}" @selected((int) ($filters['repo'] ?? 0) === $repository->id)>
                     {{ __('في :name', ['name' => $repository->name]) }}
@@ -81,7 +81,7 @@
         </select>
 
         <select name="priority" class="select" aria-label="{{ __('الأولوية') }}">
-            <option value="">{{ __('كل الأولويات') }}</option>
+            <option value="">{{ __('جميع الأولويات') }}</option>
             @foreach ($priorities as $value => $label)
                 <option value="{{ $value }}" @selected(($filters['priority'] ?? '') === $value)>{{ __($label) }}</option>
             @endforeach
@@ -91,7 +91,7 @@
             <x-combobox name="company" resource="companies"
                         :value="$filters['company'] ?? null"
                         :selected="$selectedCompany"
-                        :placeholder="__('كل الشركات')" />
+                        :placeholder="__('جميع الشركات')" />
         </div>
 
         <div class="filters__person">
@@ -116,7 +116,7 @@
              rather than overflow the row (see filters.css). Putting a third
              control in there gave the select its full width and squeezed both
              dates down to empty squares. --}}
-        <select name="date_basis" class="select" aria-label="{{ __('التاريخ محسوب على') }}">
+        <select name="date_basis" class="select" aria-label="{{ __('التاريخ محسوب على أساس') }}">
             @foreach (\App\Models\Ticket::DATE_BASES as $value => $label)
                 <option value="{{ $value }}" @selected(($filters['date_basis'] ?? 'resolved_at') === $value)>{{ __($label) }}</option>
             @endforeach
@@ -125,7 +125,7 @@
         <div class="filters__group">
             <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" class="input" aria-label="{{ __('من تاريخ') }}">
             <span class="u-subtle">→</span>
-            <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" class="input" aria-label="{{ __('لتاريخ') }}">
+            <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" class="input" aria-label="{{ __('حتى تاريخ') }}">
         </div>
     </div>
 </form>

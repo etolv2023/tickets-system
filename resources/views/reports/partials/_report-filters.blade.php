@@ -13,7 +13,7 @@
         <x-combobox name="company" resource="companies"
                     :value="$filters['company'] ?? null"
                     :selected="$selectedCompany"
-                    :placeholder="__('كل الشركات')" />
+                    :placeholder="__('جميع الشركات')" />
     </div>
 
     <select name="type" class="select filters__select" aria-label="{{ __('النوع') }}">
@@ -24,7 +24,7 @@
     </select>
 
     <select name="priority" class="select filters__select" aria-label="{{ __('الأولوية') }}">
-        <option value="">{{ __('كل الأولويات') }}</option>
+        <option value="">{{ __('جميع الأولويات') }}</option>
         @foreach ($priorities as $value => $label)
             <option value="{{ $value }}" @selected(($filters['priority'] ?? '') === $value)>{{ __($label) }}</option>
         @endforeach
@@ -34,10 +34,10 @@
         <x-combobox name="person" resource="users"
                     :value="$filters['person'] ?? null"
                     :selected="$selectedPerson"
-                    :placeholder="__('مسندة لأي حد')" />
+                    :placeholder="__('مُسندة لأي شخص')" />
     </div>
 
-    <x-button variant="secondary" size="sm">{{ __('اعرض') }}</x-button>
+    <x-button variant="secondary" size="sm">{{ __('عرض') }}</x-button>
 
     @if (array_filter($filters))
         <x-button variant="ghost" size="sm" :href="route('reports.index', ['period' => $period])">{{ __('مسح') }}</x-button>

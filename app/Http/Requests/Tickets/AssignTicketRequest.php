@@ -39,7 +39,7 @@ class AssignTicketRequest extends FormRequest
 
             foreach (array_keys($this->input('role_assignments', [])) as $roleId) {
                 if (! in_array((int) $roleId, $roleIds, true)) {
-                    $validator->errors()->add('role_assignments', __('رول مش متاح للتوزيع.'));
+                    $validator->errors()->add('role_assignments', __('هذا الدور غير متاح للإسناد.'));
                 }
             }
         });
@@ -55,7 +55,7 @@ class AssignTicketRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'role_assignments.*.exists' => __('المستخدم ده مش متاح للتوزيع.'),
+            'role_assignments.*.exists' => __('هذا المستخدم غير متاح للإسناد.'),
         ];
     }
 }

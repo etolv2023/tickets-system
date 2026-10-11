@@ -14,20 +14,20 @@
     </div>
 
     <div class="portal-facts__item">
-        <dt class="portal-facts__key">{{ __('اتفتحت') }}</dt>
+        <dt class="portal-facts__key">{{ __('أُنشئت') }}</dt>
         <dd class="portal-facts__value u-nums">{{ $ticket->reported_at->translatedFormat('j F Y') }}</dd>
     </div>
 
     <div class="portal-facts__item">
         <dt class="portal-facts__key">{{ __('آخر رد') }}</dt>
         <dd class="portal-facts__value u-nums">
-            {{ $lastReply?->created_at->diffForHumans() ?? __('لسه مفيش') }}
+            {{ $lastReply?->created_at->diffForHumans() ?? __('لا يوجد بعد') }}
         </dd>
     </div>
 
     @if ($ticket->resolved_at)
         <div class="portal-facts__item">
-            <dt class="portal-facts__key">{{ __('اتحلت') }}</dt>
+            <dt class="portal-facts__key">{{ __('تاريخ الحل') }}</dt>
             <dd class="portal-facts__value u-nums">{{ $ticket->resolved_at->translatedFormat('j F Y') }}</dd>
         </div>
     @else

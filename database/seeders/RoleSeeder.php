@@ -20,7 +20,7 @@ class RoleSeeder extends Seeder
             'permissions' => '*',
         ],
         'manager' => [
-            'name' => 'مدير التيم',
+            'name' => 'مدير الفريق',
             'permissions' => [
                 'tickets.view.all', 'tickets.view.assigned', 'tickets.view.own',
                 'tickets.create', 'tickets.edit', 'tickets.assign', 'tickets.resolve',
@@ -52,7 +52,7 @@ class RoleSeeder extends Seeder
             ],
         ],
         'frontend' => [
-            'name' => 'مبرمج فرونت',
+            'name' => 'مطوّر الواجهات الأمامية',
             'permissions' => [
                 'tickets.view.assigned',
                 'comments.create', 'comments.internal',
@@ -61,7 +61,7 @@ class RoleSeeder extends Seeder
             ],
         ],
         'backend' => [
-            'name' => 'مبرمج باك',
+            'name' => 'مطوّر الأنظمة الخلفية',
             'permissions' => [
                 'tickets.view.assigned',
                 'comments.create', 'comments.internal',
@@ -70,7 +70,7 @@ class RoleSeeder extends Seeder
             ],
         ],
         'devops' => [
-            'name' => 'ديف أوبس',
+            'name' => 'عمليات التطوير',
             // Same set as a developer: DevOps holds no work log, but everything
             // else about being on a ticket is identical — see it, comment,
             // manage its subtasks, log time, earn on it.
@@ -82,7 +82,7 @@ class RoleSeeder extends Seeder
             ],
         ],
         'tester' => [
-            'name' => 'تيستر',
+            'name' => 'المختبِر',
             'permissions' => [
                 'tickets.view.assigned', 'tickets.resolve', 'tickets.reopen',
                 'comments.create', 'comments.internal',

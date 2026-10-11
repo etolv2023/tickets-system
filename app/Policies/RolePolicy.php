@@ -46,7 +46,7 @@ class RolePolicy
         }
 
         if ($role->users()->exists()) {
-            return Response::deny(__('فيه مستخدمين على الدور ده. انقلهم لدور تاني الأول.'));
+            return Response::deny(__('يوجد مستخدمون على هذا الدور. انقلهم إلى دور آخر أولًا.'));
         }
 
         return Response::allow();

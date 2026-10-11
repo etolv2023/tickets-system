@@ -6,7 +6,7 @@
     @endisset
     @isset($by)
         <select name="by" class="select filters__select" aria-label="{{ __('التجميع') }}">
-            @foreach (['type' => __('النوع'), 'status' => __('الحالة'), 'priority' => __('الأولوية'), 'module' => __('الموديول')] as $key => $label)
+            @foreach (['type' => __('النوع'), 'status' => __('الحالة'), 'priority' => __('الأولوية'), 'module' => __('الوحدة')] as $key => $label)
                 <option value="{{ $key }}" @selected($by === $key)>{{ __($label) }}</option>
             @endforeach
         </select>
@@ -21,16 +21,16 @@
     <input name="type" value="{{ $filters['type'] ?? '' }}" class="input filters__select" placeholder="{{ __('مفتاح النوع') }}">
     <input name="status" value="{{ $filters['status'] ?? '' }}" class="input filters__select" placeholder="{{ __('مفتاح الحالة') }}">
     <input name="priority" value="{{ $filters['priority'] ?? '' }}" class="input filters__select" placeholder="{{ __('مفتاح الأولوية') }}">
-    <input name="module" value="{{ $filters['module'] ?? '' }}" class="input filters__select" placeholder="{{ __('الموديول') }}">
+    <input name="module" value="{{ $filters['module'] ?? '' }}" class="input filters__select" placeholder="{{ __('الوحدة') }}">
     <div class="filters__combobox">
         <x-combobox name="assignee" resource="users" :value="$filters['assignee'] ?? null"
-                    :selected="$selectedAssignee" :placeholder="__('كل المسؤولين')" />
+                    :selected="$selectedAssignee" :placeholder="__('جميع المسؤولين')" />
     </div>
     <select name="deadline" class="select filters__select" aria-label="{{ __('حالة الموعد') }}">
-        <option value="">{{ __('كل المواعيد') }}</option>
+        <option value="">{{ __('جميع المواعيد') }}</option>
         @foreach ($deadlineFilters as $key => $label)
             <option value="{{ $key }}" @selected(($filters['deadline'] ?? '') === $key)>{{ __($label) }}</option>
         @endforeach
     </select>
-    <x-button variant="secondary" size="sm">{{ __('اعرض') }}</x-button>
+    <x-button variant="secondary" size="sm">{{ __('عرض') }}</x-button>
 </form>

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Casts\LinkTypeValue;
 use App\Models\LinkTypeDefinition;
 use App\Models\Ticket;
 use App\Models\TicketLink;
@@ -11,6 +10,7 @@ use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Support\Phrase;
 
 /** F10 — "this blocks that", stored once and read both ways. */
 class TicketLinkController extends Controller
@@ -30,7 +30,7 @@ class TicketLinkController extends Controller
         $target = Ticket::findOrFail($data['to_ticket_id']);
 
         if ($target->id === $ticket->id) {
-            return back()->withErrors(['to_ticket_id' => __('مينفعش تربط التذكرة بنفسها.')]);
+            return back()->withErrors(['to_ticket_id' => __('لا يمكن ربط التذكرة بنفسها.')]);
         }
 
         // You can only link to something you're allowed to see, or the link
@@ -43,7 +43,7 @@ class TicketLinkController extends Controller
             ->exists();
 
         if ($exists) {
-            return back()->withErrors(['to_ticket_id' => __('الربط ده موجود بالفعل.')]);
+            return back()->withErrors(['to_ticket_id' => __('هذا الربط موجود بالفعل.')]);
         }
 
         TicketLink::create([
@@ -56,23 +56,22 @@ class TicketLinkController extends Controller
         // Both circles hear it: a link is a fact about two tickets, and the
         // other ticket's owners are exactly the people it may now block.
         $notifications = app(NotificationService::class);
-        $label = LinkTypeValue::for($data['type'])->label();
 
         $notifications->dispatch(
             $ticket,
             NotificationEvent::TicketLinked,
-            "{$ticket->ticket_number} بقت {$label} {$target->ticket_number}",
+            new Phrase(':source :link :target', ['source' => $ticket->ticket_number, 'link' => Phrase::linkType($data['type']), 'target' => $target->ticket_number]),
             $request->user()->id,
         );
 
         $notifications->dispatch(
             $target,
             NotificationEvent::TicketLinked,
-            "{$target->ticket_number} اترطبت بـ{$ticket->ticket_number} ({$label})",
+            new Phrase('تم ربط :target بالتذكرة :source (:link)', ['target' => $target->ticket_number, 'source' => $ticket->ticket_number, 'link' => Phrase::linkType($data['type'])]),
             $request->user()->id,
         );
 
-        return back()->with('status', __('تم الربط بـ:number.', ['number' => $target->ticket_number]));
+        return back()->with('status', __('تم الربط بـ :number.', ['number' => $target->ticket_number]));
     }
 
     public function destroy(Request $request, Ticket $ticket, TicketLink $link): RedirectResponse

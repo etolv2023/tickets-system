@@ -4,5 +4,5 @@
             <option value="{{ $value }}" @selected($period === $value)>{{ __($label) }}</option>
         @endforeach
     </select>
-    <noscript><x-button variant="secondary">{{ __('اعرض') }}</x-button></noscript>
+    <noscript><x-button variant="secondary">{{ __('عرض') }}</x-button></noscript>
 </form>

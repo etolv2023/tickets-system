@@ -31,7 +31,7 @@ class UpdatePriorityRequest extends FormRequest
             'name_ar' => __('الاسم'),
             'name_en' => __('الاسم بالإنجليزية'),
             'color' => __('اللون'),
-            'sla_hours' => __('مهلة الـ SLA'),
+            'sla_hours' => __('مهلة SLA'),
         ];
     }
 }

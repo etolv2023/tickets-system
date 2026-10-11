@@ -24,7 +24,7 @@ class GitHubWriteClient
     public function deleteBranch(GithubRepository $repository, string $branch): void
     {
         if (! $this->configured()) {
-            throw new RuntimeException('توكن حذف برانشات GitHub مش متسجل على السيرفر.');
+            throw new RuntimeException(__('رمز حذف الفروع في GitHub غير مسجل على الخادم.'));
         }
 
         $ref = implode('/', array_map('rawurlencode', explode('/', $branch)));
@@ -40,7 +40,7 @@ class GitHubWriteClient
                 ->timeout(max(1, (int) config('github.timeout', 15)))
                 ->delete($url);
         } catch (ConnectionException $e) {
-            throw new RuntimeException('مفيش اتصال بجيت هب: ' . $e->getMessage(), previous: $e);
+            throw new RuntimeException(__('تعذّر الاتصال بـ GitHub: :error', ['error' => $e->getMessage()]), previous: $e);
         }
 
         if ($response->successful()) {
@@ -49,8 +49,10 @@ class GitHubWriteClient
 
         $message = $response->json('message');
         throw new RuntimeException(
-            'GitHub رفض حذف البرانش (' . $response->status() . '): '
-            . (is_string($message) ? $message : 'راجع صلاحية Contents والـ branch protection.')
+            __('رفض GitHub حذف الفرع (:status): :message', [
+                'status' => $response->status(),
+                'message' => is_string($message) ? $message : __('راجع صلاحية Contents وإعدادات حماية الفرع.'),
+            ])
         );
     }
 }

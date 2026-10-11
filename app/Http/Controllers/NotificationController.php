@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Notifications\NotificationEvent;
+use App\Support\Phrase;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,7 +22,13 @@ class NotificationController extends Controller
             // it. Acceptable here: it is scoped to one user's own rows by an
             // indexed morph key, and that set stays small.
             ->when($filters['q'] ?? null, fn ($query, $term) => $query->where('data', 'like', "%{$term}%"))
-            ->when($filters['group'] ?? null, fn ($query, $group) => $query->where('data', 'like', '%"group":"' . $group . '"%'))
+            // By the events in the group, not by a stored label: rows written
+            // before groups had keys stored the Arabic name instead.
+            ->when($filters['group'] ?? null, fn ($query, $group) => $query->where(function ($query) use ($group) {
+                foreach (NotificationEvent::eventsIn((string) $group) as $event) {
+                    $query->orWhere('data', 'like', '%"event":"' . $event . '"%');
+                }
+            }))
             ->when(($filters['state'] ?? null) === 'unread', fn ($query) => $query->whereNull('read_at'))
             ->when(($filters['state'] ?? null) === 'read', fn ($query) => $query->whereNotNull('read_at'))
             ->paginate(30)
@@ -62,7 +69,7 @@ class NotificationController extends Controller
             // it lands. Null when there is nothing unread.
             'latest' => $latest === null ? null : [
                 'id' => $latest->id,
-                'message' => $latest->data['message'] ?? __('فيه تحديث على تذكرة.'),
+                'message' => Phrase::fromNotification($latest->data) ?: __('يوجد تحديث على تذكرة.'),
                 'url' => route('notifications.read', $latest->id),
             ],
         ]);
@@ -89,7 +96,7 @@ class NotificationController extends Controller
 
         $this->refreshBadge($request->user()->id);
 
-        return back()->with('status', __('علّمنا الكل كمقروء.'));
+        return back()->with('status', __('تم تعليم جميع الإشعارات كمقروءة.'));
     }
 
     private function unreadCount(Request $request): int

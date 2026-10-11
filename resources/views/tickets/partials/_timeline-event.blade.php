@@ -17,19 +17,19 @@
 
         <p class="timeline__event">
             @if ($event->from_status === $event->to_status)
-                {{ $event->note }}
+                {{ $event->noteText() }}
             @elseif ($event->fromLabel())
-                {{ __('نقل التذكرة من «:from» لـ «:to»', ['from' => $event->fromLabel(), 'to' => $event->toLabel()]) }}
+                {{ __('نقل التذكرة من «:from» إلى «:to»', ['from' => $event->fromLabel(), 'to' => $event->toLabel()]) }}
             @else
                 {{ __('فتح التذكرة') }}
             @endif
 
             @if ($event->note && $event->from_status !== $event->to_status)
-                — {{ $event->note }}
+                — {{ $event->noteText() }}
             @endif
 
             @if ($event->recipientLabel())
-                — {{ __('مستنيين رد من :who', ['who' => $event->recipientLabel()]) }}
+                — {{ __('بانتظار رد من :who', ['who' => $event->recipientLabel()]) }}
             @endif
         </p>
     </div>

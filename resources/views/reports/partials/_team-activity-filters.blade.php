@@ -7,27 +7,27 @@
         <x-combobox name="person" resource="users"
                     :value="$filters['person'] ?? null"
                     :selected="$selectedPerson ?? null"
-                    :placeholder="__('كل التيم')" />
+                    :placeholder="__('الفريق بالكامل')" />
     </div>
 
     <div class="filters__group">
         <span class="u-subtle">{{ __('من') }}</span>
         <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" class="input" aria-label="{{ __('من تاريخ') }}">
-        <span class="u-subtle">{{ __('لـ') }}</span>
-        <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" class="input" aria-label="{{ __('لتاريخ') }}">
+        <span class="u-subtle">{{ __('إلى') }}</span>
+        <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" class="input" aria-label="{{ __('حتى تاريخ') }}">
     </div>
 
     <select name="show" class="select filters__select">
-        <option value="both" @selected($show === 'both')>{{ __('تذاكر وصب تاسكس') }}</option>
-        <option value="tickets" @selected($show === 'tickets')>{{ __('تذاكر بس') }}</option>
-        <option value="subtasks" @selected($show === 'subtasks')>{{ __('صب تاسكس بس') }}</option>
+        <option value="both" @selected($show === 'both')>{{ __('التذاكر والمهام الفرعية') }}</option>
+        <option value="tickets" @selected($show === 'tickets')>{{ __('التذاكر فقط') }}</option>
+        <option value="subtasks" @selected($show === 'subtasks')>{{ __('المهام الفرعية فقط') }}</option>
     </select>
 
     <div class="filters__combobox">
         <x-combobox name="company" resource="companies"
                     :value="$filters['company'] ?? null"
                     :selected="$selectedCompany ?? null"
-                    :placeholder="__('كل الشركات')" />
+                    :placeholder="__('جميع الشركات')" />
     </div>
 
     <select name="type" class="select filters__select">
@@ -40,36 +40,36 @@
     {{-- ★ (2026-10-05) One box over both tables: a subtask title, or its
          ticket's number or title. --}}
     <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" class="input filters__search"
-           placeholder="{{ __('ابحث بعنوان الصب تاسك أو التذكرة أو رقمها') }}" aria-label="{{ __('بحث') }}">
+           placeholder="{{ __('ابحث بعنوان المهمة الفرعية أو التذكرة أو رقمها') }}" aria-label="{{ __('بحث') }}">
 
-    <x-button variant="secondary">{{ __('فلترة') }}</x-button>
+    <x-button variant="secondary">{{ __('تصفية') }}</x-button>
 
     @if (array_filter($filters) || $show !== 'both')
-        <x-button variant="ghost" :href="route('reports.team-activity')">{{ __('مسح كل الفلاتر') }}</x-button>
+        <x-button variant="ghost" :href="route('reports.team-activity')">{{ __('مسح جميع عوامل التصفية') }}</x-button>
     @endif
 
     {{-- Filters specific to one table only — grouped so it's clear which
          table each one narrows. --}}
     <div class="filters__group filters__group--full">
-        <span class="u-label">{{ __('فلاتر التذاكر') }}</span>
+        <span class="u-label">{{ __('عوامل تصفية التذاكر') }}</span>
 
         <select name="ticket_date_basis" class="select filters__select">
             @foreach ($ticketDateBases as $value => $label)
                 <option value="{{ $value }}" @selected(($filters['ticket_date_basis'] ?? 'reported_at') === $value)>
-                    {{ __('الفترة على: :basis', ['basis' => __($label)]) }}
+                    {{ __('الفترة حسب: :basis', ['basis' => __($label)]) }}
                 </option>
             @endforeach
         </select>
 
         <select name="priority" class="select filters__select">
-            <option value="">{{ __('كل الأولويات') }}</option>
+            <option value="">{{ __('جميع الأولويات') }}</option>
             @foreach ($priorities as $value => $label)
                 <option value="{{ $value }}" @selected(($filters['priority'] ?? '') === $value)>{{ __($label) }}</option>
             @endforeach
         </select>
 
         <select name="status" class="select filters__select">
-            <option value="">{{ __('كل الحالات') }}</option>
+            <option value="">{{ __('جميع الحالات') }}</option>
             @foreach ($statuses as $value => $label)
                 <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ __($label) }}</option>
             @endforeach
@@ -85,35 +85,35 @@
     </div>
 
     <div class="filters__group filters__group--full">
-        <span class="u-label">{{ __('فلاتر الصب تاسكس') }}</span>
+        <span class="u-label">{{ __('عوامل تصفية المهام الفرعية') }}</span>
 
         <select name="subtask_date_basis" class="select filters__select">
             @foreach ($subtaskDateBases as $value => $label)
                 <option value="{{ $value }}" @selected(($filters['subtask_date_basis'] ?? 'start_date') === $value)>
-                    {{ __('الفترة على: :basis', ['basis' => __($label)]) }}
+                    {{ __('الفترة حسب: :basis', ['basis' => __($label)]) }}
                 </option>
             @endforeach
         </select>
 
         <select name="role" class="select filters__select">
-            <option value="">{{ __('كل الأدوار') }}</option>
+            <option value="">{{ __('جميع الأدوار') }}</option>
             @foreach ($roles as $role)
                 <option value="{{ $role->id }}" @selected((int) ($filters['role'] ?? 0) === $role->id)>{{ $role->label() }}</option>
             @endforeach
         </select>
 
         <select name="subtask_status" class="select filters__select">
-            <option value="">{{ __('كل الحالات') }}</option>
+            <option value="">{{ __('جميع الحالات') }}</option>
             @foreach ($subtaskStatuses as $value => $label)
                 <option value="{{ $value }}" @selected(($filters['subtask_status'] ?? '') === $value)>{{ __($label) }}</option>
             @endforeach
         </select>
 
         {{-- ★ (2026-10-05) Still open past its date, or not — TicketSubtask::isOverdue(). --}}
-        <select name="subtask_overdue" class="select filters__select" aria-label="{{ __('تأخير الصب تاسك') }}">
+        <select name="subtask_overdue" class="select filters__select" aria-label="{{ __('تأخير المهمة الفرعية') }}">
             <option value="">{{ __('التأخير: الكل') }}</option>
             <option value="yes" @selected(($filters['subtask_overdue'] ?? '') === 'yes')>{{ __('متأخرة') }}</option>
-            <option value="no" @selected(($filters['subtask_overdue'] ?? '') === 'no')>{{ __('مش متأخرة') }}</option>
+            <option value="no" @selected(($filters['subtask_overdue'] ?? '') === 'no')>{{ __('غير متأخرة') }}</option>
         </select>
     </div>
 </form>

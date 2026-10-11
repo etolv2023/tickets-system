@@ -19,16 +19,16 @@ class TicketPerformanceExport implements FromCollection, WithHeadings, WithMappi
     public function collection(): Collection
     {
         $labels = [
-            'created' => 'فتحها', 'assigned' => 'مسندة له', 'resolved' => 'محلولة',
-            'closed' => 'مغلقة', 'reopened' => 'أعيد فتحها', 'currently_open' => 'مفتوحة حاليًا',
-            'currently_overdue' => 'متأخرة حاليًا', 'completed_early' => 'اكتملت مبكرًا',
-            'completed_on_time' => 'اكتملت في الموعد', 'completed_late' => 'اكتملت متأخرًا',
-            'on_time_percentage' => 'الالتزام بالموعد %', 'overdue_percentage' => 'نسبة المتأخر %',
-            'avg_resolution_hours' => 'متوسط الحل (س)', 'avg_closing_hours' => 'متوسط الإغلاق (س)',
-            'avg_lateness_hours' => 'متوسط التأخير (س)', 'avg_earliness_hours' => 'متوسط التبكير (س)',
+            'created' => __('أنشأها'), 'assigned' => __('مُسندة إليه'), 'resolved' => __('محلولة'),
+            'closed' => __('مغلقة'), 'reopened' => __('أعيد فتحها'), 'currently_open' => __('مفتوحة حاليًا'),
+            'currently_overdue' => __('متأخرة حاليًا'), 'completed_early' => __('اكتملت مبكرًا'),
+            'completed_on_time' => __('اكتملت في الموعد'), 'completed_late' => __('اكتملت متأخرًا'),
+            'on_time_percentage' => __('الالتزام بالموعد %'), 'overdue_percentage' => __('نسبة المتأخر %'),
+            'avg_resolution_hours' => __('متوسط الحل (س)'), 'avg_closing_hours' => __('متوسط الإغلاق (س)'),
+            'avg_lateness_hours' => __('متوسط التأخير (س)'), 'avg_earliness_hours' => __('متوسط التبكير (س)'),
         ];
-        $rows = collect($labels)->map(fn ($label, $key) => (object) ['section' => 'الإجمالي', 'item' => $label, 'value' => $this->report[$key] ?? null]);
-        foreach (['by_type' => 'النوع', 'by_status' => 'الحالة', 'by_priority' => 'الأولوية', 'by_module' => 'الموديول'] as $key => $section) {
+        $rows = collect($labels)->map(fn ($label, $key) => (object) ['section' => __('الإجمالي'), 'item' => $label, 'value' => $this->report[$key] ?? null]);
+        foreach (['by_type' => __('النوع'), 'by_status' => __('الحالة'), 'by_priority' => __('الأولوية'), 'by_module' => __('الوحدة')] as $key => $section) {
             $rows = $rows->concat(collect($this->report[$key])->map(fn ($row) => (object) [
                 'section' => $section, 'item' => $row->name ?? $row->key, 'value' => $row->ticket_count,
             ]));
@@ -37,7 +37,7 @@ class TicketPerformanceExport implements FromCollection, WithHeadings, WithMappi
         return $rows;
     }
 
-    public function headings(): array { return ['القسم', 'البند', 'القيمة']; }
+    public function headings(): array { return [__('القسم'), __('البند'), __('القيمة')]; }
 
     public function map($row): array { return $this->sanitizeRow([$row->section, $row->item, $row->value]); }
 }

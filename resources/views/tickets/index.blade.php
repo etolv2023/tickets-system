@@ -26,9 +26,9 @@
         @if ($tickets->total() === 0 && ! array_filter($filters))
             <x-card>
                 <div class="blank">
-                    <p class="blank__title">{{ __('مفيش تذاكر لسه.') }}</p>
+                    <p class="blank__title">{{ __('لا توجد تذاكر بعد.') }}</p>
                     <p class="blank__body">
-                        {{ __('أول ما تفتح تذكرة هتلاقيها هنا — بترتيب الأولوية، الأقدم أولاً.') }}
+                        {{ __('عند إنشاء أول تذكرة ستظهر هنا — مرتبة حسب الأولوية، ثم الأقدم.') }}
                     </p>
                     @can('create', App\Models\Ticket::class)
                         <div class="blank__actions">
@@ -60,7 +60,7 @@
                                 @include('tickets.partials._row', ['ticket' => $ticket])
                             @empty
                                 <tr class="table__empty">
-                                    <td colspan="7">{{ __('مفيش تذاكر بالفلاتر دي.') }}</td>
+                                    <td colspan="7">{{ __('لا توجد تذاكر مطابقة لعوامل التصفية.') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -71,7 +71,7 @@
             {{-- The count reads as a footnote under the table, not as a heading
                  above it — you look at it after scanning, if at all. --}}
             <span class="tickets__count">
-                {{ trans_choice(':count تذكرة', $tickets->total()) }} · {{ __('الترتيب: :sort', ['sort' => __(\App\Models\Ticket::SORTS[$filters['sort'] ?? 'default'] ?? \App\Models\Ticket::SORTS['default'])]) }}.
+                {{ trans_choice(':count تذكرة|تذكرة واحدة|تذكرتان|:count تذاكر|:count تذكرة|:count تذكرة', $tickets->total()) }} · {{ __('الترتيب: :sort', ['sort' => __(\App\Models\Ticket::SORTS[$filters['sort'] ?? 'default'] ?? \App\Models\Ticket::SORTS['default'])]) }}.
             </span>
 
             {{ $tickets->links() }}

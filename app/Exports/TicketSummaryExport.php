@@ -16,6 +16,6 @@ class TicketSummaryExport implements FromCollection, WithHeadings, WithMapping, 
 
     public function __construct(private readonly Collection $rows) {}
     public function collection(): Collection { return $this->rows; }
-    public function headings(): array { return ['البند', 'الإجمالي', 'المفتوح', 'المحلول']; }
+    public function headings(): array { return [__('البند'), __('الإجمالي'), __('المفتوح'), __('المحلول')]; }
     public function map($row): array { return $this->sanitizeRow([$row->name ?? $row->key, $row->total, $row->open_count, $row->resolved_count]); }
 }

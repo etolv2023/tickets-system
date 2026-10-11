@@ -58,6 +58,6 @@
             </div>
         </div>
     @empty
-        <div class="card__empty">{{ __('مفيش شغل مجدول في الفترة دي.') }}</div>
+        <div class="card__empty">{{ __('لا يوجد عمل مجدول في هذه الفترة.') }}</div>
     @endforelse
 </div>

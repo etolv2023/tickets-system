@@ -64,7 +64,7 @@ class ContactController extends Controller
         );
 
         return redirect()->route('admin.companies.show', $company)
-            ->with('status', __('تم إضافة «:name».', ['name' => $contact->name]));
+            ->with('status', __('تمت إضافة «:name».', ['name' => $contact->name]));
     }
 
     public function edit(Company $company, CompanyContact $contact): View

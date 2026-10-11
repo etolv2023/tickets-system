@@ -8,7 +8,7 @@
      The distinction is stored as the absence of a company, not as a flag, so
      the toggle below clears whichever side it is leaving. --}}
 {{-- `internal` is NOT declared here. It lives on the wrapper in _form.blade.php,
-     because the "الوصول للصفحة" card two cards down has to read it too, and a
+     because the "الوصول إلى الصفحة" card two cards down has to read it too, and a
      scope that stops at this file cannot be seen from there. Alpine inherits
      parent state, so everything below still reads it exactly as before. --}}
 <div x-data="{ contactChosen: @js((bool) old('contact_id')) }" class="form-stack">
@@ -28,7 +28,7 @@
                    x-model.boolean="internal" :checked="internal">
             <span>
                 <strong>{{ __('داخلية') }}</strong>
-                <small>{{ __('شغل من التيم ليد أو الـ CTO — من غير عميل ومن غير مهلة.') }}</small>
+                <small>{{ __('عمل من قائد الفريق أو المدير التقني — دون عميل ودون مهلة.') }}</small>
             </span>
         </label>
     </div>
@@ -43,20 +43,20 @@
             <x-combobox name="contact_id" resource="contacts" :label="__('جهة الاتصال')"
                         scope="company_id"
                         :placeholder="__('اكتب اسم جهة الاتصال…')"
-                        :hint="__('اختار شركة الأول. لو المُبلغ مش في القائمة سيبها واكتب اسمه تحت.')"
+                        :hint="__('اختر الشركة أولًا. إذا لم يكن المُبلِّغ في القائمة فاتركها واكتب اسمه أدناه.')"
                         @change="contactChosen = !! $event.target.value" />
         </div>
 
         <div x-show="!contactChosen" x-cloak>
-            <x-field name="reporter_name" :label="__('اسم المُبلغ')"
-                     :hint="__('هيتسجّل على التذكرة زي ما هو، وميتغيرش بعد كده.')" />
+            <x-field name="reporter_name" :label="__('اسم المُبلِّغ')"
+                     :hint="__('سيُسجَّل في التذكرة كما هو، ولن يتغير بعد ذلك.')" />
         </div>
     </div>
 
     {{-- Internal side --}}
     <div x-show="internal" x-cloak>
-        <x-combobox name="requested_by" resource="users" :label="__('طلبها مين')"
+        <x-combobox name="requested_by" resource="users" :label="__('طالب العمل')"
                     :placeholder="__('اكتب اسم زميل…')"
-                    :hint="__('الشخص اللي طلب الشغل ده من التيم.')" />
+                    :hint="__('الشخص الذي طلب هذا العمل من الفريق.')" />
     </div>
 </div>

@@ -8,7 +8,7 @@
             <div>
                 <h1 class="page-title">{{ __('الأولويات') }}</h1>
                 <p class="page-subtitle">
-                    {{ __('الأولويات الأساسية (تحتها «أساسية») بتحرّكها الأتمتة نفسها — تقدر تغيّر اسمها/لونها/مهلتها بس. الي انت ضايفها تقدر تحذفها لو مفيش تذاكر واقفة عليها دلوقتي.') }}
+                    {{ __('الأولويات الأساسية (المميزة بـ «أساسية») تعتمد عليها الأتمتة — يمكن تغيير اسمها ولونها ومهلتها فقط. أما الأولويات التي تضيفها فيمكن حذفها ما لم تكن هناك تذاكر عليها حاليًا.') }}
                 </p>
             </div>
         </div>
@@ -22,9 +22,9 @@
         <x-card :title="__('أولوية جديدة')">
             <form method="POST" action="{{ route('admin.priorities.store') }}" class="form-grid">
                 @csrf
-                <x-field name="key" :label="__('المفتاح')" required :hint="__('إنجليزي، زي :example — ميتغيّرش بعد كده.', ['example' => 'blocker'])" />
+                <x-field name="key" :label="__('المفتاح')" required :hint="__('بالإنجليزية، مثل :example — لا يمكن تغييره لاحقًا.', ['example' => 'blocker'])" />
                 <x-field name="name_ar" :label="__('الاسم بالعربية')" required />
-                <x-field name="name_en" :label="__('الاسم بالإنجليزية')" dir="ltr" :hint="__('اختياري — لو فاضي بيظهر الاسم العربي.')" />
+                <x-field name="name_en" :label="__('الاسم بالإنجليزية')" dir="ltr" :hint="__('اختياري — إذا تُرك فارغًا يظهر الاسم العربي.')" />
                 <x-field name="color" :label="__('اللون')" required>
                     <select id="color" name="color" class="select" required>
                         @foreach ($colors as $value => $label)
@@ -32,9 +32,9 @@
                         @endforeach
                     </select>
                 </x-field>
-                <x-field name="sla_hours" :label="__('مهلة الـ SLA (ساعة)')" type="number" required min="1" max="8760" />
+                <x-field name="sla_hours" :label="__('مهلة SLA (بالساعات)')" type="number" required min="1" max="8760" />
                 <div class="form-actions">
-                    <x-button variant="primary">{{ __('أضف') }}</x-button>
+                    <x-button variant="primary">{{ __('إضافة') }}</x-button>
                 </div>
             </form>
         </x-card>
@@ -71,7 +71,7 @@
                                             @endforeach
                                         </select>
                                         <input type="number" name="sla_hours" value="{{ $p->sla_hours }}" min="1" max="8760"
-                                               class="input opt-form__num" aria-label="{{ __('مهلة الـ SLA (ساعة)') }}">
+                                               class="input opt-form__num" aria-label="{{ __('مهلة SLA (بالساعات)') }}">
                                         <span class="settings__unit">{{ __('ساعة') }}</span>
                                         <x-button variant="ghost" size="sm">{{ __('حفظ') }}</x-button>
                                     </form>
@@ -79,7 +79,7 @@
                                 <td class="table__cell--actions">
                                     @unless ($p->is_system)
                                         <form method="POST" action="{{ route('admin.priorities.destroy', $p) }}"
-                                              onsubmit="return confirm(@js(__('متأكد من حذف «:name»؟', ['name' => $p->label()])))">
+                                              onsubmit="return confirm(@js(__('هل أنت متأكد من حذف «:name»؟', ['name' => $p->label()])))">
                                             @csrf
                                             @method('DELETE')
                                             <x-button variant="ghost" size="sm">{{ __('حذف') }}</x-button>

@@ -12,9 +12,9 @@
         <div class="filters__panel-head">
             <div>
                 <h2 class="filters__panel-title">{{ __('تصفية التذاكر') }}</h2>
-                <p class="filters__panel-hint">{{ __('اختار اللي محتاجه بس؛ باقي الفلاتر متقسمة تحت حسب الاستخدام.') }}</p>
+                <p class="filters__panel-hint">{{ __('اختر ما تحتاج إليه فقط؛ بقية عوامل التصفية مقسّمة أدناه حسب الاستخدام.') }}</p>
             </div>
-            <button type="button" class="btn btn--ghost btn--icon" @click="panelOpen = false" aria-label="{{ __('إغلاق الفلاتر') }}">
+            <button type="button" class="btn btn--ghost btn--icon" @click="panelOpen = false" aria-label="{{ __('إغلاق عوامل التصفية') }}">
                 <x-icon name="close" />
             </button>
         </div>
@@ -23,7 +23,7 @@
         @include('tickets.partials._filters-advanced')
 
         <div class="filters__panel-actions">
-            <x-button variant="primary">{{ __('تطبيق الفلاتر') }}</x-button>
+            <x-button variant="primary">{{ __('تطبيق عوامل التصفية') }}</x-button>
             @if ($activeFilterCount)
                 <x-button variant="ghost" :href="route('tickets.index')">{{ __('مسح الكل') }}</x-button>
             @endif

@@ -7,11 +7,11 @@
         <div class="page__head">
             <div>
                 <h1 class="page-title">{{ __('ربط حسابات GitHub') }}</h1>
-                <p class="page-subtitle">{{ __('GitHub للاكتشاف فقط؛ بعد الربط كل التعامل والفلاتر يعتمدوا على مستخدم النظام.') }}</p>
+                <p class="page-subtitle">{{ __('يُستخدم GitHub للاكتشاف فقط؛ بعد الربط تعتمد جميع العمليات وعوامل التصفية على مستخدم النظام.') }}</p>
             </div>
             <form method="POST" action="{{ route('admin.github-identities.sync') }}">
                 @csrf
-                <x-button variant="secondary"><x-icon name="refresh" class="btn__icon" /> {{ __('زامن GitHub والحسابات') }}</x-button>
+                <x-button variant="secondary"><x-icon name="refresh" class="btn__icon" /> {{ __('مزامنة GitHub والحسابات') }}</x-button>
             </form>
         </div>
 
@@ -29,14 +29,14 @@
                     <option value="">{{ __('مستخدم نظام غير مربوط') }}</option>
                     @foreach($availableUsers as $user)<option value="{{ $user->id }}">{{ $user->name }} — {{ $user->email }}</option>@endforeach
                 </select>
-                <x-button>{{ __('أضف الربط') }}</x-button>
+                <x-button>{{ __('إضافة الربط') }}</x-button>
             </form>
         </x-card>
 
         <x-card flush>
             <div class="table-wrap">
                 <table class="table table--hover">
-                    <thead><tr><th>{{ __('مستخدم النظام') }}</th><th>{{ __('البريد') }}</th><th>{{ __('حساب GitHub') }}</th><th>{{ __('الحالة') }}</th><th></th></tr></thead>
+                    <thead><tr><th>{{ __('مستخدم النظام') }}</th><th>{{ __('البريد الإلكتروني') }}</th><th>{{ __('حساب GitHub') }}</th><th>{{ __('الحالة') }}</th><th></th></tr></thead>
                     <tbody>
                     @forelse($mappings as $mapping)
                         <tr>
@@ -54,14 +54,14 @@
                             </td>
                             <td><x-badge :variant="$mapping->is_active ? 'green' : 'slate'">{{ $mapping->is_active ? __('نشط') : __('موقوف') }}</x-badge></td>
                             <td>
-                                <form method="POST" action="{{ route('admin.github-identities.destroy', $mapping) }}" onsubmit="return confirm({{ Js::from(__('تفك ربط :name من @:login؟', ['name' => $mapping->name, 'login' => $mapping->github_login])) }})">
+                                <form method="POST" action="{{ route('admin.github-identities.destroy', $mapping) }}" onsubmit="return confirm({{ Js::from(__('فك ربط :name عن ‎@:login؟', ['name' => $mapping->name, 'login' => $mapping->github_login])) }})">
                                     @csrf @method('DELETE')
                                     <x-button variant="danger" size="sm">{{ __('فك الربط') }}</x-button>
                                 </form>
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="u-subtle">{{ __('مفيش حسابات مربوطة لسه.') }}</td></tr>
+                        <tr><td colspan="5" class="u-subtle">{{ __('لا توجد حسابات مرتبطة بعد.') }}</td></tr>
                     @endforelse
                     </tbody>
                 </table>

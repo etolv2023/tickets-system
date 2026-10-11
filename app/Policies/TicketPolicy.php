@@ -77,15 +77,15 @@ class TicketPolicy
     public function assign(User $user, Ticket $ticket): Response
     {
         if (! $user->hasPermission('tickets.assign')) {
-            return Response::deny(__('ليس لديك صلاحية لتوزيع التذاكر.'));
+            return Response::deny(__('ليس لديك صلاحية لإسناد التذاكر.'));
         }
 
         if ($ticket->type->needsApproval() && $ticket->approval_status !== 'approved') {
-            return Response::deny(__('الفيتشر لازم توافق عليه الأول قبل ما يتوزع.'));
+            return Response::deny(__('يجب الموافقة على الميزة الجديدة قبل إسنادها.'));
         }
 
         if ($ticket->isLocked()) {
-            return Response::deny(__('التذكرة مقفولة. لازم ترجّعها «مرتجعة» الأول.'));
+            return Response::deny(__('التذكرة مغلقة. يجب إعادة فتحها أولًا.'));
         }
 
         return Response::allow();

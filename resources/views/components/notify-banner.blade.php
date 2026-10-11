@@ -13,6 +13,6 @@
         </div>
 
         <x-button variant="primary" size="sm" type="button"
-                  x-show="state === 'default'" @click="request()">{{ __('فعّل دلوقتي') }}</x-button>
+                  x-show="state === 'default'" @click="request()">{{ __('فعّل الآن') }}</x-button>
     </div>
 @endauth

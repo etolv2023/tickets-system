@@ -29,8 +29,8 @@ return new class extends Migration
         });
 
         $statuses = [
-            'new' => ['New', 'تم تسجيل التذكرة ولم تُوزّع بعد.', 'Recorded and awaiting assignment.'],
-            'pending_approval' => ['Awaiting approval', 'تحتاج موافقة إدارية قبل بدء التوزيع والتنفيذ.', 'Requires administrative approval before assignment and execution.'],
+            'new' => ['New', 'تم تسجيل التذكرة ولم تُسنَد بعد.', 'Recorded and awaiting assignment.'],
+            'pending_approval' => ['Awaiting approval', 'تحتاج إلى موافقة إدارية قبل بدء الإسناد والتنفيذ.', 'Requires administrative approval before assignment and execution.'],
             'rejected' => ['Rejected', 'رُفض الطلب وانتهى مساره دون تنفيذ.', 'The request was rejected and will not proceed.'],
             'assigned' => ['Assigned', 'حُدّد المسؤولون، ولم يبدأ التنفيذ بعد.', 'Owners are assigned; execution has not started.'],
             'in_progress' => ['In progress', 'بدأ فريق التنفيذ العمل على التذكرة.', 'The delivery team is actively working on the ticket.'],

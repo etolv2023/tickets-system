@@ -40,7 +40,7 @@
         </div>
 
         <div class="form-actions">
-            <x-button variant="primary">{{ __('احفظ الأسعار') }}</x-button>
+            <x-button variant="primary">{{ __('حفظ الأسعار') }}</x-button>
         </div>
     </form>
 </x-card>

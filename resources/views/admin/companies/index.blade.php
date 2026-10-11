@@ -7,7 +7,7 @@
         <div class="page__head">
             <div>
                 <h1 class="page-title">{{ __('الشركات') }}</h1>
-                <p class="page-subtitle">{{ trans_choice(':count شركة.', $companies->total()) }}</p>
+                <p class="page-subtitle">{{ trans_choice(':count شركة.|شركة واحدة.|شركتان.|:count شركات.|:count شركة.|:count شركة.', $companies->total()) }}</p>
             </div>
             <div class="page__actions">
                 <x-export-button route="export.companies" />
@@ -35,9 +35,9 @@
         @if ($companies->total() === 0 && ! array_filter($filters))
             <x-card>
                 <div class="blank">
-                    <p class="blank__title">{{ __('مفيش شركات لسه.') }}</p>
+                    <p class="blank__title">{{ __('لا توجد شركات بعد.') }}</p>
                     <p class="blank__body">
-                        {{ __('ضيف أول شركة بإيدك، أو استورد شيت فيه شركاتك كلها دفعة واحدة.') }}
+                        {{ __('أضف أول شركة يدويًا، أو استورد ملفًا يحتوي على جميع شركاتك دفعة واحدة.') }}
                     </p>
                     <div class="blank__actions">
                         <x-button variant="primary" :href="route('admin.companies.create')">{{ __('شركة جديدة') }}</x-button>
@@ -84,7 +84,7 @@
                                 </tr>
                             @empty
                                 <tr class="table__empty">
-                                    <td colspan="5">{{ __('مفيش نتايج للفلاتر دي.') }}</td>
+                                    <td colspan="5">{{ __('لا توجد نتائج لعوامل التصفية هذه.') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>

@@ -35,7 +35,7 @@ class UpdateSubtaskStatusRequest extends FormRequest
             'name_ar' => __('الاسم'),
             'name_en' => __('الاسم بالإنجليزية'),
             'color' => __('اللون'),
-            'needs_reason' => __('يحتاج سبب'),
+            'needs_reason' => __('يتطلب سببًا'),
         ];
     }
 }

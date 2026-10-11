@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title') {{ __('— تنصيب النظام') }}</title>
+    <title>@yield('title') {{ __('— تثبيت النظام') }}</title>
 
     {{-- No settings lookup anywhere in this layout: at this point there is no
          database to read a system name or logo from. --}}
@@ -21,7 +21,7 @@
         <div class="install__box">
             <div class="install__brand">
                 <span class="nav__brand-mark">{{ __('ت') }}</span>
-                <span>{{ __('تنصيب النظام') }}</span>
+                <span>{{ __('تثبيت النظام') }}</span>
             </div>
 
             @include('install.partials._steps', ['current' => $step])

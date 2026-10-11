@@ -48,7 +48,7 @@ return new class extends Migration
 
         DB::table('permissions')->updateOrInsert(
             ['key' => 'tickets.assignable_as_role'],
-            ['group' => 'tickets', 'name_ar' => 'يظهر كخيار في توزيع التذاكر']
+            ['group' => 'tickets', 'name_ar' => 'يظهر كخيار عند إسناد التذاكر']
         );
     }
 };

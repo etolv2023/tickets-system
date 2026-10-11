@@ -8,7 +8,7 @@
         <div class="page__head">
             <div>
                 <h1 class="page-title">{{ __('التقارير') }}</h1>
-                <p class="page-subtitle">{{ __('الأرقام مكانها هنا — بتروحلها بقصد.') }}</p>
+                <p class="page-subtitle">{{ __('مكان الأرقام هنا — تصل إليها عن قصد.') }}</p>
             </div>
             <div class="page__actions">
                 <x-export-button route="export.reports" />

@@ -52,7 +52,7 @@ class ImpersonationController extends Controller
         ]);
     }
 
-    /** Everything logged during one session, oldest first — the "عمل إيه" half. */
+    /** Everything logged during one session, oldest first — the "ما الذي فعله" half. */
     public function show(Request $request, ImpersonationSession $impersonation): View
     {
         abort_unless($request->user()->hasPermission('audit.view'), 403);
@@ -74,7 +74,7 @@ class ImpersonationController extends Controller
         // ImpersonationService: even a target who does not hold the permission
         // must not be a step towards a third account.
         if ($request->session()->has(self::SESSION_KEY)) {
-            return back()->withErrors(['impersonate' => __('انت داخل بعين حد بالفعل. ارجع لحسابك الأول.')]);
+            return back()->withErrors(['impersonate' => __('أنت تعمل بالفعل نيابةً عن مستخدم آخر. عُد إلى حسابك أولًا.')]);
         }
 
         $actor = $request->user();
@@ -133,6 +133,6 @@ class ImpersonationController extends Controller
         Auth::login($original);
 
         return redirect()->route('admin.users.index')
-            ->with('status', __('رجعت لحسابك.'));
+            ->with('status', __('عدت إلى حسابك.'));
     }
 }

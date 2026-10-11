@@ -21,6 +21,6 @@ class PortalVerifyRequest extends FormRequest
 
     public function attributes(): array
     {
-        return ['ticket_number' => __('رقم التذكرة'), 'password' => __('الباسورد')];
+        return ['ticket_number' => __('رقم التذكرة'), 'password' => __('كلمة المرور')];
     }
 }

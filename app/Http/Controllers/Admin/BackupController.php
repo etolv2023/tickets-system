@@ -68,6 +68,6 @@ class BackupController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return redirect()->route('admin.backup')->with('status', __('تم استرجاع النظام بنجاح. الداتا والملفات رجعت زي وقت الباك أب.'));
+        return redirect()->route('admin.backup')->with('status', __('تمت استعادة النظام بنجاح. عادت البيانات والملفات كما كانت وقت النسخة الاحتياطية.'));
     }
 }

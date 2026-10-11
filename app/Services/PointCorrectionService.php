@@ -61,7 +61,7 @@ class PointCorrectionService
         $ticket = $this->resolveTicket($data['ticket_number'] ?? null);
 
         return DB::transaction(function () use ($correction, $data, $userId, $ticket) {
-            $reversal = $this->reversalFor($correction, $userId, 'اتعدّل');
+            $reversal = $this->reversalFor($correction, $userId, 'عُدِّل');
 
             $replacement = PointTransaction::create([
                 'user_id' => $data['user_id'],
@@ -95,7 +95,7 @@ class PointCorrectionService
         $ticket = Ticket::where('ticket_number', trim($ticketNumber))->first();
 
         if ($ticket === null) {
-            throw new RuntimeException('مفيش تذكرة بالرقم ده.');
+            throw new RuntimeException(__('لا توجد تذكرة بهذا الرقم.'));
         }
 
         return $ticket;
@@ -119,7 +119,7 @@ class PointCorrectionService
             'type' => 'correction',
             'created_by' => $userId,
             'period' => $correction->period,
-            'reason' => trim('إلغاء تصحيح #' . $correction->id
+            'reason' => trim('إلغاء التصحيح #' . $correction->id
                 . ($note ? ' (' . $note . ')' : '')
                 . ' — ' . $correction->reason),
             'reverses_id' => $correction->id,
@@ -138,18 +138,18 @@ class PointCorrectionService
     {
         if ($correction->type !== 'correction') {
             throw new RuntimeException(
-                'ده مش تصحيح يدوي — الصرف التلقائي وخصم التأخير بيتصلحوا من الصب تاسك نفسها.'
+                __('هذا ليس تصحيحًا يدويًا — الاحتساب التلقائي وخصم التأخير يُصحَّحان من المهمة الفرعية نفسها.')
             );
         }
 
         if ($correction->isReversal()) {
-            throw new RuntimeException('ده سطر إلغاء، وسطر الإلغاء مبيتلغيش.');
+            throw new RuntimeException(__('هذا سطر إلغاء، ولا يمكن إلغاء سطر الإلغاء.'));
         }
 
         // Fresh from the database rather than a loaded relation: two admins on
         // this screen at the same moment is exactly the case this catches.
         if ($correction->reversal()->exists()) {
-            throw new RuntimeException('التصحيح ده اتلغى قبل كده.');
+            throw new RuntimeException(__('أُلغي هذا التصحيح سابقًا.'));
         }
     }
 }

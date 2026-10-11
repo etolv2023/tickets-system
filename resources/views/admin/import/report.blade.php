@@ -25,18 +25,18 @@
 
         @if ($batch->status === 'importing')
             <x-alert>
-                {{ __('الاستيراد شغال في الخلفية دلوقتي. حدّث الصفحة عشان تشوف النتيجة.') }}
+                {{ __('يجري الاستيراد في الخلفية الآن. حدّث الصفحة لرؤية النتيجة.') }}
             </x-alert>
         @endif
 
         <div class="import-summary">
             <div class="import-summary__item import-summary__item--create">
                 <div class="import-summary__value">{{ $batch->created_rows }}</div>
-                <div class="import-summary__label">{{ __('اتعمل جديد') }}</div>
+                <div class="import-summary__label">{{ __('أُنشئ جديدًا') }}</div>
             </div>
             <div class="import-summary__item import-summary__item--update">
                 <div class="import-summary__value">{{ $batch->updated_rows }}</div>
-                <div class="import-summary__label">{{ __('اتحدّث') }}</div>
+                <div class="import-summary__label">{{ __('تم التحديث') }}</div>
             </div>
             <div class="import-summary__item import-summary__item--fail">
                 <div class="import-summary__value">{{ $batch->failed_rows }}</div>
@@ -49,10 +49,10 @@
         </div>
 
         @if (filled($batch->errors))
-            <x-card :title="__('الصفوف الي فشلت')" flush>
+            <x-card :title="__('الصفوف الفاشلة')" flush>
                 <x-slot:actions>
                     <x-button variant="secondary" size="sm" :href="route('admin.import.errors', $batch)">
-                        {{ __('نزّل ملف الأخطاء') }}
+                        {{ __('تنزيل ملف الأخطاء') }}
                     </x-button>
                 </x-slot:actions>
 
@@ -78,16 +78,16 @@
                 </div>
             </x-card>
         @elseif ($batch->status === 'completed')
-            <x-alert variant="success">{{ __('كل الصفوف عدّت من غير أخطاء.') }}</x-alert>
+            <x-alert variant="success">{{ __('اجتازت جميع الصفوف دون أخطاء.') }}</x-alert>
         @endif
 
         <div class="form-actions">
-            <x-button variant="ghost" :href="route('admin.import.index')">{{ __('رجوع للاستيراد') }}</x-button>
+            <x-button variant="ghost" :href="route('admin.import.index')">{{ __('العودة إلى الاستيراد') }}</x-button>
 
             @if ($batch->type->value === 'users')
-                <x-button variant="secondary" :href="route('admin.users.index')">{{ __('شوف المستخدمين') }}</x-button>
+                <x-button variant="secondary" :href="route('admin.users.index')">{{ __('عرض المستخدمين') }}</x-button>
             @else
-                <x-button variant="secondary" :href="route('admin.companies.index')">{{ __('شوف الشركات') }}</x-button>
+                <x-button variant="secondary" :href="route('admin.companies.index')">{{ __('عرض الشركات') }}</x-button>
             @endif
         </div>
     </div>

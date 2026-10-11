@@ -49,7 +49,7 @@ class PreventDuplicateSubmit
             // Send them back to where they were with no error. The first
             // submission did the work; from the user's side it simply worked.
             return $request->expectsJson()
-                ? response()->json(['message' => __('الطلب ده اتنفذ بالفعل.')], 409)
+                ? response()->json(['message' => __('تم تنفيذ هذا الطلب بالفعل.')], 409)
                 : back();
         }
 

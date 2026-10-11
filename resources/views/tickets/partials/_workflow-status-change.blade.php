@@ -27,7 +27,7 @@
                     @endif
                 @endforeach
 
-                <x-field name="recipient_type" :label="__('الطرف المنتظر منه رد')" :hint="__('اختياري — ينشئ النظام مهمة متابعة تلقائية لمسؤول التذكرة.')">
+                <x-field name="recipient_type" :label="__('الطرف المنتظر رده')" :hint="__('اختياري — ينشئ النظام مهمة متابعة تلقائية لمسؤول التذكرة.')">
                     <select id="recipient_type" name="recipient_type" class="select" x-model="recipient">
                         <option value="">{{ __('لا يوجد طرف منتظر') }}</option>
                         <option value="team">{{ __('عضو من الفريق') }}</option>
@@ -36,9 +36,9 @@
                 </x-field>
 
                 <div x-show="recipient === 'team'" x-cloak>
-                    <x-field name="recipient_user_id" :label="__('الشخص من التيم')">
+                    <x-field name="recipient_user_id" :label="__('عضو الفريق')">
                         <select id="recipient_user_id" name="recipient_user_id" class="select">
-                            <option value="">{{ __('— اختار —') }}</option>
+                            <option value="">{{ __('— اختر —') }}</option>
                             @foreach ($recipientTeam as $person)
                                 <option value="{{ $person->id }}" @selected((int) old('recipient_user_id') === $person->id)>
                                     {{ $person->name }}
@@ -49,9 +49,9 @@
                 </div>
 
                 <div x-show="recipient === 'company'" x-cloak>
-                    <x-field name="recipient_contact_id" :label="__('الشخص من الشركة')">
+                    <x-field name="recipient_contact_id" :label="__('جهة الاتصال لدى العميل')">
                         <select id="recipient_contact_id" name="recipient_contact_id" class="select">
-                            <option value="">{{ __('— اختار —') }}</option>
+                            <option value="">{{ __('— اختر —') }}</option>
                             @foreach ($recipientContacts as $contact)
                                 <option value="{{ $contact->id }}" @selected((int) old('recipient_contact_id') === $contact->id)>
                                     {{ $contact->name }}

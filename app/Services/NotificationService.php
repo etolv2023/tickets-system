@@ -9,6 +9,7 @@ use App\Models\TicketSubtask;
 use App\Models\User;
 use App\Notifications\NotificationEvent;
 use App\Notifications\TicketNotification;
+use App\Support\Phrase;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
@@ -36,7 +37,7 @@ class NotificationService
     public function dispatch(
         Ticket $ticket,
         NotificationEvent $event,
-        string $message,
+        string|Phrase $message,
         ?int $actorId = null,
         ?array $extra = null,
         ?TicketSubtask $subtask = null,
@@ -63,7 +64,7 @@ class NotificationService
         ?int $userId,
         Ticket $ticket,
         NotificationEvent $event,
-        string $message,
+        string|Phrase $message,
         ?int $actorId = null,
     ): void {
         if ($userId === null) {
@@ -121,12 +122,12 @@ class NotificationService
         return $this->circle($ticket);
     }
 
-    public function notifyWatchers(Ticket $ticket, string $event, string $message, ?int $actorId): void
+    public function notifyWatchers(Ticket $ticket, string $event, string|Phrase $message, ?int $actorId): void
     {
         $this->dispatch($ticket, NotificationEvent::from($event), $message, $actorId);
     }
 
-    public function notifyUser(?int $userId, Ticket $ticket, string $event, string $message, ?int $actorId): void
+    public function notifyUser(?int $userId, Ticket $ticket, string $event, string|Phrase $message, ?int $actorId): void
     {
         $this->dispatchTo($userId, $ticket, NotificationEvent::from($event), $message, $actorId);
     }

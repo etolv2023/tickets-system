@@ -22,9 +22,9 @@ return new class extends Migration
 {
     /** @var array<int, array{key: string, name_ar: string, color: string, needs_reason: bool}> */
     private const SYSTEM_STATUSES = [
-        ['key' => 'todo', 'name_ar' => 'مستنية', 'color' => 'slate', 'needs_reason' => false],
-        ['key' => 'in_progress', 'name_ar' => 'جاري العمل', 'color' => 'cyan', 'needs_reason' => false],
-        ['key' => 'done', 'name_ar' => 'خلصت', 'color' => 'green', 'needs_reason' => false],
+        ['key' => 'todo', 'name_ar' => 'قيد الانتظار', 'color' => 'slate', 'needs_reason' => false],
+        ['key' => 'in_progress', 'name_ar' => 'قيد التنفيذ', 'color' => 'cyan', 'needs_reason' => false],
+        ['key' => 'done', 'name_ar' => 'مكتملة', 'color' => 'green', 'needs_reason' => false],
         ['key' => 'blocked', 'name_ar' => 'متوقفة', 'color' => 'amber', 'needs_reason' => true],
     ];
 

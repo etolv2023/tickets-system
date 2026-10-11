@@ -8,7 +8,7 @@
         <div class="settings__row">
             <div>
                 <div class="settings__row-label">{{ __('السعة اليومية') }}</div>
-                <p class="settings__row-hint">{{ __('ساعات إنتاجية في اليوم — مش ساعات الحضور. مؤشر السعة في الكاليندر بيتحسب منها.') }}</p>
+                <p class="settings__row-hint">{{ __('الساعات الإنتاجية في اليوم — وليست ساعات الحضور. يُحسب منها مؤشر السعة في التقويم.') }}</p>
             </div>
             <div class="settings__row-control">
                 <input
@@ -30,7 +30,7 @@
             <div>
                 <div class="settings__row-label">{{ __('ساعات الدوام') }}</div>
                 <p class="settings__row-hint">
-                    {{ __('دي ساعات شغل مهلة الـ SLA — مش السعة. تذكرة عاجلة اتفتحت 4 عصراً باقي مهلتها بيترحّل لأول يوم عمل، مش بيعدّي بالليل.') }}
+                    {{ __('هذه ساعات العمل التي تُحتسب فيها مهلة SLA — وليست السعة. التذكرة العاجلة التي تُفتح الساعة 4 عصرًا يُرحَّل باقي مهلتها إلى يوم العمل التالي، ولا يستمر احتسابها ليلًا.') }}
                 </p>
             </div>
             <div class="settings__row-control">
@@ -57,7 +57,7 @@
         <div class="settings__row">
             <div>
                 <div class="settings__row-label">{{ __('بداية الأسبوع') }}</div>
-                <p class="settings__row-hint">{{ __('أول عمود في الكاليندر.') }}</p>
+                <p class="settings__row-hint">{{ __('أول عمود في التقويم.') }}</p>
             </div>
             <div class="settings__row-control">
                 <select
@@ -77,7 +77,7 @@
         <div class="settings__row">
             <div>
                 <div class="settings__row-label">{{ __('أيام العمل') }}</div>
-                <p class="settings__row-hint">{{ __('الأيام دي بس الي بتتحسب في المهل والسعة.') }}</p>
+                <p class="settings__row-hint">{{ __('تُحتسب هذه الأيام فقط في المهل والسعة.') }}</p>
             </div>
             <div class="settings__row-control">
                 <div class="stack stack--tight">

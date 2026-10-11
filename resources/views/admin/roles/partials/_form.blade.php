@@ -33,7 +33,7 @@
                     :value="$role?->key"
                     required
                     dir="ltr"
-                    :hint="__('حروف إنجليزية صغيرة وأرقام و _ بس.')"
+                    :hint="__('أحرف إنجليزية صغيرة وأرقام و_ فقط.')"
                 />
             @endif
         </div>
@@ -79,7 +79,7 @@
             {{ __('الصلاحية تجيب عن سؤال «ما الذي يستطيع المستخدم فعله؟». يمكن أن يشترك أكثر من دور في الصلاحية نفسها، ولا تعني الصلاحية أن المستخدم مسؤول عن كل تذكرة.') }}
         </x-alert>
         <x-slot:actions>
-            <span class="u-subtle">{{ trans_choice(':count صلاحية', $groups->flatten()->count()) }}</span>
+            <span class="u-subtle">{{ trans_choice(':count صلاحية|صلاحية واحدة|صلاحيتان|:count صلاحيات|:count صلاحية|:count صلاحية', $groups->flatten()->count()) }}</span>
         </x-slot:actions>
 
         <x-permission-picker :groups="$groups" :selected="$selected" name="permissions" />

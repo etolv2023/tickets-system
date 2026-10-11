@@ -15,7 +15,7 @@
         foreach ($subtasksByDay[$key] ?? [] as $subtask) {
             $rows->push([
                 'kind' => 'subtask',
-                'kindLabel' => __('صب تاسك'),
+                'kindLabel' => __('مهمة فرعية'),
                 'title' => $subtask->title,
                 'ticketNumber' => $subtask->ticket->ticket_number,
                 'ticketTitle' => $subtask->ticket->title,
@@ -122,8 +122,8 @@
                 $daySlas = $outsideMonth ? collect() : ($slasByDay[$key] ?? collect());
                 $totalItems = $daySubtasks->count() + $dayTickets->count() + $daySlas->count();
                 $summaryParts = collect([
-                    $daySubtasks->count() ? trans_choice(':count مهمة', $daySubtasks->count()) : null,
-                    $dayTickets->count() ? trans_choice(':count موعد', $dayTickets->count()) : null,
+                    $daySubtasks->count() ? trans_choice(':count مهمة|مهمة واحدة|مهمتان|:count مهام|:count مهمة|:count مهمة', $daySubtasks->count()) : null,
+                    $dayTickets->count() ? trans_choice(':count موعد|موعد واحد|موعدان|:count مواعيد|:count موعدًا|:count موعد', $dayTickets->count()) : null,
                     $daySlas->count() ? $daySlas->count() . ' SLA' : null,
                 ])->filter()->implode(' · ');
                 $cap = $view === 'week' ? 4 : $totalItems;
@@ -171,7 +171,7 @@
     <section class="cal-preview__panel">
         <header class="cal-preview__head">
             <div class="cal-preview__heading">
-                <button type="button" class="btn btn--ghost btn--icon" x-show="selected" @click="back()" aria-label="{{ __('الرجوع للقائمة') }}">
+                <button type="button" class="btn btn--ghost btn--icon" x-show="selected" @click="back()" aria-label="{{ __('العودة إلى القائمة') }}">
                     <x-icon name="chevron-right" />
                 </button>
                 <div>
@@ -209,7 +209,7 @@
             <dl>
                 <template x-if="selected?.assignee"><div><dt>{{ __('المسؤول') }}</dt><dd x-text="selected.assignee"></dd></div></template>
                 <template x-if="selected?.hours"><div><dt>{{ __('الوقت المتوقع') }}</dt><dd><span x-text="selected.hours"></span> {{ __('ساعة') }}</dd></div></template>
-                <div><dt>{{ __('الحالة الزمنية') }}</dt><dd x-text="selected?.overdue ? {{ Js::from(__('متأخرة')) }} : {{ Js::from(__('في الموعد')) }}"></dd></div>
+                <div><dt>{{ __('التوقيت') }}</dt><dd x-text="selected?.overdue ? {{ Js::from(__('متأخرة')) }} : {{ Js::from(__('في الموعد')) }}"></dd></div>
             </dl>
         </div>
     </section>

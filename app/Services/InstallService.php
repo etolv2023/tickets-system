@@ -79,7 +79,7 @@ class InstallService
     {
         $checks = [[
             'name' => __('إصدار PHP'),
-            'hint' => __('المطلوب :version أو أحدث', ['version' => self::REQUIRED_PHP]),
+            'hint' => __('يتطلب الإصدار :version أو أحدث', ['version' => self::REQUIRED_PHP]),
             'value' => PHP_VERSION,
             'ok' => version_compare(PHP_VERSION, self::REQUIRED_PHP, '>='),
         ]];
@@ -87,7 +87,7 @@ class InstallService
         foreach (self::REQUIRED_EXTENSIONS as $extension => $hint) {
             $loaded = extension_loaded($extension);
             $checks[] = [
-                'name' => __('إكستنشن :name', ['name' => $extension]),
+                'name' => __('امتداد :name', ['name' => $extension]),
                 'hint' => __($hint),
                 'value' => $loaded ? __('مثبّت') : __('غير مثبّت'),
                 'ok' => $loaded,
@@ -100,10 +100,10 @@ class InstallService
             // «ممنوع» — or rather, reported neither, because it only ever
             // looked at storage/ itself.
             $checks[] = [
-                'name' => __('الكتابة على :dir/', ['dir' => $label]),
-                'hint' => __('المجلد لازم يكون موجود وقابل للكتابة'),
+                'name' => __('الكتابة في :dir/', ['dir' => $label]),
+                'hint' => __('يجب أن يكون المجلد موجودًا وقابلًا للكتابة'),
                 'value' => match (true) {
-                    ! is_dir($path) => __('مش موجود'),
+                    ! is_dir($path) => __('غير موجود'),
                     ! is_writable($path) => __('ممنوع'),
                     default => __('مسموح'),
                 },
@@ -144,7 +144,7 @@ class InstallService
         // the Form Request (letters, digits, underscore) and quoted here.
         // This is the one place CLAUDE.md § 5's "no raw SQL" cannot apply.
         if (preg_match('/^[A-Za-z0-9_]+$/', $database) !== 1) {
-            throw new RuntimeException(__('اسم قاعدة البيانات لازم يكون حروف إنجليزية وأرقام و _ بس.'));
+            throw new RuntimeException(__('اسم قاعدة البيانات يقبل الأحرف الإنجليزية والأرقام و_ فقط.'));
         }
 
         try {
@@ -154,7 +154,7 @@ class InstallService
             );
         } catch (PDOException $e) {
             throw new RuntimeException(
-                __('مفيش صلاحية لإنشاء قاعدة بيانات باسم «:name». اعملها يدوياً أو استخدم مستخدم له صلاحية CREATE.', ['name' => $database])
+                __('لا توجد صلاحية لإنشاء قاعدة بيانات باسم «:name». أنشئها يدويًا أو استخدم مستخدمًا لديه صلاحية CREATE.', ['name' => $database])
             );
         }
     }
@@ -225,7 +225,7 @@ class InstallService
         Artisan::call('config:clear');
 
         if (file_put_contents($this->lockPath(), now()->toIso8601String()) === false) {
-            throw new RuntimeException(__('مقدرتش أكتب ملف storage/installed.lock — راجع صلاحيات مجلد storage.'));
+            throw new RuntimeException(__('تعذّرت كتابة ملف storage/installed.lock — راجع صلاحيات مجلد storage.'));
         }
     }
 
@@ -236,7 +236,7 @@ class InstallService
 
         if (! file_exists($path)) {
             if (! copy(base_path('.env.example'), $path)) {
-                throw new RuntimeException(__('مقدرتش أعمل ملف .env — راجع صلاحيات مجلد المشروع.'));
+                throw new RuntimeException(__('تعذّر إنشاء ملف ‎.env — راجع صلاحيات مجلد المشروع.'));
             }
         }
 
@@ -254,7 +254,7 @@ class InstallService
         }
 
         if (file_put_contents($path, $content) === false) {
-            throw new RuntimeException(__('مقدرتش أكتب ملف .env — راجع صلاحيات مجلد المشروع.'));
+            throw new RuntimeException(__('تعذّرت الكتابة في ملف ‎.env — راجع صلاحيات مجلد المشروع.'));
         }
     }
 
@@ -276,10 +276,10 @@ class InstallService
     private function humanConnectionError(PDOException $e): string
     {
         return match ((int) $e->getCode()) {
-            1045 => __('اسم المستخدم أو كلمة السر غلط.'),
-            2002 => __('مفيش سيرفر MySQL على العنوان والبورت دول. اتأكد إنه شغال.'),
-            1049 => __('قاعدة البيانات دي مش موجودة.'),
-            default => __('مقدرتش أتصل بقاعدة البيانات: :error', ['error' => $e->getMessage()]),
+            1045 => __('اسم المستخدم أو كلمة المرور غير صحيحة.'),
+            2002 => __('لا يوجد خادم MySQL على هذا العنوان والمنفذ. تأكد من تشغيله.'),
+            1049 => __('قاعدة البيانات هذه غير موجودة.'),
+            default => __('تعذّر الاتصال بقاعدة البيانات: :error', ['error' => $e->getMessage()]),
         };
     }
 }

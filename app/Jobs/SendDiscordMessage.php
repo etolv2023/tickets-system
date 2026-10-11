@@ -79,7 +79,7 @@ class SendDiscordMessage implements ShouldQueue
         }
 
         if (! $discord->configured()) {
-            $this->finish($record, TicketDiscordMessage::STATUS_SKIPPED, 'التكامل مقفول');
+            $this->finish($record, TicketDiscordMessage::STATUS_SKIPPED, 'التكامل معطّل');
 
             return;
         }
@@ -108,7 +108,7 @@ class SendDiscordMessage implements ShouldQueue
         // what it last sent — the same decision, made where it is free.
         if ($record->type === TicketDiscordMessage::TYPE_ROOT_SYNC
             && $this->cardUnchanged($record, $body)) {
-            $this->finish($record, TicketDiscordMessage::STATUS_SKIPPED, 'الكارت زي ما هو — مفيش داعي نعدّله');
+            $this->finish($record, TicketDiscordMessage::STATUS_SKIPPED, 'البطاقة لم تتغير — لا حاجة إلى تعديلها');
 
             return;
         }
@@ -220,7 +220,7 @@ class SendDiscordMessage implements ShouldQueue
             if (blank($discordUserId)) {
                 // Not a failure. Nobody is obliged to hand over a Discord id, and
                 // the assignment itself worked; this records why the DM did not.
-                $this->finish($record, TicketDiscordMessage::STATUS_SKIPPED, 'المستخدم مالوش Discord ID');
+                $this->finish($record, TicketDiscordMessage::STATUS_SKIPPED, 'المستخدم ليس لديه معرّف Discord');
 
                 return null;
             }
@@ -249,7 +249,7 @@ class SendDiscordMessage implements ShouldQueue
             $day = $date === null ? null : TicketDiscordMessage::where('dedupe_key', TicketDiscordMessage::dailyPostKey($date))->first();
 
             if ($day === null || $day->status !== TicketDiscordMessage::STATUS_SENT || blank($day->message_id)) {
-                $this->finish($record, TicketDiscordMessage::STATUS_SKIPPED, 'بوست اليوم مش جاهز');
+                $this->finish($record, TicketDiscordMessage::STATUS_SKIPPED, 'منشور اليوم غير جاهز');
 
                 return null;
             }
@@ -271,7 +271,7 @@ class SendDiscordMessage implements ShouldQueue
         // the 23rd's post however long it stays open.
         if ($record->type === TicketDiscordMessage::TYPE_ROOT_SYNC) {
             if ($root === null || $root->status !== TicketDiscordMessage::STATUS_SENT || blank($root->message_id)) {
-                $this->finish($record, TicketDiscordMessage::STATUS_SKIPPED, 'التذكرة ملهاش كارت متبعوت لسه');
+                $this->finish($record, TicketDiscordMessage::STATUS_SKIPPED, 'لم تُرسل بطاقة للتذكرة بعد');
 
                 return null;
             }
@@ -284,7 +284,7 @@ class SendDiscordMessage implements ShouldQueue
         if ($root === null) {
             // Only reachable if the announcement was deleted or never made. The
             // update has nothing to attach to and no channel of its own.
-            $this->finish($record, TicketDiscordMessage::STATUS_SKIPPED, 'التذكرة ملهاش رسالة أصلية');
+            $this->finish($record, TicketDiscordMessage::STATUS_SKIPPED, 'لا توجد رسالة أصلية للتذكرة');
 
             return null;
         }
@@ -311,7 +311,7 @@ class SendDiscordMessage implements ShouldQueue
             $this->finish(
                 $record,
                 TicketDiscordMessage::STATUS_SKIPPED,
-                "الرسالة الأصلية للتذكرة حالتها «{$root->status}» — مفيش ثريد نعلّق عليه"
+                "حالة الرسالة الأصلية للتذكرة «{$root->status}» — لا توجد سلسلة للرد عليها"
             );
 
             return null;
@@ -343,7 +343,7 @@ class SendDiscordMessage implements ShouldQueue
                 'nonce' => $record->nonceValue(),
                 'status' => TicketDiscordMessage::STATUS_SENT,
                 'sent_at' => now(),
-                'error' => 'اتأكدنا إنها اتبعتت قبل كده (nonce)',
+                'error' => 'تأكدنا من إرسالها سابقًا (nonce)',
             ])->saveQuietly();
 
             Log::info('discord message recovered by nonce', [
@@ -366,7 +366,7 @@ class SendDiscordMessage implements ShouldQueue
             $this->finish(
                 $record,
                 TicketDiscordMessage::STATUS_UNVERIFIED,
-                'مش متأكدين إذا كانت وصلت ولا لأ — مبعتناهاش تاني'
+                'غير مؤكد ما إذا كانت وصلت — لم نُعِد إرسالها'
             );
 
             // Everything an administrator needs to settle it by hand: which
@@ -512,7 +512,7 @@ class SendDiscordMessage implements ShouldQueue
         $day = TicketDiscordMessage::where('dedupe_key', TicketDiscordMessage::dailyPostKey($date))->first();
 
         if ($day === null) {
-            $this->finish($record, TicketDiscordMessage::STATUS_SKIPPED, "مفيش بوست ليوم {$date}");
+            $this->finish($record, TicketDiscordMessage::STATUS_SKIPPED, "لا يوجد منشور ليوم {$date}");
 
             return null;
         }
@@ -529,7 +529,7 @@ class SendDiscordMessage implements ShouldQueue
         }
 
         if ($day->status !== TicketDiscordMessage::STATUS_SENT || blank($day->message_id)) {
-            $this->finish($record, TicketDiscordMessage::STATUS_SKIPPED, "بوست يوم {$date} حالته «{$day->status}»");
+            $this->finish($record, TicketDiscordMessage::STATUS_SKIPPED, "حالة منشور يوم {$date} «{$day->status}»");
 
             return null;
         }

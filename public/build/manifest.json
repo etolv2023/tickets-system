@@ -41,7 +41,7 @@
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-CFMJHjY9.js",
+    "file": "assets/app-Ci79zIP3.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -50,7 +50,7 @@
     ]
   },
   "resources/js/features/board.js": {
-    "file": "assets/board-CCYnu18X.js",
+    "file": "assets/board-CK_Eism5.js",
     "name": "board",
     "src": "resources/js/features/board.js",
     "isEntry": true,
@@ -60,7 +60,7 @@
     ]
   },
   "resources/js/features/calendar.js": {
-    "file": "assets/calendar-juVXFzSu.js",
+    "file": "assets/calendar-DHFmsz63.js",
     "name": "calendar",
     "src": "resources/js/features/calendar.js",
     "isEntry": true,
@@ -69,7 +69,7 @@
     ]
   },
   "resources/js/features/subtasks.js": {
-    "file": "assets/subtasks-cwJ8XTv2.js",
+    "file": "assets/subtasks-5Tky8kUs.js",
     "name": "subtasks",
     "src": "resources/js/features/subtasks.js",
     "isEntry": true,

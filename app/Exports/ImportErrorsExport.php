@@ -24,7 +24,7 @@ class ImportErrorsExport implements FromArray, WithHeadings, WithTitle, ShouldAu
 
     public function headings(): array
     {
-        return array_merge(['رقم الصف', 'العمود', 'سبب الرفض'], $this->batch->type->columns());
+        return array_merge([__('رقم الصف'), __('العمود'), __('سبب الرفض')], $this->batch->type->columns());
     }
 
     public function array(): array
@@ -45,6 +45,6 @@ class ImportErrorsExport implements FromArray, WithHeadings, WithTitle, ShouldAu
 
     public function title(): string
     {
-        return 'الصفوف الفاشلة';
+        return __('الصفوف الفاشلة');
     }
 }

@@ -12,7 +12,7 @@
             {{-- F09: green inside the estimate, amber over it, red past double. --}}
             <div class="estimate estimate--{{ $ticket->estimateVariant() }}">
                 <div class="estimate__row">
-                    <span>{{ __('المقدّر') }} <strong>{{ rtrim(rtrim(number_format($estimate, 2), '0'), '.') }}</strong> {{ __('س') }}</span>
+                    <span>{{ __('المقدَّر') }} <strong>{{ rtrim(rtrim(number_format($estimate, 2), '0'), '.') }}</strong> {{ __('س') }}</span>
                     <span class="estimate__spent">{{ __('الفعلي :hours س', ['hours' => rtrim(rtrim(number_format($spent, 2), '0'), '.')]) }}</span>
                 </div>
 
@@ -23,15 +23,15 @@
                 <div class="estimate__row">
                     <span class="u-subtle">{{ __('المتبقي :hours س', ['hours' => rtrim(rtrim(number_format($remaining, 2), '0'), '.')]) }}</span>
                     @if ($spent > $estimate)
-                        <span class="u-subtle">{{ __('عدّى التقدير بـ :hours س', ['hours' => rtrim(rtrim(number_format($spent - $estimate, 2), '0'), '.')]) }}</span>
+                        <span class="u-subtle">{{ __('تجاوز التقدير بـ :hours س', ['hours' => rtrim(rtrim(number_format($spent - $estimate, 2), '0'), '.')]) }}</span>
                     @endif
                 </div>
             </div>
         @else
             <p class="field__hint">
-                {{ __('مفيش تقدير. ضيف صب تاسكس بتقديرات وهيتجمعوا هنا أوتوماتيك.') }}
+                {{ __('لا يوجد تقدير. أضف مهام فرعية بتقديرات وستُجمع هنا تلقائيًا.') }}
                 @if ($spent > 0)
-                    <br>{{ __('المسجّل لحد دلوقتي:') }} <strong>{{ rtrim(rtrim(number_format($spent, 2), '0'), '.') }}</strong> {{ __('س.') }}
+                    <br>{{ __('المسجّل حتى الآن:') }} <strong>{{ rtrim(rtrim(number_format($spent, 2), '0'), '.') }}</strong> {{ __('س.') }}
                 @endif
             </p>
         @endif
@@ -51,7 +51,7 @@
                 </div>
 
                 @if ($ticket->subtasks->isNotEmpty())
-                    <x-field name="subtask_id" :label="__('على أنهي صب تاسك؟')">
+                    <x-field name="subtask_id" :label="__('على أي مهمة فرعية؟')">
                         <select id="subtask_id" name="subtask_id" class="select">
                             <option value="">{{ __('التذكرة نفسها') }}</option>
                             @foreach ($ticket->subtasks as $subtask)
@@ -63,12 +63,12 @@
 
                 <x-field name="note" :label="__('ملاحظة')" :placeholder="__('اختياري')" />
 
-                <x-button variant="secondary" size="sm" block>{{ __('سجّل الوقت') }}</x-button>
+                <x-button variant="secondary" size="sm" block>{{ __('تسجيل الوقت') }}</x-button>
             </form>
 
             @if ($myTimeEntries->isNotEmpty())
                 <hr class="divider">
-                <p class="u-subtle">{{ __('وقتي على التذكرة دي') }}</p>
+                <p class="u-subtle">{{ __('وقتي في هذه التذكرة') }}</p>
 
                 <div class="facts">
                     @foreach ($myTimeEntries as $entry)

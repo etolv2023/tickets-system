@@ -2,7 +2,7 @@
      own field via x-field. --}}
 @if ($errors->any())
     <x-alert variant="error">
-        <strong>{{ __('مقدرتش أحفظ — راجع الحاجات دي:') }}</strong>
+        <strong>{{ __('تعذّر الحفظ — يُرجى مراجعة ما يلي:') }}</strong>
         <ul class="alert__list">
             @foreach ($errors->all() as $error)
                 <li>{{ $error }}</li>

@@ -5,7 +5,7 @@
     <template x-for="item in $store.toast.items" :key="item.id">
         <div class="toast" :class="`toast--${item.variant}`" x-show="true" x-transition role="status">
             <span class="toast__body" x-text="item.message"></span>
-            <button type="button" class="toast__close" @click="$store.toast.dismiss(item.id)" aria-label="{{ __('اقفل الرسالة') }}">
+            <button type="button" class="toast__close" @click="$store.toast.dismiss(item.id)" aria-label="{{ __('إغلاق الرسالة') }}">
                 <x-icon name="close" size="0.85em" />
             </button>
         </div>

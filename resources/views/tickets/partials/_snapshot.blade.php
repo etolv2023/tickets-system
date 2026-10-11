@@ -17,7 +17,7 @@
         <div class="form-grid">
             <div class="field">
                 <label class="field__label" for="locked-company">
-                    {{ $ticket->isInternal() ? __('طلبها') : __('الشركة') }}
+                    {{ $ticket->isInternal() ? __('طالبها') : __('الشركة') }}
                 </label>
                 <input id="locked-company" class="input input--locked" type="text"
                        value="{{ $ticket->originLabel() }}" readonly>
@@ -40,6 +40,6 @@
                    readonly>
         </div>
 
-        <p class="field__hint">{{ __('الحقول دي بتتسجّل مرة واحدة وقت فتح التذكرة ومبتتغيّرش.') }}</p>
+        <p class="field__hint">{{ __('تُسجَّل هذه الحقول مرة واحدة عند إنشاء التذكرة ولا تتغير.') }}</p>
     </div>
 </x-card>

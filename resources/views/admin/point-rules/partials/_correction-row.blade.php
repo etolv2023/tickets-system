@@ -30,9 +30,9 @@
         @if ($correction->isReversal())
             <x-badge variant="slate">{{ __('سطر إلغاء') }}</x-badge>
         @elseif ($correction->isReplaced())
-            <x-badge variant="amber">{{ __('اتعدّل') }}</x-badge>
+            <x-badge variant="amber">{{ __('عُدِّل') }}</x-badge>
         @elseif ($void)
-            <x-badge variant="slate">{{ __('اتلغى') }}</x-badge>
+            <x-badge variant="slate">{{ __('أُلغي') }}</x-badge>
         @endif
     </td>
 
@@ -70,7 +70,7 @@
 
                          The first failure was ordering: submit-guard runs on the
                          capture phase, so it locked the form and disabled the
-                         button before the dialog was even shown, and one "لأ"
+                         button before the dialog was even shown, and one "لا"
                          killed the button until a reload.
 
                          The second is the one no amount of ordering fixes.
@@ -98,12 +98,12 @@
                         </x-button>
 
                         <span class="confirm-inline" x-show="armed" x-cloak>
-                            <span class="confirm-inline__ask">{{ __('هيتكتب سطر عكسي. متأكد؟') }}</span>
+                            <span class="confirm-inline__ask">{{ __('سيُكتب سطر عكسي. هل أنت متأكد؟') }}</span>
                             {{-- type defaults to submit: this one is the real
                                  action, and it is the only submit in the form. --}}
-                            <x-button variant="ghost" size="sm">{{ __('أيوه') }}</x-button>
+                            <x-button variant="ghost" size="sm">{{ __('نعم') }}</x-button>
                             <x-button variant="ghost" size="sm" type="button"
-                                      x-on:click="armed = false">{{ __('لأ') }}</x-button>
+                                      x-on:click="armed = false">{{ __('لا') }}</x-button>
                         </span>
                     </form>
                 @endcan

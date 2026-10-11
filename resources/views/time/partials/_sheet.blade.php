@@ -76,14 +76,14 @@
 <ul class="legend">
     <li class="legend__item">
         <span class="legend__key legend__key--plain"></span>
-        {{ __('تحت سعتك اليومية (:hours ساعة)', ['hours' => rtrim(rtrim($capacity, '0'), '.')]) }}
+        {{ __('أقل من سعتك اليومية (:hours ساعة)', ['hours' => rtrim(rtrim($capacity, '0'), '.')]) }}
     </li>
     <li class="legend__item">
         <span class="legend__key legend__key--near"></span>
-        {{ __('قربت تكمل سعة اليوم') }}
+        {{ __('اقتربت من سعة اليوم') }}
     </li>
     <li class="legend__item">
         <span class="legend__key legend__key--over"></span>
-        {{ __('عدّيت سعة اليوم') }}
+        {{ __('تجاوزت سعة اليوم') }}
     </li>
 </ul>

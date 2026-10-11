@@ -5,7 +5,7 @@
 
 <div class="filters__bar">
     <input type="search" name="q" value="{{ $filters['q'] ?? '' }}"
-           placeholder="{{ __('ابحث بالعنوان أو الوصف، أو الصق رقم تذكرة') }}" class="input filters__search">
+           placeholder="{{ __('ابحث بالعنوان أو الوصف، أو الصق رقم التذكرة') }}" class="input filters__search">
     @if ($canSeeOthers)
         <a href="{{ $mine ? route('tickets.index') : route('tickets.index', ['assignee' => auth()->id(), 'relation' => 'any']) }}"
            @class(['btn', 'btn--secondary', 'filters__mine', 'filters__mine--on' => $mine])
@@ -16,7 +16,7 @@
     <button type="button" class="btn btn--secondary filters__panel-toggle"
             @click="panelOpen = !panelOpen" :aria-expanded="panelOpen.toString()">
         <x-icon name="filter" class="btn__icon" />
-        {{ __('الفلاتر') }}
+        {{ __('عوامل التصفية') }}
         @if ($activeFilterCount)
             <span class="filters__active-count">{{ $activeFilterCount }}</span>
         @endif
@@ -41,7 +41,7 @@
                     <span>{{ __($label) }}</span>
                 </label>
             @endforeach
-            <button type="button" class="table-columns__reset" @click="reset()">{{ __('الوضع الافتراضي') }}</button>
+            <button type="button" class="table-columns__reset" @click="reset()">{{ __('الإعداد الافتراضي') }}</button>
         </div>
     </div>
     <x-export-button route="export.tickets" />

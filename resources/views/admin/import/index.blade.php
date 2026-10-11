@@ -7,7 +7,7 @@
         <div class="page__head">
             <div>
                 <h1 class="page-title">{{ __('استيراد Excel') }}</h1>
-                <p class="page-subtitle">{{ __('نزّل القالب، املاه، ارفعه. مفيش صف بيتكتب قبل ما تشوف المعاينة وتأكد.') }}</p>
+                <p class="page-subtitle">{{ __('نزّل القالب واملأه ثم ارفعه. لا يُكتب أي صف قبل أن تراجع المعاينة وتؤكد.') }}</p>
             </div>
         </div>
 
@@ -17,7 +17,7 @@
 
         <x-form-errors />
 
-        <x-card :title="__('1 — نزّل القالب')" flush>
+        <x-card :title="__('1 — تنزيل القالب')" flush>
             @foreach ($types as $type)
                 <div class="import-type">
                     <div>
@@ -25,13 +25,13 @@
                         <span class="import-type__cols">{{ implode(' · ', $type->columns()) }}</span>
                     </div>
                     <x-button variant="secondary" size="sm" :href="route('admin.import.template', $type->value)">
-                        {{ __('نزّل القالب') }}
+                        {{ __('تنزيل القالب') }}
                     </x-button>
                 </div>
             @endforeach
         </x-card>
 
-        <x-card :title="__('2 — ارفع الملف')">
+        <x-card :title="__('2 — رفع الملف')">
             <form method="POST" action="{{ route('admin.import.upload') }}" enctype="multipart/form-data" class="form-stack">
                 @csrf
 
@@ -52,10 +52,10 @@
                     type="file"
                     required
                     accept=".xlsx,.xls,.csv"
-                    :hint="__('xlsx أو xls أو csv · حد أقصى :rows صف.', ['rows' => number_format(\App\Services\ImportService::MAX_ROWS)])"
+                    :hint="__('xlsx أو xls أو csv · الحد الأقصى :rows صف.', ['rows' => number_format(\App\Services\ImportService::MAX_ROWS)])"
                 />
 
-                <x-button variant="primary">{{ __('ارفع وشوف المعاينة') }}</x-button>
+                <x-button variant="primary">{{ __('رفع ومعاينة') }}</x-button>
             </form>
         </x-card>
 
@@ -67,9 +67,9 @@
                             <tr>
                                 <th>{{ __('الملف') }}</th>
                                 <th>{{ __('النوع') }}</th>
-                                <th>{{ __('مين') }}</th>
-                                <th>{{ __('اتعمل') }}</th>
-                                <th>{{ __('اتحدّث') }}</th>
+                                <th>{{ __('المستخدم') }}</th>
+                                <th>{{ __('تم الإنشاء') }}</th>
+                                <th>{{ __('تم التحديث') }}</th>
                                 <th>{{ __('فشل') }}</th>
                                 <th>{{ __('الحالة') }}</th>
                                 <th class="table__cell--actions"></th>

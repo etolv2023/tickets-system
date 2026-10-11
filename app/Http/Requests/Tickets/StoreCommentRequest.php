@@ -48,6 +48,6 @@ class StoreCommentRequest extends FormRequest
 
     public function messages(): array
     {
-        return ['body.required' => __('اكتب تعليق الأول.')];
+        return ['body.required' => __('اكتب تعليقًا أولًا.')];
     }
 }

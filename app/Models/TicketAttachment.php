@@ -42,7 +42,7 @@ class TicketAttachment extends Model
      */
     public function sizeLabel(): string
     {
-        $units = [__('بايت'), __('كيلو'), __('ميجا'), __('جيجا')];
+        $units = [__('بايت'), __('كيلوبايت'), __('ميغابايت'), __('غيغابايت')];
         $size = max(0, (int) $this->size_bytes);
         $unit = 0;
 

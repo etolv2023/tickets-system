@@ -14,7 +14,7 @@
 
     <div class="stat-tile stat-tile--green">
         <div class="stat-tile__figure">{{ $rows->count() }}</div>
-        <div class="stat-tile__caption">{{ __('موظف له مستحقات') }}</div>
+        <div class="stat-tile__caption">{{ __('موظفون لهم مستحقات') }}</div>
     </div>
 
     @if ($unpriced > 0)
@@ -23,7 +23,7 @@
              مش «محدش اشتغل». --}}
         <div class="stat-tile stat-tile--amber">
             <div class="stat-tile__figure">{{ $unpriced }}</div>
-            <div class="stat-tile__caption">{{ __('نوع عليه شغل وسعره لسه صفر') }}</div>
+            <div class="stat-tile__caption">{{ __('أنواع عليها عمل وسعرها ما زال صفرًا') }}</div>
         </div>
     @endif
 </div>
@@ -48,7 +48,7 @@
                         <td class="u-mono">{{ $m($row['money']) }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="4" class="u-subtle">{{ __('مفيش نقاط في الشهر ده.') }}</td></tr>
+                    <tr><td colspan="4" class="u-subtle">{{ __('لا توجد نقاط هذا الشهر.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -85,7 +85,7 @@
                         <td class="u-mono">{{ $m($row['money']) }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="4" class="u-subtle">{{ __('مفيش مستحقات في الشهر ده.') }}</td></tr>
+                    <tr><td colspan="4" class="u-subtle">{{ __('لا توجد مستحقات هذا الشهر.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

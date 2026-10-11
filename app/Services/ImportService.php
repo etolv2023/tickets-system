@@ -70,7 +70,7 @@ class ImportService
 
         if (count($raw) > self::MAX_ROWS) {
             throw new RuntimeException(
-                'الملف فيه ' . count($raw) . ' صف. الحد الأقصى ' . self::MAX_ROWS . ' صف.'
+                __('يحتوي الملف على :count صف، والحد الأقصى :max صف.', ['count' => count($raw), 'max' => self::MAX_ROWS])
             );
         }
 
@@ -277,7 +277,7 @@ class ImportService
         if ($type === ImportType::Contacts && ! isset($context['companies'][$row['company_code']])) {
             return [
                 'column' => 'company_code',
-                'reason' => "الشركة بكود «{$row['company_code']}» مش موجودة. استورد الشركات الأول.",
+                'reason' => __('لا توجد شركة بالكود «:code». استورد الشركات أولًا.', ['code' => $row['company_code']]),
             ];
         }
 
@@ -291,16 +291,16 @@ class ImportService
             if (isset($context['deleted'][$row['email']])) {
                 return [
                     'column' => 'email',
-                    'reason' => "الإيميل ده بتاع مستخدم متحذف. رجّعه من صفحة المستخدمين الأول لو عايزه يرجع.",
+                    'reason' => __('هذا البريد الإلكتروني لمستخدم محذوف. استعده من صفحة المستخدمين أولًا إن أردت إعادته.'),
                 ];
             }
 
             if (! isset($context['roles'][$row['role_key']])) {
-                $known = implode('، ', array_keys($context['roles']));
+                $known = implode(__('، '), array_keys($context['roles']));
 
                 return [
                     'column' => 'role_key',
-                    'reason' => "الدور «{$row['role_key']}» مش موجود. المتاح: {$known}",
+                    'reason' => __('الدور «:role» غير موجود. المتاح: :known', ['role' => $row['role_key'], 'known' => $known]),
                 ];
             }
         }
@@ -391,7 +391,7 @@ class ImportService
         $mime = (new finfo(FILEINFO_MIME_TYPE))->file($file->getRealPath());
 
         if (! in_array($mime, self::MIMES, true)) {
-            throw new RuntimeException("الملف ده مش شيت صالح (النوع الحقيقي: {$mime}). المسموح: xlsx أو xls أو csv.");
+            throw new RuntimeException(__('هذا الملف ليس جدول بيانات صالحًا (النوع الفعلي: :mime). المسموح: xlsx أو xls أو csv.', ['mime' => $mime]));
         }
     }
 }

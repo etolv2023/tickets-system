@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
-@section('title', __('طابور التيست'))
+@section('title', __('قائمة الاختبار'))
 
 @section('content')
     {{-- ★★★★ (2026-07-21): a ticket table, same case as /tickets. --}}
     <div class="page page--wide">
         <div class="page__head">
             <div>
-                <h1 class="page-title">{{ __('طابور التيست') }}</h1>
-                <p class="page-subtitle">{{ __('تذاكر خلصت تطوير ومستنية مراجعتك — أكّد الحل أو رجّعها بملاحظة.') }}</p>
+                <h1 class="page-title">{{ __('قائمة الاختبار') }}</h1>
+                <p class="page-subtitle">{{ __('تذاكر اكتمل تطويرها وتنتظر مراجعتك — أكّد الحل أو أعدها بملاحظة.') }}</p>
             </div>
             <div class="page__actions">
                 <x-export-button route="export.testing" />
@@ -56,7 +56,7 @@
                                 @csrf
                                 <x-button variant="confirm">
                                     <x-icon name="check" class="btn__icon" />
-                                    {{ __('أكّد الحل') }}
+                                    {{ __('تأكيد الحل') }}
                                 </x-button>
                             </form>
                         @endif
@@ -64,7 +64,7 @@
                         @if (auth()->user()->hasPermission('tickets.reopen'))
                             <x-button variant="secondary" type="button" x-on:click="returning = ! returning"
                                       x-bind:aria-expanded="returning ? 'true' : 'false'">
-                                {{ __('رجّع بملاحظة') }}
+                                {{ __('إعادة مع ملاحظة') }}
                             </x-button>
                         @endif
 
@@ -78,18 +78,18 @@
                         <form class="queue-card__reason" method="POST" action="{{ route('tickets.reopen', $ticket) }}"
                               x-show="returning" x-cloak>
                             @csrf
-                            <label class="u-label" for="reopen-reason-{{ $ticket->id }}">{{ __('سبب الارتجاع') }}</label>
+                            <label class="u-label" for="reopen-reason-{{ $ticket->id }}">{{ __('سبب إعادة الفتح') }}</label>
                             <textarea id="reopen-reason-{{ $ticket->id }}" name="reason" class="textarea" rows="2"
-                                      maxlength="500" placeholder="{{ __('المبرمج محتاج يعرف يصلح إيه بالظبط…') }}"></textarea>
+                                      maxlength="500" placeholder="{{ __('يحتاج المطوّر إلى معرفة ما يجب إصلاحه بالضبط…') }}"></textarea>
                             <div class="queue-card__reason-actions">
-                                <x-button variant="primary" size="sm">{{ __('رجّعها') }}</x-button>
+                                <x-button variant="primary" size="sm">{{ __('إعادة') }}</x-button>
                                 <x-button variant="ghost" size="sm" type="button" x-on:click="returning = false">{{ __('إلغاء') }}</x-button>
                             </div>
                         </form>
                     @endif
                 </article>
             @empty
-                <p class="queue__empty">{{ __('مفيش حاجة مستنياك.') }}</p>
+                <p class="queue__empty">{{ __('لا يوجد ما ينتظرك.') }}</p>
             @endforelse
         </div>
 
@@ -98,9 +98,9 @@
         {{-- F16: dev_done with nobody assigned to test it. Support or a manager
              has to pick these up, or they sit forever. --}}
         @if ($unassigned->isNotEmpty())
-            <x-card :title="__('خلص تطويرها ومفيش تيستر')" flush>
+            <x-card :title="__('اكتمل تطويرها دون مختبِر')" flush>
                 <x-slot:actions>
-                    <span class="u-subtle">{{ __('محتاجة حد يحلها أو يسند لها تيستر') }}</span>
+                    <span class="u-subtle">{{ __('تحتاج إلى من يحلّها أو يُسند لها مختبِرًا') }}</span>
                 </x-slot:actions>
 
                 <div class="table-wrap">

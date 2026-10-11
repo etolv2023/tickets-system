@@ -11,7 +11,7 @@
             <div class="row">
                 <form method="POST" action="{{ route('tickets.approve', $ticket) }}">
                     @csrf
-                    <x-button variant="primary" size="sm">{{ __('اعتماد وبدء التوزيع') }}</x-button>
+                    <x-button variant="primary" size="sm">{{ __('اعتماد وبدء الإسناد') }}</x-button>
                 </form>
 
                 <form method="POST" action="{{ route('tickets.reject', $ticket) }}" class="row">

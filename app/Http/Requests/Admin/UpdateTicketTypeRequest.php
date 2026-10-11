@@ -41,7 +41,7 @@ class UpdateTicketTypeRequest extends FormRequest
             'name_en' => __('الاسم بالإنجليزية'),
             'color' => __('اللون'),
             'icon' => __('الأيقونة'),
-            'needs_approval' => __('يحتاج موافقة'),
+            'needs_approval' => __('يتطلب موافقة'),
             'default_points' => __('النقاط الافتراضية'),
         ];
     }

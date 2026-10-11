@@ -109,7 +109,7 @@ class ImportController extends Controller
             RunImport::dispatch($batch->id);
 
             return redirect()->route('admin.import.report', $batch)
-                ->with('status', __('الملف كبير، فالاستيراد بيتعمل في الخلفية. حدّث الصفحة بعد شوية.'));
+                ->with('status', __('الملف كبير، لذا يجري الاستيراد في الخلفية. حدّث الصفحة بعد قليل.'));
         }
 
         try {

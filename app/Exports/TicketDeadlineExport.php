@@ -20,19 +20,19 @@ class TicketDeadlineExport implements FromCollection, WithHeadings, WithMapping,
     {
         $summary = $this->report['summary'];
         $rows = collect([
-            (object) ['section' => 'الملخص', 'title' => 'اكتملت مبكرًا', 'value' => $summary->completed_before],
-            (object) ['section' => 'الملخص', 'title' => 'اكتملت في الموعد', 'value' => $summary->completed_on],
-            (object) ['section' => 'الملخص', 'title' => 'اكتملت متأخرًا', 'value' => $summary->completed_after],
-            (object) ['section' => 'الملخص', 'title' => 'متأخرة حاليًا', 'value' => $summary->currently_overdue],
-            (object) ['section' => 'الملخص', 'title' => 'متوسط التأخير (س)', 'value' => $summary->avg_lateness_hours],
+            (object) ['section' => __('الملخص'), 'title' => __('اكتملت مبكرًا'), 'value' => $summary->completed_before],
+            (object) ['section' => __('الملخص'), 'title' => __('اكتملت في الموعد'), 'value' => $summary->completed_on],
+            (object) ['section' => __('الملخص'), 'title' => __('اكتملت متأخرًا'), 'value' => $summary->completed_after],
+            (object) ['section' => __('الملخص'), 'title' => __('متأخرة حاليًا'), 'value' => $summary->currently_overdue],
+            (object) ['section' => __('الملخص'), 'title' => __('متوسط التأخير (س)'), 'value' => $summary->avg_lateness_hours],
         ]);
 
         return $rows->concat($this->report['worst_overdue']->map(function ($row) {
-            $row->section = 'الأكثر تأخيرًا';
+            $row->section = __('الأكثر تأخيرًا');
             return $row;
         }));
     }
-    public function headings(): array { return ['القسم', 'رقم التذكرة', 'العنوان / البند', 'النوع', 'الأولوية', 'الحالة', 'الموديول', 'الموعد', 'ساعات التأخير / القيمة']; }
+    public function headings(): array { return [__('القسم'), __('رقم التذكرة'), __('العنوان / البند'), __('النوع'), __('الأولوية'), __('الحالة'), __('الوحدة'), __('الموعد'), __('ساعات التأخير / القيمة')]; }
     public function map($row): array
     {
         $deadline = ($row->deadline_at ?? null)

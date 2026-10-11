@@ -35,10 +35,10 @@ use Illuminate\Support\Carbon;
 class ChargeLatePenalties extends Command
 {
     protected $signature = 'points:charge-late
-                            {--as-of= : اليوم الي الفحص يتحسب بيه (YYYY-MM-DD)، الافتراضي النهاردة}
-                            {--dry-run : اعرض الي هيتخصم من غير ما تكتب حاجة}';
+                            {--as-of= : اليوم الذي يُجرى الفحص بناءً عليه (YYYY-MM-DD)، والافتراضي هو اليوم}
+                            {--dry-run : اعرض ما سيُخصم دون كتابة أي شيء}';
 
-    protected $description = 'خصم نقاط الصب تاسكس المتأخرة عن تاريخ استحقاقها';
+    protected $description = 'خصم نقاط المهام الفرعية المتأخرة عن تاريخ استحقاقها';
 
     public function handle(LatePenaltyService $penalties): int
     {
@@ -53,11 +53,11 @@ class ChargeLatePenalties extends Command
         $result = $penalties->chargeOverdue($asOf);
 
         $this->info(sprintf(
-            'فحص %s — اتخصم: %d · اتعدّى: %d · تراكم التأخير: %s',
+            'فحص %s — خُصم: %d · تم تجاوز: %d · تراكم التأخير: %s',
             $asOf->toDateString(),
             $result['charged'],
             $result['skipped'],
-            $result['accumulating'] ? 'مفعّل' : 'مقفول'
+            $result['accumulating'] ? 'مفعّل' : 'معطّل'
         ));
 
         return self::SUCCESS;
@@ -73,28 +73,28 @@ class ChargeLatePenalties extends Command
         $rows = $penalties->previewOverdue($asOf);
 
         if ($rows->isEmpty()) {
-            $this->info("فحص {$asOf->toDateString()} — مفيش صب تاسك متأخرة تستاهل خصم.");
+            $this->info("فحص {$asOf->toDateString()} — لا توجد مهام فرعية متأخرة تستوجب الخصم.");
 
             return self::SUCCESS;
         }
 
         $this->table(
-            ['الصب تاسك', 'التذكرة', 'الموظف', 'الاستحقاق', 'النقط', 'خُصم قبل كده؟'],
+            ['المهمة الفرعية', 'التذكرة', 'الموظف', 'الاستحقاق', 'النقاط', 'خُصمت سابقًا؟'],
             $rows->map(fn ($r) => [
                 mb_substr($r['title'], 0, 40),
                 $r['ticket'],
                 $r['assignee'],
                 $r['due'],
                 '-' . $r['points'],
-                $r['charged_before'] ? 'أيوه' : 'لأ',
+                $r['charged_before'] ? 'نعم' : 'لا',
             ])->all()
         );
 
         $this->info(sprintf(
-            'إجمالي هيتخصم: %s نقطة على %d صب تاسك · تراكم التأخير: %s',
+            'إجمالي ما سيُخصم: %s نقطة على %d مهمة فرعية · تراكم التأخير: %s',
             $rows->sum('points'),
             $rows->count(),
-            $penalties->accumulates() ? 'مفعّل' : 'مقفول'
+            $penalties->accumulates() ? 'مفعّل' : 'معطّل'
         ));
 
         return self::SUCCESS;

@@ -221,9 +221,9 @@ class Ticket extends Model
     /** The ways a person can be attached to a ticket, for the people filter. */
     public const RELATIONS = [
         'any' => 'أي علاقة',
-        'assigned' => 'مسندة له',
-        'created' => 'هو اللي فتحها',
-        'subtask' => 'عنده صب تاسك فيها',
+        'assigned' => 'مُسندة إليه',
+        'created' => 'أنشأها بنفسه',
+        'subtask' => 'لديه مهمة فرعية فيها',
     ];
 
     /**
@@ -547,8 +547,8 @@ class Ticket extends Model
         'first_response_at' => 'أول رد',
         'resolved_at' => 'تاريخ الحل',
         'closed_at' => 'تاريخ الإغلاق',
-        'client_notified_at' => 'تاريخ إخطار العميل',
-        'sla_due_at' => 'مهلة الـ SLA',
+        'client_notified_at' => 'تاريخ إبلاغ العميل',
+        'sla_due_at' => 'مهلة SLA',
         'due_date' => 'تاريخ التسليم',
         'assigned' => 'تاريخ الإسناد',
         'reopened' => 'تاريخ إعادة الفتح',
@@ -570,14 +570,14 @@ class Ticket extends Model
     ];
 
     public const DEADLINE_FILTERS = [
-        'none' => 'من غير موعد نهائي',
+        'none' => 'دون موعد نهائي',
         'overdue' => 'متأخرة',
-        'due_today' => 'مستحقة النهارده',
-        'due_soon' => 'مستحقة قريب',
-        'on_track' => 'في معادها',
-        'completed_early' => 'اكتملت بدري',
-        'completed_on_time' => 'اكتملت في معادها',
-        'completed_late' => 'اكتملت متأخر',
+        'due_today' => 'مستحقة اليوم',
+        'due_soon' => 'مستحقة قريبًا',
+        'on_track' => 'في الموعد',
+        'completed_early' => 'اكتملت مبكرًا',
+        'completed_on_time' => 'اكتملت في الموعد',
+        'completed_late' => 'اكتملت متأخرة',
     ];
 
     /** Where the ticket came from — a customer, or the team itself (F25). */
@@ -588,40 +588,40 @@ class Ticket extends Model
 
     /** F15 — the approval column's four states, labelled for a filter. */
     public const APPROVALS = [
-        'not_required' => 'مش محتاجة موافقة',
-        'pending' => 'مستنية موافقة',
-        'approved' => 'اتوافق عليها',
-        'rejected' => 'اترفضت',
+        'not_required' => 'لا تتطلب موافقة',
+        'pending' => 'بانتظار الموافقة',
+        'approved' => 'تمت الموافقة عليها',
+        'rejected' => 'مرفوضة',
     ];
 
     /** The subtask counters, read as three states a human asks about (F08/F30). */
     public const SUBTASK_STATES = [
-        'none' => 'من غير صب تاسكس',
-        'open' => 'فيها صب تاسكس مفتوحة',
-        'done' => 'كل صب تاسكاتها خلصت',
+        'none' => 'دون مهام فرعية',
+        'open' => 'بها مهام فرعية مفتوحة',
+        'done' => 'اكتملت جميع مهامها الفرعية',
     ];
 
     /** Missed a deadline or not — see scopeLate() for the exact rule. */
     public const LATENESS = [
-        'late' => 'المتأخرة بس',
-        'on_time' => 'اللي في معادها بس',
+        'late' => 'المتأخرة فقط',
+        'on_time' => 'الملتزمة بالموعد فقط',
     ];
 
     /** What missedDeadlines() can name, labelled for the row marker. */
     public const DEADLINE_LABELS = [
-        'sla' => 'مهلة الـ SLA',
+        'sla' => 'مهلة SLA',
         'due' => 'تاريخ التسليم',
     ];
 
     /** The orders a list may be asked for. 'default' is scopeDefaultOrder(). */
     public const SORTS = [
         'default' => 'الأولوية ثم الأقدم',
-        'newest' => 'الأحدث فتحاً',
-        'oldest' => 'الأقدم فتحاً',
+        'newest' => 'الأحدث إنشاءً',
+        'oldest' => 'الأقدم إنشاءً',
         'updated' => 'آخر تحديث',
-        'due' => 'أقرب تسليم',
+        'due' => 'أقرب موعد تسليم',
         'sla' => 'أقرب مهلة SLA',
-        'resolved' => 'آخر ما اتحل',
+        'resolved' => 'المحلولة مؤخرًا',
     ];
 
     /**

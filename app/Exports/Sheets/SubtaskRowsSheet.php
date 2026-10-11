@@ -24,7 +24,7 @@ class SubtaskRowsSheet implements FromQuery, WithHeadings, WithMapping, WithTitl
     /** @param array<string, mixed> $filters keys TicketSubtask::scopeFilter understands */
     public function __construct(
         private readonly array $filters,
-        private readonly string $title = 'الصب تاسكس',
+        private readonly string $title = 'المهام الفرعية',
     ) {
     }
 
@@ -49,12 +49,12 @@ class SubtaskRowsSheet implements FromQuery, WithHeadings, WithMapping, WithTitl
 
     public function headings(): array
     {
-        return [
+        return array_map(fn (string $heading) => __($heading), [
             'رقم التذكرة', 'عنوان التذكرة', 'الجهة الطالبة', 'نوع التذكرة',
-            'الصب تاسك', 'المسؤول', 'الجهة / الدور', 'الحالة',
+            'المهمة الفرعية', 'المسؤول', 'الجهة / الدور', 'الحالة',
             'البداية', 'الاستحقاق', 'تاريخ الإنجاز',
-            'المقدّر (س)', 'الفعلي (س)', 'النقاط', 'وصف الصب تاسك',
-        ];
+            'المقدّر (س)', 'الفعلي (س)', 'النقاط', 'وصف المهمة الفرعية',
+        ]);
     }
 
     /** @param TicketSubtask $s */
@@ -82,6 +82,6 @@ class SubtaskRowsSheet implements FromQuery, WithHeadings, WithMapping, WithTitl
 
     public function title(): string
     {
-        return $this->title;
+        return __($this->title);
     }
 }

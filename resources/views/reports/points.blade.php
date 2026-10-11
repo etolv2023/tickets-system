@@ -14,7 +14,7 @@
             <div>
                 <h1 class="page-title">{{ __('تقرير النقاط') }}</h1>
                 <p class="page-subtitle">
-                    {{ __('كل نقطة مصدرها صب تاسك واحد خلص — القيمة بتتحط بنقطة واحدة افتراضياً وقت إنشاء الصب تاسك، وتقدر تتعدّل لكل صب تاسك لوحده. مفيش تقسيم ومفيش نقاط على مستوى التذكرة نفسها. التصحيحات اليدوية (لو فيه) محسوبة في الإجمالي وبتتمّيز في جدول كل موظف. تسجيل الوقت مالوش أي علاقة بيها.') }}
+                    {{ __('مصدر كل نقطة مهمة فرعية واحدة مكتملة — تبدأ القيمة بنقطة واحدة افتراضيًا عند إنشاء المهمة الفرعية، ويمكن تعديلها لكل مهمة على حدة. لا يوجد تقسيم ولا نقاط على مستوى التذكرة نفسها. التصحيحات اليدوية (إن وجدت) محسوبة في الإجمالي ومميزة في جدول كل موظف. ولا علاقة لتسجيل الوقت بها.') }}
                 </p>
             </div>
             <div class="page__actions">
@@ -39,13 +39,13 @@
                     <option value="{{ $value }}" @selected(($type ?? '') === $value)>{{ __($label) }}</option>
                 @endforeach
             </select>
-            <noscript><x-button variant="secondary">{{ __('اعرض') }}</x-button></noscript>
+            <noscript><x-button variant="secondary">{{ __('عرض') }}</x-button></noscript>
         </form>
 
         @if ($type)
             <x-alert variant="info">
-                {{ __('الأرقام دي لنوع «:type» بس.', ['type' => $types[$type]]) }}
-                <a href="{{ route('reports.points', ['period' => $period]) }}">{{ __('اعرض كل الأنواع') }}</a>
+                {{ __('هذه الأرقام للنوع «:type» فقط.', ['type' => $types[$type]]) }}
+                <a href="{{ route('reports.points', ['period' => $period]) }}">{{ __('عرض جميع الأنواع') }}</a>
             </x-alert>
         @endif
 
@@ -57,7 +57,7 @@
                     {{ __('إجمالي نقاط الشهر') }}
                     @if ($delta !== null)
                         <span @class(['points-delta', 'points-delta--up' => $delta >= 0])>
-                            {{ $delta >= 0 ? '▲' : '▼' }} {{ __(':percent٪ عن الشهر الي فات', ['percent' => abs($delta)]) }}
+                            {{ $delta >= 0 ? '▲' : '▼' }} {{ __(':percent٪ مقارنة بالشهر الماضي', ['percent' => abs($delta)]) }}
                         </span>
                     @endif
                 </div>
@@ -65,12 +65,12 @@
 
             <div class="stat-tile stat-tile--green">
                 <div class="stat-tile__figure">{{ $people }}</div>
-                <div class="stat-tile__caption">{{ __('موظف أخد نقاط') }}</div>
+                <div class="stat-tile__caption">{{ __('موظفون حصلوا على نقاط') }}</div>
             </div>
 
             <div class="stat-tile stat-tile--amber">
                 <div class="stat-tile__figure">{{ $tickets }}</div>
-                <div class="stat-tile__caption">{{ __('تذكرة اتصرفت عليها نقاط') }}</div>
+                <div class="stat-tile__caption">{{ __('تذاكر احتُسبت عليها نقاط') }}</div>
             </div>
 
             <div class="stat-tile stat-tile--slate">
@@ -89,17 +89,17 @@
             @endif
         </div>
 
-        <x-collapsible-section :title="__('النقاط لكل موظف')" :meta="trans_choice(':count موظف', $byPerson->count())">
+        <x-collapsible-section :title="__('النقاط لكل موظف')" :meta="trans_choice(':count موظف|موظف واحد|موظفان|:count موظفين|:count موظفًا|:count موظف', $byPerson->count())">
             <div class="table-wrap">
                 <table class="table table--hover">
                     <thead>
                         <tr>
                             <th>{{ __('الموظف') }}</th>
-                            <th class="table__cell--num">{{ __('دعم') }}</th>
-                            <th class="table__cell--num">{{ __('فرونت') }}</th>
-                            <th class="table__cell--num">{{ __('باك') }}</th>
-                            <th class="table__cell--num">{{ __('تيست') }}</th>
-                            <th class="table__cell--num">{{ __('ديف أوبس') }}</th>
+                            <th class="table__cell--num">{{ __('الدعم') }}</th>
+                            <th class="table__cell--num">{{ __('الواجهة الأمامية') }}</th>
+                            <th class="table__cell--num">{{ __('الأنظمة الخلفية') }}</th>
+                            <th class="table__cell--num">{{ __('الاختبار') }}</th>
+                            <th class="table__cell--num">{{ __('عمليات التطوير') }}</th>
                             <th class="table__cell--num">{{ __('تذاكر') }}</th>
                             <th class="table__cell--num">{{ __('الإجمالي') }}</th>
                         </tr>
@@ -125,7 +125,7 @@
                                 <td class="table__cell--num points-cell">{{ $n($row->total) }}</td>
                             </tr>
                         @empty
-                            <tr class="table__empty"><td colspan="8">{{ __('مفيش نقاط اتصرفت في الشهر ده.') }}</td></tr>
+                            <tr class="table__empty"><td colspan="8">{{ __('لم تُحتسب نقاط هذا الشهر.') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -133,7 +133,7 @@
         </x-collapsible-section>
 
         <x-collapsible-section :title="__('النقاط حسب نوع التذكرة')"
-                               :meta="__('من أنهي نوع جت النقط')">
+                               :meta="__('مصدر النقاط حسب النوع')">
             <div class="table-wrap">
                 <table class="table">
                     <thead>
@@ -156,7 +156,7 @@
                                 <td class="table__cell--num">{{ $n($row->total / max(1, $row->tickets)) }}</td>
                             </tr>
                         @empty
-                            <tr class="table__empty"><td colspan="5">{{ __('مفيش بيانات.') }}</td></tr>
+                            <tr class="table__empty"><td colspan="5">{{ __('لا توجد بيانات.') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -185,7 +185,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr class="table__empty"><td colspan="4">{{ __('مفيش بيانات.') }}</td></tr>
+                            <tr class="table__empty"><td colspan="4">{{ __('لا توجد بيانات.') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -199,7 +199,7 @@
                         <tr>
                             <th>{{ __('التذكرة') }}</th>
                             <th>{{ __('الجهة الطالبة') }}</th>
-                            <th class="table__cell--num">{{ __('مشاركين') }}</th>
+                            <th class="table__cell--num">{{ __('المشاركون') }}</th>
                             <th class="table__cell--num">{{ __('النقاط') }}</th>
                         </tr>
                     </thead>
@@ -217,7 +217,7 @@
                                 <td class="table__cell--num points-cell">{{ $n($row->total) }}</td>
                             </tr>
                         @empty
-                            <tr class="table__empty"><td colspan="4">{{ __('مفيش بيانات.') }}</td></tr>
+                            <tr class="table__empty"><td colspan="4">{{ __('لا توجد بيانات.') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>

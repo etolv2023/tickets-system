@@ -49,7 +49,7 @@ class CalendarSettingController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', __('تم إضافة العطلة.'));
+        return back()->with('status', __('تمت إضافة العطلة.'));
     }
 
     public function destroyHoliday(Request $request, Holiday $holiday): RedirectResponse
@@ -72,9 +72,9 @@ class CalendarSettingController extends Controller
             'type' => ['required', 'in:annual,sick,other'],
             'note' => ['nullable', 'string', 'max:255'],
         ], [
-            'end_date.after_or_equal' => __('تاريخ النهاية مينفعش يكون قبل البداية.'),
+            'end_date.after_or_equal' => __('لا يمكن أن يكون تاريخ النهاية قبل تاريخ البداية.'),
         ], [
-            'user_id' => __('الموظف'), 'start_date' => __('من'), 'end_date' => __('لـ'), 'type' => __('النوع'),
+            'user_id' => __('الموظف'), 'start_date' => __('من'), 'end_date' => __('إلى'), 'type' => __('النوع'),
         ]);
 
         $leave = UserLeave::create($data + ['approved_by' => $request->user()->id]);

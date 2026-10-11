@@ -47,7 +47,7 @@ class TicketStatusController extends Controller
             'position' => (int) TicketStatusDefinition::max('position') + 1,
         ]);
 
-        return back()->with('status', __('تم إضافة حالة «:name».', ['name' => $data['name_ar']]));
+        return back()->with('status', __('تمت إضافة الحالة «:name».', ['name' => $data['name_ar']]));
     }
 
     public function update(UpdateTicketStatusRequest $request, TicketStatusDefinition $ticketStatus): RedirectResponse
@@ -62,7 +62,7 @@ class TicketStatusController extends Controller
         abort_unless($request->user()->hasPermission('settings.manage'), 403);
 
         if ($ticketStatus->is_system) {
-            return back()->withErrors(['status' => __('الحالات الأساسية للنظام مينفعش تتحذف.')]);
+            return back()->withErrors(['status' => __('لا يمكن حذف الحالات الأساسية للنظام.')]);
         }
 
         $name = $ticketStatus->name_ar;
@@ -72,10 +72,10 @@ class TicketStatusController extends Controller
         } catch (QueryException $e) {
             // FK on tickets.status is RESTRICT on purpose — a ticket sitting in
             // this status right now must not lose its status silently.
-            return back()->withErrors(['status' => __('فيه تذاكر لسه في حالة «:name» — انقلها لحالة تانية الأول.', ['name' => $name])]);
+            return back()->withErrors(['status' => __('توجد تذاكر في الحالة «:name» — انقلها إلى حالة أخرى أولًا.', ['name' => $name])]);
         }
 
-        return back()->with('status', __('تم حذف حالة «:name».', ['name' => $name]));
+        return back()->with('status', __('تم حذف الحالة «:name».', ['name' => $name]));
     }
 
     /**

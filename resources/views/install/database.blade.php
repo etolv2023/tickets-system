@@ -5,7 +5,7 @@
 @section('content')
     <div class="form-stack">
         <x-alert>
-            {{ __('هختبر الاتصال قبل ما أكمل. لو قاعدة البيانات مش موجودة هعملها بنفسي.') }}
+            {{ __('سأختبر الاتصال قبل المتابعة. إذا لم تكن قاعدة البيانات موجودة فسأنشئها.') }}
         </x-alert>
 
         <x-form-errors />
@@ -14,8 +14,8 @@
             @csrf
 
             <div class="form-grid">
-                <x-field name="db_host" :label="__('عنوان السيرفر')" :value="$defaults['db_host']" required dir="ltr" />
-                <x-field name="db_port" :label="__('البورت')" :value="$defaults['db_port']" required dir="ltr" />
+                <x-field name="db_host" :label="__('عنوان الخادم')" :value="$defaults['db_host']" required dir="ltr" />
+                <x-field name="db_port" :label="__('المنفذ')" :value="$defaults['db_port']" required dir="ltr" />
             </div>
 
             <x-field
@@ -24,12 +24,12 @@
                 :value="$defaults['db_database']"
                 required
                 dir="ltr"
-                :hint="__('حروف إنجليزية وأرقام و _ بس. لو مش موجودة هتتعمل.')"
+                :hint="__('أحرف إنجليزية وأرقام و_ فقط. تُنشأ إن لم تكن موجودة.')"
             />
 
             <div class="form-grid">
                 <x-field name="db_username" :label="__('اسم المستخدم')" :value="$defaults['db_username']" required dir="ltr" />
-                <x-field name="db_password" :label="__('كلمة السر')" type="password" :hint="__('سيبها فاضية لو مفيش كلمة سر.')" />
+                <x-field name="db_password" :label="__('كلمة المرور')" type="password" :hint="__('اتركها فارغة إذا لم تكن هناك كلمة مرور.')" />
             </div>
 
             <div class="install__nav">

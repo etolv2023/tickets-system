@@ -43,7 +43,7 @@ class RoleRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'key.regex' => __('الكود لازم يبدأ بحرف إنجليزي صغير، ويحتوي حروف صغيرة وأرقام و _ بس.'),
+            'key.regex' => __('يجب أن يبدأ الكود بحرف إنجليزي صغير، ولا يحتوي إلا على أحرف صغيرة وأرقام و_.'),
         ];
     }
 }

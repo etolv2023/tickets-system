@@ -60,15 +60,15 @@ class ImpersonationService
     private function assertAllowed(User $actor, User $target): void
     {
         if (! $actor->hasPermission('users.impersonate')) {
-            throw new RuntimeException('مالكش صلاحية الدخول بعين حد تاني.');
+            throw new RuntimeException(__('ليس لديك صلاحية العمل نيابةً عن مستخدم آخر.'));
         }
 
         if ($actor->id === $target->id) {
-            throw new RuntimeException('ده حسابك انت.');
+            throw new RuntimeException(__('هذا حسابك.'));
         }
 
         if (! $target->is_active) {
-            throw new RuntimeException('الحساب ده موقوف.');
+            throw new RuntimeException(__('هذا الحساب موقوف.'));
         }
 
         /*
@@ -86,7 +86,7 @@ class ImpersonationService
          */
         if ($target->hasPermission('users.impersonate')) {
             throw new RuntimeException(
-                'مينفعش تدخل بعين حد معاه نفس الصلاحية دي — ده كان هيخليك توصل لأي حساب من خلاله.'
+                __('لا يمكنك العمل نيابةً عن مستخدم يملك هذه الصلاحية نفسها — فذلك سيتيح لك الوصول إلى أي حساب من خلاله.')
             );
         }
     }

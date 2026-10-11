@@ -13,6 +13,8 @@ use App\Models\User;
 use App\Models\WorklogCompletionWaiver;
 use DomainException;
 use Illuminate\Support\Facades\DB;
+use App\Support\Phrase;
+use App\Support\Locale;
 
 /**
  * The state machine (PLAN.md § 3, F06, F07).
@@ -38,7 +40,7 @@ class TicketWorkflowService
      * بدأت / خلصت buttons.
      *
      * Offering these in a status picker desynchronises the two models: the
-     * ticket claims "جاري العمل" while both work logs still say pending, the
+     * ticket claims "قيد التنفيذ" while both work logs still say pending, the
      * button still reads بدأت, and allSidesDone() — which the point engine
      * depends on — is reading a different truth than the badge.
      */
@@ -60,7 +62,7 @@ class TicketWorkflowService
      *         Who the ticket is now waiting on (F06 manual status changes only —
      *         automatic transitions never pass this).
      */
-    public function transition(Ticket $ticket, TicketStatusValue $to, ?int $userId = null, ?string $note = null, ?array $recipient = null): Ticket
+    public function transition(Ticket $ticket, TicketStatusValue $to, ?int $userId = null, string|Phrase|null $note = null, ?array $recipient = null): Ticket
     {
         $from = $ticket->status;
 
@@ -77,13 +79,13 @@ class TicketWorkflowService
         // never be flipped out of the approvals queue into an un-assignable limbo.
         if ($ticket->type->needsApproval() && $ticket->approval_status === 'pending') {
             throw new DomainException(
-                'التذكرة لسه مستنية موافقة — لازم تتوافق أو تترفض الأول قبل ما تتغير حالتها.'
+                __('التذكرة ما زالت بانتظار الموافقة — يجب قبولها أو رفضها قبل تغيير حالتها.')
             );
         }
 
         if (! in_array($to->value, TicketStatusDefinition::transitionMap()[$from->value] ?? [], true)) {
             throw new DomainException(
-                "مينفعش تنقل التذكرة من «{$from->label()}» لـ «{$to->label()}»."
+                __('لا يمكن نقل التذكرة من «:from» إلى «:to».', ['from' => $from->label(), 'to' => $to->label()])
             );
         }
 
@@ -104,8 +106,13 @@ class TicketWorkflowService
                 : 0;
 
             if ($waivedClosed > 0) {
-                $note = trim(($note ? $note . ' — ' : '')
-                    . "اتقفل {$waivedClosed} صب تاسك تلقائياً (إعفاء من «خلصت»)");
+                $closed = new Phrase('أُغلقت :count مهام فرعية تلقائيًا (إعفاء من «إنهاء العمل»)', ['count' => $waivedClosed]);
+                $note = $note === null || $note === ''
+                    ? $closed
+                    : new Phrase(':note — :closed', [
+                        'note' => $note instanceof Phrase ? Phrase::nested($note) : $note,
+                        'closed' => Phrase::nested($closed),
+                    ]);
             }
 
             $ticket->status = $to;
@@ -124,7 +131,7 @@ class TicketWorkflowService
                 'from_status' => $from->value,
                 'to_status' => $to->value,
                 'user_id' => $userId,
-                'note' => $note,
+                'note' => $note instanceof Phrase ? $note->toStored() : $note,
                 'recipient_type' => $recipient['type'] ?? null,
                 'recipient_user_id' => $recipient['user_id'] ?? null,
                 'recipient_contact_id' => $recipient['contact_id'] ?? null,
@@ -135,7 +142,7 @@ class TicketWorkflowService
                 $this->points->award($ticket);
             }
 
-            $this->announce($ticket, $from, $to, $userId, $note);
+            $this->announce($ticket, $from, $to, $userId, $note instanceof Phrase ? $note->render('ar') : $note);
 
             return $ticket;
         });
@@ -173,7 +180,8 @@ class TicketWorkflowService
      */
     private function createFollowUpSubtask(Ticket $ticket, TicketStatusValue $to, ?string $note, int $actorId): void
     {
-        $title = "متابعة: {$ticket->title} — {$to->label()}";
+        // A stored title: Arabic, whatever the UI language of the request.
+        $title = Locale::as('ar', fn () => "متابعة: {$ticket->title} — {$to->label()}");
 
         $workLoggingRoleIds = Role::workLoggingRoleIds();
 
@@ -194,7 +202,7 @@ class TicketWorkflowService
                 $assignment->user_id,
                 $ticket,
                 'subtask.assigned',
-                "اتعملك صب تاسك متابعة على {$ticket->ticket_number}: {$to->label()}",
+                new Phrase('أُنشئت لك مهمة متابعة في :number: :status', ['number' => $ticket->ticket_number, 'status' => Phrase::status($to->value)]),
                 $actorId,
             );
         }
@@ -220,7 +228,7 @@ class TicketWorkflowService
                     $devId,
                     $ticket,
                     'ticket.reopened',
-                    "التيستر رجّع {$ticket->ticket_number}: " . ($note ?? 'من غير سبب'),
+                    new Phrase('أعاد المختبِر :number إلى التنفيذ: :reason', ['number' => $ticket->ticket_number, 'reason' => $note ?? Phrase::text('دون ذكر سبب')]),
                     $actorId,
                 );
             }
@@ -235,7 +243,7 @@ class TicketWorkflowService
         $this->notifications->notifyWatchers(
             $ticket,
             'ticket.status_changed',
-            "{$ticket->ticket_number} بقت «{$to->label()}»",
+            new Phrase('أصبحت حالة :number «:status»', ['number' => $ticket->ticket_number, 'status' => Phrase::status($to->value)]),
             $actorId,
         );
     }
@@ -270,14 +278,14 @@ class TicketWorkflowService
         // A feature can't be worked on before it's approved — the Policy blocks
         // the button, and this blocks everything else. F15
         if ($ticket->type->needsApproval() && $ticket->approval_status !== 'approved') {
-            throw new DomainException('الفيتشر لازم توافق عليه الأول قبل ما يتوزع.');
+            throw new DomainException(__('يجب الموافقة على الميزة الجديدة قبل إسنادها.'));
         }
 
         return DB::transaction(function () use ($ticket, $roleAssignments, $actorId, $activation, $source, $conflictsChecked) {
             $this->assignRoles($ticket, $roleAssignments, $actorId, $activation, $source, $conflictsChecked);
 
             if ($ticket->status === TicketStatusValue::for('new') || $ticket->status === TicketStatusValue::for('pending_approval')) {
-                $this->transition($ticket, TicketStatusValue::for('assigned'), $actorId, 'تم التوزيع');
+                $this->transition($ticket, TicketStatusValue::for('assigned'), $actorId, new Phrase('تم الإسناد'));
             }
 
             return $ticket->refresh();
@@ -433,7 +441,7 @@ class TicketWorkflowService
                 $userId,
                 $ticket,
                 'ticket.assigned',
-                "اتعملك أساين على {$ticket->ticket_number} كـ{$role->name_ar}: {$ticket->title}",
+                new Phrase('تم إسنادك إلى :number بصفة :role: :title', ['number' => $ticket->ticket_number, 'role' => Phrase::role($role->id), 'title' => $ticket->title]),
                 $actorId,
             );
 
@@ -580,18 +588,20 @@ class TicketWorkflowService
             // Every conflicting subtask is listed, not just the first: being
             // told about them one at a time is the slowest way to clear a role.
             $list = $stranded
-                ->map(fn ($t) => "«{$t->title}» مع " . ($owners[$t->assignee_id] ?? "#{$t->assignee_id}"))
-                ->implode('، ');
+                ->map(fn ($t) => __('«:title» مع :owner', ['title' => $t->title, 'owner' => $owners[$t->assignee_id] ?? "#{$t->assignee_id}"]))
+                ->implode(__('، '));
 
             $problems[] = $userId === null
-                ? "مينفعش تشيل التوزيع عن دور «{$role->label()}» لأن فيه صب تاسك لسه مفتوحة: {$list}."
-                : "مينفعش تغيّر توزيع دور «{$role->label()}» لـ"
-                    . (User::whereKey($userId)->value('name') ?? "#{$userId}")
-                    . " لأن فيه صب تاسك لسه مفتوحة ومع حد تاني: {$list}.";
+                ? __('لا يمكن إلغاء إسناد الدور «:role» لوجود مهام فرعية مفتوحة: :list.', ['role' => $role->label(), 'list' => $list])
+                : __('لا يمكن تغيير إسناد الدور «:role» إلى :name لوجود مهام فرعية مفتوحة مع شخص آخر: :list.', [
+                    'role' => $role->label(),
+                    'name' => User::whereKey($userId)->value('name') ?? "#{$userId}",
+                    'list' => $list,
+                ]);
         }
 
         if ($problems !== []) {
-            throw new DomainException(implode(' ', $problems) . ' سلّمها أو قفلها الأول.');
+            throw new DomainException(implode(' ', $problems) . ' ' . __('سلّمها أو أغلقها أولًا.'));
         }
     }
 
@@ -630,11 +640,11 @@ class TicketWorkflowService
         }
     }
 
-    /** "بدأت" — the first side to start drags the ticket to in_progress. F07 */
+    /** "بدء العمل" — the first side to start drags the ticket to in_progress. F07 */
     public function start(TicketWorkLog $log, int $actorId): void
     {
         if ($log->status !== 'pending') {
-            throw new DomainException('الشغل ده مبدوء بالفعل.');
+            throw new DomainException(__('هذا العمل بدأ بالفعل.'));
         }
 
         DB::transaction(function () use ($log, $actorId) {
@@ -643,19 +653,19 @@ class TicketWorkflowService
             $ticket = $log->ticket;
 
             if (in_array($ticket->status, [TicketStatusValue::for('assigned'), TicketStatusValue::for('reopened')], true)) {
-                $this->transition($ticket, TicketStatusValue::for('in_progress'), $actorId, "{$log->roleLabel()}: بدأ الشغل");
+                $this->transition($ticket, TicketStatusValue::for('in_progress'), $actorId, new Phrase(':role: بدأ العمل', ['role' => $this->roleRef($log)]));
             }
         });
     }
 
     /**
-     * "خلصت" — only moves the ticket to dev_done when EVERY side is done. If the
+     * "مكتملة" — only moves the ticket to dev_done when EVERY side is done. If the
      * frontend finishes and the backend hasn't, the ticket stays in_progress. F07
      */
     public function finish(TicketWorkLog $log, int $actorId): void
     {
         if ($log->status !== 'in_progress') {
-            throw new DomainException('لازم تضغط «بدأت» الأول.');
+            throw new DomainException(__('اضغط «بدء العمل» أولًا.'));
         }
 
         if (($blocker = $this->finishBlocker($log)) !== null) {
@@ -674,7 +684,7 @@ class TicketWorkflowService
             // direction; this is its finish-side twin.
             $ticket = $log->ticket;
             if (in_array($ticket->status, [TicketStatusValue::for('assigned'), TicketStatusValue::for('reopened')], true)) {
-                $this->transition($ticket, TicketStatusValue::for('in_progress'), $actorId, "{$log->roleLabel()}: استئناف الشغل");
+                $this->transition($ticket, TicketStatusValue::for('in_progress'), $actorId, new Phrase(':role: استؤنف العمل', ['role' => $this->roleRef($log)]));
             }
 
             $finishedAt = now();
@@ -689,7 +699,7 @@ class TicketWorkflowService
 
             $ticket = $log->ticket->refresh();
 
-            $this->promoteIfSidesDone($ticket, $actorId, 'كل الجهات خلصت');
+            $this->promoteIfSidesDone($ticket, $actorId, new Phrase('أنهت جميع الجهات عملها'));
         });
     }
 
@@ -716,7 +726,7 @@ class TicketWorkflowService
 
         return $open === 0
             ? null
-            : "لسه فيه {$open} صب تاسك مش خالصة على جهة {$log->roleLabel()}. خلّصها الأول.";
+            : __('ما زالت :count مهام فرعية غير مكتملة لجهة :role. أكملها أولًا.', ['count' => $open, 'role' => $log->roleLabel()]);
     }
 
     /**
@@ -778,9 +788,9 @@ class TicketWorkflowService
             return null;
         }
 
-        $sides = $unfinished->map(fn ($log) => $log->roleLabel())->implode(' و');
+        $sides = $unfinished->map(fn ($log) => $log->roleLabel())->implode(__('، '));
 
-        return "لسه فيه شغل مخلّصش على التذكرة ({$sides}). لازم كل جهة تضغط «خلصت» قبل ما تحوّلها لـ «{$to->label()}».";
+        return __('ما زال هناك عمل غير منتهٍ في التذكرة (:sides). يجب أن تضغط كل جهة «إنهاء العمل» قبل نقلها إلى «:status».', ['sides' => $sides, 'status' => $to->label()]);
     }
 
     private function subtaskBlocker(Ticket $ticket, TicketStatusValue $to): ?string
@@ -832,11 +842,11 @@ class TicketWorkflowService
             return null;
         }
 
-        return "لسه فيه {$open} صب تاسك مش خالصة على التذكرة. خلّصها أو احذفها قبل ما تحوّلها لـ «{$to->label()}».";
+        return __('ما زالت :count مهام فرعية غير مكتملة في التذكرة. أكملها أو احذفها قبل نقل التذكرة إلى «:status».', ['count' => $open, 'status' => $to->label()]);
     }
 
     /**
-     * The inverse of finish(): a side that said "خلصت" takes it back.
+     * The inverse of finish(): a side that said "مكتملة" takes it back.
      *
      * Same shape as the reopen action a tester performs, minus the customer
      * framing — this is the developer correcting themselves, not the ticket
@@ -846,7 +856,7 @@ class TicketWorkflowService
     public function resume(TicketWorkLog $log, int $actorId): void
     {
         if ($log->status !== 'done') {
-            throw new DomainException('الشغل ده مش مقفول أصلاً.');
+            throw new DomainException(__('هذا العمل غير منتهٍ أصلًا.'));
         }
 
         DB::transaction(function () use ($log, $actorId) {
@@ -857,13 +867,13 @@ class TicketWorkflowService
             // dev_done and testing both mean "development is over". Taking a
             // side back makes that untrue, so the ticket follows its sides.
             if (in_array($ticket->status->value, ['dev_done', 'testing'], true)) {
-                $this->transition($ticket, TicketStatusValue::for('in_progress'), $actorId, "{$log->roleLabel()}: رجع يشتغل");
+                $this->transition($ticket, TicketStatusValue::for('in_progress'), $actorId, new Phrase(':role: عاد إلى العمل', ['role' => $this->roleRef($log)]));
             }
         });
     }
 
     /**
-     * The inverse of start(): a side that said "بدأت" puts it back down.
+     * The inverse of start(): a side that said "بدء العمل" puts it back down.
      *
      * started_at is cleared because the side genuinely has not started — and
      * leaving it set would make the next finish() compute duration_minutes from
@@ -873,7 +883,7 @@ class TicketWorkflowService
     public function unstart(TicketWorkLog $log, int $actorId): void
     {
         if ($log->status !== 'in_progress') {
-            throw new DomainException('الشغل ده مش شغّال دلوقتي.');
+            throw new DomainException(__('هذا العمل ليس قيد التنفيذ حاليًا.'));
         }
 
         DB::transaction(function () use ($log, $actorId) {
@@ -886,7 +896,7 @@ class TicketWorkflowService
             // never started.
             if ($ticket->status === TicketStatusValue::for('in_progress')
                 && $ticket->workLogs()->where('status', '!=', 'pending')->doesntExist()) {
-                $this->transition($ticket, TicketStatusValue::for('assigned'), $actorId, 'رجعت لقائمة الانتظار');
+                $this->transition($ticket, TicketStatusValue::for('assigned'), $actorId, new Phrase('عادت إلى قائمة الانتظار'));
             }
         });
     }
@@ -957,7 +967,13 @@ class TicketWorkflowService
      * to «تم الحل» at all — in_progress only leads to dev_done — so the ticket
      * was unclosable and the status dropdown looked broken.
      */
-    private function promoteIfSidesDone(Ticket $ticket, ?int $actorId, string $note): void
+    /** A work log's role as a phrase parameter: named in the reader's language. */
+    private function roleRef(TicketWorkLog $log): array|string
+    {
+        return $log->role_id !== null ? Phrase::role($log->role_id) : '—';
+    }
+
+    private function promoteIfSidesDone(Ticket $ticket, ?int $actorId, Phrase $note): void
     {
         if (! $this->allSidesDone($ticket)) {
             return;
@@ -973,7 +989,7 @@ class TicketWorkflowService
             ->exists();
 
         if ($hasTester) {
-            $this->transition($ticket, TicketStatusValue::for('testing'), $actorId, 'في انتظار التيست');
+            $this->transition($ticket, TicketStatusValue::for('testing'), $actorId, new Phrase('بانتظار الاختبار'));
         }
     }
 
@@ -984,7 +1000,7 @@ class TicketWorkflowService
             return;
         }
 
-        $this->promoteIfSidesDone($ticket, $actorId, 'اتحدّثت الصب تاسك وكل الجهات خلصت');
+        $this->promoteIfSidesDone($ticket, $actorId, new Phrase('حُدّثت المهمة الفرعية وأنهت جميع الجهات عملها'));
     }
 
     /**
@@ -1010,7 +1026,7 @@ class TicketWorkflowService
             $before = $ticket->status->value;
 
             try {
-                $this->promoteIfSidesDone($ticket, $actorId, 'اتفك البلوك بإعفاء من «خلصت»');
+                $this->promoteIfSidesDone($ticket, $actorId, new Phrase('زال الحظر بإعفاء من «إنهاء العمل»'));
             } catch (DomainException) {
                 // One stuck ticket must not stop the rest — a feature awaiting
                 // approval, say, refuses to move and that is correct.
@@ -1129,7 +1145,7 @@ class TicketWorkflowService
                 'from_status' => $from->value,
                 'to_status' => $to->value,
                 'user_id' => $adminId,
-                'note' => 'تمت الموافقة',
+                'note' => (new Phrase('تمت الموافقة'))->toStored(),
             ]);
 
             // F15/F06.3: activate the distribution the creator saved (planAssignments).
@@ -1192,10 +1208,10 @@ class TicketWorkflowService
     public function close(Ticket $ticket, int $actorId): Ticket
     {
         if ($ticket->client_notified_at === null) {
-            throw new DomainException('لازم تسجّل إن العميل اتبلغ قبل ما تقفل التذكرة.');
+            throw new DomainException(__('يجب تسجيل إبلاغ العميل قبل إغلاق التذكرة.'));
         }
 
-        return $this->transition($ticket, TicketStatusValue::for('closed'), $actorId, 'تم الإغلاق');
+        return $this->transition($ticket, TicketStatusValue::for('closed'), $actorId, new Phrase('تم الإغلاق'));
     }
 
     public function markClientNotified(Ticket $ticket, int $actorId): Ticket

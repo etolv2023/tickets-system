@@ -12,7 +12,7 @@
 
     <span class="cal__legend-item">
         <span class="cap cap--near"><span class="cap__bar"><span class="cap__fill" style="--value: 90%"></span></span></span>
-        {{ __('قرب الحد') }}
+        {{ __('قريب من الحد') }}
     </span>
 
     <span class="cal__legend-item">

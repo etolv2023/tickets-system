@@ -24,18 +24,18 @@ class CheckGithub extends Command
 {
     protected $signature = 'github:check';
 
-    protected $description = 'فحص اتصال جيت هب وصلاحيات التوكن';
+    protected $description = 'فحص الاتصال بـ GitHub وصلاحيات رمز الوصول';
 
     public function handle(GitHubClient $github): int
     {
         $this->line('');
 
         if (! config('github.enabled')) {
-            $this->warn('GITHUB_ENABLED = false — التكامل مقفول.');
+            $this->warn('GITHUB_ENABLED = false — التكامل معطّل.');
         }
 
         if (blank(config('github.token'))) {
-            $this->error('GITHUB_TOKEN فاضي. مفيش حاجة تتفحص.');
+            $this->error('GITHUB_TOKEN فارغ. لا يوجد ما يمكن فحصه.');
 
             return self::FAILURE;
         }
@@ -47,12 +47,12 @@ class CheckGithub extends Command
             $viewer = $github->viewer();
 
             if ($viewer === null) {
-                $this->error('التوكن مرفوض من جيت هب (401) — خلصت صلاحيته أو اتلغى.');
+                $this->error('رفض GitHub رمز الوصول (401) — انتهت صلاحيته أو أُلغي.');
 
                 return self::FAILURE;
             }
 
-            $this->info('التوكن شغّال — الحساب: ' . ($viewer['login'] ?? '؟'));
+            $this->info('رمز الوصول يعمل — الحساب: ' . ($viewer['login'] ?? '؟'));
         } catch (Throwable $e) {
             $this->error('فشل الاتصال: ' . $e->getMessage());
 
@@ -63,7 +63,7 @@ class CheckGithub extends Command
         $expiry = $github->tokenExpiresAt();
 
         if ($expiry === null) {
-            $this->line('  تاريخ الانتهاء: جيت هب مقالش (توكن من غير انتهاء، أو GitHub App).');
+            $this->line('  تاريخ الانتهاء: لم يحدده GitHub (رمز بلا انتهاء، أو GitHub App).');
         } else {
             // Signed on purpose: a negative count is an expired token, and that
             // has to read differently from "expires soon".
@@ -71,10 +71,10 @@ class CheckGithub extends Command
             $warnAt = (int) config('github.expiry_warning_days', 30);
 
             if ($days < 0) {
-                $this->error('  التوكن خلص من ' . abs($days) . ' يوم.');
+                $this->error('  انتهت صلاحية رمز الوصول منذ ' . abs($days) . ' يوم.');
                 $problems++;
             } elseif ($days <= $warnAt) {
-                $this->warn('  التوكن هيخلص خلال ' . $days . ' يوم (' . $expiry->toDateString() . ').');
+                $this->warn('  تنتهي صلاحية رمز الوصول خلال ' . $days . ' يوم (' . $expiry->toDateString() . ').');
                 $problems++;
             } else {
                 $this->line('  ينتهي في ' . $expiry->toDateString() . ' (' . $days . ' يوم).');
@@ -85,7 +85,7 @@ class CheckGithub extends Command
         $this->line('');
 
         foreach (GithubRepository::orderBy('position')->get() as $repository) {
-            $label = $repository->fullName() . ($repository->is_active ? '' : ' (مقفول)');
+            $label = $repository->fullName() . ($repository->is_active ? '' : ' (معطّل)');
 
             try {
                 $data = $github->repository($repository);
@@ -97,7 +97,7 @@ class CheckGithub extends Command
             }
 
             if ($data === null) {
-                $this->error('✗ ' . $label . ' — التوكن مش شايف الريبو ده. ضيفه لقائمة الريبوز في التوكن.');
+                $this->error('✗ ' . $label . ' — رمز الوصول لا يرى هذا المستودع. أضفه إلى قائمة المستودعات في الرمز.');
                 $problems++;
 
                 continue;
@@ -111,7 +111,7 @@ class CheckGithub extends Command
             $permissions = $data['permissions'] ?? null;
 
             if (! is_array($permissions)) {
-                $this->line('    (جيت هب مرجّعش تفاصيل الصلاحيات لهذا التوكن.)');
+                $this->line('    (لم يُرجع GitHub تفاصيل صلاحيات هذا الرمز.)');
 
                 continue;
             }
@@ -123,21 +123,21 @@ class CheckGithub extends Command
             ]));
 
             if ($excess !== []) {
-                $this->warn('    ⚠ التوكن معاه صلاحيات أوسع من المطلوب: ' . implode('، ', $excess) . '.');
-                $this->warn('      النظام ده مبيكتبش خالص. اعمل التوكن Contents: Read-only + Pull requests: Read-only.');
+                $this->warn('    ⚠ رمز الوصول يملك صلاحيات أوسع من المطلوب: ' . implode('، ', $excess) . '.');
+                $this->warn('      هذا النظام لا يكتب أي شيء. أنشئ رمز الوصول بصلاحيتي Contents: Read-only وPull requests: Read-only.');
                 $problems++;
             } else {
-                $this->line('    الصلاحيات: قراءة بس ✔');
+                $this->line('    الصلاحيات: قراءة فقط ✔');
             }
 
             if ($repository->last_sync_error) {
-                $this->warn('    آخر مزامنة فشلت: ' . $repository->last_sync_error);
+                $this->warn('    فشلت آخر مزامنة: ' . $repository->last_sync_error);
                 $problems++;
             }
         }
 
         $this->line('');
-        $this->line($problems === 0 ? 'كله تمام.' : $problems . ' حاجة محتاجة نظرة.');
+        $this->line($problems === 0 ? 'كل شيء سليم.' : $problems . ' عناصر تحتاج إلى مراجعة.');
 
         return $problems === 0 ? self::SUCCESS : self::FAILURE;
     }

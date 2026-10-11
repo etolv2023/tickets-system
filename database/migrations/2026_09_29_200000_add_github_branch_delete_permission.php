@@ -13,7 +13,7 @@ return new class extends Migration
             ['key' => self::KEY],
             [
                 'group' => 'github',
-                'name_ar' => 'حذف برانش مخالف من GitHub',
+                'name_ar' => 'حذف فرع مخالف من GitHub',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]

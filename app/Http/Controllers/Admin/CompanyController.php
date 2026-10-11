@@ -53,7 +53,7 @@ class CompanyController extends Controller
         );
 
         return redirect()->route('admin.companies.show', $company)
-            ->with('status', __('تم إضافة «:name».', ['name' => $company->name]));
+            ->with('status', __('تمت إضافة «:name».', ['name' => $company->name]));
     }
 
     /** F01: the company page answers "is this customer heavy or quiet?" */

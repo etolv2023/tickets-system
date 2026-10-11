@@ -16,7 +16,7 @@
         <button type="button" class="btn btn--secondary" @click="panelOpen = !panelOpen"
                 :aria-expanded="panelOpen.toString()">
             <x-icon name="filter" class="btn__icon" />
-            {{ __('تصفية الكاليندر') }}
+            {{ __('تصفية التقويم') }}
             @if ($calendarFilterCount)
                 <span class="filters__active-count">{{ $calendarFilterCount }}</span>
             @endif
@@ -31,14 +31,14 @@
             <x-combobox name="assignee" resource="users"
                         :value="$filters['assignee'] ?? null"
                         :selected="$selectedAssignee ?? null"
-                        :placeholder="__('كل الفريق')" />
+                        :placeholder="__('الفريق بالكامل')" />
         </div>
     @endif
 
     {{-- What kind of thing to draw. First in the row because it changes what
          every other filter is even filtering. --}}
     <select name="show" class="select filters__select">
-        @foreach (['all' => __('تذاكر وصب تاسكس'), 'subtasks' => __('صب تاسكس بس'), 'tickets' => __('تذاكر بس')] as $value => $label)
+        @foreach (['all' => __('التذاكر والمهام الفرعية'), 'subtasks' => __('المهام الفرعية فقط'), 'tickets' => __('التذاكر فقط')] as $value => $label)
             <option value="{{ $value }}" @selected(($filters['show'] ?? 'all') === $value)>{{ __($label) }}</option>
         @endforeach
     </select>
@@ -47,7 +47,7 @@
         <x-combobox name="company" resource="companies"
                     :value="$filters['company'] ?? null"
                     :selected="$selectedCompany ?? null"
-                    :placeholder="__('كل الشركات')" />
+                    :placeholder="__('جميع الشركات')" />
     </div>
 
     <select name="type" class="select filters__select">
@@ -58,27 +58,27 @@
     </select>
 
     <select name="priority" class="select filters__select">
-        <option value="">{{ __('كل الأولويات') }}</option>
+        <option value="">{{ __('جميع الأولويات') }}</option>
         @foreach (\App\Models\PriorityDefinition::options() as $value => $label)
             <option value="{{ $value }}" @selected(($filters['priority'] ?? '') === $value)>{{ __($label) }}</option>
         @endforeach
     </select>
 
     <select name="status" class="select filters__select">
-        <option value="">{{ __('كل الحالات') }}</option>
+        <option value="">{{ __('جميع الحالات') }}</option>
         @foreach (\App\Models\TicketStatusDefinition::options() as $value => $label)
             <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ __($label) }}</option>
         @endforeach
     </select>
 
     <select name="role" class="select filters__select">
-        <option value="">{{ __('كل الأدوار') }}</option>
+        <option value="">{{ __('جميع الأدوار') }}</option>
         @foreach ($roles as $role)
             <option value="{{ $role->id }}" @selected((int) ($filters['role'] ?? 0) === $role->id)>{{ $role->label() }}</option>
         @endforeach
     </select>
 
-    <x-button variant="secondary">{{ __('فلترة') }}</x-button>
+    <x-button variant="secondary">{{ __('تصفية') }}</x-button>
 
     @if (array_filter($filters))
         <x-button variant="ghost" :href="route($routeName, ['view' => $view])">{{ __('مسح') }}</x-button>

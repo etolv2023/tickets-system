@@ -63,7 +63,7 @@ class TicketController extends Controller
                 'status', 'reported_at', 'created_at', 'updated_at', 'first_response_at',
                 'sla_due_at', 'due_date', 'resolved_at', 'closed_at', 'client_notified_at', 'created_by',
                 'subtasks_total', 'subtasks_done',
-                // F27 — read by the "ملهاش برانش" marker below. A column, not
+                // F27 — read by the "بلا فرع" marker below. A column, not
                 // a subquery: 25 rows on a screen with a 300ms budget.
                 'branches_count',
             ])
@@ -248,7 +248,7 @@ class TicketController extends Controller
 
     /**
      * The distribution the user picked on the create page, as role_id => user_id,
-     * with the "— مفيش —" rows dropped. Used twice: to own the hand-written
+     * with the "— لا يوجد —" rows dropped. Used twice: to own the hand-written
      * subtasks, and to actually assign the ticket.
      *
      * @return array<int, int> role_id => user_id
@@ -450,11 +450,11 @@ class TicketController extends Controller
         $data = $request->validate([
             'labels' => ['nullable', 'array'],
             'labels.*' => ['integer', 'exists:labels,id'],
-        ], [], ['labels' => __('اللابلز')]);
+        ], [], ['labels' => __('الوسوم')]);
 
         $ticket->labels()->sync($data['labels'] ?? []);
 
-        return back()->with('status', __('تم حفظ اللابلز.'));
+        return back()->with('status', __('تم حفظ الوسوم.'));
     }
 
     private function formData(): array
@@ -467,7 +467,7 @@ class TicketController extends Controller
             'types' => TicketTypeDefinition::options(),
             'priorities' => PriorityDefinition::map(),
             // F06 role-assignment extension: the create form's inline subtask
-            // repeater offers the same optional "الرول" select.
+            // repeater offers the same optional "الدور" select.
             'assignableRoles' => Role::assignableList(),
         ];
     }
@@ -675,7 +675,7 @@ class TicketController extends Controller
         $statuses = TicketStatusDefinition::map();
         $allowed = TicketStatusDefinition::transitionMap()[$ticket->status->value] ?? [];
 
-        // "جاري العمل" and "تم التطوير" are computed from ticket_work_logs and
+        // "قيد التنفيذ" and "اكتمل التطوير" are computed from ticket_work_logs and
         // belong to the بدأت / خلصت buttons. Offering them here let the badge
         // and the work logs drift apart — the ticket would claim to be in
         // progress while every side still said pending.
@@ -751,7 +751,7 @@ class TicketController extends Controller
         return [
             'assignable' => $canAssign ? $this->assignableUsers() : null,
             // F06 role-assignment extension: the subtask form's optional
-            // "الرول" select — cached, so every row in the loop reuses the
+            // "الدور" select — cached, so every row in the loop reuses the
             // same collection instead of a query each (CLAUDE.md § 4).
             'assignableRoles' => $canPlan ? Role::assignableList() : collect(),
             // A subtask may go to anyone — F08 puts no skills constraint on it.

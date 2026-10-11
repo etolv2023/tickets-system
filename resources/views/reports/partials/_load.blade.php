@@ -1,6 +1,6 @@
-<x-card :title="__('حِمل التيم')" flush>
+<x-card :title="__('عبء عمل الفريق')" flush>
     <x-slot:actions>
-        <span class="u-subtle">{{ __('التذاكر المفتوحة دلوقتي — مش محكومة بالشهر ولا بالفلاتر فوق') }}</span>
+        <span class="u-subtle">{{ __('التذاكر المفتوحة حاليًا — لا تخضع للشهر ولا لعوامل التصفية أعلاه') }}</span>
     </x-slot:actions>
 
     <div class="table-wrap">
@@ -23,7 +23,7 @@
                         <td class="table__cell--num">{{ $person->open_load }}</td>
                     </tr>
                 @empty
-                    <tr class="table__empty"><td colspan="2">{{ __('مفيش شغل مفتوح على حد.') }}</td></tr>
+                    <tr class="table__empty"><td colspan="2">{{ __('لا يوجد عمل مفتوح لأي شخص.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

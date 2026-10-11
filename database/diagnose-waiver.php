@@ -29,8 +29,8 @@ echo str_repeat('=', 64), "\n";
 
 // 0. Is the feature even deployed here?
 if (! Schema::hasTable('worklog_completion_waivers')) {
-    echo "❌ جدول worklog_completion_waivers مش موجود.\n";
-    echo "   المايجريشن ماتشغلتش على السيرفر ده. شغّل: php artisan migrate\n";
+    echo "❌ جدول worklog_completion_waivers غير موجود.\n";
+    echo "   لم يُشغَّل الترحيل (migration) على هذا الخادم. شغّل: php artisan migrate\n";
 
     return;
 }
@@ -38,7 +38,7 @@ if (! Schema::hasTable('worklog_completion_waivers')) {
 $ticket = Ticket::where('ticket_number', $number)->first();
 
 if ($ticket === null) {
-    echo "❌ مفيش تذكرة بالرقم ده.\n";
+    echo "❌ لا توجد تذكرة بهذا الرقم.\n";
 
     return;
 }
@@ -53,9 +53,9 @@ $holders = DB::table('ticket_subtasks')
     ->distinct()
     ->pluck('users.name', 'users.id');
 
-echo "\nمين له صب تاسك على التذكرة دي (ده اللي الإعفاء بيتقاس عليه):\n";
+echo "\nأصحاب المهام الفرعية في هذه التذكرة (وعليهم يُقاس الإعفاء):\n";
 echo $holders->isEmpty()
-    ? "   ⚠️  محدش! فمفيش أي إعفاء بشخص معيّن هيشتغل هنا.\n"
+    ? "   ⚠️  لا أحد! لذلك لن يعمل أي إعفاء مرتبط بشخص محدد هنا.\n"
     : $holders->map(fn ($n, $id) => "   • {$n} (#{$id})")->implode("\n") . "\n";
 
 // 2. Who is still blocking, and why the waiver did or did not apply.
@@ -67,11 +67,11 @@ $logs = $ticket->workLogs()
     ->with(['user:id,name', 'role:id,name_ar'])
     ->get();
 
-echo "\nاللي لسه مضغطش «خلصت»:\n";
+echo "\nمن لم يضغط «إنهاء العمل» بعد:\n";
 
 if ($logs->isEmpty()) {
-    echo "   ✅ محدش — التذكرة مش متبلوكة من سجل الشغل.\n";
-    echo "      لو لسه مش بتتقفل، السبب حاجة تانية (صب تاسكس مش خالصة، أو الحالة).\n";
+    echo "   ✅ لا أحد — التذكرة غير محظورة بسبب سجل العمل.\n";
+    echo "      إذا استمر الحظر فالسبب أمر آخر (مهام فرعية غير مكتملة، أو الحالة).\n";
 
     return;
 }
@@ -85,26 +85,26 @@ foreach ($logs as $log) {
     $waiver = $map[$log->user_id] ?? null;
 
     if ($waiver === null) {
-        echo "     ↳ ❌ مالوش أي إعفاء متسجّل. ده سبب البلوك.\n";
+        echo "     ↳ ❌ ليس لديه أي إعفاء مسجّل، وهذا سبب الحظر.\n";
         continue;
     }
 
     if ($waiver['all']) {
-        echo "     ↳ ✅ معفي «مع الكل» — المفروض مش بيبلوك.\n";
+        echo "     ↳ ✅ مُعفى «مع الجميع» — يُفترض ألّا يحظر.\n";
         continue;
     }
 
     $names = DB::table('users')->whereIn('id', $waiver['with'])->pluck('name', 'id');
-    echo "     ↳ معفي مع: " . ($names->isEmpty() ? '(مفيش)' : $names->implode('، ')) . "\n";
+    echo "     ↳ مُعفى مع: " . ($names->isEmpty() ? '(لا يوجد)' : $names->implode('، ')) . "\n";
 
     $matched = array_intersect($waiver['with'], $holders->keys()->all());
 
     echo $matched === []
-        ? "     ↳ ❌ **مفيش حد منهم له صب تاسك على التذكرة دي** — عشان كده البلوك لسه شغّال.\n"
+        ? "     ↳ ❌ **لا أحد منهم لديه مهمة فرعية في هذه التذكرة** — لذلك ما زال الحظر قائمًا.\n"
           . "        الحل: تدي {$name} إعفاء مع حد فعلاً له صب تاسك هنا، أو تختار «مع الكل».\n"
-        : "     ↳ ✅ اتطابق مع: " . $names->only($matched)->implode('، ') . "\n";
+        : "     ↳ ✅ مطابق مع: " . $names->only($matched)->implode('، ') . "\n";
 }
 
 echo "\n", str_repeat('=', 64), "\n";
-echo "كل الإعفاءات المتسجّلة في السيستم: ",
+echo "جميع الإعفاءات المسجّلة في النظام: ",
     WorklogCompletionWaiver::count(), " صف\n";

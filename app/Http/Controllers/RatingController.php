@@ -9,6 +9,7 @@ use App\Services\ActivityLogger;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use App\Support\Phrase;
 
 /** F17 — 1..10 per assigned role. Optional; it never blocks closing. */
 class RatingController extends Controller
@@ -26,7 +27,7 @@ class RatingController extends Controller
             'score' => ['required', 'integer', 'between:1,10'],
             'comment' => ['nullable', 'string', 'max:255'],
         ], [
-            'score.between' => __('التقييم لازم يكون من 1 لـ 10.'),
+            'score.between' => __('يجب أن يكون التقييم من 1 إلى 10.'),
         ], [
             'role_id' => __('الدور'), 'score' => __('التقييم'), 'comment' => __('التعليق'),
         ]);
@@ -36,7 +37,7 @@ class RatingController extends Controller
         $rateeId = $ticket->assigneeIdForRole((int) $data['role_id']);
 
         if ($rateeId === null) {
-            return back()->withErrors(['role_id' => __('مفيش حد متعيّن على الدور ده.')]);
+            return back()->withErrors(['role_id' => __('لا يوجد أحد مُعيَّن على هذا الدور.')]);
         }
 
         $rating = Rating::updateOrCreate(
@@ -66,7 +67,7 @@ class RatingController extends Controller
             $rateeId,
             $ticket,
             NotificationEvent::RatingGiven,
-            "اتقيّمت بـ{$data['score']}/10 على {$ticket->ticket_number}",
+            new Phrase('حصلت على تقييم :score/10 في :number', ['score' => $data['score'], 'number' => $ticket->ticket_number]),
             $request->user()->id,
         );
 

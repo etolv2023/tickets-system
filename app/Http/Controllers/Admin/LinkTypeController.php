@@ -49,7 +49,7 @@ class LinkTypeController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', __('تم إضافة نوع ربط «:name».', ['name' => $data['name_ar']]));
+        return back()->with('status', __('تمت إضافة نوع الربط «:name».', ['name' => $data['name_ar']]));
     }
 
     public function update(UpdateLinkTypeRequest $request, LinkTypeDefinition $linkType, ActivityLogger $logger): RedirectResponse
@@ -75,7 +75,7 @@ class LinkTypeController extends Controller
         abort_unless($request->user()->hasPermission('settings.manage'), 403);
 
         if ($linkType->is_system) {
-            return back()->withErrors(['type' => __('أنواع الروابط الأساسية للنظام مينفعش تتحذف.')]);
+            return back()->withErrors(['type' => __('لا يمكن حذف أنواع الروابط الأساسية للنظام.')]);
         }
 
         $name = $linkType->name_ar;
@@ -85,7 +85,7 @@ class LinkTypeController extends Controller
         } catch (QueryException) {
             // FK on ticket_links.type is RESTRICT — a link on this type right
             // now must not lose it silently.
-            return back()->withErrors(['type' => __('فيه روابط لسه بنوع «:name» — شيلها الأول.', ['name' => $name])]);
+            return back()->withErrors(['type' => __('توجد روابط من نوع «:name» — احذفها أولًا.', ['name' => $name])]);
         }
 
         $logger->log(
@@ -97,6 +97,6 @@ class LinkTypeController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', __('تم حذف نوع ربط «:name».', ['name' => $name]));
+        return back()->with('status', __('تم حذف نوع الربط «:name».', ['name' => $name]));
     }
 }

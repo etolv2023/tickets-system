@@ -40,7 +40,7 @@ class CompanyPolicy
         }
 
         if ($company->contacts()->exists()) {
-            return Response::deny(__('الشركة دي عليها جهات اتصال. امسحهم الأول أو أوقف الشركة بدل ما تحذفها.'));
+            return Response::deny(__('لهذه الشركة جهات اتصال. احذفها أولًا أو أوقف الشركة بدلًا من حذفها.'));
         }
 
         return Response::allow();

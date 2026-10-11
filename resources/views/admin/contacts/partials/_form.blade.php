@@ -10,17 +10,17 @@
 
                 <x-field
                     name="erp_employee_id"
-                    :label="__('رقم الموظف في الـ ERP')"
+                    :label="__('رقم الموظف في نظام ERP')"
                     :value="$contact?->erp_employee_id"
                     required
                     dir="ltr"
-                    :hint="__('مينفعش يتكرر داخل نفس الشركة.')"
+                    :hint="__('لا يجوز تكراره داخل الشركة نفسها.')"
                 />
             </div>
 
             <div class="form-grid">
-                <x-field name="email" :label="__('الإيميل')" type="email" :value="$contact?->email" />
-                <x-field name="phone" :label="__('التليفون')" :value="$contact?->phone" dir="ltr" />
+                <x-field name="email" :label="__('البريد الإلكتروني')" type="email" :value="$contact?->email" />
+                <x-field name="phone" :label="__('الهاتف')" :value="$contact?->phone" dir="ltr" />
             </div>
 
             <label class="checkbox-row">

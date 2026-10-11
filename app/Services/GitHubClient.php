@@ -245,9 +245,7 @@ class GitHubClient
          * accusations about people's work, and nothing on any screen looks off.
          */
         throw new RuntimeException(
-            'الريبو ده فيه أكتر من ' . ($max * self::PER_PAGE) . ' صف على ' . $path
-            . ' — الحد الحالي (GITHUB_MAX_PAGES=' . $max . ') مش كفاية، وقراءة ناقصة معناها '
-            . 'تذاكر تبان من غير برانش وهي ليها. ارفع الحد وشغّل المزامنة تاني.'
+            __('يحتوي المستودع على أكثر من :rows صف في :path — الحد الحالي (GITHUB_MAX_PAGES=:max) غير كافٍ، والقراءة الناقصة تعني ظهور تذاكر بلا فرع وهي لها فرع. ارفع الحد وأعد تشغيل المزامنة.', ['rows' => $max * self::PER_PAGE, 'path' => $path, 'max' => $max])
         );
     }
 
@@ -260,13 +258,13 @@ class GitHubClient
     private function request(string $path, array $query = []): Response
     {
         if (! $this->configured()) {
-            throw new RuntimeException('تكامل جيت هب مش مفعّل أو التوكن ناقص.');
+            throw new RuntimeException(__('تكامل GitHub غير مفعّل أو رمز الوصول غير موجود.'));
         }
 
         try {
             return $this->http()->get(rtrim(config('github.api_base'), '/') . $path, $query);
         } catch (ConnectionException $e) {
-            throw new RuntimeException('مفيش اتصال بجيت هب: ' . $e->getMessage(), previous: $e);
+            throw new RuntimeException(__('تعذّر الاتصال بـ GitHub: :error', ['error' => $e->getMessage()]), previous: $e);
         }
     }
 
@@ -302,17 +300,17 @@ class GitHubClient
             $reset = $response->header('x-ratelimit-reset');
 
             throw new RuntimeException(
-                'حد الطلبات على جيت هب خلص'
-                . ($reset ? '، هيرجع الساعة ' . CarbonImmutable::createFromTimestamp((int) $reset)->format('H:i') : '')
-                . '.'
+                $reset
+                    ? __('استُنفد حد الطلبات على GitHub، ويتجدد الساعة :time.', ['time' => CarbonImmutable::createFromTimestamp((int) $reset)->format('H:i')])
+                    : __('استُنفد حد الطلبات على GitHub.')
             );
         }
 
         throw new RuntimeException(match ($response->status()) {
-            401 => 'توكن جيت هب مرفوض — غالباً خلصت صلاحيته أو اتلغى.',
-            403 => 'توكن جيت هب مش مسموح له بـ ' . $context . ' — راجع الريبوز المختارة في التوكن.',
-            404 => $context . ' مش موجود، أو التوكن مش شايفه.',
-            default => 'جيت هب رجّع ' . $response->status() . ' على ' . $context . '.',
+            401 => __('رفض GitHub رمز الوصول — غالبًا انتهت صلاحيته أو أُلغي.'),
+            403 => __('رمز الوصول في GitHub غير مسموح له بـ :context — راجع المستودعات المحددة في الرمز.', ['context' => $context]),
+            404 => __(':context غير موجود، أو لا يستطيع رمز الوصول رؤيته.', ['context' => $context]),
+            default => __('أرجع GitHub الرمز :status عند :context.', ['status' => $response->status(), 'context' => $context]),
         });
     }
 }

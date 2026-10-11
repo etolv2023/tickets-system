@@ -149,7 +149,7 @@ class PointRuleController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', __('اتعدّل التصحيح — الأصلي اتلغى بسطر عكسي، والقيمة الجديدة اتسجلت.'));
+        return back()->with('status', __('تم تعديل التصحيح — أُلغي الأصلي بسطر عكسي وسُجّلت القيمة الجديدة.'));
     }
 
     /**
@@ -180,6 +180,6 @@ class PointRuleController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', __('اتلغى التصحيح بسطر عكسي. الأصلي لسه ظاهر في الدفتر.'));
+        return back()->with('status', __('أُلغي التصحيح بسطر عكسي، وما زال الأصلي ظاهرًا في الدفتر.'));
     }
 }

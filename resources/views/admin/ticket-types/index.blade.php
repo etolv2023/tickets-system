@@ -8,9 +8,9 @@
             <div>
                 <h1 class="page-title">{{ __('أنواع التذاكر') }}</h1>
                 <p class="page-subtitle">
-                    {{ __('الأنواع الأساسية (تحتها «أساسي») تقدر تغيّر اسمها/لونها/أيقونتها وتحدّد هل تحتاج موافقة — بس مينفعش تتحذف. اللي انت ضايفه تقدر تحذفه لو مفيش تذاكر واقفة عليه.') }}
+                    {{ __('الأنواع الأساسية (المميزة بـ «أساسي») يمكن تغيير اسمها ولونها وأيقونتها وتحديد ما إذا كانت تتطلب موافقة، لكن لا يمكن حذفها. أما الأنواع التي تضيفها فيمكن حذفها ما لم تكن هناك تذاكر عليها.') }}
                     <br>
-                    <strong>{{ __('يحتاج موافقة:') }}</strong> {{ __('التذكرة بالنوع ده بتستنى موافقة الأدمن قبل ما تتوزع.') }}
+                    <strong>{{ __('يتطلب موافقة:') }}</strong> {{ __('التذكرة من هذا النوع تنتظر موافقة المسؤول قبل إسنادها.') }}
                 </p>
             </div>
         </div>
@@ -24,9 +24,9 @@
         <x-card :title="__('نوع جديد')">
             <form method="POST" action="{{ route('admin.ticket-types.store') }}" class="form-grid">
                 @csrf
-                <x-field name="key" :label="__('المفتاح')" required :hint="__('إنجليزي، زي :example — ميتغيّرش بعد كده.', ['example' => 'task'])" />
+                <x-field name="key" :label="__('المفتاح')" required :hint="__('بالإنجليزية، مثل :example — لا يمكن تغييره لاحقًا.', ['example' => 'task'])" />
                 <x-field name="name_ar" :label="__('الاسم بالعربية')" required />
-                <x-field name="name_en" :label="__('الاسم بالإنجليزية')" dir="ltr" :hint="__('اختياري — لو فاضي بيظهر الاسم العربي.')" />
+                <x-field name="name_en" :label="__('الاسم بالإنجليزية')" dir="ltr" :hint="__('اختياري — إذا تُرك فارغًا يظهر الاسم العربي.')" />
                 <x-field name="color" :label="__('اللون')" required>
                     <select id="color" name="color" class="select" required>
                         @foreach ($colors as $value => $label)
@@ -43,16 +43,16 @@
                 </x-field>
                 <x-field name="default_points" :label="__('النقاط الافتراضية')" required
                          type="number" step="0.25" min="0" max="999" :value="1"
-                         :hint="__('النقطة اللي بتبدأ بيها كل صب تاسك على النوع ده — وتتعدّل بعدها بإيدك.')" />
+                         :hint="__('النقاط التي تبدأ بها كل مهمة فرعية من هذا النوع — ويمكن تعديلها يدويًا بعد ذلك.')" />
                 <label class="checkbox-row">
                     <input type="checkbox" name="needs_approval" value="1" class="checkbox">
                     <span class="checkbox-row__label">
-                        {{ __('يحتاج موافقة الأدمن قبل التوزيع') }}
-                        <small>{{ __('زي الفيتشر والموديول — التذكرة بتستنى موافقة قبل ما حد يشتغل عليها.') }}</small>
+                        {{ __('يتطلب موافقة المسؤول قبل الإسناد') }}
+                        <small>{{ __('مثل الميزات والوحدات الجديدة — تنتظر التذكرة الموافقة قبل أن يبدأ أحد العمل عليها.') }}</small>
                     </span>
                 </label>
                 <div class="form-actions">
-                    <x-button variant="primary">{{ __('أضف') }}</x-button>
+                    <x-button variant="primary">{{ __('إضافة') }}</x-button>
                 </div>
             </form>
         </x-card>
@@ -101,7 +101,7 @@
                                         <label class="checkbox-row">
                                             <input type="checkbox" name="needs_approval" value="1" class="checkbox"
                                                    @checked($t->needs_approval)>
-                                            <span class="checkbox-row__label">{{ __('يحتاج موافقة') }}</span>
+                                            <span class="checkbox-row__label">{{ __('يتطلب موافقة') }}</span>
                                         </label>
                                         <x-button variant="ghost" size="sm">{{ __('حفظ') }}</x-button>
                                     </form>
@@ -109,7 +109,7 @@
                                 <td class="table__cell--actions">
                                     @unless ($t->is_system)
                                         <form method="POST" action="{{ route('admin.ticket-types.destroy', $t) }}"
-                                              onsubmit="return confirm(@js(__('متأكد من حذف «:name»؟', ['name' => $t->label()])))">
+                                              onsubmit="return confirm(@js(__('هل أنت متأكد من حذف «:name»؟', ['name' => $t->label()])))">
                                             @csrf
                                             @method('DELETE')
                                             <x-button variant="ghost" size="sm">{{ __('حذف') }}</x-button>

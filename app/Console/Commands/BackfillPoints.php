@@ -26,14 +26,14 @@ class BackfillPoints extends Command
 {
     protected $signature = 'points:backfill';
 
-    protected $description = 'يصرف النقاط الفايتة على صب تاسكس اتخلصت قبل كده ومكسبتش نقاط';
+    protected $description = 'احتساب النقاط الفائتة لمهام فرعية مكتملة لم تُحتسب لها نقاط';
 
     public function handle(PointEngineService $engine): int
     {
         $subtaskCount = $this->backfillSubtasks($engine);
 
         if ($subtaskCount === 0) {
-            $this->info('مفيش نقاط فايتة نلاقيها.');
+            $this->info('لا توجد نقاط فائتة.');
         }
 
         return self::SUCCESS;
@@ -57,7 +57,7 @@ class BackfillPoints extends Command
             ));
 
         if ($subtasks->isEmpty()) {
-            $this->info('مفيش صب تاسكس فايتة نقاطها.');
+            $this->info('لا توجد مهام فرعية فاتها احتساب النقاط.');
 
             return 0;
         }
@@ -76,9 +76,9 @@ class BackfillPoints extends Command
 
         $created = PointTransaction::whereIn('subtask_id', $ids)->get();
 
-        $this->line('صب تاسكس:');
+        $this->line('المهام الفرعية:');
         $this->table(
-            ['المستخدم', 'عدد الصب تاسكس', 'إجمالي النقاط'],
+            ['المستخدم', 'عدد المهام الفرعية', 'إجمالي النقاط'],
             $created->groupBy('user_id')->map(fn ($rows, $userId) => [
                 User::find($userId)?->name ?? "#{$userId}",
                 $rows->count(),
@@ -86,11 +86,11 @@ class BackfillPoints extends Command
             ])->values()->all()
         );
 
-        $this->info("اتصرف {$created->count()} من {$ids->count()} صب تاسك — إجمالي {$created->sum('points')} نقطة.");
+        $this->info("احتُسبت نقاط {$created->count()} من {$ids->count()} مهمة فرعية — الإجمالي {$created->sum('points')} نقطة.");
 
         if ($created->count() < $ids->count()) {
             $skipped = $ids->count() - $created->count();
-            $this->warn("{$skipped} صب تاسك اترفض (side = other مالوش نقطة، أو Race) — التفاصيل في اللوج.");
+            $this->warn("رُفضت {$skipped} مهمة فرعية (الجهة other لا تُحتسب لها نقاط، أو حالة تزامن) — التفاصيل في السجل.");
         }
 
         return $created->count();

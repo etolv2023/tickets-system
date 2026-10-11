@@ -6,7 +6,7 @@
     <div class="form-stack">
         @unless ($result['passed'])
             <x-alert variant="error">
-                {{ __('فيه متطلبات ناقصة. صلّحها في السيرفر وبعدين حدّث الصفحة.') }}
+                {{ __('توجد متطلبات ناقصة. أصلحها على الخادم ثم حدّث الصفحة.') }}
             </x-alert>
         @endunless
 

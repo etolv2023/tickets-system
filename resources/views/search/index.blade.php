@@ -7,7 +7,7 @@
         <div class="page__head">
             <div>
                 <h1 class="page-title">{{ __('البحث') }}</h1>
-                <p class="page-subtitle">{{ __('التذاكر والصب تاسكس والتعليقات والشركات.') }}</p>
+                <p class="page-subtitle">{{ __('التذاكر والمهام الفرعية والتعليقات والشركات.') }}</p>
             </div>
         </div>
 
@@ -16,7 +16,7 @@
                 type="search"
                 name="q"
                 value="{{ $term }}"
-                placeholder="{{ __('ابحث… أو الصق رقم تذكرة زي TK-2026-00001') }}"
+                placeholder="{{ __('ابحث… أو الصق رقم تذكرة مثل TK-2026-00001') }}"
                 class="input filters__search"
                 autofocus
             >
@@ -31,7 +31,7 @@
 
         @if ($tooShort)
             <x-alert>
-                {{ __('اكتب 3 حروف على الأقل — الفهرس بتاع MySQL بيتجاهل الكلمات الأقصر من كده.') }}
+                {{ __('اكتب 3 أحرف على الأقل — يتجاهل فهرس MySQL الكلمات الأقصر من ذلك.') }}
             </x-alert>
         @endif
 
@@ -40,7 +40,7 @@
 
             @if ($total === 0)
                 <x-card>
-                    <p class="card__empty">{{ __('مفيش نتايج لـ «:term».', ['term' => $term]) }}</p>
+                    <p class="card__empty">{{ __('لا توجد نتائج لـ «:term».', ['term' => $term]) }}</p>
                 </x-card>
             @endif
 
@@ -66,7 +66,7 @@
             @endif
 
             @if ($results['subtasks']->isNotEmpty())
-                <x-card :title="__('الصب تاسكس')" flush>
+                <x-card :title="__('المهام الفرعية')" flush>
                     <x-slot:actions><span class="u-subtle">{{ $results['subtasks']->count() }}</span></x-slot:actions>
                     <div class="subtasks">
                         @foreach ($results['subtasks'] as $subtask)

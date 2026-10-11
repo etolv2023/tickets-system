@@ -32,9 +32,9 @@ class BoardController extends Controller
      * write target for a drop into that column.
      */
     public const COLUMNS = [
-        'assigned' => ['label' => 'مسندة إليّ', 'statuses' => ['assigned', 'reopened']],
-        'in_progress' => ['label' => 'جاري العمل', 'statuses' => ['in_progress']],
-        'dev_done' => ['label' => 'تم التطوير', 'statuses' => ['dev_done', 'testing']],
+        'assigned' => ['label' => 'مُسندة إليّ', 'statuses' => ['assigned', 'reopened']],
+        'in_progress' => ['label' => 'قيد التنفيذ', 'statuses' => ['in_progress']],
+        'dev_done' => ['label' => 'اكتمل التطوير', 'statuses' => ['dev_done', 'testing']],
         'closed' => ['label' => 'مغلقة', 'statuses' => ['resolved', 'closed']],
     ];
 
@@ -397,7 +397,7 @@ class BoardController extends Controller
                 $assignee = $this->assigneeOf($group->first());
 
                 return [
-                    'label' => $assignee?->name ?? __('مش موزعة'),
+                    'label' => $assignee?->name ?? __('غير مُسندة'),
                     'user' => $assignee,
                     'columns' => $this->columns($group),
                 ];

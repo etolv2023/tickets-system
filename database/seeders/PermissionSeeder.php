@@ -16,8 +16,8 @@ class PermissionSeeder extends Seeder
     private const PERMISSIONS = [
         'tickets' => [
             'tickets.view.all' => 'عرض كل التذاكر',
-            'tickets.view.assigned' => 'عرض التذاكر المسندة إليه',
-            'tickets.view.own' => 'عرض التذاكر التي فتحها',
+            'tickets.view.assigned' => 'عرض التذاكر المُسندة إليه',
+            'tickets.view.own' => 'عرض التذاكر التي أنشأها',
             'tickets.create' => 'فتح تذكرة',
             'tickets.edit' => 'تعديل تذكرة',
             'tickets.delete' => 'حذف تذكرة',
@@ -32,14 +32,14 @@ class PermissionSeeder extends Seeder
             'comments.internal' => 'كتابة تعليق داخلي',
         ],
         'workflow' => [
-            'worklog.manage' => 'سجل الشغل — بدأت وخلصت',
-            'subtasks.manage' => 'إدارة الصب تاسكس',
+            'worklog.manage' => 'سجل العمل — بدء العمل وإنهاؤه',
+            'subtasks.manage' => 'إدارة المهام الفرعية',
             // ★ (2026-08-02) subtasks.manage lets you plan YOUR work. This is
             // the override that reaches somebody else's — reassigning it,
             // finishing it, deleting it. Deliberately granted to NO role: it is
             // a named person's exception (permission_user), not a job title's
             // property, exactly like system.backup below.
-            'subtasks.manage.any' => 'التحكم في صب تاسكس الآخرين',
+            'subtasks.manage.any' => 'التحكم في المهام الفرعية للآخرين',
             // ★ (2026-08-02) Handing a subtask to somebody else, or deleting it,
             // split out of subtasks.manage. Editing your own step is planning;
             // moving the work off yourself — or removing the record that it
@@ -49,7 +49,7 @@ class PermissionSeeder extends Seeder
             // Seeded to every role that already held subtasks.manage, so nothing
             // anyone could do yesterday stops working. The point is that it can
             // now be taken away from ONE person without touching the rest.
-            'subtasks.reassign' => 'نقل الصب تاسك لشخص تاني أو حذفها',
+            'subtasks.reassign' => 'نقل المهمة الفرعية إلى شخص آخر أو حذفها',
             // ★ (2026-08-05) The due date became a money field the day a
             // subtask finished after it started costing MINUS its points
             // (PointEngineService::isLate). A deadline the person being
@@ -57,19 +57,19 @@ class PermissionSeeder extends Seeder
             // permission — held by whoever plans the work (admin, manager), not
             // by everyone who does it. Reading it is untouched: the date still
             // shows on every row and drives the calendar.
-            'subtasks.schedule' => 'تحديد تاريخ استحقاق الصب تاسك',
+            'subtasks.schedule' => 'تحديد تاريخ استحقاق المهمة الفرعية',
             'time.log' => 'تسجيل الوقت',
             'links.manage' => 'ربط التذاكر ببعضها',
-            'features.approve' => 'الموافقة على الفيتشرات والموديولات',
+            'features.approve' => 'الموافقة على الميزات والوحدات الجديدة',
         ],
         'ratings' => [
-            'ratings.give' => 'إعطاء تقييم',
+            'ratings.give' => 'إضافة تقييم',
             'ratings.view.all' => 'عرض تقييمات الجميع',
         ],
         'points' => [
             'points.view.all' => 'عرض نقاط الجميع',
-            'points.view.own' => 'عرض نقاطه هو',
-            'points.rules.manage' => 'تعديل نقاط الصب تاسك والتصحيحات',
+            'points.view.own' => 'عرض نقاطه الشخصية',
+            'points.rules.manage' => 'تعديل نقاط المهام الفرعية والتصحيحات',
             /*
              * ★ (2026-08-29) Undoing a manual correction, split into two
              * permissions of its own rather than folded into
@@ -109,9 +109,9 @@ class PermissionSeeder extends Seeder
          * for the answer.
          */
         'github' => [
-            'github.view' => 'عرض برانشات التذكرة',
-            'github.audit' => 'تذاكر من غير برانش وربط برانش بإيد',
-            'github.branches.delete' => 'حذف برانش مخالف من GitHub',
+            'github.view' => 'عرض فروع التذكرة',
+            'github.audit' => 'التذاكر بلا فرع وربط الفروع يدويًا',
+            'github.branches.delete' => 'حذف فرع مخالف من GitHub',
             'github.identities.manage' => 'إدارة ربط حسابات GitHub بالمستخدمين',
         ],
         'admin' => [
@@ -119,12 +119,12 @@ class PermissionSeeder extends Seeder
             'companies.manage' => 'إدارة الشركات وجهات الاتصال',
             'settings.manage' => 'إدارة الإعدادات',
             'audit.view' => 'عرض سجل التدقيق',
-            'import.run' => 'تشغيل استيراد Excel',
+            'import.run' => 'تنفيذ الاستيراد من Excel',
             // Deliberately its own permission, not folded into settings.manage:
             // restore replaces every row and every file the system holds, which
             // is a different order of risk from editing the SLA hours. Never
             // granted to a role automatically — an admin assigns it by hand.
-            'system.backup' => 'باك أب واسترجاع النظام كامل',
+            'system.backup' => 'النسخ الاحتياطي واستعادة النظام بالكامل',
             /*
              * ★ (2026-08-29) The scheduled-task screen. Its own permission and
              * granted to no role, exactly like system.backup above: switching
@@ -150,7 +150,7 @@ class PermissionSeeder extends Seeder
              * a target who has it, or A could reach C through B and the log
              * would name B.
              */
-            'users.impersonate' => 'الدخول بعين مستخدم تاني',
+            'users.impersonate' => 'العمل نيابةً عن مستخدم آخر',
         ],
     ];
 

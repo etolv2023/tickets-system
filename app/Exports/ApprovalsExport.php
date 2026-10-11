@@ -47,7 +47,7 @@ class ApprovalsExport implements FromQuery, WithHeadings, WithMapping, WithTitle
 
     public function headings(): array
     {
-        return ['رقم التذكرة', 'العنوان', 'الجهة الطالبة', 'النوع', 'الأولوية', 'اللي فتحها', 'تاريخ الفتح', 'مهلة SLA', 'الوصف'];
+        return [__('رقم التذكرة'), __('العنوان'), __('الجهة الطالبة'), __('النوع'), __('الأولوية'), __('منشئ التذكرة'), __('تاريخ الفتح'), __('مهلة SLA'), __('الوصف')];
     }
 
     /** @param Ticket $t */
@@ -70,6 +70,6 @@ class ApprovalsExport implements FromQuery, WithHeadings, WithMapping, WithTitle
 
     public function title(): string
     {
-        return 'مستني الموافقة';
+        return __('بانتظار الموافقة');
     }
 }

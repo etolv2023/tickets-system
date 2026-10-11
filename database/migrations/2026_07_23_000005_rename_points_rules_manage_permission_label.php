@@ -18,7 +18,7 @@ return new class extends Migration
     {
         DB::table('permissions')
             ->where('key', 'points.rules.manage')
-            ->update(['name_ar' => 'تعديل نقاط الصب تاسك والتصحيحات']);
+            ->update(['name_ar' => 'تعديل نقاط المهام الفرعية والتصحيحات']);
     }
 
     public function down(): void

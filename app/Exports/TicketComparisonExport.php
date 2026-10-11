@@ -16,7 +16,7 @@ class TicketComparisonExport implements FromCollection, WithHeadings, WithMappin
 
     public function __construct(private readonly Collection $rows) {}
     public function collection(): Collection { return $this->rows; }
-    public function headings(): array { return ['الموظف', 'فتحها', 'المسند', 'المحلول', 'المغلق', 'أعيد فتحها', 'المفتوح', 'المتأخر', 'الالتزام %', 'متوسط الحل (س)']; }
+    public function headings(): array { return [__('الموظف'), __('أنشأها'), __('المسند'), __('المحلول'), __('المغلق'), __('أعيد فتحها'), __('المفتوح'), __('المتأخر'), __('الالتزام %'), __('متوسط الحل (س)')]; }
     public function map($row): array
     {
         return $this->sanitizeRow([$row->name, $row->created, $row->assigned, $row->resolved, $row->closed,

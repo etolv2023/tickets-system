@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('جاهزة للقفل'))
+@section('title', __('جاهزة للإغلاق'))
 
 @section('content')
     {{-- A table, not the queue cards the other two use: this list is scanned,
@@ -8,11 +8,11 @@
     <div class="page page--wide">
         <div class="page__head">
             <div>
-                <h1 class="page-title">{{ __('جاهزة للقفل') }}</h1>
+                <h1 class="page-title">{{ __('جاهزة للإغلاق') }}</h1>
                 <p class="page-subtitle">
-                    {{ __('تذاكر') }} <strong>{{ __('كل صب تاسكاتها خلصت') }}</strong> {{ __('وهي لسه مفتوحة — الشغل تمام ومحدش حرّك التذكرة.') }}
+                    {{ __('تذاكر') }} <strong>{{ __('اكتملت جميع مهامها الفرعية') }}</strong> {{ __('بينما ما زالت مفتوحة — العمل منتهٍ ولم يحرّك أحد التذكرة.') }}
                     <br>
-                    {{ __('مش ظاهرة في أي شاشة تانية: في قايمة التذاكر صفها زي أي تذكرة مفتوحة، وفي البورد كمان.') }}
+                    {{ __('لا تظهر في أي شاشة أخرى: في قائمة التذاكر يبدو صفها كأي تذكرة مفتوحة، وكذلك في لوحة المهام.') }}
                 </p>
             </div>
         </div>
@@ -28,9 +28,9 @@
         <x-card flush>
             @if ($tickets->isEmpty())
                 <div class="blank">
-                    <p class="blank__title">{{ __('مفيش تذكرة جاهزة للقفل.') }}</p>
+                    <p class="blank__title">{{ __('لا توجد تذكرة جاهزة للإغلاق.') }}</p>
                     <p class="blank__body">
-                        {{ __('كل تذكرة خلصت صب تاسكاتها اتقفلت فعلاً — أو لسه فيه شغل مخلّصش.') }}
+                        {{ __('كل تذكرة اكتملت مهامها الفرعية أُغلقت فعلًا — أو ما زال فيها عمل غير مكتمل.') }}
                     </p>
                 </div>
             @else
@@ -44,7 +44,7 @@
                                 <th>{{ __('النوع') }}</th>
                                 <th>{{ __('الأولوية') }}</th>
                                 <th>{{ __('الحالة') }}</th>
-                                <th class="table__cell--num">{{ __('الصب تاسكس') }}</th>
+                                <th class="table__cell--num">{{ __('المهام الفرعية') }}</th>
                                 <th>{{ __('المسؤولين') }}</th>
                                 <th>SLA</th>
                             </tr>
@@ -96,14 +96,14 @@
                                                     <x-avatar :user="$assignment->user" size="sm" />
                                                 @endif
                                             @empty
-                                                <span class="u-subtle">{{ __('مش موزعة') }}</span>
+                                                <span class="u-subtle">{{ __('غير مُسندة') }}</span>
                                             @endforelse
                                         </div>
                                     </td>
 
                                     <td class="table__cell--tight">
                                         @if ($ticket->isOverdue())
-                                            <span class="tickets__age tickets__age--overdue">{{ __('تخطّى') }}</span>
+                                            <span class="tickets__age tickets__age--overdue">{{ __('تخطٍّ') }}</span>
                                         @endif
                                         <span class="tickets__age">{{ $ticket->ageLabel() }}</span>
                                     </td>
@@ -116,7 +116,7 @@
         </x-card>
 
         <span class="tickets__count">
-            {{ trans_choice(':count تذكرة', $tickets->total()) }} · {{ __('مرتبة بالأولوية ثم الأقدم أولاً.') }}
+            {{ trans_choice(':count تذكرة|تذكرة واحدة|تذكرتان|:count تذاكر|:count تذكرة|:count تذكرة', $tickets->total()) }} · {{ __('مرتبة حسب الأولوية ثم الأقدم.') }}
         </span>
 
         {{ $tickets->links() }}

@@ -36,7 +36,7 @@ return new class extends Migration
 
             $table->timestamp('started_at');
             // Null while it is still running. A session that never ends is a
-            // browser that was closed — visible as "لسه مفتوحة" rather than
+            // browser that was closed — visible as "ما زالت مفتوحة" rather than
             // quietly cleaned up into looking finished.
             $table->timestamp('ended_at')->nullable();
 

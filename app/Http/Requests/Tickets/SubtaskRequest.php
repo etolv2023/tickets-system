@@ -78,7 +78,7 @@ class SubtaskRequest extends FormRequest
 
                 if (\Carbon\Carbon::parse($due)->endOfDay()->gt($ticket->sla_due_at)) {
                     session()->flash('subtask_warning',
-                        __('تحذير: تاريخ الاستحقاق بعد مهلة الـ SLA بتاعة التذكرة. اتسجّل برضه.'));
+                        __('تنبيه: تاريخ الاستحقاق بعد مهلة SLA للتذكرة، وقد سُجّل على أي حال.'));
                 }
             },
         ];
@@ -90,7 +90,7 @@ class SubtaskRequest extends FormRequest
             'title' => __('العنوان'),
             'description' => __('الوصف'),
             'assignee_id' => __('المسؤول'),
-            'role_id' => __('الرول'),
+            'role_id' => __('الدور'),
             'status' => __('الحالة'),
             'start_date' => __('تاريخ البداية'),
             'due_date' => __('تاريخ الاستحقاق'),
@@ -103,9 +103,9 @@ class SubtaskRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'due_date.after_or_equal' => __('تاريخ الاستحقاق مينفعش يكون قبل تاريخ البداية.'),
-            'blocked_reason.required' => __('لازم تكتب سبب التوقف.'),
-            'assignee_id.required' => __('حدّد صاحب الصب تاسك قبل ما تخلّصها — الشغل اللي مالوش صاحب مش بياخد نقط.'),
+            'due_date.after_or_equal' => __('لا يمكن أن يكون تاريخ الاستحقاق قبل تاريخ البداية.'),
+            'blocked_reason.required' => __('اكتب سبب التوقف.'),
+            'assignee_id.required' => __('حدّد صاحب المهمة الفرعية قبل إنهائها — العمل الذي بلا صاحب لا يُحتسب له نقاط.'),
         ];
     }
 }

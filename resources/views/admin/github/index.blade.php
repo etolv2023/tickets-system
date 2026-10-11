@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
-@section('title', __('جيت هب'))
+@section('title', __('GitHub'))
 
 @section('content')
     <div class="page">
         <div class="page__head">
             <div>
-                <h1 class="page-title">{{ __('جيت هب') }}</h1>
+                <h1 class="page-title">{{ __('GitHub') }}</h1>
                 <p class="page-subtitle">
-                    {{ __('الريبوز اللي النظام بيدوّر فيها على برانشات التذاكر. الاتصال') }} <strong>{{ __('قراءة بس') }}</strong> {{ __('— النظام مبيعملش برانش ولا PR ولا بيحذف حاجة، والتوكن نفسه المفروض يكون') }}
+                    {{ __('المستودعات التي يبحث فيها النظام عن فروع التذاكر. الاتصال') }} <strong>{{ __('قراءة فقط') }}</strong> {{ __('— النظام لا ينشئ فروعًا ولا طلبات دمج ولا يحذف أي شيء، ويجب أن يكون رمز الوصول نفسه') }}
                     <span class="u-mono u-ltr">Contents: Read-only</span> +
                     <span class="u-mono u-ltr">Pull requests: Read-only</span>.
                 </p>
@@ -23,8 +23,8 @@
 
         @unless ($connected)
             <x-alert variant="error">
-                {{ __('التكامل مقفول. حط') }} <span class="u-mono u-ltr">GITHUB_ENABLED=true</span> {{ __('و') }}
-                <span class="u-mono u-ltr">GITHUB_TOKEN</span> {{ __('في ملف') }} <span class="u-mono u-ltr">.env</span>{{ __('، وبعدها شغّل') }} <span class="u-mono u-ltr">php artisan github:check</span>.
+                {{ __('التكامل معطّل. اضبط') }} <span class="u-mono u-ltr">GITHUB_ENABLED=true</span> {{ __('و') }}
+                <span class="u-mono u-ltr">GITHUB_TOKEN</span> {{ __('في الملف') }} <span class="u-mono u-ltr">.env</span>{{ __('، ثم شغّل') }} <span class="u-mono u-ltr">php artisan github:check</span>.
             </x-alert>
         @endunless
 
@@ -32,7 +32,7 @@
              scopes is four API calls, and a page with a 300ms budget does not
              make network requests to another company's server while it renders. --}}
         <div class="note">
-            {{ __('للتأكد من التوكن وصلاحياته:') }} <span class="u-mono u-ltr">php artisan github:check</span> {{ __('— وده كمان بيحذّرك لو التوكن معاه صلاحية كتابة مش محتاجينها، أو قرّب يخلص.') }}
+            {{ __('للتحقق من رمز الوصول وصلاحياته:') }} <span class="u-mono u-ltr">php artisan github:check</span> {{ __('— ويحذّرك أيضًا إذا كان لرمز الوصول صلاحية كتابة غير مطلوبة، أو اقترب انتهاؤه.') }}
         </div>
 
         {{-- Cards, not a table: six editable fields per repository do not fit a
@@ -45,7 +45,7 @@
 
         @if ($unmatchedPulls > 0)
             <div class="note">
-                {{ __('فيه :count PR الهيد برانش بتاعهم مش فيه رقم تذكرة معروف — غالباً غلطة في اسم البرانش.', ['count' => $unmatchedPulls]) }}
+                {{ __('يوجد :count طلب دمج لا يحتوي فرعها الرئيسي على رقم تذكرة معروف — غالبًا بسبب خطأ في اسم الفرع.', ['count' => $unmatchedPulls]) }}
             </div>
         @endif
 

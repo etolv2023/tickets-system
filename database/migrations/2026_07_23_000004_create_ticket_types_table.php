@@ -21,10 +21,10 @@ return new class extends Migration
 {
     /** @var array<int, array{key: string, name_ar: string, color: string, icon: string, needs_approval: bool}> */
     private const SYSTEM_TYPES = [
-        ['key' => 'bug', 'name_ar' => 'بج', 'color' => 'red', 'icon' => 'bug', 'needs_approval' => false],
+        ['key' => 'bug', 'name_ar' => 'خلل برمجي', 'color' => 'red', 'icon' => 'bug', 'needs_approval' => false],
         ['key' => 'inquiry', 'name_ar' => 'استفسار', 'color' => 'slate', 'icon' => 'inquiry', 'needs_approval' => false],
-        ['key' => 'feature', 'name_ar' => 'فيتشر', 'color' => 'violet', 'icon' => 'feature', 'needs_approval' => true],
-        ['key' => 'new_module', 'name_ar' => 'موديول جديد', 'color' => 'green', 'icon' => 'module', 'needs_approval' => true],
+        ['key' => 'feature', 'name_ar' => 'ميزة جديدة', 'color' => 'violet', 'icon' => 'feature', 'needs_approval' => true],
+        ['key' => 'new_module', 'name_ar' => 'وحدة جديدة', 'color' => 'green', 'icon' => 'module', 'needs_approval' => true],
         // The "غير محدد" fallback stays a real row so an untyped legacy ticket
         // still renders, but it is a system row an admin can't delete.
         ['key' => 'undefined', 'name_ar' => 'غير محدد', 'color' => 'slate', 'icon' => 'undefined', 'needs_approval' => false],

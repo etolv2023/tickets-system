@@ -51,7 +51,7 @@ class ImpersonationSession extends Model
      *
      * A session with no end is usually a closed browser rather than somebody
      * still in there — the session cookie is gone but nothing told us. Shown as
-     * "لسه مفتوحة" instead of being quietly closed, because guessing an end
+     * "ما زالت مفتوحة" instead of being quietly closed, because guessing an end
      * time would be inventing a fact about who did what and when.
      */
     public function isOpen(): bool
@@ -62,7 +62,7 @@ class ImpersonationSession extends Model
     public function durationLabel(): string
     {
         if ($this->isOpen()) {
-            return __('لسه مفتوحة');
+            return __('ما زالت مفتوحة');
         }
 
         return $this->started_at->diffForHumans($this->ended_at, syntax: true, parts: 2);

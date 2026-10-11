@@ -62,7 +62,7 @@
                @keydown.escape="close()">
 
         <button type="button" class="combobox__clear" x-show="value" x-cloak
-                @click="clear()" aria-label="{{ __('امسح الاختيار') }}" data-tooltip="{{ __('امسح الاختيار') }}">
+                @click="clear()" aria-label="{{ __('مسح الاختيار') }}" data-tooltip="{{ __('مسح الاختيار') }}">
             <x-icon name="close" size="0.85em" />
         </button>
 
@@ -80,8 +80,8 @@
                 </li>
             </template>
 
-            <li class="combobox__empty" x-show="loading">{{ __('بيدوّر…') }}</li>
-            <li class="combobox__empty" x-show="showEmpty">{{ __('مفيش نتايج.') }}</li>
+            <li class="combobox__empty" x-show="loading">{{ __('جارٍ البحث…') }}</li>
+            <li class="combobox__empty" x-show="showEmpty">{{ __('لا توجد نتائج.') }}</li>
         </ul>
     </div>
 

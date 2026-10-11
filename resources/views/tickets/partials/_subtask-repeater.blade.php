@@ -6,7 +6,7 @@
      has not started: a subtask created with its ticket has no spent hours and
      is not blocked.
 
-     ★ (2026-08-02) The "الرول" select became "صاحبها", and it is no longer
+     ★ (2026-08-02) The "الدور" select became "صاحبها", and it is no longer
      decorative: store() turns it into the row's assignee_id. A subtask with no
      assignee is invisible to the point engine forever — TK-2026-00169 was
      resolved with seven of them and paid nobody. So the options are exactly the
@@ -18,7 +18,7 @@
 
      Leaving the whole thing empty is still fine: blank rows are dropped in
      StoreTicketRequest before the rules run. --}}
-<x-card :title="__('الصب تاسكس (اختياري)')">
+<x-card :title="__('المهام الفرعية (اختياري)')">
     {{-- `subtaskRows`, not `rows`: the distribution block one scope up already
          owns a `rows`, and Alpine resolves a name against the innermost scope
          that has it — including inside a parent method, because `this` there is
@@ -31,11 +31,11 @@
              add() { this.subtaskRows.push({ title: '', role_id: '', due_date: '' }) },
          }">
         <p class="repeater__lead">
-            {{ __('قسّم الشغل من دلوقتي لو عايز. تقدر تضيفها أو تعدّلها بعدين من صفحة التذكرة، وكل صب تاسك بتاخد نقط النوع افتراضياً وتتعدّل لوحدها.') }}
+            {{ __('قسّم العمل الآن إن أردت. يمكنك إضافتها أو تعديلها لاحقًا من صفحة التذكرة، وتأخذ كل مهمة فرعية نقاط النوع افتراضيًا ويمكن تعديلها منفردة.') }}
         </p>
 
         <template x-if="assignedRoleIds().length === 0">
-            <p class="field__hint">{{ __('وزّع الشغل فوق الأول — الصب تاسك لازم يكون ليها صاحب عشان تكسب نقطها.') }}</p>
+            <p class="field__hint">{{ __('أسند العمل أعلاه أولًا — يجب أن يكون للمهمة الفرعية صاحب ليحصل على نقاطها.') }}</p>
         </template>
 
         <template x-for="(row, index) in subtaskRows" :key="index">
@@ -44,7 +44,7 @@
                     <label class="label" :for="`subtask-title-${index}`">{{ __('العنوان') }}</label>
                     <input type="text" class="input" x-model="row.title"
                            :id="`subtask-title-${index}`" :name="`subtasks[${index}][title]`"
-                           placeholder="{{ __('اكتب خطوة من الشغل…') }}" maxlength="255">
+                           placeholder="{{ __('اكتب خطوة من العمل…') }}" maxlength="255">
                 </div>
 
                 {{-- One person on the ticket: the owner is not a question. --}}
@@ -57,7 +57,7 @@
                         <label class="label" :for="`subtask-owner-${index}`">{{ __('صاحبها') }}</label>
                         <select class="select" x-model="row.role_id" required
                                 :id="`subtask-owner-${index}`" :name="`subtasks[${index}][role_id]`">
-                            <option value="">{{ __('— اختار —') }}</option>
+                            <option value="">{{ __('— اختر —') }}</option>
                             <template x-for="roleId in assignedRoleIds()" :key="roleId">
                                 <option :value="roleId" x-text="roleNames[roleId]"></option>
                             </template>
@@ -78,7 +78,7 @@
                 @endcan
 
                 <button type="button" class="repeater__remove" @click="subtaskRows.splice(index, 1)"
-                        aria-label="{{ __('شيل الصف') }}">
+                        aria-label="{{ __('إزالة الصف') }}">
                     <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" fill="none" />
                     </svg>
@@ -97,6 +97,6 @@
         @endforeach
 
         <x-button variant="ghost" size="sm" type="button" @click="add()"
-                  x-bind:disabled="assignedRoleIds().length === 0">{{ __('+ أضف صب تاسك') }}</x-button>
+                  x-bind:disabled="assignedRoleIds().length === 0">{{ __('+ إضافة مهمة فرعية') }}</x-button>
     </div>
 </x-card>

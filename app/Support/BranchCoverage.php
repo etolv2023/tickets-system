@@ -8,7 +8,7 @@ use App\Models\Role;
 use App\Models\Ticket;
 
 /**
- * ★ (2026-08-29) F27 — "ليها برانش" is not one question, it is one per side.
+ * ★ (2026-08-29) F27 — "لها فرع" is not one question, it is one per side.
  *
  * A ticket with backend AND frontend work owes a backend branch AND a frontend
  * branch. One of the two is not half-done, it is WRONG — and a screen that

@@ -51,7 +51,7 @@ class UsersExport implements FromQuery, WithHeadings, WithMapping, WithTitle, Sh
 
     public function headings(): array
     {
-        return ['الاسم', 'الإيميل', 'الدور', 'السعة اليومية (س)', 'الحالة', 'لازم يغيّر الباسورد', 'آخر دخول', 'تاريخ الحذف'];
+        return [__('الاسم'), __('البريد الإلكتروني'), __('الدور'), __('السعة اليومية (س)'), __('الحالة'), __('يجب تغيير كلمة المرور'), __('آخر دخول'), __('تاريخ الحذف')];
     }
 
     /** @param User $user */
@@ -64,8 +64,8 @@ class UsersExport implements FromQuery, WithHeadings, WithMapping, WithTitle, Sh
             $user->email,
             $user->role?->label(),
             (float) $user->daily_capacity_hours,
-            $user->deleted_at !== null ? 'محذوف' : ($user->is_active ? 'مفعّل' : 'موقوف'),
-            $user->must_change_password ? 'أيوه' : 'لأ',
+            $user->deleted_at !== null ? __('محذوف') : ($user->is_active ? __('مفعّل') : __('موقوف')),
+            $user->must_change_password ? __('نعم') : __('لا'),
             $user->last_login_at?->timezone($tz)->format('Y-m-d H:i'),
             $user->deleted_at?->timezone($tz)->format('Y-m-d H:i'),
         ]);
@@ -73,6 +73,6 @@ class UsersExport implements FromQuery, WithHeadings, WithMapping, WithTitle, Sh
 
     public function title(): string
     {
-        return 'المستخدمين';
+        return __('المستخدمون');
     }
 }

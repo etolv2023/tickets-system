@@ -15,7 +15,7 @@ class GenerateVapidKeys extends Command
 {
     protected $signature = 'push:vapid';
 
-    protected $description = 'يولّد مفاتيح VAPID لإشعارات المتصفح';
+    protected $description = 'توليد مفاتيح VAPID لإشعارات المتصفح';
 
     public function handle(): int
     {
@@ -25,7 +25,7 @@ class GenerateVapidKeys extends Command
         ]);
 
         if ($key === false) {
-            $this->error('openssl مش قادر يولّد مفتاح EC. اتأكد إن الإكستنشن متسطّب.');
+            $this->error('تعذّر على openssl توليد مفتاح EC. تأكد من تثبيت الامتداد.');
 
             return self::FAILURE;
         }
@@ -40,12 +40,12 @@ class GenerateVapidKeys extends Command
         $private = str_pad($details['ec']['d'], 32, "\x00", STR_PAD_LEFT);
 
         $this->newLine();
-        $this->line('حط السطرين دول في .env — والمفتاح الخاص سر، متحطهوش في git:');
+        $this->line('أضف هذين السطرين إلى ‎.env — المفتاح الخاص سري فلا تضعه في git:');
         $this->newLine();
         $this->line('VAPID_PUBLIC_KEY=' . $this->base64url($public));
         $this->line('VAPID_PRIVATE_KEY=' . $this->base64url($private));
         $this->newLine();
-        $this->warn('لو غيّرت المفتاح العام بعدين، كل الاشتراكات الحالية بتبطل وكل واحد لازم يفعّل الإشعارات تاني.');
+        $this->warn('إذا غيّرت المفتاح العام لاحقًا فستتوقف جميع الاشتراكات الحالية، وسيحتاج كل مستخدم إلى تفعيل الإشعارات من جديد.');
 
         return self::SUCCESS;
     }

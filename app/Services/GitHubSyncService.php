@@ -95,14 +95,14 @@ class GitHubSyncService
             ->first();
 
         if ($existing && $existing->ticket_id !== $ticket->id) {
-            throw new RuntimeException('البرانش ده مربوط بتذكرة تانية بالفعل.');
+            throw new RuntimeException(__('هذا الفرع مرتبط بتذكرة أخرى بالفعل.'));
         }
 
         $remote = $this->github->branch($repo, $name);
 
         if ($remote === null) {
             throw new RuntimeException(
-                'مفيش برانش بالاسم ده في ' . $repo->name . '. اتأكد إنك عملت push للبرانش الأول.'
+                __('لا يوجد فرع بهذا الاسم في :repo. تأكد من رفع الفرع (push) أولًا.', ['repo' => $repo->name])
             );
         }
 

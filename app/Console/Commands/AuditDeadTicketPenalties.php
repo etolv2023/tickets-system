@@ -37,16 +37,16 @@ use Illuminate\Support\Facades\DB;
  */
 class AuditDeadTicketPenalties extends Command
 {
-    protected $signature = 'points:audit-dead-penalties {--detail : اعرض كل سطر لوحده مش مجمّع بالشخص}';
+    protected $signature = 'points:audit-dead-penalties {--detail : اعرض كل سطر منفصلًا بدلًا من التجميع حسب الشخص}';
 
-    protected $description = 'مين اتخصم منه نقط على تذاكر مرفوضة أو ميتة (قراءة بس، مش بيكتب حاجة)';
+    protected $description = 'عرض الخصومات المسجلة على تذاكر مرفوضة أو منتهية (للقراءة فقط، دون أي تعديل)';
 
     public function handle(): int
     {
         $rows = $this->wronglyCharged();
 
         if ($rows->isEmpty()) {
-            $this->info('مفيش أي خصم غلط على تذاكر ميتة. الدفتر نضيف.');
+            $this->info('لا توجد خصومات خاطئة على تذاكر منتهية. الدفتر سليم.');
 
             return self::SUCCESS;
         }
@@ -61,7 +61,7 @@ class AuditDeadTicketPenalties extends Command
             $rows->pluck('user_id')->unique()->count(),
             $rows->pluck('ticket_number')->unique()->count(),
         ));
-        $this->line('الدفتر متلمسش. لو هتعوّض حد، ده بيتعمل بسطر تصحيح يدوي جديد.');
+        $this->line('لم يُعدَّل الدفتر. للتعويض، أضف سطر تصحيح يدوي جديد.');
 
         return self::SUCCESS;
     }
@@ -88,7 +88,7 @@ class AuditDeadTicketPenalties extends Command
     private function detail($rows): void
     {
         $this->table(
-            ['الشخص', 'التذكرة', 'حالتها', 'ماتت في', 'الخصم', 'النقاط', 'السبب'],
+            ['الشخص', 'التذكرة', 'حالتها', 'انتهت في', 'الخصم', 'النقاط', 'السبب'],
             $rows->map(fn ($r) => [
                 $r->user_name ?? "#{$r->user_id}",
                 $r->ticket_number,

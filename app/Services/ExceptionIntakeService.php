@@ -255,8 +255,8 @@ class ExceptionIntakeService
         $ticket->comments()->create([
             'user_id' => $ticket->created_by,
             'body' => Purifier::clean(
-                '<p>الاكسبشن ده حصل تاني — إجمالي المرات: <strong>' . $count . '</strong>'
-                . '<br>آخر مرة: ' . e($when) . ' من سيرفر <strong>' . e($seen) . '</strong></p>'
+                '<p>تكرر هذا الاستثناء — إجمالي المرات: <strong>' . $count . '</strong>'
+                . '<br>آخر مرة: ' . e($when) . ' من الخادم <strong>' . e($seen) . '</strong></p>'
             ),
             'is_internal' => true,
         ]);
@@ -422,8 +422,8 @@ class ExceptionIntakeService
 
         if ($picked === null) {
             throw new RuntimeException(
-                'مفيش مبرمج باك إند متاح دلوقتي يتوزّع عليه الاكسبشن — '
-                . 'كلهم موقوفين أو في أجازة النهاردة.'
+                'لا يوجد مطوّر أنظمة خلفية متاح حاليًا لإسناد الاستثناء إليه — '
+                . 'جميعهم موقوفون أو في إجازة اليوم.'
             );
         }
 
@@ -443,7 +443,7 @@ class ExceptionIntakeService
         $fullName = trim((string) ($data['source_repository'] ?? ''));
 
         if ($file === '' || $fullName === '' || ! $this->github->configured()) {
-            return ['user' => null, 'login' => null, 'name' => null, 'reason' => 'بيانات المصدر أو اتصال GitHub مش مكتملين'];
+            return ['user' => null, 'login' => null, 'name' => null, 'reason' => 'بيانات المصدر أو الاتصال بـ GitHub غير مكتملة'];
         }
 
         $repo = GithubRepository::query()->active()
@@ -451,18 +451,18 @@ class ExceptionIntakeService
             ->first();
 
         if ($repo === null) {
-            return ['user' => null, 'login' => null, 'name' => null, 'reason' => 'الريبو المرسل غير مسجل في نظام التذاكر'];
+            return ['user' => null, 'login' => null, 'name' => null, 'reason' => 'المستودع المُرسل غير مسجل في نظام التذاكر'];
         }
 
         try {
             $ref = trim((string) ($data['source_ref'] ?? '')) ?: $repo->default_branch;
             $commit = $this->github->latestCommitForPath($repo, $file, $ref);
         } catch (\Throwable $e) {
-            return ['user' => null, 'login' => null, 'name' => null, 'reason' => 'تعذر سؤال GitHub: ' . mb_substr($e->getMessage(), 0, 180)];
+            return ['user' => null, 'login' => null, 'name' => null, 'reason' => 'تعذّر الاستعلام من GitHub: ' . mb_substr($e->getMessage(), 0, 180)];
         }
 
         if (! is_array($commit)) {
-            return ['user' => null, 'login' => null, 'name' => null, 'reason' => 'GitHub ملقاش commit للملف على المرجع المطلوب'];
+            return ['user' => null, 'login' => null, 'name' => null, 'reason' => 'لم يجد GitHub إيداعًا (commit) للملف على المرجع المطلوب'];
         }
 
         $login = $commit['author']['login'] ?? null;
@@ -489,14 +489,14 @@ class ExceptionIntakeService
         }
 
         $line = isset($data['source_line']) ? ':' . (int) $data['source_line'] : '';
-        $reason = "آخر commit لمس {$file}{$line} على {$ref}";
+        $reason = "آخر إيداع عدّل {$file}{$line} على {$ref}";
 
         if ($user === null && $login === null && $commitName === null) {
-            $reason .= '، لكن GitHub مرجعش هوية مؤلف الـ commit';
+            $reason .= '، لكن GitHub لم يُرجع هوية مؤلف الإيداع';
         } elseif ($user === null) {
-            $reason .= '، والهوية لسه مش مربوطة بمستخدم في النظام';
+            $reason .= '، ولم تُربط هذه الهوية بمستخدم في النظام بعد';
             if ($commitName !== null) {
-                $reason .= " (اسم مؤلف الـ commit: {$commitName})";
+                $reason .= " (اسم كاتب الإيداع: {$commitName})";
             }
         }
 
@@ -548,7 +548,7 @@ class ExceptionIntakeService
         $id = Role::idByKey($key);
 
         if ($id === null) {
-            throw new RuntimeException("الدور «{$key}» مش موجود، فمفيش حد يتوزّع عليه الاكسبشن.");
+            throw new RuntimeException("الدور «{$key}» غير موجود، لذا لا يوجد من يُسند إليه الاستثناء.");
         }
 
         return $id;
@@ -567,11 +567,11 @@ class ExceptionIntakeService
      */
     private function title(array $data): string
     {
-        $server = $this->serverName($data) ?: 'سيرفر غير معروف';
+        $server = $this->serverName($data) ?: 'خادم غير معروف';
         $message = trim(preg_replace('/\s+/u', ' ', (string) $data['message']) ?? '');
 
         if ($message === '') {
-            $message = 'اكسبشن من غير رسالة';
+            $message = 'استثناء دون رسالة';
         }
 
         $head = "[{$server}] ";
@@ -599,9 +599,9 @@ class ExceptionIntakeService
     private function description(array $data, ?Ticket $previous): string
     {
         $rows = array_filter([
-            'السيرفر' => $this->serverName($data),
+            'الخادم' => $this->serverName($data),
             'الرابط' => $data['url'] ?? null,
-            'الميثود' => $data['method'] ?? null,
+            'الطريقة (Method)' => $data['method'] ?? null,
             'واجهة العميل' => $data['front_end_model'] ?? null,
             'المؤسسة' => $data['organization_id'] ?? null,
             'عنوان IP' => $data['ip_address'] ?? null,
@@ -621,14 +621,14 @@ class ExceptionIntakeService
         $html .= '</ul>';
 
         if ($previous !== null) {
-            $html .= '<p>الاكسبشن ده رجع تاني بعد ما التذكرة <strong>'
-                . e($previous->ticket_number) . '</strong> اتقفلت.</p>';
+            $html .= '<p>عاد هذا الاستثناء بعد أن أُغلقت التذكرة <strong>'
+                . e($previous->ticket_number) . '</strong> أُغلقت.</p>';
         }
 
         if (! empty($data['alert_url'])) {
             $url = (string) $data['alert_url'];
             $html .= '<p><a href="' . e($url) . '" target="_blank" rel="noopener noreferrer">'
-                . 'التفاصيل الكاملة في الباك أوفيس</a></p>';
+                . 'التفاصيل الكاملة في لوحة الإدارة</a></p>';
         }
 
         $html .= $this->block('التتبع (Stack trace)', $data['trace'] ?? null);

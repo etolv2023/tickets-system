@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('ورقة وقتي'))
+@section('title', __('سجل وقتي'))
 
 @section('content')
     {{-- ★★★★ (2026-07-21): the timesheet is ticket × 7 days — explicitly the
@@ -8,7 +8,7 @@
     <div class="page page--wide">
         <div class="page__head">
             <div>
-                <h1 class="page-title">{{ __('ورقة وقتي') }}</h1>
+                <h1 class="page-title">{{ __('سجل وقتي') }}</h1>
                 <p class="page-subtitle">
                     {{ $from->translatedFormat('j M') }} — {{ $to->translatedFormat('j M Y') }}
                 </p>
@@ -23,7 +23,7 @@
              was for or where the numbers come from. One sentence fixes that,
              and it is the same sentence whether the week is full or empty. --}}
         <p class="page-lead">
-            {{ __('الساعات اللي سجّلتها خلال أسبوع واحد: كل صف تذكرة، وكل عمود يوم، والخانة هي ساعاتك على التذكرة دي في اليوم ده. العرض بس — الوقت نفسه بتسجّله من جوه التذكرة.') }}
+            {{ __('الساعات التي سجّلتها خلال أسبوع: كل صف تذكرة، وكل عمود يوم، وكل خانة ساعاتك على تلك التذكرة في ذلك اليوم. للعرض فقط — يُسجَّل الوقت من داخل التذكرة.') }}
         </p>
 
         @if (session('status'))
@@ -32,11 +32,11 @@
 
         <div class="timesheet__nav">
             <x-button variant="ghost" :href="route('time.timesheet', ['week' => $from->subWeek()->toDateString()])">
-                {{ __('← الأسبوع الي فات') }}
+                {{ __('→ الأسبوع الماضي') }}
             </x-button>
-            <x-button variant="ghost" :href="route('time.timesheet')">{{ __('الأسبوع ده') }}</x-button>
+            <x-button variant="ghost" :href="route('time.timesheet')">{{ __('هذا الأسبوع') }}</x-button>
             <x-button variant="ghost" :href="route('time.timesheet', ['week' => $from->addWeek()->toDateString()])">
-                {{ __('الأسبوع الجاي →') }}
+                {{ __('الأسبوع القادم ←') }}
             </x-button>
         </div>
 
@@ -46,13 +46,13 @@
                  how to make it say something. --}}
             <x-card>
                 <div class="blank">
-                    <h2 class="blank__title">{{ __('مسجّلتش وقت في الأسبوع ده') }}</h2>
+                    <h2 class="blank__title">{{ __('لم تسجّل وقتًا هذا الأسبوع') }}</h2>
                     <p class="blank__body">
-                        {{ __('الوقت بيتسجل من صفحة التذكرة نفسها: تفتح التذكرة، وتحت الصب تاسك اللي شغال عليها تسجّل عدد الساعات واليوم اللي شتغلته فيه. أول ما تسجّل، هيظهر هنا في الأسبوع اللي التاريخ بتاعه فيه.') }}
+                        {{ __('يُسجَّل الوقت من صفحة التذكرة نفسها: افتح التذكرة، وتحت المهمة الفرعية التي تعمل عليها سجّل عدد الساعات واليوم الذي عملت فيه. فور التسجيل سيظهر هنا في الأسبوع الذي يقع فيه التاريخ.') }}
                     </p>
                     <div class="blank__actions">
-                        <x-button variant="primary" :href="route('board.mine')">{{ __('افتح بوردي') }}</x-button>
-                        <x-button variant="ghost" :href="route('tickets.index')">{{ __('كل التذاكر') }}</x-button>
+                        <x-button variant="primary" :href="route('board.mine')">{{ __('فتح لوحتي') }}</x-button>
+                        <x-button variant="ghost" :href="route('tickets.index')">{{ __('جميع التذاكر') }}</x-button>
                     </div>
                 </div>
             </x-card>

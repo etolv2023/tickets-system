@@ -48,7 +48,7 @@
                     @if ($side['covered'])
                         <x-badge variant="green">{{ $side['label'] }} ✔</x-badge>
                     @else
-                        <x-badge variant="red">{{ __(':side ناقص', ['side' => $side['label']]) }}</x-badge>
+                        <x-badge variant="red">{{ __('ينقص :side', ['side' => $side['label']]) }}</x-badge>
                     @endif
                 @endforeach
             </div>
@@ -66,7 +66,7 @@
                     <x-avatar :user="$assignment->user" size="sm" />
                 @endif
             @empty
-                <span class="u-subtle">{{ __('مش موزعة') }}</span>
+                <span class="u-subtle">{{ __('غير مُسندة') }}</span>
             @endforelse
         </div>
     </td>

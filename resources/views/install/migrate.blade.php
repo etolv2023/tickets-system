@@ -8,11 +8,11 @@
 
         @if ($alreadyRun)
             <x-alert variant="success">
-                {{ __('الجداول موجودة بالفعل. تقدر تكمل، أو تشغّل الخطوة تاني لو ضفت حاجة ناقصة.') }}
+                {{ __('الجداول موجودة بالفعل. يمكنك المتابعة، أو إعادة تشغيل الخطوة إذا أضفت شيئًا ناقصًا.') }}
             </x-alert>
         @else
             <x-alert>
-                {{ __('هعمل جداول النظام، وأزرع الأدوار والصلاحيات والإعدادات الافتراضية.') }}
+                {{ __('سأنشئ جداول النظام، وأضيف الأدوار والصلاحيات والإعدادات الافتراضية.') }}
             </x-alert>
         @endif
 
@@ -21,7 +21,7 @@
 
             <div class="row">
                 @if ($alreadyRun)
-                    <x-button variant="secondary" :href="route('install.admin')">{{ __('تخطي') }}</x-button>
+                    <x-button variant="secondary" :href="route('install.admin')">{{ __('تخطٍّ') }}</x-button>
                 @endif
 
                 <form method="POST" action="{{ route('install.migrate.run') }}">

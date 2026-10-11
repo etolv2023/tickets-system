@@ -88,7 +88,7 @@ export default function registerSubmitGuard() {
              * This listener is on the CAPTURE phase, so it locks before any
              * other handler has had a say — and every delete button in this app
              * is an inline onsubmit="return confirm(...)", which runs later and
-             * can still call the submit off. Answering "لأ" to that dialog (or
+             * can still call the submit off. Answering "لا" to that dialog (or
              * a browser that suppressed it, which Chrome does after a page
              * shows a few) therefore left the form locked and the button dead
              * until a reload, with nothing on screen explaining why. It reads

@@ -52,11 +52,11 @@ class TicketRowsSheet implements FromQuery, WithHeadings, WithMapping, WithTitle
 
     public function headings(): array
     {
-        return [
+        return array_map(fn (string $heading) => __($heading), [
             'رقم التذكرة', 'العنوان', 'الجهة الطالبة', 'النوع', 'الأولوية', 'الحالة', 'التوزيع',
             'تاريخ الفتح', 'مهلة SLA', 'تاريخ الاستحقاق', 'تاريخ الحل',
-            'المقدّر (س)', 'الفعلي (س)', 'صب تاسكس', 'الوصف',
-        ];
+            'المقدّر (س)', 'الفعلي (س)', 'المهام الفرعية', 'الوصف',
+        ]);
     }
 
     /** @param Ticket $t */
@@ -71,7 +71,7 @@ class TicketRowsSheet implements FromQuery, WithHeadings, WithMapping, WithTitle
             $t->type->label(),
             $t->priority->label(),
             $t->status->label(),
-            $t->roleAssignments->map(fn ($a) => "{$a->role->label()}: {$a->user?->name}")->implode('، '),
+            $t->roleAssignments->map(fn ($a) => "{$a->role->label()}: {$a->user?->name}")->implode(__('، ')),
             $t->reported_at?->timezone($tz)->format('Y-m-d H:i'),
             $t->sla_due_at?->timezone($tz)->format('Y-m-d H:i'),
             $t->due_date?->format('Y-m-d'),
@@ -85,6 +85,6 @@ class TicketRowsSheet implements FromQuery, WithHeadings, WithMapping, WithTitle
 
     public function title(): string
     {
-        return $this->title;
+        return __($this->title);
     }
 }

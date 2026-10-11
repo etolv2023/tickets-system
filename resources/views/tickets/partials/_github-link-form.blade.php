@@ -15,10 +15,10 @@
     @csrf
 
     <p class="field__hint">
-        {{ __('لو البرانش موجود على جيت هب والنظام ملقاهوش، اربطه من هنا. النظام هيتأكد إنه موجود فعلاً قبل ما يقبله.') }}
+        {{ __('إذا كان الفرع موجودًا على GitHub ولم يعثر عليه النظام، فاربطه من هنا. سيتحقق النظام من وجوده فعلًا قبل قبوله.') }}
     </p>
 
-    <x-field name="github_repository_id" :label="__('الريبو')" required>
+    <x-field name="github_repository_id" :label="__('المستودع')" required>
         <select id="github_repository_id" name="github_repository_id" class="select" required>
             @foreach ($githubRepositories as $repository)
                 <option value="{{ $repository->id }}" @selected(old('github_repository_id') == $repository->id)>
@@ -31,15 +31,15 @@
     {{-- dir="ltr" and a monospace face: a branch name is read character by
          character and compared against another screen, like every other code
          in this system (CLAUDE.md § 6). --}}
-    <x-field name="branch_name" :label="__('اسم البرانش')" required
+    <x-field name="branch_name" :label="__('اسم الفرع')" required
              :value="$suggestedBranch"
              {{-- Not "مثلاً $suggestedBranch": on an Arabic title the suggestion
                   IS the bare number, so the example repeated the rule word for
                   word. The prefix form is the part that is not obvious. --}}
              :hint="config('github.allow_type_prefix')
-                    ? __('لازم يبدأ بـ :number، أو feature/:number', ['number' => $ticket->ticket_number])
-                    : __('لازم يبدأ بـ :number', ['number' => $ticket->ticket_number])"
+                    ? __('يجب أن يبدأ بـ :number، أو feature/:number', ['number' => $ticket->ticket_number])
+                    : __('يجب أن يبدأ بـ :number', ['number' => $ticket->ticket_number])"
              class="u-mono u-ltr" dir="ltr" maxlength="255" />
 
-    <x-button variant="secondary" size="sm" block>{{ __('اربط البرانش') }}</x-button>
+    <x-button variant="secondary" size="sm" block>{{ __('ربط الفرع') }}</x-button>
 </form>

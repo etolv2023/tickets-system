@@ -1,5 +1,5 @@
 @if ($paginator->hasPages())
-    <nav class="pagination" role="navigation" aria-label="{{ __('تنقل بين الصفحات') }}">
+    <nav class="pagination" role="navigation" aria-label="{{ __('التنقل بين الصفحات') }}">
         <p class="pagination__summary">
             {{ __(':from–:to من :total', ['from' => $paginator->firstItem(), 'to' => $paginator->lastItem(), 'total' => $paginator->total()]) }}
         </p>

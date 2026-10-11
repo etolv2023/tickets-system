@@ -73,6 +73,6 @@
     @endforeach
 
     @unless ($hasAny)
-        <p class="cal-agenda__empty">{{ __('مفيش شغل مجدول في الفترة دي.') }}</p>
+        <p class="cal-agenda__empty">{{ __('لا يوجد عمل مجدول في هذه الفترة.') }}</p>
     @endunless
 </div>

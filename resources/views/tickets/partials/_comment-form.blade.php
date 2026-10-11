@@ -4,7 +4,7 @@
 
     <div class="field">
         <label class="field__label" for="body">{{ __('تعليق جديد') }}</label>
-        <x-editor name="body" :placeholder="__('اكتب تعليق. تقدر تلصق صور.')" />
+        <x-editor name="body" :placeholder="__('اكتب تعليقًا. يمكنك لصق الصور.')" />
     </div>
 
     <x-uploader name="attachments" />
@@ -15,13 +15,13 @@
                 <input type="checkbox" name="is_internal" value="1" class="checkbox">
                 <span class="checkbox-row__label">
                     {{ __('تعليق داخلي') }}
-                    <small>{{ __('مايتشوفش لو الخيط اتصدّر للعميل بعدين.') }}</small>
+                    <small>{{ __('لا تظهر إذا صُدِّرت المحادثة للعميل لاحقًا.') }}</small>
                 </span>
             </label>
         @else
             <span></span>
         @endcan
 
-        <x-button variant="primary">{{ __('أضف التعليق') }}</x-button>
+        <x-button variant="primary">{{ __('إضافة التعليق') }}</x-button>
     </div>
 </form>

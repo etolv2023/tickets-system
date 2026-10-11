@@ -28,7 +28,7 @@
     <x-form-errors />
 
     @if ($ticket->description)
-        <x-card :title="__('اللي اتبلّغ عنه')">
+        <x-card :title="__('ما تم الإبلاغ عنه')">
             {{-- F24: an image inline in the description is a ticket-level
                  attachment, which never crosses to the customer. Stripped here
                  rather than left to 403 as a broken image. --}}

@@ -6,13 +6,13 @@
     <div class="form-stack">
         @if ($output)
             <details>
-                <summary class="u-muted">{{ __('اتعمل إيه في خطوة الجداول') }}</summary>
+                <summary class="u-muted">{{ __('ما الذي نُفِّذ في خطوة الجداول') }}</summary>
                 <pre class="install__log">{{ $output }}</pre>
             </details>
         @endif
 
         <x-alert variant="success">
-            {{ __('الجداول اتعملت. فاضل حساب المدير — ده الحساب الي هتدخل بيه أول مرة.') }}
+            {{ __('تم إنشاء الجداول. بقي حساب المدير — وهو الحساب الذي ستدخل به أول مرة.') }}
         </x-alert>
 
         <x-form-errors />
@@ -22,20 +22,20 @@
 
             <x-field name="name" :label="__('الاسم')" required autofocus />
 
-            <x-field name="email" :label="__('الإيميل')" type="email" required autocomplete="username" />
+            <x-field name="email" :label="__('البريد الإلكتروني')" type="email" required autocomplete="username" />
 
             <div class="form-grid">
                 <x-field
                     name="password"
-                    :label="__('كلمة السر')"
+                    :label="__('كلمة المرور')"
                     type="password"
                     required
-                    :hint="__('10 حروف على الأقل.')"
+                    :hint="__('10 أحرف على الأقل.')"
                     autocomplete="new-password"
                 />
                 <x-field
                     name="password_confirmation"
-                    :label="__('تأكيد كلمة السر')"
+                    :label="__('تأكيد كلمة المرور')"
                     type="password"
                     required
                     autocomplete="new-password"

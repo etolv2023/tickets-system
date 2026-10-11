@@ -49,7 +49,7 @@
             <x-slot:actions>
                 <button type="button" class="fold__link"
                         @click="toggleAll(on < total)"
-                        x-text="on < total ? {{ Js::from(__('حدد الكل')) }} : {{ Js::from(__('امسح الكل')) }}"></button>
+                        x-text="on < total ? {{ Js::from(__('تحديد الكل')) }} : {{ Js::from(__('مسح الكل')) }}"></button>
             </x-slot:actions>
 
             <div class="perms__list" x-ref="list" @change="recount()">

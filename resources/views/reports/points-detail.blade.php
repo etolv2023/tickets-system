@@ -13,7 +13,7 @@
             <div>
                 <h1 class="page-title">{{ __('تقرير النقاط التفصيلي') }}</h1>
                 <p class="page-subtitle">
-                    {{ __('صفوف الدفتر نفسها — مش أرقام مجمّعة. كل سطر بيرجع لصب تاسك واحدة وقاعدة واحدة ولحظة واحدة، فلما حد يعترض على رقم مكافأة، ده المكان اللي بيجاوب.') }}
+                    {{ __('صفوف الدفتر نفسها — وليست أرقامًا مجمّعة. يرجع كل سطر إلى مهمة فرعية واحدة وقاعدة واحدة ولحظة واحدة، فعند الاعتراض على رقم مكافأة تجد الإجابة هنا.') }}
                     <a href="{{ route('reports.points') }}">{{ __('الملخص المجمّع هنا') }}</a>.
                 </p>
             </div>
@@ -26,12 +26,12 @@
               class="filters reports-ledger-filters" x-data="{ filtersOpen: false }">
             <div class="filters__bar">
                 <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" class="input filters__search"
-                       placeholder="{{ __('دوّر برقم تذكرة أو عنوان صب تاسك أو سبب…') }}" aria-label="{{ __('بحث') }}">
+                       placeholder="{{ __('ابحث برقم تذكرة أو عنوان مهمة فرعية أو سبب…') }}" aria-label="{{ __('بحث') }}">
                 <button type="button" class="btn btn--secondary" @click="filtersOpen = !filtersOpen"
                         :aria-expanded="filtersOpen.toString()">
-                    <x-icon name="filter" class="btn__icon" /> {{ __('الفلاتر') }}
+                    <x-icon name="filter" class="btn__icon" /> {{ __('عوامل التصفية') }}
                 </button>
-                <x-button variant="secondary" size="sm">{{ __('فلترة') }}</x-button>
+                <x-button variant="secondary" size="sm">{{ __('تصفية') }}</x-button>
 
                 @if (array_filter($filters))
                     <a class="btn btn--ghost btn--sm" href="{{ route('reports.points-detail') }}">{{ __('مسح') }}</a>
@@ -44,7 +44,7 @@
                 <x-combobox name="person" resource="users"
                             :value="$filters['person'] ?? null"
                             :selected="$selectedPerson"
-                            :placeholder="__('كل الموظفين')" />
+                            :placeholder="__('جميع الموظفين')" />
             </div>
 
             <select name="period" class="select filters__select" aria-label="{{ __('الشهر') }}">
@@ -55,7 +55,7 @@
             </select>
 
             <select name="role" class="select filters__select" aria-label="{{ __('الدور') }}">
-                <option value="">{{ __('كل الأدوار') }}</option>
+                <option value="">{{ __('جميع الأدوار') }}</option>
                 @foreach ($roles as $role)
                     <option value="{{ $role->id }}" @selected((int) ($filters['role'] ?? 0) === $role->id)>{{ $role->label() }}</option>
                 @endforeach
@@ -69,19 +69,19 @@
             </select>
 
             <select name="kind" class="select filters__select" aria-label="{{ __('نوع السطر') }}">
-                <option value="">{{ __('كل السطور') }}</option>
-                <option value="award" @selected(($filters['kind'] ?? '') === 'award')>{{ __('صرف تلقائي بس') }}</option>
+                <option value="">{{ __('جميع السطور') }}</option>
+                <option value="award" @selected(($filters['kind'] ?? '') === 'award')>{{ __('الاحتساب التلقائي فقط') }}</option>
                 {{-- ★ (2026-08-05) الخصم التلقائي على التأخير نوع تالت — سؤال
                      «مين اتخصم منه الشهر ده» بقى فلتر واحد. --}}
-                <option value="penalty" @selected(($filters['kind'] ?? '') === 'penalty')>{{ __('خصم تأخير بس') }}</option>
-                <option value="correction" @selected(($filters['kind'] ?? '') === 'correction')>{{ __('تصحيحات يدوية بس') }}</option>
+                <option value="penalty" @selected(($filters['kind'] ?? '') === 'penalty')>{{ __('خصومات التأخير فقط') }}</option>
+                <option value="correction" @selected(($filters['kind'] ?? '') === 'correction')>{{ __('التصحيحات اليدوية فقط') }}</option>
             </select>
 
             <div class="filters__combobox">
                 <x-combobox name="company" resource="companies"
                             :value="$filters['company'] ?? null"
                             :selected="$selectedCompany"
-                            :placeholder="__('كل الشركات')" />
+                            :placeholder="__('جميع الشركات')" />
             </div>
 
             {{-- A date pair reads as one control, so it gets one bordered
@@ -89,8 +89,8 @@
             <div class="filters__range">
                 <span class="filters__range-label">{{ __('من') }}</span>
                 <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" aria-label="{{ __('من تاريخ') }}">
-                <span class="filters__range-label">{{ __('لـ') }}</span>
-                <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" aria-label="{{ __('لتاريخ') }}">
+                <span class="filters__range-label">{{ __('إلى') }}</span>
+                <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" aria-label="{{ __('حتى تاريخ') }}">
             </div>
 
             </div>
@@ -101,7 +101,7 @@
         <div class="today-stats">
             <div class="stat-tile stat-tile--teal">
                 <div class="stat-tile__figure">{{ $n($summary->total) }}</div>
-                <div class="stat-tile__caption">{{ __('إجمالي النقاط في النتيجة دي') }}</div>
+                <div class="stat-tile__caption">{{ __('إجمالي النقاط في هذه النتيجة') }}</div>
             </div>
 
             <div class="stat-tile stat-tile--slate">
@@ -111,7 +111,7 @@
 
             <div class="stat-tile stat-tile--green">
                 <div class="stat-tile__figure">{{ $summary->people }}</div>
-                <div class="stat-tile__caption">{{ __('موظف') }}</div>
+                <div class="stat-tile__caption">{{ __('الموظف') }}</div>
             </div>
         </div>
 
@@ -123,7 +123,7 @@
                             <th>{{ __('التاريخ') }}</th>
                             <th>{{ __('الموظف') }}</th>
                             <th>{{ __('التذكرة') }}</th>
-                            <th>{{ __('الصب تاسك') }}</th>
+                            <th>{{ __('المهمة الفرعية') }}</th>
                             <th>{{ __('الجهة') }}</th>
                             <th>{{ __('المصدر') }}</th>
                             <th class="table__cell--num">{{ __('النقاط') }}</th>
@@ -185,7 +185,7 @@
                                              — تاريخ الاستحقاق هو الي عمله. --}}
                                         <x-badge variant="urgent" class="badge--sm">{{ __('خصم تأخير') }}</x-badge>
                                     @else
-                                        <span class="u-subtle">{{ __('صرف تلقائي') }}</span>
+                                        <span class="u-subtle">{{ __('احتساب تلقائي') }}</span>
                                     @endif
                                 </td>
 
@@ -196,7 +196,7 @@
                         @empty
                             <tr class="table__empty">
                                 <td colspan="7">
-                                    {{ array_filter($filters) ? __('مفيش سطور مطابقة للفلتر.') : __('مفيش نقاط اتصرفت لسه.') }}
+                                    {{ array_filter($filters) ? __('لا توجد سطور مطابقة لعامل التصفية.') : __('لم تُحتسب أي نقاط بعد.') }}
                                 </td>
                             </tr>
                         @endforelse

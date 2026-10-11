@@ -43,30 +43,30 @@ class PointsSummaryExport implements WithMultipleSheets
     private function headline(array $data): ArraySheet
     {
         $delta = $data['previous'] > 0
-            ? round((($data['total'] - $data['previous']) / $data['previous']) * 100) . '٪'
+            ? round((($data['total'] - $data['previous']) / $data['previous']) * 100) . __('٪')
             : '—';
 
-        return new ArraySheet('الملخص', ['البند', 'القيمة'], [
-            ['الشهر', $this->period],
+        return new ArraySheet(__('الملخص'), [__('البند'), __('القيمة')], [
+            [__('الشهر'), $this->period],
             // Says so on the sheet: a filtered total that looks like a whole
             // month is the kind of number someone plans a payroll around.
-            ['النوع المفلتر', $this->type === null ? 'كل الأنواع' : TicketTypeValue::for($this->type)->label()],
-            ['إجمالي نقاط الشهر', (float) $data['total']],
-            ['إجمالي الشهر السابق', (float) $data['previous']],
-            ['الفرق عن الشهر السابق', $delta],
-            ['موظف أخد نقاط', $data['people']],
-            ['تذكرة اتصرفت عليها نقاط', $data['tickets']],
-            ['متوسط نقاط التذكرة', $data['tickets'] ? round($data['total'] / $data['tickets'], 2) : '—'],
-            ['تصحيحات يدوية — العدد', $data['correctionsCount']],
-            ['تصحيحات يدوية — الإجمالي', (float) $data['correctionsTotal']],
+            [__('النوع المفلتر'), $this->type === null ? __('كل الأنواع') : TicketTypeValue::for($this->type)->label()],
+            [__('إجمالي نقاط الشهر'), (float) $data['total']],
+            [__('إجمالي الشهر السابق'), (float) $data['previous']],
+            [__('الفرق عن الشهر السابق'), $delta],
+            [__('موظفون حصلوا على نقاط'), $data['people']],
+            [__('تذاكر احتُسبت عليها نقاط'), $data['tickets']],
+            [__('متوسط نقاط التذكرة'), $data['tickets'] ? round($data['total'] / $data['tickets'], 2) : '—'],
+            [__('تصحيحات يدوية — العدد'), $data['correctionsCount']],
+            [__('تصحيحات يدوية — الإجمالي'), (float) $data['correctionsTotal']],
         ]);
     }
 
     private function byPerson(iterable $rows): ArraySheet
     {
         return new ArraySheet(
-            'لكل موظف',
-            ['الموظف', 'الدور', 'دعم', 'فرونت', 'باك', 'تيست', 'ديف أوبس', 'عدد المرات', 'الإجمالي'],
+            __('لكل موظف'),
+            [__('الموظف'), __('الدور'), __('الدعم'), __('الواجهة الأمامية'), __('الأنظمة الخلفية'), __('الاختبار'), __('عمليات التطوير'), __('عدد المرات'), __('الإجمالي')],
             collect($rows)->map(fn ($r) => [
                 $r->user?->name ?? '—',
                 $r->user?->role?->label() ?? '—',
@@ -84,8 +84,8 @@ class PointsSummaryExport implements WithMultipleSheets
     private function byType(iterable $rows): ArraySheet
     {
         return new ArraySheet(
-            'حسب نوع التذكرة',
-            ['النوع', 'تذاكر', 'صفوف نقاط', 'الإجمالي', 'متوسط التذكرة'],
+            __('حسب نوع التذكرة'),
+            [__('النوع'), __('تذاكر'), __('صفوف نقاط'), __('الإجمالي'), __('متوسط التذكرة')],
             collect($rows)->map(fn ($r) => [
                 TicketTypeValue::for($r->type)->label(),
                 $r->tickets,
@@ -99,14 +99,14 @@ class PointsSummaryExport implements WithMultipleSheets
     private function bySide(iterable $rows, float $total): ArraySheet
     {
         return new ArraySheet(
-            'حسب الجهة / الدور',
-            ['الجهة / الدور', 'صفوف', 'الإجمالي', 'النسبة'],
+            __('حسب الجهة / الدور'),
+            [__('الجهة / الدور'), __('صفوف'), __('الإجمالي'), __('النسبة')],
             collect($rows)->map(fn ($r) => [
                 // Same fallback the screen prints: a role-based row has no side.
                 $r->side?->label() ?? $r->role?->label() ?? '—',
                 $r->awards,
                 (float) $r->total,
-                $total > 0 ? round(($r->total / $total) * 100) . '٪' : '—',
+                $total > 0 ? round(($r->total / $total) * 100) . __('٪') : '—',
             ])->all(),
         );
     }
@@ -114,8 +114,8 @@ class PointsSummaryExport implements WithMultipleSheets
     private function topTickets(iterable $rows): ArraySheet
     {
         return new ArraySheet(
-            'أعلى التذاكر',
-            ['رقم التذكرة', 'عنوان التذكرة', 'الجهة الطالبة', 'النوع', 'مشاركين', 'النقاط'],
+            __('أعلى التذاكر'),
+            [__('رقم التذكرة'), __('عنوان التذكرة'), __('الجهة الطالبة'), __('النوع'), __('المشاركون'), __('النقاط')],
             collect($rows)->map(fn ($r) => [
                 $r->ticket?->ticket_number,
                 $r->ticket?->title,

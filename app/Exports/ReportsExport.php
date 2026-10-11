@@ -49,8 +49,8 @@ class ReportsExport implements WithMultipleSheets
     private function distribution(iterable $rows): ArraySheet
     {
         return new ArraySheet(
-            'توزيع التذاكر',
-            ['النوع', 'الإجمالي', 'محلولة', 'مفتوحة'],
+            __('توزيع التذاكر'),
+            [__('النوع'), __('الإجمالي'), __('محلولة'), __('مفتوحة')],
             collect($rows)->map(fn ($row) => [
                 $row->type->label(), $row->total, $row->done, $row->open,
             ])->all(),
@@ -60,8 +60,8 @@ class ReportsExport implements WithMultipleSheets
     private function byPriority(iterable $rows): ArraySheet
     {
         return new ArraySheet(
-            'زمن الحل بالأولوية',
-            ['الأولوية', 'متوسط الساعات', 'العدد'],
+            __('زمن الحل بالأولوية'),
+            [__('الأولوية'), __('متوسط الساعات'), __('العدد')],
             collect($rows)->map(fn ($r) => [
                 PriorityValue::for($r->k)->label(),
                 round((float) $r->avg_hours),
@@ -73,8 +73,8 @@ class ReportsExport implements WithMultipleSheets
     private function byType(iterable $rows): ArraySheet
     {
         return new ArraySheet(
-            'زمن الحل بالنوع',
-            ['النوع', 'متوسط الساعات', 'العدد'],
+            __('زمن الحل بالنوع'),
+            [__('النوع'), __('متوسط الساعات'), __('العدد')],
             collect($rows)->map(fn ($r) => [
                 TicketTypeValue::for($r->k)->label(),
                 round((float) $r->avg_hours),
@@ -88,8 +88,8 @@ class ReportsExport implements WithMultipleSheets
         $tz = config('app.display_timezone');
 
         return new ArraySheet(
-            'خرق SLA',
-            ['رقم التذكرة', 'العنوان', 'الجهة الطالبة', 'الأولوية', 'الحالة', 'المهلة كانت', 'وقت الحل'],
+            __('تجاوز SLA'),
+            [__('رقم التذكرة'), __('العنوان'), __('الجهة الطالبة'), __('الأولوية'), __('الحالة'), __('المهلة كانت'), __('وقت الحل')],
             collect($rows)->map(fn ($t) => [
                 $t->ticket_number,
                 $t->title,
@@ -105,11 +105,11 @@ class ReportsExport implements WithMultipleSheets
     private function companies(iterable $rows): ArraySheet
     {
         return new ArraySheet(
-            'أداء الشركات',
-            ['الشركة', 'التذاكر', 'اتحلت', 'متوسط زمن الحل (ساعة)'],
+            __('أداء الشركات'),
+            [__('الشركة'), __('التذاكر'), __('محلولة'), __('متوسط زمن الحل (ساعة)')],
             collect($rows)->map(fn ($r) => [
                 // No company_id is internal work, not a missing customer. F25
-                $r->company_id === null ? 'شغل داخلي' : ($r->company?->name ?? '—'),
+                $r->company_id === null ? __('عمل داخلي') : ($r->company?->name ?? '—'),
                 $r->total,
                 $r->resolved,
                 $r->avg_hours ? round((float) $r->avg_hours) : null,
@@ -120,8 +120,8 @@ class ReportsExport implements WithMultipleSheets
     private function load(iterable $rows): ArraySheet
     {
         return new ArraySheet(
-            'حِمل التيم',
-            ['الموظف', 'إسنادات مفتوحة'],
+            __('عبء عمل الفريق'),
+            [__('الموظف'), __('إسنادات مفتوحة')],
             collect($rows)->map(fn ($u) => [$u->name, $u->open_load])->all(),
         );
     }
@@ -129,8 +129,8 @@ class ReportsExport implements WithMultipleSheets
     private function time(iterable $rows): ArraySheet
     {
         return new ArraySheet(
-            'تقرير الوقت',
-            ['الموظف', 'ساعات مسجّلة', 'تذاكر', 'دقة التقدير'],
+            __('تقرير الوقت'),
+            [__('الموظف'), __('ساعات مسجّلة'), __('تذاكر'), __('دقة التقدير')],
             collect($rows)->map(fn ($r) => [
                 $r->user?->name ?? '—',
                 $r->logged,

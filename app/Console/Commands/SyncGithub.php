@@ -28,7 +28,7 @@ class SyncGithub extends Command
 {
     protected $signature = 'github:sync {--repo= : owner/repo, to sync just one}';
 
-    protected $description = 'قراءة البرانشات والـ PRs من جيت هب وربطها بالتذاكر';
+    protected $description = 'قراءة الفروع وطلبات الدمج من GitHub وربطها بالتذاكر';
 
     public function handle(GitHubSyncService $sync): int
     {
@@ -36,7 +36,7 @@ class SyncGithub extends Command
             // Not an error. "Not configured" has to mean "silently off", or a
             // cron on an installation that does not use GitHub mails a failure
             // every single night.
-            $this->comment('تكامل جيت هب مقفول (GITHUB_ENABLED). مفيش حاجة اتعملت.');
+            $this->comment('تكامل GitHub معطّل (GITHUB_ENABLED). لم يُنفَّذ شيء.');
 
             return self::SUCCESS;
         }
@@ -50,7 +50,7 @@ class SyncGithub extends Command
             ->get();
 
         if ($repositories->isEmpty()) {
-            $this->warn('مفيش ريبوز مفعّلة.');
+            $this->warn('لا توجد مستودعات مفعّلة.');
 
             return self::SUCCESS;
         }
@@ -69,7 +69,7 @@ class SyncGithub extends Command
                     $stats['updated'] ?? 0,
                     $stats['gone'] ?? 0,
                     $stats['pulls'] ?? 0,
-                    'تمام',
+                    'تم',
                 ];
             } catch (Throwable $e) {
                 $failed++;
@@ -85,7 +85,7 @@ class SyncGithub extends Command
         }
 
         $this->table(
-            ['الريبو', 'برانشات', 'جديد', 'اتغيّر', 'اختفى', 'PRs', 'الحالة'],
+            ['المستودع', 'الفروع', 'جديد', 'تغيّر', 'اختفى', 'PRs', 'الحالة'],
             $rows
         );
 

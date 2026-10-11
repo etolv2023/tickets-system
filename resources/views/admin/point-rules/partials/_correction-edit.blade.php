@@ -13,7 +13,7 @@
     @method('PUT')
 
     <p class="field__hint">
-        {{ __('الحفظ هيكتب سطرين: واحد عكسي بيلغي اللي فوق، وواحد بالقيمة الجديدة — الاتنين على نفس شهر التصحيح الأصلي (:period).', ['period' => $correction->period]) }}
+        {{ __('سيكتب الحفظ سطرين: سطرًا عكسيًا يلغي السابق، وسطرًا بالقيمة الجديدة — وكلاهما في شهر التصحيح الأصلي (:period).', ['period' => $correction->period]) }}
     </p>
 
     <div class="form-grid">
@@ -34,7 +34,7 @@
         </x-field>
 
         <x-field :name="'points_' . $correction->id" :label="__('النقاط')" required
-                 :hint="__('رقم موجب يضيف، رقم سالب يخصم.')">
+                 :hint="__('الرقم الموجب يُضيف، والسالب يخصم.')">
             <input type="number" step="0.5" id="points_{{ $correction->id }}" name="points" class="input"
                    value="{{ rtrim(rtrim($correction->points, '0'), '.') }}" required>
         </x-field>
@@ -51,7 +51,7 @@
     </x-field>
 
     <div class="form-actions">
-        <x-button variant="primary" size="sm">{{ __('احفظ التعديل') }}</x-button>
+        <x-button variant="primary" size="sm">{{ __('حفظ التعديل') }}</x-button>
         <x-button variant="ghost" size="sm" type="button" x-on:click="editing = null">{{ __('إلغاء') }}</x-button>
     </div>
 </form>

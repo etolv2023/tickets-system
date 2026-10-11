@@ -112,31 +112,6 @@ Route::prefix('portal')->name('portal.')->group(function () {
         ->name('attachment.thumb');
 });
 
-// TEMPORARY (2026-08-24) — manual verification routes for SlowRequestTimer.
-// Outside auth on purpose, purely to keep curl-based verification simple.
-// Removed immediately after verification.
-Route::get('/__diag/slow', function () {
-    sleep(4);
-
-    return 'slow-no-db';
-});
-Route::get('/__diag/slow-db', function () {
-    \Illuminate\Support\Facades\DB::select('SELECT SLEEP(4)');
-
-    return 'slow-db';
-});
-Route::get('/__diag/slow-fail', function () {
-    sleep(4);
-
-    throw new \RuntimeException('diag test exception');
-});
-Route::get('/__diag/slow-ticket/{ticket}', function (\App\Models\Ticket $ticket) {
-    sleep(4);
-
-    return 'slow-ticket-' . $ticket->id;
-});
-Route::get('/__diag/fast', fn () => 'fast');
-
 // Outside auth: the login screen, the client portal and the install wizard
 // switch language too. It only writes the session.
 Route::post('/locale', [LocaleController::class, 'update'])->name('locale.update');
@@ -256,7 +231,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/github/unmatched-branches/{branch}', [GithubUnmatchedBranchController::class, 'destroy'])
         ->middleware('permission:github.branches.delete')->name('github.unmatched-branches.destroy');
 
-    // ★ (2026-08-29) "زامن دلوقتي" from the audit screen, so the list you are
+    // ★ (2026-08-29) "مزامنة الآن" from the audit screen, so the list you are
     // about to act on is not last night's. github.audit rather than
     // settings.manage: reading with a read-only token changes nothing, and the
     // person looking at the list is the one who needs it current.

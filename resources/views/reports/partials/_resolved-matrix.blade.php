@@ -1,9 +1,9 @@
 {{-- The matrix. A ticket two people hold counts once for each of them, so a
      column's total is "how many of this type got resolved", not the sum of
      the column. The headline tile already says the distinct figure. --}}
-<x-card :title="__('مين حل إيه')" flush>
+<x-card :title="__('من حلّ ماذا')" flush>
     <x-slot:actions>
-        <span class="u-subtle">{{ __(\App\Models\Ticket::RELATIONS[$data['relation']]) }} · {{ __('من') }} <span class="u-nums">{{ $filters['from'] }}</span> {{ __('إلى') }} <span class="u-nums">{{ $filters['to'] }}</span> {{ __('على تاريخ الحل') }}</span>
+        <span class="u-subtle">{{ __(\App\Models\Ticket::RELATIONS[$data['relation']]) }} · {{ __('من') }} <span class="u-nums">{{ $filters['from'] }}</span> {{ __('إلى') }} <span class="u-nums">{{ $filters['to'] }}</span> {{ __('حسب تاريخ الحل') }}</span>
     </x-slot:actions>
 
     <div class="table-wrap">
@@ -43,7 +43,7 @@
                     </tr>
                 @empty
                     <tr class="table__empty">
-                        <td colspan="{{ count($data['types']) + 2 }}">{{ __('محدش حل حاجة في الفترة دي بالفلاتر دي.') }}</td>
+                        <td colspan="{{ count($data['types']) + 2 }}">{{ __('لم يحلّ أحد أي تذكرة في هذه الفترة وفق عوامل التصفية هذه.') }}</td>
                     </tr>
                 @endforelse
             </tbody>

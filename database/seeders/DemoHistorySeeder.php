@@ -22,6 +22,7 @@ use App\Services\TimeTrackingService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
+use App\Support\Phrase;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -176,7 +177,9 @@ class DemoHistorySeeder extends Seeder
         $this->at($reportedAt, fn () => $this->notify->dispatch(
             $ticket,
             NotificationEvent::TicketCreated,
-            ($internal ? 'طلب داخلي جديد' : 'تذكرة جديدة من ' . $company->name) . " — {$ticket->title}",
+            $internal
+                ? new Phrase('طلب داخلي جديد — :title', ['title' => $ticket->title])
+                : new Phrase('تذكرة جديدة من :company — :title', ['company' => $company->name, 'title' => $ticket->title]),
             $this->people['support']->id,
         ));
 
@@ -227,7 +230,7 @@ class DemoHistorySeeder extends Seeder
         $this->at($at, fn () => $this->notify->dispatch(
             $ticket,
             NotificationEvent::TicketApproved,
-            "اتوافق على {$ticket->ticket_number} — تقدروا تبدأوا",
+            new Phrase('تمت الموافقة على :number — يمكن بدء العمل', ['number' => $ticket->ticket_number]),
             $this->people['admin']->id,
         ));
     }
@@ -288,7 +291,7 @@ class DemoHistorySeeder extends Seeder
         $this->at($at, fn () => $this->notify->dispatch(
             $ticket,
             NotificationEvent::TicketAssigned,
-            "اتوزعت عليك {$ticket->ticket_number} — {$ticket->title}",
+            new Phrase('أُسندت إليك :number — :title', ['number' => $ticket->ticket_number, 'title' => $ticket->title]),
             $this->people['support']->id,
         ));
 
@@ -379,7 +382,7 @@ class DemoHistorySeeder extends Seeder
                 $this->at($reportedAt->addDays($day), fn () => $this->notify->dispatch(
                     $ticket,
                     NotificationEvent::SubtaskBlocked,
-                    "«{$title}» اتقفلت — مستنيين رد العميل",
+                    new Phrase('«:title» متوقفة — بانتظار رد العميل', ['title' => $title]),
                     $owner->id,
                     subtask: $subtask,
                 ));
@@ -466,7 +469,7 @@ class DemoHistorySeeder extends Seeder
         $this->at($resolvedAt, fn () => $this->notify->dispatch(
             $ticket,
             NotificationEvent::TicketResolved,
-            "{$ticket->ticket_number} اتحلت — {$ticket->title}",
+            new Phrase('تم حل :number — :title', ['number' => $ticket->ticket_number, 'title' => $ticket->title]),
             $this->people['backend']->id,
         ));
 
@@ -480,7 +483,7 @@ class DemoHistorySeeder extends Seeder
             $this->at($resolvedAt->addMinutes(1), fn () => $this->notify->dispatch(
                 $ticket,
                 NotificationEvent::PointsAwarded,
-                "اتصرفت {$total} نقطة على {$ticket->ticket_number} حسب الصبتاسكات المخلصة",
+                new Phrase('احتُسبت :total نقطة على :number وفق المهام الفرعية المكتملة', ['total' => $total, 'number' => $ticket->ticket_number]),
                 null,
             ));
         }
@@ -523,7 +526,7 @@ class DemoHistorySeeder extends Seeder
         $this->at($at, fn () => $this->notify->dispatch(
             $ticket,
             NotificationEvent::TicketStatusChanged,
-            "{$ticket->ticket_number} بقت " . TicketStatusValue::for($to)->label(),
+            new Phrase('أصبحت حالة :number «:status»', ['number' => $ticket->ticket_number, 'status' => Phrase::status($to)]),
             $this->people['support']->id,
         ));
     }
@@ -556,7 +559,7 @@ class DemoHistorySeeder extends Seeder
         $this->at($at, fn () => $this->notify->dispatch(
             $ticket,
             NotificationEvent::RatingGiven,
-            "تقييم جديد على {$ticket->ticket_number}",
+            new Phrase('تقييم جديد على :number', ['number' => $ticket->ticket_number]),
             $this->people['manager']->id,
         ));
     }
@@ -589,7 +592,7 @@ class DemoHistorySeeder extends Seeder
         $this->at($reportedAt->addHours(4), fn () => $this->notify->dispatch(
             $ticket,
             NotificationEvent::CommentAdded,
-            "تعليق جديد على {$ticket->ticket_number}",
+            new Phrase('تعليق جديد على :number', ['number' => $ticket->ticket_number]),
             $this->people['support']->id,
         ));
     }

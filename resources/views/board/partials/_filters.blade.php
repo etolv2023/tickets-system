@@ -16,7 +16,7 @@
         type="search"
         name="q"
         value="{{ $filters['q'] ?? '' }}"
-        placeholder="{{ __('ابحث بالعنوان أو الوصف، أو الصق رقم تذكرة') }}"
+        placeholder="{{ __('ابحث بالعنوان أو الوصف، أو الصق رقم التذكرة') }}"
         class="input filters__search"
     >
 
@@ -25,7 +25,7 @@
             <x-combobox name="assignee" resource="users"
                         :value="$filters['assignee'] ?? null"
                         :selected="$selectedAssignee ?? null"
-                        :placeholder="__('كل المسؤولين')" />
+                        :placeholder="__('جميع المسؤولين')" />
         </div>
     @endif
 
@@ -33,7 +33,7 @@
         <x-combobox name="company" resource="companies"
                     :value="$filters['company'] ?? null"
                     :selected="$selectedCompany ?? null"
-                    :placeholder="__('كل الشركات')" />
+                    :placeholder="__('جميع الشركات')" />
     </div>
 
     <select name="type" class="select filters__select">
@@ -44,7 +44,7 @@
     </select>
 
     <select name="priority" class="select filters__select">
-        <option value="">{{ __('كل الأولويات') }}</option>
+        <option value="">{{ __('جميع الأولويات') }}</option>
         @foreach (\App\Models\PriorityDefinition::options() as $value => $label)
             <option value="{{ $value }}" @selected(($filters['priority'] ?? '') === $value)>{{ __($label) }}</option>
         @endforeach
@@ -56,7 +56,7 @@
         @endforeach
     </select>
 
-    <x-button variant="secondary">{{ __('فلترة') }}</x-button>
+    <x-button variant="secondary">{{ __('تصفية') }}</x-button>
 
     {{-- $filters only — «مسح» must not light up because a month is selected.
          One always is (the picker has no empty option), so including it here

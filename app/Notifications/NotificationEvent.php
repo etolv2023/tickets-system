@@ -49,23 +49,40 @@ enum NotificationEvent: string
     case PointsAwarded = 'points.awarded';
 
     /** The heading a notification sits under in the list. */
-    public function group(): string
+    /** Stable identifier of the group: stored on the row and used by the filter. */
+    public function groupKey(): string
     {
         return match ($this) {
-            self::TicketCreated, self::TicketAssigned, self::TicketUpdated => 'التوزيع',
+            self::TicketCreated, self::TicketAssigned, self::TicketUpdated => 'assignment',
             self::TicketStatusChanged, self::TicketApproved, self::TicketRejected,
-            self::TicketReopened, self::TicketResolved, self::TicketClosed => 'الحالة',
-            self::CommentAdded, self::CommentFromClient, self::MentionedInComment => 'المحادثة',
+            self::TicketReopened, self::TicketResolved, self::TicketClosed => 'status',
+            self::CommentAdded, self::CommentFromClient, self::MentionedInComment => 'conversation',
             self::SubtaskAssigned, self::SubtaskCompleted, self::SubtaskBlocked,
-            self::SubtaskDueToday, self::TimeLogged => 'الشغل',
-            self::TicketDueSoon, self::TicketSlaBreached => 'المهل',
-            self::TicketLinked, self::BlockerResolved => 'الروابط',
-            self::RatingGiven, self::PointsAwarded => 'التقييم والنقاط',
-            self::ClientNotified, self::PortalPasswordReset => 'العميل',
+            self::SubtaskDueToday, self::TimeLogged => 'work',
+            self::TicketDueSoon, self::TicketSlaBreached => 'deadlines',
+            self::TicketLinked, self::BlockerResolved => 'links',
+            self::RatingGiven, self::PointsAwarded => 'ratings',
+            self::ClientNotified, self::PortalPasswordReset => 'client',
         };
     }
 
-    /** An <x-icon> name. */
+    public function group(): string
+    {
+        return __(self::GROUP_LABELS[$this->groupKey()]);
+    }
+
+    /** @var array<string, string> group key => Arabic source label */
+    private const GROUP_LABELS = [
+        'assignment' => 'الإسناد',
+        'status' => 'الحالة',
+        'conversation' => 'المحادثة',
+        'work' => 'العمل',
+        'deadlines' => 'المواعيد',
+        'links' => 'الروابط',
+        'ratings' => 'التقييم والنقاط',
+        'client' => 'العميل',
+    ];
+
     public function icon(): string
     {
         return match ($this) {
@@ -116,44 +133,53 @@ enum NotificationEvent: string
 
     public function label(): string
     {
-        return match ($this) {
+        return __(match ($this) {
             self::TicketCreated => 'تذكرة جديدة',
-            self::TicketAssigned => 'اتعملك أساين',
-            self::TicketStatusChanged => 'الحالة اتغيرت',
-            self::TicketApproved => 'اتوافق عليها',
-            self::TicketRejected => 'اترفضت',
-            self::TicketReopened => 'اترجعت',
-            self::TicketResolved => 'اتحلت',
-            self::TicketClosed => 'اتقفلت',
-            self::TicketUpdated => 'اتعدلت',
-            self::TicketDueSoon => 'المهلة قربت',
-            self::TicketSlaBreached => 'خرقت المهلة',
-            self::ClientNotified => 'العميل اتبلغ',
-            self::PortalPasswordReset => 'باسورد البوابة اتغير',
+            self::TicketAssigned => 'تم إسنادك',
+            self::TicketStatusChanged => 'تغيّرت الحالة',
+            self::TicketApproved => 'تمت الموافقة',
+            self::TicketRejected => 'تم الرفض',
+            self::TicketReopened => 'أعيد فتحها',
+            self::TicketResolved => 'تم الحل',
+            self::TicketClosed => 'أُغلقت',
+            self::TicketUpdated => 'تم التعديل',
+            self::TicketDueSoon => 'اقترب الموعد',
+            self::TicketSlaBreached => 'تجاوزت المهلة',
+            self::ClientNotified => 'تم إبلاغ العميل',
+            self::PortalPasswordReset => 'تغيّرت كلمة مرور البوابة',
             self::CommentAdded => 'تعليق جديد',
             self::CommentFromClient => 'رد من العميل',
-            self::MentionedInComment => 'اتذكر اسمك',
-            self::SubtaskAssigned => 'صب تاسك اتعملك',
-            self::SubtaskCompleted => 'صب تاسك خلصت',
-            self::SubtaskBlocked => 'صب تاسك اتبلوكت',
-            self::SubtaskDueToday => 'صب تاسك مستحقة',
-            self::TimeLogged => 'وقت اتسجل',
+            self::MentionedInComment => 'تمت الإشارة إليك',
+            self::SubtaskAssigned => 'أُسندت إليك مهمة فرعية',
+            self::SubtaskCompleted => 'اكتملت مهمة فرعية',
+            self::SubtaskBlocked => 'توقفت مهمة فرعية',
+            self::SubtaskDueToday => 'مهمة فرعية مستحقة',
+            self::TimeLogged => 'تم تسجيل وقت',
             self::TicketLinked => 'ربط جديد',
-            self::BlockerResolved => 'البلوكر اتحل',
+            self::BlockerResolved => 'زال العائق',
             self::RatingGiven => 'تقييم جديد',
-            self::PointsAwarded => 'نقاط اتصرفت',
-        };
+            self::PointsAwarded => 'تم احتساب النقاط',
+        });
     }
 
-    /** @return array<string, string> for a filter dropdown */
+    /** @return array<string, string> group key => label in the current language */
     public static function groupOptions(): array
     {
         $groups = [];
 
         foreach (self::cases() as $case) {
-            $groups[$case->group()] = $case->group();
+            $groups[$case->groupKey()] = $case->group();
         }
 
         return $groups;
+    }
+
+    /** @return array<int, string> the event values that belong to a group */
+    public static function eventsIn(string $groupKey): array
+    {
+        return array_values(array_map(
+            fn (self $case) => $case->value,
+            array_filter(self::cases(), fn (self $case) => $case->groupKey() === $groupKey)
+        ));
     }
 }

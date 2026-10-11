@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', __('المستخدمين'))
+@section('title', __('المستخدمون'))
 
 @section('content')
     <div class="page">
         <div class="page__head">
             <div>
-                <h1 class="page-title">{{ __('المستخدمين') }}</h1>
-                <p class="page-subtitle">{{ trans_choice(':count مستخدم.', $users->total()) }}</p>
+                <h1 class="page-title">{{ __('المستخدمون') }}</h1>
+                <p class="page-subtitle">{{ trans_choice(':count مستخدم.|مستخدم واحد.|مستخدمان.|:count مستخدمين.|:count مستخدمًا.|:count مستخدم.', $users->total()) }}</p>
             </div>
             <div class="page__actions">
                 <x-export-button route="export.users" />
@@ -56,7 +56,7 @@
                                 </td>
                                 <td>{{ $user->role->label() }}</td>
                                 <td class="u-nums">
-                                    {{ $user->last_login_at?->timezone(config('app.display_timezone'))->diffForHumans() ?? __('مدخلش لسه') }}
+                                    {{ $user->last_login_at?->timezone(config('app.display_timezone'))->diffForHumans() ?? __('لم يسجّل الدخول بعد') }}
                                 </td>
                                 <td>
                                     <div class="row">
@@ -68,16 +68,16 @@
                                             <x-badge variant="neutral" dot>{{ __('موقوف') }}</x-badge>
                                         @endif
                                         @if ($user->must_change_password)
-                                            <x-badge variant="medium">{{ __('لازم يغيّر كلمة السر') }}</x-badge>
+                                            <x-badge variant="medium">{{ __('يجب تغيير كلمة المرور') }}</x-badge>
                                         @endif
                                     </div>
                                 </td>
                                 <td class="table__cell--actions">
                                     @if ($user->deleted_at)
                                         <form method="POST" action="{{ route('admin.users.restore', $user->id) }}"
-                                              onsubmit="return confirm({{ Js::from(__('ترجّع «:name»؟ هيرجع موقوف لحد ما تفعّله.', ['name' => $user->name])) }})">
+                                              onsubmit="return confirm({{ Js::from(__('استعادة «:name»؟ سيبقى موقوفًا حتى تفعّله.', ['name' => $user->name])) }})">
                                             @csrf
-                                            <x-button variant="ghost" size="sm">{{ __('رجّعه') }}</x-button>
+                                            <x-button variant="ghost" size="sm">{{ __('استعادة') }}</x-button>
                                         </form>
                                     @else
                                         <div class="row">
@@ -101,16 +101,16 @@
                                                         @csrf
                                                         <x-button variant="ghost" size="sm" type="button"
                                                                   x-show="! armed" x-on:click="armed = true">
-                                                            {{ __('ادخل بعينه') }}
+                                                            {{ __('العمل نيابةً عنه') }}
                                                         </x-button>
 
                                                         <span class="confirm-inline" x-show="armed" x-cloak>
                                                             <span class="confirm-inline__ask">
-                                                                {{ __('هتشتغل باسمه وكل حاجة هتتسجل عليه. متأكد؟') }}
+                                                                {{ __('ستعمل باسمه وسيُسجَّل كل شيء عليه. هل أنت متأكد؟') }}
                                                             </span>
-                                                            <x-button variant="ghost" size="sm">{{ __('أيوه') }}</x-button>
+                                                            <x-button variant="ghost" size="sm">{{ __('نعم') }}</x-button>
                                                             <x-button variant="ghost" size="sm" type="button"
-                                                                      x-on:click="armed = false">{{ __('لأ') }}</x-button>
+                                                                      x-on:click="armed = false">{{ __('لا') }}</x-button>
                                                         </span>
                                                     </form>
                                                 @endif
@@ -118,7 +118,7 @@
                                             {{-- The name is in the prompt on purpose: a delete button in a
                                                  paginated table is the easiest thing in the app to misfire. --}}
                                             <form method="POST" action="{{ route('admin.users.destroy', $user) }}"
-                                                  onsubmit="return confirm({{ Js::from(__('متأكد إنك عايز تحذف «:name»؟ تاريخه على التذاكر والنقاط هيفضل زي ما هو، والحساب هيتقفل.', ['name' => $user->name])) }})">
+                                                  onsubmit="return confirm({{ Js::from(__('هل أنت متأكد من حذف «:name»؟ يبقى سجله في التذاكر والنقاط كما هو، ويُغلق الحساب.', ['name' => $user->name])) }})">
                                                 @csrf
                                                 @method('DELETE')
                                                 <x-button variant="ghost" size="sm">{{ __('حذف') }}</x-button>
@@ -130,7 +130,7 @@
                         @empty
                             <tr class="table__empty">
                                 <td colspan="6">
-                                    {{ array_filter($filters) ? __('مفيش نتايج للفلاتر دي.') : __('مفيش مستخدمين.') }}
+                                    {{ array_filter($filters) ? __('لا توجد نتائج لعوامل التصفية هذه.') : __('لا يوجد مستخدمون.') }}
                                 </td>
                             </tr>
                         @endforelse

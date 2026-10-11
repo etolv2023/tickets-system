@@ -41,8 +41,8 @@ class ChangeTicketStatusRequest extends FormRequest
     {
         return [
             'to_status' => __('الحالة الجديدة'),
-            'recipient_user_id' => __('الشخص من التيم'),
-            'recipient_contact_id' => __('الشخص من الشركة'),
+            'recipient_user_id' => __('عضو الفريق'),
+            'recipient_contact_id' => __('جهة الاتصال لدى العميل'),
             'note' => __('ملاحظة'),
         ];
     }
@@ -50,9 +50,9 @@ class ChangeTicketStatusRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'to_status.in' => __('مينفعش تنقل التذكرة للحالة دي.'),
-            'recipient_user_id.required_if' => __('لازم تختار الشخص من التيم.'),
-            'recipient_contact_id.required_if' => __('لازم تختار الشخص من الشركة.'),
+            'to_status.in' => __('لا يمكن نقل التذكرة إلى هذه الحالة.'),
+            'recipient_user_id.required_if' => __('اختر عضو الفريق.'),
+            'recipient_contact_id.required_if' => __('اختر جهة الاتصال لدى العميل.'),
         ];
     }
 }

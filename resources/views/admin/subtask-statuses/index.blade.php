@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
-@section('title', __('حالات الصب تاسك'))
+@section('title', __('حالات المهام الفرعية'))
 
 @section('content')
     <div class="page">
         <div class="page__head">
             <div>
-                <h1 class="page-title">{{ __('حالات الصب تاسك') }}</h1>
+                <h1 class="page-title">{{ __('حالات المهام الفرعية') }}</h1>
                 <p class="page-subtitle">
-                    {{ __('الحالات الأساسية (تحتها «أساسي») تقدر تغيّر اسمها ولونها بس مينفعش تتحذف — لأن «خلصت» و«جاري العمل» و«متوقفة» ليهم سلوك في النظام (النقاط، وقت البدء، السبب). اللي انت ضايفه حالة عادية تقدر تحذفها لو مفيش صب تاسكس واقفة عليها.') }}
+                    {{ __('الحالات الأساسية (المميزة بـ «أساسي») يمكن تغيير اسمها ولونها لكن لا يمكن حذفها، لأن لـ «مكتملة» و«قيد التنفيذ» و«متوقفة» سلوكًا في النظام (النقاط، ووقت البدء، والسبب). أما الحالات التي تضيفها فهي حالات عادية يمكن حذفها ما لم تكن هناك مهام فرعية عليها.') }}
                     <br>
-                    <strong>{{ __('يحتاج سبب:') }}</strong> {{ __('الحالة دي بتطلب سبب مكتوب (زي «متوقفة»)، وعشان كده مش بتظهر في التغيير السريع.') }}
+                    <strong>{{ __('يتطلب سببًا:') }}</strong> {{ __('تتطلب هذه الحالة سببًا مكتوبًا (مثل «متوقفة»)، لذلك لا تظهر في التغيير السريع.') }}
                 </p>
             </div>
         </div>
@@ -24,9 +24,9 @@
         <x-card :title="__('حالة جديدة')">
             <form method="POST" action="{{ route('admin.subtask-statuses.store') }}" class="form-grid">
                 @csrf
-                <x-field name="key" :label="__('المفتاح')" required :hint="__('إنجليزي، زي :example — ميتغيّرش بعد كده.', ['example' => 'review'])" />
+                <x-field name="key" :label="__('المفتاح')" required :hint="__('بالإنجليزية، مثل :example — لا يمكن تغييره لاحقًا.', ['example' => 'review'])" />
                 <x-field name="name_ar" :label="__('الاسم بالعربية')" required />
-                <x-field name="name_en" :label="__('الاسم بالإنجليزية')" dir="ltr" :hint="__('اختياري — لو فاضي بيظهر الاسم العربي.')" />
+                <x-field name="name_en" :label="__('الاسم بالإنجليزية')" dir="ltr" :hint="__('اختياري — إذا تُرك فارغًا يظهر الاسم العربي.')" />
                 <x-field name="color" :label="__('اللون')" required>
                     <select id="color" name="color" class="select" required>
                         @foreach ($colors as $value => $label)
@@ -37,12 +37,12 @@
                 <label class="checkbox-row">
                     <input type="checkbox" name="needs_reason" value="1" class="checkbox">
                     <span class="checkbox-row__label">
-                        {{ __('يحتاج سبب') }}
-                        <small>{{ __('الحالة دي بتطلب سبب مكتوب، ومش بتظهر في التغيير السريع من الكارت.') }}</small>
+                        {{ __('يتطلب سببًا') }}
+                        <small>{{ __('تتطلب هذه الحالة سببًا مكتوبًا، ولا تظهر في التغيير السريع من البطاقة.') }}</small>
                     </span>
                 </label>
                 <div class="form-actions">
-                    <x-button variant="primary">{{ __('أضف') }}</x-button>
+                    <x-button variant="primary">{{ __('إضافة') }}</x-button>
                 </div>
             </form>
         </x-card>
@@ -53,7 +53,7 @@
                     <thead>
                         <tr>
                             <th>{{ __('الحالة') }}</th>
-                            <th colspan="2">{{ __('الاسم / اللون / يحتاج سبب') }}</th>
+                            <th colspan="2">{{ __('الاسم / اللون / يتطلب سببًا') }}</th>
                             <th class="table__cell--actions"></th>
                         </tr>
                     </thead>
@@ -82,7 +82,7 @@
                                         <label class="checkbox-row">
                                             <input type="checkbox" name="needs_reason" value="1" class="checkbox"
                                                    @checked($s->needs_reason) @disabled($s->is_system)>
-                                            <span class="checkbox-row__label">{{ __('يحتاج سبب') }}</span>
+                                            <span class="checkbox-row__label">{{ __('يتطلب سببًا') }}</span>
                                         </label>
                                         <x-button variant="ghost" size="sm">{{ __('حفظ') }}</x-button>
                                     </form>
@@ -90,7 +90,7 @@
                                 <td class="table__cell--actions">
                                     @unless ($s->is_system)
                                         <form method="POST" action="{{ route('admin.subtask-statuses.destroy', $s) }}"
-                                              onsubmit="return confirm(@js(__('متأكد من حذف «:name»؟', ['name' => $s->label()])))">
+                                              onsubmit="return confirm(@js(__('هل أنت متأكد من حذف «:name»؟', ['name' => $s->label()])))">
                                             @csrf
                                             @method('DELETE')
                                             <x-button variant="ghost" size="sm">{{ __('حذف') }}</x-button>

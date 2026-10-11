@@ -6,7 +6,7 @@
         <x-combobox name="person" resource="users"
                     :value="$filters['person'] ?? null"
                     :selected="$selectedPerson"
-                    :placeholder="__('كل التيم')" />
+                    :placeholder="__('الفريق بالكامل')" />
     </div>
 
     <select name="relation" class="select filters__select" aria-label="{{ __('علاقته بالتذكرة') }}">
@@ -19,7 +19,7 @@
         <span class="filters__range-label">{{ __('من') }}</span>
         <input type="date" name="from" value="{{ $filters['from'] }}" aria-label="{{ __('من تاريخ') }}">
         <span class="filters__range-label">{{ __('إلى') }}</span>
-        <input type="date" name="to" value="{{ $filters['to'] }}" aria-label="{{ __('لتاريخ') }}">
+        <input type="date" name="to" value="{{ $filters['to'] }}" aria-label="{{ __('حتى تاريخ') }}">
     </div>
 
     <select name="type" class="select filters__select" aria-label="{{ __('النوع') }}">
@@ -30,7 +30,7 @@
     </select>
 
     <select name="priority" class="select filters__select" aria-label="{{ __('الأولوية') }}">
-        <option value="">{{ __('كل الأولويات') }}</option>
+        <option value="">{{ __('جميع الأولويات') }}</option>
         @foreach ($priorities as $value => $label)
             <option value="{{ $value }}" @selected(($filters['priority'] ?? '') === $value)>{{ __($label) }}</option>
         @endforeach
@@ -40,10 +40,10 @@
         <x-combobox name="company" resource="companies"
                     :value="$filters['company'] ?? null"
                     :selected="$selectedCompany"
-                    :placeholder="__('كل الشركات')" />
+                    :placeholder="__('جميع الشركات')" />
     </div>
 
-    <x-button variant="secondary" size="sm">{{ __('اعرض') }}</x-button>
+    <x-button variant="secondary" size="sm">{{ __('عرض') }}</x-button>
 
     @if (array_filter(array_diff_key($filters, ['from' => 1, 'to' => 1, 'relation' => 1])) || request()->hasAny(['from', 'to']))
         <x-button variant="ghost" size="sm" :href="route('reports.resolved-by-type')">{{ __('مسح') }}</x-button>

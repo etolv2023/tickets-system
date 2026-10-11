@@ -29,10 +29,10 @@ class ResolvedByTypeController extends Controller
 
     /** Shortcuts under the date range — the ranges a manager actually asks for. */
     public const QUICK_RANGES = [
-        'this_month' => 'الشهر ده',
-        'last_month' => 'الشهر اللي فات',
-        'quarter' => 'آخر ٣ شهور',
-        'year' => 'السنة دي',
+        'this_month' => 'هذا الشهر',
+        'last_month' => 'الشهر الماضي',
+        'quarter' => 'آخر 3 أشهر',
+        'year' => 'هذه السنة',
     ];
 
     public function __construct(private readonly ReportService $reports)

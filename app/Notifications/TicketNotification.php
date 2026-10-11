@@ -4,6 +4,8 @@ namespace App\Notifications;
 
 use App\Models\Setting;
 use App\Models\Ticket;
+use App\Support\Locale;
+use App\Support\Phrase;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -23,7 +25,7 @@ class TicketNotification extends Notification
     public function __construct(
         public readonly Ticket $ticket,
         public readonly NotificationEvent $event,
-        public readonly string $message,
+        public readonly string|Phrase $message,
         public readonly ?int $actorId = null,
         public readonly ?int $subtaskId = null,
     ) {
@@ -46,11 +48,15 @@ class TicketNotification extends Notification
     {
         return [
             'event' => $this->event->value,
-            'group' => $this->event->group(),
+            // Label and group are derived from `event` when shown, in the
+            // reader's language; these copies serve rows read by older code.
+            'group' => $this->event->groupKey(),
             'icon' => $this->event->icon(),
             'variant' => $this->event->variant(),
-            'label' => $this->event->label(),
-            'message' => $this->message,
+            'label' => Locale::as('ar', fn () => $this->event->label()),
+            'message' => $this->arabicText(),
+            'message_key' => $this->message instanceof Phrase ? $this->message->key : null,
+            'message_params' => $this->message instanceof Phrase ? $this->message->params : null,
             'ticket_id' => $this->ticket->id,
             'ticket_number' => $this->ticket->ticket_number,
             'ticket_title' => $this->ticket->title,
@@ -61,12 +67,20 @@ class TicketNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
+        // No per-person language: email goes out in the system's default one.
+        return Locale::as(config('app.locale'), fn () => $this->buildMail($notifiable));
+    }
+
+    private function buildMail(object $notifiable): MailMessage
+    {
+        $text = $this->message instanceof Phrase ? $this->message->render() : $this->message;
+
         $mail = (new MailMessage())
             ->subject("[{$this->ticket->ticket_number}] {$this->event->label()} — {$this->ticket->title}")
-            ->greeting("أهلاً {$notifiable->name}")
-            ->line($this->message)
-            ->action('افتح التذكرة', route('tickets.show', $this->ticket))
-            ->salutation('تحياتنا');
+            ->greeting(__('مرحبًا :name', ['name' => $notifiable->name]))
+            ->line($text)
+            ->action(__('افتح التذكرة'), route('tickets.show', $this->ticket))
+            ->salutation(__('مع التحية'));
 
         // The from address is a setting, not a config constant: whoever runs
         // this changes it without a deploy.
@@ -77,6 +91,12 @@ class TicketNotification extends Notification
         }
 
         return $mail;
+    }
+
+    /** The sentence saved with the row: what any reader without phrase support shows. */
+    private function arabicText(): string
+    {
+        return $this->message instanceof Phrase ? $this->message->render('ar') : $this->message;
     }
 
     private function shouldEmail(object $notifiable): bool

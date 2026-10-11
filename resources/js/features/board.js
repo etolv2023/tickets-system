@@ -70,7 +70,7 @@ async function move(event) {
         const payload = await response.json().catch(() => ({}));
 
         if (!response.ok || payload.ok === false) {
-            throw new Error(payload.message ?? t('النقلة اترفضت.'));
+            throw new Error(payload.message ?? t('تم رفض النقل.'));
         }
 
         // Accepted, but the ticket did not end up in this column — a side

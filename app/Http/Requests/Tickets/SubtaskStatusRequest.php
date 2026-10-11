@@ -72,7 +72,7 @@ class SubtaskStatusRequest extends FormRequest
 
                 $validator->errors()->add(
                     'status',
-                    __('حدّد صاحب الصب تاسك الأول — الشغل اللي مالوش صاحب مش بياخد نقط.')
+                    __('حدّد صاحب المهمة الفرعية أولًا — العمل الذي بلا صاحب لا يُحتسب له نقاط.')
                 );
             },
         ];

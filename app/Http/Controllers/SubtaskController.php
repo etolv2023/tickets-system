@@ -47,7 +47,7 @@ class SubtaskController extends Controller
             return back()->withErrors(['assignee_id' => $e->getMessage()])->withInput();
         }
 
-        return back()->with('status', __('تم إضافة الصب تاسك.'));
+        return back()->with('status', __('تمت إضافة المهمة الفرعية.'));
     }
 
     public function update(SubtaskRequest $request, Ticket $ticket, TicketSubtask $subtask): RedirectResponse
@@ -86,7 +86,7 @@ class SubtaskController extends Controller
             return back()->withErrors(['assignee_id' => $e->getMessage()])->withInput();
         }
 
-        return back()->with('status', __('تم حفظ الصب تاسك.'));
+        return back()->with('status', __('تم حفظ المهمة الفرعية.'));
     }
 
     public function destroy(Request $request, Ticket $ticket, TicketSubtask $subtask): RedirectResponse
@@ -96,7 +96,7 @@ class SubtaskController extends Controller
 
         $this->subtasks->delete($subtask);
 
-        return back()->with('status', __('تم حذف الصب تاسك.'));
+        return back()->with('status', __('تم حذف المهمة الفرعية.'));
     }
 
     /** Drag-and-drop reorder. F08 */

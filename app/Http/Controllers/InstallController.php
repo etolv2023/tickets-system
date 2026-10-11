@@ -95,7 +95,7 @@ class InstallController extends Controller
         try {
             $output = $this->installer->migrateAndSeed();
         } catch (Throwable $e) {
-            return back()->withErrors(['migrate' => __('فشل إنشاء الجداول: :error', ['error' => $e->getMessage()])]);
+            return back()->withErrors(['migrate' => __('تعذّر إنشاء الجداول: :error', ['error' => $e->getMessage()])]);
         }
 
         return redirect()->route('install.admin')->with('migrate_output', $output);
@@ -105,7 +105,7 @@ class InstallController extends Controller
     {
         if (! $this->tablesExist()) {
             return redirect()->route('install.migrate')
-                ->withErrors(['migrate' => __('لازم تنشئ الجداول الأول.')]);
+                ->withErrors(['migrate' => __('يجب إنشاء الجداول أولًا.')]);
         }
 
         return view('install.admin', [
@@ -120,7 +120,7 @@ class InstallController extends Controller
 
         if ($roleId === null) {
             return back()->withInput()
-                ->withErrors(['email' => __('دور مدير النظام مش موجود. شغّل خطوة إنشاء الجداول تاني.')]);
+                ->withErrors(['email' => __('دور مدير النظام غير موجود. أعد تشغيل خطوة إنشاء الجداول.')]);
         }
 
         $admin = $this->installer->createAdmin($request->validated(), $roleId);

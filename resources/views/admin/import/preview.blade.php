@@ -8,46 +8,46 @@
             <div>
                 <h1 class="page-title">{{ __('معاينة الاستيراد') }}</h1>
                 <p class="page-subtitle">
-                    {{ $batch->original_filename }} · {{ $batch->type->label() }} · {{ trans_choice(':count صف', $batch->total_rows) }}
+                    {{ $batch->original_filename }} · {{ $batch->type->label() }} · {{ trans_choice(':count صف|صف واحد|صفّان|:count صفوف|:count صفًا|:count صف', $batch->total_rows) }}
                 </p>
             </div>
         </div>
 
         {{-- Nothing has been written yet. This is what the confirm button will do. --}}
         <x-alert>
-            <strong>{{ __('لسه مفيش أي صف اتكتب.') }}</strong>
-            {{ __('الأرقام دي هي بالظبط الي هيحصل لو أكدت.') }}
+            <strong>{{ __('لم يُكتب أي صف بعد.') }}</strong>
+            {{ __('هذه الأرقام هي ما سيحدث بالضبط إذا أكدت.') }}
         </x-alert>
 
         <div class="import-summary">
             <div class="import-summary__item import-summary__item--create">
                 <div class="import-summary__value">{{ $counts['create'] }}</div>
-                <div class="import-summary__label">{{ __('هيتعمل جديد') }}</div>
+                <div class="import-summary__label">{{ __('سيُنشأ جديدًا') }}</div>
             </div>
             <div class="import-summary__item import-summary__item--update">
                 <div class="import-summary__value">{{ $counts['update'] }}</div>
-                <div class="import-summary__label">{{ __('هيتحدّث (موجود قبل كده)') }}</div>
+                <div class="import-summary__label">{{ __('سيُحدَّث (موجود مسبقًا)') }}</div>
             </div>
             <div class="import-summary__item import-summary__item--fail">
                 <div class="import-summary__value">{{ $counts['fail'] }}</div>
-                <div class="import-summary__label">{{ __('فيه خطأ — هيتخطى') }}</div>
+                <div class="import-summary__label">{{ __('به خطأ — سيتم تخطّيه') }}</div>
             </div>
         </div>
 
         @if ($counts['fail'] > 0)
             <x-alert variant="error">
-                {{ __('فيه :count صف فيهم أخطاء. الصفوف دي هتتخطى والباقي هيكمل عادي.', ['count' => $counts['fail']]) }}
+                {{ __('يوجد :count صف بها أخطاء. سيتم تخطّي هذه الصفوف وتكمل البقية بشكل طبيعي.', ['count' => $counts['fail']]) }}
             </x-alert>
         @endif
 
         @if ($counts['create'] === 0 && $counts['update'] === 0)
-            <x-alert variant="error">{{ __('مفيش أي صف صالح في الملف ده. صلّح الأخطاء وارفعه تاني.') }}</x-alert>
+            <x-alert variant="error">{{ __('لا يوجد أي صف صالح في هذا الملف. أصلح الأخطاء وارفعه مرة أخرى.') }}</x-alert>
         @endif
 
         <x-card :title="__('أول :count صف', ['count' => count($rows)])" flush>
             @if ($truncated)
                 <x-slot:actions>
-                    <span class="u-subtle">{{ __('الباقي هيتعالج بنفس القواعد') }}</span>
+                    <span class="u-subtle">{{ __('تُعالَج البقية بالقواعد نفسها') }}</span>
                 </x-slot:actions>
             @endif
 
@@ -56,7 +56,7 @@
                     <thead>
                         <tr>
                             <th>{{ __('الصف') }}</th>
-                            <th>{{ __('هيحصل إيه') }}</th>
+                            <th>{{ __('ما الذي سيحدث') }}</th>
                             @foreach ($batch->type->columns() as $column)
                                 <th class="u-mono u-ltr">{{ $column }}</th>
                             @endforeach
@@ -92,7 +92,7 @@
             <form method="POST" action="{{ route('admin.import.confirm', $batch) }}">
                 @csrf
                 <x-button variant="primary" :disabled="$counts['create'] === 0 && $counts['update'] === 0">
-                    {{ __('أكّد الاستيراد') }}
+                    {{ __('تأكيد الاستيراد') }}
                 </x-button>
             </form>
             <x-button variant="ghost" :href="route('admin.import.index')">{{ __('إلغاء') }}</x-button>

@@ -7,17 +7,17 @@
      have something to tell them. Rendered at all only when there is a contact
      with contact details: an empty card is worse than no card. --}}
 @if ($ticket->contact?->email || $ticket->contact?->phone)
-    <x-collapsible-card :title="__('التواصل مع المُبلغ')" name="reporter-contact">
+    <x-collapsible-card :title="__('التواصل مع المُبلِّغ')" name="reporter-contact">
         <div class="facts">
             @if ($ticket->contact?->email)
                 <div class="facts__row">
-                    <span class="facts__label">{{ __('إيميل') }}</span>
+                    <span class="facts__label">{{ __('البريد الإلكتروني') }}</span>
                     <span class="facts__value u-ltr">{{ $ticket->contact->email }}</span>
                 </div>
             @endif
             @if ($ticket->contact?->phone)
                 <div class="facts__row">
-                    <span class="facts__label">{{ __('تليفون') }}</span>
+                    <span class="facts__label">{{ __('الهاتف') }}</span>
                     <span class="facts__value u-mono u-ltr">{{ $ticket->contact->phone }}</span>
                 </div>
             @endif
@@ -33,20 +33,20 @@
              printed for hand-transcription: the password is random and the URL
              is long, and both get pasted into a chat window anyway. --}}
         <div class="stack stack--tight">
-            <x-copy-row :label="__('لينك البوابة')"
+            <x-copy-row :label="__('رابط البوابة')"
                         :value="route('portal.show', $ticket->ticket_number)" />
 
             @if (session('portalPassword'))
-                <x-copy-row :label="__('الباسورد الجديد')"
+                <x-copy-row :label="__('كلمة المرور الجديدة')"
                             :value="session('portalPassword')"
                             secret />
-                <p class="field__hint">{{ __('ابعته للعميل دلوقتي — مش هيتعرض تاني.') }}</p>
+                <p class="field__hint">{{ __('أرسلها إلى العميل الآن — لن تُعرض مرة أخرى.') }}</p>
             @endif
 
             <form method="POST" action="{{ route('tickets.portal.regenerate', $ticket) }}">
                 @csrf
                 <x-button variant="secondary" size="sm">
-                    {{ $ticket->portal_password_hash ? __('ولّد باسورد جديد') : __('ولّد باسورد') }}
+                    {{ $ticket->portal_password_hash ? __('توليد كلمة مرور جديدة') : __('توليد كلمة مرور') }}
                 </x-button>
             </form>
         </div>
@@ -58,7 +58,7 @@
      Between them they held seven rows, and four of those now live somewhere
      better: priority, the age and the SLA deadline went to the summary strip
      (they decide whether you open the ticket at all, so they cannot be behind
-     a fold), and "فتحها" was already printed in the "المشكلة" card's header —
+     a fold), and "أنشأها" was already printed in the "المشكلة" card's header —
      the same name, twice, on one screen.
 
      What was left was two cards of two or three rows each, which is what turns
@@ -70,7 +70,7 @@
             <span class="facts__value facts__value--num">
                 {{ $ticket->first_response_at
                     ? $ticket->first_response_at->timezone(config('app.display_timezone'))->diffForHumans($ticket->reported_at, short: true)
-                    : __('لسه') }}
+                    : __('لم يحدث بعد') }}
             </span>
         </div>
 
@@ -85,7 +85,7 @@
 
         @if ($ticket->resolved_at)
             <div class="facts__row">
-                <span class="facts__label">{{ __('اتحلت') }}</span>
+                <span class="facts__label">{{ __('تاريخ الحل') }}</span>
                 <span class="facts__value facts__value--num">
                     {{ $ticket->resolved_at->timezone(config('app.display_timezone'))->translatedFormat('j M Y') }}
                 </span>
@@ -102,7 +102,7 @@
         @empty
             <div class="facts__row">
                 <span class="facts__label">{{ __('التوزيع') }}</span>
-                <span class="facts__value">{{ __('لسه متوزعتش') }}</span>
+                <span class="facts__value">{{ __('لم تُسنَد بعد') }}</span>
             </div>
         @endforelse
     </div>

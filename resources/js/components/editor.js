@@ -532,10 +532,10 @@ export default function editor({ name, value = '', placeholder = '', simple = fa
             }
 
             this.notice = ! taken
-                ? t('الصور بتتضاف من المرفقات — مفيش مرفقات في الصفحة دي.')
+                ? t('تُضاف الصور من خلال المرفقات — لا توجد مرفقات في هذه الصفحة.')
                 : accepted.length
-                    ? (accepted.length > 1 ? t(':count صور اتحطوا هنا وكمان في المرفقات.', { count: accepted.length }) : t('الصورة اتحطت هنا وكمان في المرفقات.'))
-                    : t('الصورة مادخلتش — شوف رسالة المرفقات تحت.');
+                    ? (accepted.length > 1 ? t('أُدرجت :count صور هنا وأُضيفت إلى المرفقات.', { count: accepted.length }) : t('أُدرجت الصورة هنا وأُضيفت إلى المرفقات.'))
+                    : t('لم تُدرج الصورة — راجع رسالة المرفقات أدناه.');
 
             clearTimeout(noticeTimer);
             noticeTimer = setTimeout(() => { this.notice = ''; }, 5000);

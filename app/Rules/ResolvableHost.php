@@ -47,7 +47,7 @@ class ResolvableHost implements ValidationRule
             return;
         }
 
-        $fail(__('الدومين ده مش موجود — راجع اللينك.'));
+        $fail(__('هذا النطاق غير موجود — راجع الرابط.'));
     }
 
     private function isInternal(string $host): bool

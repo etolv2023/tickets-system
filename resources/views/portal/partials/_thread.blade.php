@@ -58,9 +58,9 @@
         {{-- "مفيش رسائل لسه" on its own reads as a dead end. It is not one —
              the team has the ticket, and the box below is how you reach them. --}}
         <div class="blank">
-            <h2 class="blank__title">{{ __('لسه مفيش رسائل') }}</h2>
+            <h2 class="blank__title">{{ __('لا توجد رسائل بعد') }}</h2>
             <p class="blank__body">
-                {{ __('التذكرة وصلت لفريق الدعم وهم شايفينها. أول ما يبقى في رد هيظهر هنا، وتقدر تكتب أي تفاصيل زيادة في الخانة اللي تحت.') }}
+                {{ __('وصلت التذكرة إلى فريق الدعم وهو يتابعها. ستظهر الردود هنا فور وصولها، ويمكنك كتابة أي تفاصيل إضافية في الخانة أدناه.') }}
             </p>
         </div>
     @endforelse

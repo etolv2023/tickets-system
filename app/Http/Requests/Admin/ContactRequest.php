@@ -43,7 +43,7 @@ class ContactRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'erp_employee_id.unique' => __('رقم الموظف ده مستخدم قبل كده في نفس الشركة.'),
+            'erp_employee_id.unique' => __('رقم الموظف هذا مستخدم بالفعل في الشركة نفسها.'),
         ];
     }
 
@@ -51,9 +51,9 @@ class ContactRequest extends FormRequest
     {
         return [
             'name' => __('اسم جهة الاتصال'),
-            'erp_employee_id' => __('رقم الموظف في الـ ERP'),
-            'email' => __('الإيميل'),
-            'phone' => __('التليفون'),
+            'erp_employee_id' => __('رقم الموظف في نظام ERP'),
+            'email' => __('البريد الإلكتروني'),
+            'phone' => __('الهاتف'),
         ];
     }
 }

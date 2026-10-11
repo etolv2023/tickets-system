@@ -2,7 +2,7 @@
 @section('title', __('مقارنة أداء الموظفين'))
 @section('content')
 <div class="page page--wide reports-page">
-    <div class="page__head"><div><h1 class="page-title">{{ __('مقارنة أداء الموظفين') }}</h1><p class="page-subtitle">{{ __('التذكرة المسندة لأكتر من موظف بتتحسب لكل واحد فيهم.') }}</p></div><x-export-button route="export.comparison" /></div>
+    <div class="page__head"><div><h1 class="page-title">{{ __('مقارنة أداء الموظفين') }}</h1><p class="page-subtitle">{{ __('التذكرة المُسندة لأكثر من موظف تُحتسب لكل واحد منهم.') }}</p></div><x-export-button route="export.comparison" /></div>
     @include('reports.partials._management-filters')
     <x-card :title="__('المقارنة')" flush><div class="table-wrap"><table class="table table--hover reports-table">
         <thead><tr><th>{{ __('الموظف') }}</th><th>{{ __('المسند') }}</th><th>{{ __('المحلول') }}</th><th>{{ __('المفتوح') }}</th><th>{{ __('المتأخر') }}</th><th>{{ __('الالتزام') }}</th><th>{{ __('متوسط الحل') }}</th></tr></thead>
@@ -13,7 +13,7 @@
             <td class="u-nums">@if ((empty($filters['assignee']) || (int) $filters['assignee'] === $row->user_id) && (empty($filters['relation']) || $filters['relation'] === 'assigned'))<a href="{{ route('tickets.index', array_merge($drilldown, ['assignee' => $row->user_id, 'relation' => 'assigned', 'statuses' => $openStatusKeys])) }}">{{ $row->currently_open }}</a>@else{{ $row->currently_open }}@endif</td>
             <td class="u-nums">@if ((empty($filters['assignee']) || (int) $filters['assignee'] === $row->user_id) && (empty($filters['relation']) || $filters['relation'] === 'assigned') && (empty($filters['deadline']) || $filters['deadline'] === 'overdue'))<a href="{{ route('tickets.index', array_merge($drilldown, ['assignee' => $row->user_id, 'relation' => 'assigned', 'deadline' => 'overdue'])) }}">{{ $row->currently_overdue }}</a>@else{{ $row->currently_overdue }}@endif</td>
             <td class="u-nums">{{ $row->on_time_percentage ?? 0 }}%</td><td class="u-nums">{{ number_format($row->avg_resolution_hours ?? 0, 1) }} {{ __('س') }}</td>
-        </tr>@empty<tr class="table__empty"><td colspan="7">{{ __('مفيش بيانات بالفلاتر دي.') }}</td></tr>@endforelse</tbody>
+        </tr>@empty<tr class="table__empty"><td colspan="7">{{ __('لا توجد بيانات مطابقة لعوامل التصفية.') }}</td></tr>@endforelse</tbody>
     </table></div></x-card>
 </div>
 @endsection

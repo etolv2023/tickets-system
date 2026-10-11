@@ -13,7 +13,7 @@
         <x-button variant="ghost" size="sm" :href="route($routeName, $keep(['date' => $step['prev']->toDateString()]))" :aria-label="__('الفترة السابقة')">
             <x-icon name="chevron-right" />
         </x-button>
-        <x-button variant="secondary" size="sm" :href="route($routeName, $keep([]))">{{ __('النهاردة') }}</x-button>
+        <x-button variant="secondary" size="sm" :href="route($routeName, $keep([]))">{{ __('اليوم') }}</x-button>
         <x-button variant="ghost" size="sm" :href="route($routeName, $keep(['date' => $step['next']->toDateString()]))" :aria-label="__('الفترة التالية')">
             <x-icon name="chevron-left" />
         </x-button>

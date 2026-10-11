@@ -12,6 +12,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Support\Phrase;
 
 class TimeEntryController extends Controller
 {
@@ -29,7 +30,7 @@ class TimeEntryController extends Controller
         $this->notifications->dispatch(
             $ticket,
             NotificationEvent::TimeLogged,
-            "{$request->user()->name} سجّل {$entry->hours} ساعة على {$ticket->ticket_number}",
+            new Phrase(':name سجّل :hours ساعة في :number', ['name' => $request->user()->name, 'hours' => $entry->hours, 'number' => $ticket->ticket_number]),
             $request->user()->id,
         );
 
@@ -39,7 +40,7 @@ class TimeEntryController extends Controller
     public function destroy(Request $request, TimeEntry $entry): RedirectResponse
     {
         // Your own entries only. Someone else's hours aren't yours to erase.
-        abort_unless($entry->user_id === $request->user()->id, 403, __('ده مش وقتك انت.'));
+        abort_unless($entry->user_id === $request->user()->id, 403, __('هذا ليس وقتك.'));
 
         $this->time->delete($entry);
 

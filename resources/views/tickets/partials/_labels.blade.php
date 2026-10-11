@@ -1,4 +1,4 @@
-<x-collapsible-card :title="__('اللابلز والمتابعة')">
+<x-collapsible-card :title="__('الوسوم والمتابعة')">
     <div class="stack stack--tight">
         @if ($ticket->labels->isNotEmpty())
             <div class="row row--wrap">
@@ -16,7 +16,7 @@
                     @method('PUT')
 
                     <x-button variant="ghost" size="sm" type="button" @click="open = !open">
-                        {{ __('عدّل اللابلز') }}
+                        {{ __('تعديل الوسوم') }}
                     </x-button>
 
                     <div x-show="open" x-cloak class="stack stack--tight">
@@ -30,7 +30,7 @@
                             </label>
                         @endforeach
 
-                        <x-button variant="primary" size="sm" block>{{ __('احفظ') }}</x-button>
+                        <x-button variant="primary" size="sm" block>{{ __('حفظ') }}</x-button>
                     </div>
                 </form>
             @endif
@@ -43,12 +43,12 @@
         <form method="POST" action="{{ route('tickets.watch', $ticket) }}">
             @csrf
             <x-button :variant="$isWatching ? 'secondary' : 'ghost'" size="sm" block>
-                {{ $isWatching ? __('بطّل المتابعة') : __('تابع التذكرة') }}
+                {{ $isWatching ? __('إلغاء المتابعة') : __('تابع التذكرة') }}
             </x-button>
         </form>
 
         <p class="field__hint">
-            {{ __(':count متابع صريح. المسؤولين والتيستر والي فتحها بياخدوا إشعارات أوتوماتيك.', ['count' => $ticket->watchers->count()]) }}
+            {{ __(':count متابع صريح. يتلقى المسؤولون والمختبِر ومنشئ التذكرة الإشعارات تلقائيًا.', ['count' => $ticket->watchers->count()]) }}
         </p>
     </div>
 </x-collapsible-card>

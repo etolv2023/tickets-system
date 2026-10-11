@@ -31,7 +31,7 @@ class PointsExport implements FromArray, WithHeadings, WithTitle, ShouldAutoSize
 
     public function headings(): array
     {
-        return ['#', 'الموظف', 'الدور', 'النقاط', 'عدد المرات', 'الشهر'];
+        return ['#', __('الموظف'), __('الدور'), __('النقاط'), __('عدد المرات'), __('الشهر')];
     }
 
     public function array(): array
@@ -50,6 +50,6 @@ class PointsExport implements FromArray, WithHeadings, WithTitle, ShouldAutoSize
 
     public function title(): string
     {
-        return 'النقاط ' . $this->period;
+        return __('النقاط ') . $this->period;
     }
 }

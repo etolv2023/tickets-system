@@ -5,13 +5,13 @@
      the controller, because a naming convention is a business rule and Blade
      does not hold those (CLAUDE.md § 3). --}}
 
-<x-card :title="__('البرانشات')">
+<x-card :title="__('الفروع')">
     <div class="stack stack--tight">
         @if ($ticket->branches->isEmpty())
             <div class="gh-empty">
-                <p class="gh-empty__title">{{ __('التذكرة دي ملهاش برانش لسه.') }}</p>
+                <p class="gh-empty__title">{{ __('لا يوجد فرع لهذه التذكرة بعد.') }}</p>
                 <p class="field__hint">
-                    {{ __('البرانش لازم يبدأ برقم التذكرة عشان النظام يلاقيه لوحده.') }}
+                    {{ __('يجب أن يبدأ اسم الفرع برقم التذكرة ليعثر عليه النظام تلقائيًا.') }}
                 </p>
 
                 <x-copy-row :label="__('الاسم المقترح')" :value="$suggestedBranch" />
@@ -40,7 +40,7 @@
                                 {{-- Worth showing: this row is somebody's
                                      assertion, checked against GitHub, rather
                                      than something the sync found on its own. --}}
-                                <x-badge variant="slate">{{ __('اترّبط بإيد') }}</x-badge>
+                                <x-badge variant="slate">{{ __('رُبط يدويًا') }}</x-badge>
                             @endif
                         </div>
 
@@ -51,7 +51,7 @@
 
                             @if ($branch->last_commit_at)
                                 <span class="u-mono">
-                                    {{ __('آخر كوميت') }}
+                                    {{ __('آخر إيداع') }}
                                     {{ $branch->last_commit_at->timezone(config('app.display_timezone'))->translatedFormat('j M — H:i') }}
                                 </span>
                             @endif
@@ -61,7 +61,7 @@
                             @endif
                         </div>
 
-                        <x-copy-row :label="__('شغّله عندك')" :value="$branch->checkoutCommand()" />
+                        <x-copy-row :label="__('شغّله على جهازك')" :value="$branch->checkoutCommand()" />
                     </div>
                 @endforeach
             </div>
@@ -92,7 +92,7 @@
         @endif
 
         @if (! config('github.enabled'))
-            <p class="field__hint">{{ __('تكامل جيت هب مقفول، فمفيش حاجة بتتقرا دلوقتي.') }}</p>
+            <p class="field__hint">{{ __('تكامل GitHub معطّل، لذا لا تتم قراءة أي بيانات حاليًا.') }}</p>
         @endif
 
         @if ($githubRepositories !== [])

@@ -22,7 +22,7 @@
             </div>
         </div>
 
-        <section class="cal-controls" aria-label="{{ __('أدوات الكاليندر') }}">
+        <section class="cal-controls" aria-label="{{ __('أدوات التقويم') }}">
             @include('calendar.partials._toolbar')
             @include('calendar.partials._filters')
         </section>

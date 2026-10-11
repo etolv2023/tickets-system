@@ -40,7 +40,7 @@ const keyFor = (path) => `${PREFIX}${scope()}:${path}`;
 const normalise = (params) => {
     IGNORED.forEach((name) => params.delete(name));
 
-    // An empty select is "كل الحالات", i.e. no filter — storing it would make
+    // An empty select is "جميع الحالات", i.e. no filter — storing it would make
     // every saved state look filtered and turn on the "3 فلاتر شغّالة" counter.
     for (const [name, value] of [...params.entries()]) {
         if (value === '' || DEFAULTS[name] === value) {

@@ -47,11 +47,11 @@ class PointTransaction extends Model
         // The ledger is append-only. Anything that tries to rewrite history is a
         // bug, and it should fail loudly rather than quietly succeed.
         static::updating(fn () => throw new \RuntimeException(
-            __('دفتر النقاط مش بيتعدّل. التصحيح بيتعمل بسطر جديد بنقاط سالبة.')
+            __('لا يمكن تعديل دفتر النقاط. يتم التصحيح بسطر جديد بنقاط سالبة.')
         ));
 
         static::deleting(fn () => throw new \RuntimeException(
-            __('دفتر النقاط مش بيتحذف. التصحيح بيتعمل بسطر جديد بنقاط سالبة.')
+            __('لا يمكن الحذف من دفتر النقاط. يتم التصحيح بسطر جديد بنقاط سالبة.')
         ));
     }
 
@@ -197,7 +197,7 @@ class PointTransaction extends Model
         return match ($this->type) {
             'correction' => __('تصحيح يدوي'),
             'penalty' => __('خصم تأخير'),
-            default => __('صرف تلقائي'),
+            default => __('احتساب تلقائي'),
         };
     }
 

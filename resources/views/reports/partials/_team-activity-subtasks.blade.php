@@ -1,7 +1,7 @@
 {{-- The subtasks half of /reports/team-activity. Split out when the tickets
      table grew its deadline column (CLAUDE.md § 3: 150 lines). --}}
 @if ($subtasks !== null)
-    <x-card :title="__('الصب تاسكس')" flush>
+    <x-card :title="__('المهام الفرعية')" flush>
         <x-slot:actions>
             <span class="u-subtle">{{ $subtasks->total() }}</span>
         </x-slot:actions>
@@ -10,13 +10,13 @@
             <table class="table table--hover">
                 <thead>
                     <tr>
-                        <th>{{ __('الصب تاسك') }}</th>
+                        <th>{{ __('المهمة الفرعية') }}</th>
                         <th>{{ __('التذكرة') }}</th>
                         <th>{{ __('الدور') }}</th>
                         <th>{{ __('الحالة') }}</th>
                         <th>{{ __('المسؤول') }}</th>
                         <th>{{ __('الاستحقاق') }}</th>
-                        <th>{{ __('مقدّر/فعلي') }}</th>
+                        <th>{{ __('المقدَّر/الفعلي') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -38,7 +38,7 @@
                                         {{ $subtask->assignee->name }}
                                     </div>
                                 @else
-                                    <span class="u-subtle">{{ __('مش مسندة') }}</span>
+                                    <span class="u-subtle">{{ __('غير مُسندة') }}</span>
                                 @endif
                             </td>
                             <td @class(['u-nums', 'tickets__age--overdue' => $subtask->isOverdue()])>
@@ -57,7 +57,7 @@
                         </tr>
                     @empty
                         <tr class="table__empty">
-                            <td colspan="7">{{ __('مفيش صب تاسكس بالفلاتر دي.') }}</td>
+                            <td colspan="7">{{ __('لا توجد مهام فرعية مطابقة لعوامل التصفية.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>

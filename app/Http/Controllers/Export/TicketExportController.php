@@ -65,7 +65,7 @@ class TicketExportController extends Controller
 
         // The same floor the screen enforces: MySQL's fulltext index ignores
         // tokens under three characters, so a shorter term has no answer.
-        abort_if(mb_strlen($term) < 3, 422, __('اكتب 3 حروف على الأقل.'));
+        abort_if(mb_strlen($term) < 3, 422, __('اكتب 3 أحرف على الأقل.'));
 
         $this->logExport($request, 'export.search', ['q' => $term]);
 

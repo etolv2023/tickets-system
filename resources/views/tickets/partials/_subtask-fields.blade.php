@@ -23,7 +23,7 @@
         @if ($mayReassign)
             <x-field name="assignee_id" :label="__('المسؤول')" :id="$prefix . 'assignee'">
                 <select id="{{ $prefix }}assignee" name="assignee_id" class="select">
-                    <option value="">{{ __('— مش مسندة —') }}</option>
+                    <option value="">{{ __('— غير مُسندة —') }}</option>
                     @foreach ($assignableAll as $person)
                         <option value="{{ $person->id }}" @selected((int) old('assignee_id', $subtask?->assignee_id) === $person->id)>
                             {{ $person->name }}
@@ -36,9 +36,9 @@
                  editing, and a field that vanishes reads as a bug. Locked, with
                  the reason, is the honest version. --}}
             <x-field name="assignee_locked" :label="__('المسؤول')" :id="$prefix . 'assignee-locked'"
-                     :hint="__('نقل الصب تاسك لشخص تاني محتاج صلاحية.')">
+                     :hint="__('نقل المهمة الفرعية إلى شخص آخر يتطلب صلاحية.')">
                 <input id="{{ $prefix }}assignee-locked" class="input input--locked" type="text" readonly
-                       value="{{ $subtask->assignee?->name ?? __('مش مسندة') }}">
+                       value="{{ $subtask->assignee?->name ?? __('غير مُسندة') }}">
             </x-field>
         @endif
 
@@ -63,7 +63,7 @@
             <x-field name="points" :label="__('النقاط')" type="number"
                      :value="$subtask?->points" step="0.5" min="0" max="999"
                      :id="$prefix . 'points'"
-                     hint="{{ $subtask ? '' : __('سيبها فاضية لتاخد النقطة الواحدة الافتراضية.') }}" />
+                     hint="{{ $subtask ? '' : __('اتركها فارغة لتأخذ النقطة الافتراضية الواحدة.') }}" />
         @else
             {{-- النقاط ليها صلاحية مستقلة (points.rules.manage) — هو الوحيد اللي
                  يقدر يعدّلها، قراءة بس هنا، نفس نمط input--locked المستخدم
@@ -84,7 +84,7 @@
         @can('schedule', \App\Models\TicketSubtask::class)
             <x-field name="due_date" :label="__('تاريخ الاستحقاق')" type="date"
                      :value="$subtask?->due_date?->toDateString()" :id="$prefix . 'due'"
-                     :hint="__('لو حطيت تاريخ وخلصت بعده، النقط بتتحسب بالسالب. سيبه فاضي لو مفيش ديدلاين.')" />
+                     :hint="__('إذا حددت تاريخًا وأنهيت العمل بعده، تُحتسب النقاط بالسالب. اتركه فارغًا إذا لم يكن هناك موعد نهائي.')" />
         @else
             {{-- التاريخ ليه صلاحية مستقلة (subtasks.schedule) من يوم ما بقى
                  بيحدد النقط موجبة ولا سالبة — اللي شغال على التاسك مينفعش
@@ -92,15 +92,15 @@
             <div class="field">
                 <label class="field__label" for="{{ $prefix }}due">{{ __('تاريخ الاستحقاق') }}</label>
                 <input type="text" id="{{ $prefix }}due" class="input input--locked" disabled
-                       value="{{ $subtask?->due_date?->translatedFormat('j M Y') ?? __('مفيش تاريخ') }}">
-                <p class="field__hint">{{ __('التاريخ بيتحدد من مدير التيم — وهو اللي بيتحاسب عليه النقط.') }}</p>
+                       value="{{ $subtask?->due_date?->translatedFormat('j M Y') ?? __('لا يوجد تاريخ') }}">
+                <p class="field__hint">{{ __('يحدد مدير الفريق التاريخ — وعليه تُحتسب النقاط.') }}</p>
             </div>
         @endcan
     </div>
 
     <div x-show="reasonStatuses.includes(status)" x-cloak>
         <x-field name="blocked_reason" :label="__('سبب التوقف')" :value="$subtask?->blocked_reason"
-                 :id="$prefix . 'reason'" :hint="__('إجباري لما الحالة تكون متوقفة.')" />
+                 :id="$prefix . 'reason'" :hint="__('إلزامي عندما تكون الحالة «متوقفة».')" />
     </div>
 
     <x-field name="description" :label="__('وصف مختصر')" :id="$prefix . 'desc'">

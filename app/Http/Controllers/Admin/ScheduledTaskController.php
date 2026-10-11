@@ -76,8 +76,8 @@ class ScheduledTaskController extends Controller
         );
 
         return back()->with('status', $scheduledTask->is_enabled
-            ? __('اتحفظ. المهمة هتشتغل :when.', ['when' => CronPreset::describe($scheduledTask->cron)])
-            : __('اتحفظ. المهمة مقفولة دلوقتي ومش هتشتغل لوحدها.'));
+            ? __('تم الحفظ. ستعمل المهمة :when.', ['when' => CronPreset::describe($scheduledTask->cron)])
+            : __('تم الحفظ. المهمة معطّلة الآن ولن تعمل تلقائيًا.'));
     }
 
     /**
@@ -90,7 +90,7 @@ class ScheduledTaskController extends Controller
     public function run(Request $request, ScheduledTask $scheduledTask, ActivityLogger $logger): RedirectResponse
     {
         if (! ScheduledTaskRegistry::has($scheduledTask->key)) {
-            return back()->withErrors(['run' => __('المهمة دي مش موجودة في الكود، فمش هتشتغل.')]);
+            return back()->withErrors(['run' => __('هذه المهمة غير موجودة في الكود، لذا لن تعمل.')]);
         }
 
         RunScheduledTask::dispatch($scheduledTask->key);
@@ -104,6 +104,6 @@ class ScheduledTaskController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', __('«:name» اتحطت في الطابور. حدّث الصفحة بعد شوية عشان تشوف النتيجة.', ['name' => $scheduledTask->name()]));
+        return back()->with('status', __('أُضيفت «:name» إلى قائمة الانتظار. حدّث الصفحة بعد قليل لرؤية النتيجة.', ['name' => $scheduledTask->name()]));
     }
 }

@@ -8,7 +8,7 @@
             <div>
                 <h1 class="page-title">{{ __('جهات الاتصال') }}</h1>
                 <p class="page-subtitle">
-                    {{ __('كل جهات الاتصال في كل الشركات — :count جهة. ابحث بالاسم أو رقم الموظف أو الإيميل أو التليفون من غير ما تعرف الشركة.', ['count' => $contacts->total()]) }}
+                    {{ __('جميع جهات الاتصال في جميع الشركات — :count جهة. ابحث بالاسم أو رقم الموظف أو البريد الإلكتروني أو الهاتف دون الحاجة لمعرفة الشركة.', ['count' => $contacts->total()]) }}
                 </p>
             </div>
             <div class="page__actions">
@@ -26,7 +26,7 @@
                 type="search"
                 name="q"
                 value="{{ $filters['q'] ?? '' }}"
-                placeholder="{{ __('ابحث بالاسم أو رقم الموظف أو الإيميل أو التليفون') }}"
+                placeholder="{{ __('ابحث بالاسم أو رقم الموظف أو البريد الإلكتروني أو الهاتف') }}"
                 class="input filters__search"
                 autofocus
             >
@@ -35,16 +35,16 @@
                 <x-combobox name="company" resource="companies"
                             :value="$filters['company'] ?? null"
                             :selected="$selectedCompany ?? null"
-                            :placeholder="__('كل الشركات')" />
+                            :placeholder="__('جميع الشركات')" />
             </div>
 
             <select name="status" class="select filters__select">
-                <option value="">{{ __('كل الحالات') }}</option>
+                <option value="">{{ __('جميع الحالات') }}</option>
                 <option value="active" @selected(($filters['status'] ?? '') === 'active')>{{ __('مفعّلة') }}</option>
                 <option value="inactive" @selected(($filters['status'] ?? '') === 'inactive')>{{ __('موقوفة') }}</option>
             </select>
 
-            <x-button variant="secondary">{{ __('فلترة') }}</x-button>
+            <x-button variant="secondary">{{ __('تصفية') }}</x-button>
 
             @if (array_filter($filters))
                 <x-button variant="ghost" :href="route('admin.contacts.index')">{{ __('مسح') }}</x-button>
@@ -59,8 +59,8 @@
                             <th>{{ __('الاسم') }}</th>
                             <th>{{ __('الشركة') }}</th>
                             <th>{{ __('رقم الموظف (ERP)') }}</th>
-                            <th>{{ __('الإيميل') }}</th>
-                            <th>{{ __('التليفون') }}</th>
+                            <th>{{ __('البريد الإلكتروني') }}</th>
+                            <th>{{ __('الهاتف') }}</th>
                             <th>{{ __('الحالة') }}</th>
                             <th class="table__cell--actions">{{ __('إجراءات') }}</th>
                         </tr>
@@ -94,7 +94,7 @@
                         @empty
                             <tr class="table__empty">
                                 <td colspan="7">
-                                    {{ array_filter($filters) ? __('مفيش نتايج للفلاتر دي.') : __('مفيش جهات اتصال لسه.') }}
+                                    {{ array_filter($filters) ? __('لا توجد نتائج لعوامل التصفية هذه.') : __('لا توجد جهات اتصال بعد.') }}
                                 </td>
                             </tr>
                         @endforelse

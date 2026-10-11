@@ -10,7 +10,7 @@
                     <x-icon name="trophy" class="u-icon-accent" />
                     {{ __('لوحة الصدارة') }}
                 </h1>
-                <p class="page-subtitle">{{ __('النقاط المصروفة في الشهر المختار.') }}</p>
+                <p class="page-subtitle">{{ __('النقاط المحتسبة في الشهر المحدد.') }}</p>
             </div>
             <div class="page__actions">
                 <x-export-button route="export.points" :params="['period' => $period]" />
@@ -25,11 +25,11 @@
                 </div>
                 <div class="stat-tile stat-tile--slate">
                     <div class="stat-tile__figure">{{ $rows->count() }}</div>
-                    <div class="stat-tile__caption">{{ __('موظف كسب نقط') }}</div>
+                    <div class="stat-tile__caption">{{ __('موظفون حصلوا على نقاط') }}</div>
                 </div>
                 <div class="stat-tile stat-tile--amber">
                     <div class="stat-tile__figure">{{ $rows->sum('awards') }}</div>
-                    <div class="stat-tile__caption">{{ __('مرة اتصرفت فيها نقط') }}</div>
+                    <div class="stat-tile__caption">{{ __('مرات احتساب النقاط') }}</div>
                 </div>
             </div>
         @endif
@@ -45,17 +45,17 @@
                 <x-combobox name="person" resource="users"
                             :value="$filters['person'] ?? null"
                             :selected="$selectedPerson"
-                            :placeholder="__('كل الموظفين')" />
+                            :placeholder="__('جميع الموظفين')" />
             </div>
 
             <div class="filters__combobox">
                 <x-combobox name="assignee" resource="users"
                             :value="$filters['assignee'] ?? null"
                             :selected="$selectedAssignee"
-                            :placeholder="__('كل المسؤولين')" />
+                            :placeholder="__('جميع المسؤولين')" />
             </div>
 
-            <x-button variant="secondary" size="sm">{{ __('فلترة') }}</x-button>
+            <x-button variant="secondary" size="sm">{{ __('تصفية') }}</x-button>
 
             @if (array_filter($filters))
                 <a class="btn btn--ghost btn--sm" href="{{ route('reports.leaderboard', ['period' => $period]) }}">{{ __('مسح') }}</a>
@@ -83,7 +83,7 @@
                         <x-avatar :user="$row->user" :size="$i === 0 ? 'lg' : null" />
                         <span class="podium__name">{{ $row->user?->name ?? '—' }}</span>
                         <span class="podium__points">{{ $points($row->total) }}</span>
-                        <span class="podium__meta">{{ trans_choice(':count مرة', $row->awards) }}</span>
+                        <span class="podium__meta">{{ trans_choice(':count مرة|مرة واحدة|مرتان|:count مرات|:count مرة|:count مرة', $row->awards) }}</span>
                     </div>
                 @endforeach
             </div>
@@ -104,14 +104,14 @@
                                 {{ $row->user?->name ?? '—' }}
                             @endcan
                         </div>
-                        <span class="points-row__count">{{ trans_choice(':count مرة', $row->awards) }}</span>
+                        <span class="points-row__count">{{ trans_choice(':count مرة|مرة واحدة|مرتان|:count مرات|:count مرة|:count مرة', $row->awards) }}</span>
                         <span class="points-row__points">{{ $points($row->total) }}</span>
                     </div>
                 @empty
                     @if ($podium->isEmpty())
-                        <p class="card__empty">{{ __('مفيش نقاط اتصرفت في الشهر ده.') }}</p>
+                        <p class="card__empty">{{ __('لم تُحتسب نقاط هذا الشهر.') }}</p>
                     @else
-                        <p class="card__empty">{{ __('مفيش حد تاني في الترتيب الشهر ده.') }}</p>
+                        <p class="card__empty">{{ __('لا يوجد آخرون في الترتيب هذا الشهر.') }}</p>
                     @endif
                 @endforelse
             </div>

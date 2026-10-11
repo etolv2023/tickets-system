@@ -9,7 +9,7 @@
 
         {{-- ★ (2026-08-29) F27. In the normal list this warning is reserved
              for finished tickets, because an open ticket with no branch yet
-             is ordinary. In the explicit "من غير برانش" view every result
+             is ordinary. In the explicit "دون فرع" view every result
              must carry the marker; otherwise identical zero-count rows look
              as if the filter disagrees with itself. --}}
         @can('github.view')
@@ -17,7 +17,7 @@
                 ($filters['branch'] ?? null) === 'none'
                 || in_array($ticket->status->value, \App\Models\TicketStatusDefinition::resolvedKeys(), true)
             ))
-                <x-badge variant="amber" class="badge--sm">{{ __('ملهاش برانش') }}</x-badge>
+                <x-badge variant="amber" class="badge--sm">{{ __('بلا فرع') }}</x-badge>
             @endif
         @endcan
         </div>
@@ -50,7 +50,7 @@
                          every other row is noise that teaches you to stop
                          reading the column. --}}
                     <span class="tickets__subtasks"
-                          title="{{ __('الصب تاسكس المكتملة من الإجمالي') }}">
+                          title="{{ __('المهام الفرعية المكتملة من الإجمالي') }}">
                         <x-icon name="list-checks" size="0.9em" />
                         {{ $ticket->subtasks_done }}/{{ $ticket->subtasks_total }}
                     </span>
@@ -81,7 +81,7 @@
                     <x-avatar :user="$assignment->user" size="sm" />
                 @endif
             @empty
-                <span class="u-subtle">{{ __('مش موزعة') }}</span>
+                <span class="u-subtle">{{ __('غير مُسندة') }}</span>
             @endforelse
         </div>
     </td>

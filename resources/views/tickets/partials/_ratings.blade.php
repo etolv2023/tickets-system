@@ -39,7 +39,7 @@
     <x-collapsible-card :title="__('التقييمات')" name="ratings" :open="true">
         <div class="stack stack--tight">
             @can('ratings.give')
-                <p class="field__hint">{{ __('اختياري — مش بيعطّل إغلاق التذكرة.') }}</p>
+                <p class="field__hint">{{ __('اختياري — لا يمنع إغلاق التذكرة.') }}</p>
 
                 @foreach ($visibleRows as $row)
                     <form method="POST" action="{{ route('tickets.ratings.store', $ticket) }}" class="rating">

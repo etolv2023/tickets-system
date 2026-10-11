@@ -8,9 +8,9 @@
             <div>
                 <h1 class="page-title">{{ __('المهام المجدولة') }}</h1>
                 <p class="page-subtitle">
-                    {{ __('المهام اللي بتشتغل لوحدها. تقدر تغيّر ميعادها، توقفها، أو تشغّلها مرة دلوقتي.') }}
+                    {{ __('المهام التي تعمل تلقائيًا. يمكنك تغيير موعدها أو إيقافها أو تشغيلها مرة الآن.') }}
                     <br>
-                    {{ __('قايمة المهام نفسها في الكود — الشاشة دي بتتحكم في') }} <strong>{{ __('المواعيد بس') }}</strong>{{ __('، مش بتضيف أوامر.') }}
+                    {{ __('قائمة المهام نفسها موجودة في الكود — هذه الشاشة تتحكم في') }} <strong>{{ __('المواعيد فقط') }}</strong>{{ __('، ولا تضيف أوامر.') }}
                 </p>
             </div>
         </div>
@@ -27,22 +27,22 @@
              the page looks wrong. This is what makes it look wrong. --}}
         @unless ($cronIsAlive)
             <x-alert variant="error">
-                <strong>{{ __('الكرون بتاع السيرفر مش شغال.') }}</strong>
-                {{ __('المواعيد اللي تحت دي مش بتتنفّذ —') }}
+                <strong>{{ __('مهمة cron على الخادم لا تعمل.') }}</strong>
+                {{ __('المواعيد أدناه لا تُنفَّذ —') }}
                 @if ($lastHeartbeat)
                     {{ __('آخر نبضة كانت') }}
                     {{ $lastHeartbeat->timezone(config('app.display_timezone'))->translatedFormat('j M — H:i') }}.
                 @else
-                    {{ __('ومفيش ولا نبضة اتسجلت من الأساس.') }}
+                    {{ __('ولم تُسجَّل أي نبضة على الإطلاق.') }}
                 @endif
-                {{ __('لازم يكون في سطر كرون على السيرفر بينادي') }}
+                {{ __('يجب وجود سطر cron على الخادم يستدعي') }}
                 <span class="u-mono u-ltr">php artisan schedule:run</span> {{ __('كل دقيقة.') }}
             </x-alert>
         @endunless
 
         @if ($unseeded !== [])
             <div class="note">
-                {{ __('فيه مهام في الكود ومالهاش صفوف، فمش بتشتغل ومش ظاهرة تحت:') }}
+                {{ __('توجد مهام في الكود بلا صفوف، لذا لا تعمل ولا تظهر أدناه:') }}
                 <span class="u-mono u-ltr">{{ implode(__('، '), $unseeded) }}</span> {{ __('— شغّل') }} <span class="u-mono u-ltr">php artisan db:seed --class=ScheduledTaskSeeder --force</span>.
             </div>
         @endif
@@ -54,8 +54,8 @@
         </div>
 
         <div class="note">
-            <span class="u-mono u-ltr">php artisan schedule:audit</span> {{ __('بيقارن الصفوف دي بالقايمة اللي في الكود ·') }}
-            <span class="u-mono u-ltr">php artisan schedule:list</span> {{ __('بيوري اللي لارافيل مسجّله فعلاً.') }}
+            <span class="u-mono u-ltr">php artisan schedule:audit</span> {{ __('يقارن هذه الصفوف بالقائمة الموجودة في الكود ·') }}
+            <span class="u-mono u-ltr">php artisan schedule:list</span> {{ __('يعرض ما سجّله Laravel فعلًا.') }}
         </div>
     </div>
 @endsection

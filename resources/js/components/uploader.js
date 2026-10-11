@@ -86,7 +86,7 @@ export default function uploader({ maxBytes = 5 * 1024 * 1024, maxVideoBytes = 2
                 const limit = isVideo ? maxVideoBytes : maxBytes;
 
                 if (file.size > limit) {
-                    this.error = t('«:name» أكبر من :size ميجا.', { name: file.name, size: isVideo ? 200 : 5 });
+                    this.error = t('حجم «:name» أكبر من :size ميغابايت.', { name: file.name, size: isVideo ? 200 : 5 });
                     return;
                 }
 
@@ -129,7 +129,7 @@ export default function uploader({ maxBytes = 5 * 1024 * 1024, maxVideoBytes = 2
         },
 
         human(bytes) {
-            const units = [t('بايت'), t('كيلوبايت'), t('ميجا')];
+            const units = [t('بايت'), t('كيلوبايت'), t('ميغابايت')];
             let n = bytes;
             let u = 0;
 

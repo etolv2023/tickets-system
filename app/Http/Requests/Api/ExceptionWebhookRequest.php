@@ -110,6 +110,6 @@ class ExceptionWebhookRequest extends FormRequest
             return $value;
         }
 
-        return mb_substr($value, 0, $max - 20) . "\n… [اتقص]";
+        return mb_substr($value, 0, $max - 20) . "\n… [مقتطع]";
     }
 }

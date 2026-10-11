@@ -22,8 +22,8 @@ enum PullRequestState: string
     {
         return match ($this) {
             self::Open => __('مفتوح'),
-            self::Merged => __('اتدمج'),
-            self::Closed => __('اتقفل من غير دمج'),
+            self::Merged => __('تم الدمج'),
+            self::Closed => __('أُغلق دون دمج'),
         };
     }
 

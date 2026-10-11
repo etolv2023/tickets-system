@@ -22,11 +22,11 @@
         <x-card :title="__('إضافة مرحلة مخصصة')">
             <form method="POST" action="{{ route('admin.ticket-statuses.store') }}" class="form-grid">
                 @csrf
-                <x-field name="key" :label="__('المفتاح الداخلي')" required :hint="__('حروف إنجليزية مثل :example، ولا يمكن تغييره لاحقًا.', ['example' => 'on_hold'])" />
+                <x-field name="key" :label="__('المفتاح الداخلي')" required :hint="__('أحرف إنجليزية مثل :example، ولا يمكن تغييره لاحقًا.', ['example' => 'on_hold'])" />
                 <x-field name="name_ar" :label="__('الاسم بالعربية')" required />
-                <x-field name="name_en" :label="__('الاسم بالإنجليزية')" dir="ltr" :hint="__('اختياري — لو فاضي بيظهر الاسم العربي.')" />
-                <x-field name="description_ar" :label="__('شرح المرحلة بالعربية')" :hint="__('متى تستخدم؟ وما النتيجة المتوقعة منها؟')" />
-                <x-field name="description_en" :label="__('شرح المرحلة بالإنجليزية')" dir="ltr" />
+                <x-field name="name_en" :label="__('الاسم بالإنجليزية')" dir="ltr" :hint="__('اختياري — إذا تُرك فارغًا يظهر الاسم العربي.')" />
+                <x-field name="description_ar" :label="__('وصف المرحلة بالعربية')" :hint="__('متى تُستخدم؟ وما النتيجة المتوقعة منها؟')" />
+                <x-field name="description_en" :label="__('وصف المرحلة بالإنجليزية')" dir="ltr" />
                 <x-field name="color" :label="__('اللون')" required>
                     <select id="color" name="color" class="select" required>
                         @foreach ($colors as $value => $label)
@@ -37,7 +37,7 @@
                 <x-field name="is_open" :label="__('هل الالتزام ما زال قائمًا؟')" :hint="__('الحالة المفتوحة تعني أن العميل ما زال ينتظر إجراءً أو نتيجة.')">
                     <select id="is_open" name="is_open" class="select" required>
                         <option value="1">{{ __('مفتوحة') }}</option>
-                        <option value="0">{{ __('مقفولة') }}</option>
+                        <option value="0">{{ __('مغلقة') }}</option>
                     </select>
                 </x-field>
                 <div class="form-actions">
@@ -52,7 +52,7 @@
                     <thead>
                         <tr>
                             <th>{{ __('الحالة') }}</th>
-                            <th>{{ __('الاسم / الشرح / اللون') }}</th>
+                            <th>{{ __('الاسم / الوصف / اللون') }}</th>
                             <th>{{ __('مفتوحة؟') }}</th>
                             <th class="table__cell--actions"></th>
                         </tr>
@@ -73,8 +73,8 @@
                                         @method('PUT')
                                         <input type="text" name="name_ar" value="{{ $s->name_ar }}" class="input opt-form__name" aria-label="{{ __('الاسم بالعربية') }}" placeholder="{{ __('الاسم بالعربية') }}">
                                         <input type="text" name="name_en" value="{{ $s->name_en }}" class="input opt-form__name" dir="ltr" aria-label="{{ __('الاسم بالإنجليزية') }}" placeholder="{{ __('الاسم بالإنجليزية') }}">
-                                        <input type="text" name="description_ar" value="{{ $s->description_ar }}" class="input" aria-label="{{ __('شرح المرحلة بالعربية') }}" placeholder="{{ __('شرح المرحلة بالعربية') }}">
-                                        <input type="text" name="description_en" value="{{ $s->description_en }}" class="input" dir="ltr" aria-label="{{ __('شرح المرحلة بالإنجليزية') }}" placeholder="{{ __('شرح المرحلة بالإنجليزية') }}">
+                                        <input type="text" name="description_ar" value="{{ $s->description_ar }}" class="input" aria-label="{{ __('وصف المرحلة بالعربية') }}" placeholder="{{ __('وصف المرحلة بالعربية') }}">
+                                        <input type="text" name="description_en" value="{{ $s->description_en }}" class="input" dir="ltr" aria-label="{{ __('وصف المرحلة بالإنجليزية') }}" placeholder="{{ __('وصف المرحلة بالإنجليزية') }}">
                                         <select name="color" class="select filters__select">
                                             @foreach ($colors as $value => $label)
                                                 <option value="{{ $value }}" @selected($s->color === $value)>{{ __($label) }}</option>
@@ -82,7 +82,7 @@
                                         </select>
                                         <select name="is_open" class="select filters__select">
                                             <option value="1" @selected($s->is_open)>{{ __('مفتوحة') }}</option>
-                                            <option value="0" @selected(! $s->is_open)>{{ __('مقفولة') }}</option>
+                                            <option value="0" @selected(! $s->is_open)>{{ __('مغلقة') }}</option>
                                         </select>
                                         <x-button variant="ghost" size="sm">{{ __('حفظ') }}</x-button>
                                     </form>
@@ -90,7 +90,7 @@
                                 <td class="table__cell--actions">
                                     @unless ($s->is_system)
                                         <form method="POST" action="{{ route('admin.ticket-statuses.destroy', $s) }}"
-                                              onsubmit="return confirm(@js(__('متأكد من حذف «:name»؟', ['name' => $s->label()])))">
+                                              onsubmit="return confirm(@js(__('هل أنت متأكد من حذف «:name»؟', ['name' => $s->label()])))">
                                             @csrf
                                             @method('DELETE')
                                             <x-button variant="ghost" size="sm">{{ __('حذف') }}</x-button>
@@ -111,7 +111,7 @@
              its own destinations by name. --}}
         <x-card :title="__('الانتقالات المسموحة')">
             <div class="flow__intro">
-                <p><strong>{{ __('ده بيتحكم في زرار «غيّر الحالة» على التذكرة.') }}</strong></p>
+                <p><strong>{{ __('يتحكم هذا في زر «تغيير الحالة» في التذكرة.') }}</strong></p>
                 <p class="u-muted">
                     {{ __('يحدد كل قسم المراحل التي يمكن الانتقال إليها يدويًا من المرحلة الحالية. الخيارات غير المحددة لن تظهر للمستخدم.') }}
                 </p>
@@ -131,7 +131,7 @@
                     @endphp
 
                     <x-collapsible-section :title="__('من :status', ['status' => $from->label()])"
-                                           :meta="trans_choice(':count انتقال', $outgoing)"
+                                           :meta="trans_choice(':count انتقال|انتقال واحد|انتقالان|:count انتقالات|:count انتقالًا|:count انتقال', $outgoing)"
                                            :open="false">
                         <div class="flow__targets">
                             @foreach ($statuses as $to)

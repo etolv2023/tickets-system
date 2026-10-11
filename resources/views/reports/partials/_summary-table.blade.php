@@ -19,7 +19,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr class="table__empty"><td colspan="4">{{ __('مفيش بيانات بالفلاتر دي.') }}</td></tr>
+                    <tr class="table__empty"><td colspan="4">{{ __('لا توجد بيانات مطابقة لعوامل التصفية.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

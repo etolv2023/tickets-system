@@ -49,7 +49,7 @@ class SubtaskStatusController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', __('تم إضافة حالة «:name».', ['name' => $data['name_ar']]));
+        return back()->with('status', __('تمت إضافة الحالة «:name».', ['name' => $data['name_ar']]));
     }
 
     public function update(UpdateSubtaskStatusRequest $request, SubtaskStatusDefinition $subtaskStatus, ActivityLogger $logger): RedirectResponse
@@ -81,7 +81,7 @@ class SubtaskStatusController extends Controller
         abort_unless($request->user()->hasPermission('settings.manage'), 403);
 
         if ($subtaskStatus->is_system) {
-            return back()->withErrors(['status' => __('الحالات الأساسية للنظام مينفعش تتحذف.')]);
+            return back()->withErrors(['status' => __('لا يمكن حذف الحالات الأساسية للنظام.')]);
         }
 
         $name = $subtaskStatus->name_ar;
@@ -91,7 +91,7 @@ class SubtaskStatusController extends Controller
         } catch (QueryException) {
             // FK on ticket_subtasks.status is RESTRICT — a subtask on this
             // status right now must not lose it silently.
-            return back()->withErrors(['status' => __('فيه صب تاسكس لسه بحالة «:name» — غيّرها الأول.', ['name' => $name])]);
+            return back()->withErrors(['status' => __('توجد مهام فرعية بالحالة «:name» — غيّرها أولًا.', ['name' => $name])]);
         }
 
         $logger->log(
@@ -103,6 +103,6 @@ class SubtaskStatusController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', __('تم حذف حالة «:name».', ['name' => $name]));
+        return back()->with('status', __('تم حذف الحالة «:name».', ['name' => $name]));
     }
 }

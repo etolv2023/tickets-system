@@ -42,13 +42,13 @@
                          two states says both: the status is readable in the
                          same place on every row, and the greyed box says whose
                          it is without a word of explanation. --}}
-                    <select class="select select--sm" aria-label="{{ __('حالة الصب تاسك') }}"
+                    <select class="select select--sm" aria-label="{{ __('حالة المهمة الفرعية') }}"
                             @disabled(! $mayChange)
                             @if ($mayChange)
                                 data-subtask-status="{{ route('subtasks.status', $subtask) }}"
                                 data-current="{{ $subtask->status->value }}"
                             @else
-                                title="{{ $subtask->assignee ? __('الصب تاسك دي بتاعة :name', ['name' => $subtask->assignee->name]) : __('مش من حقك تغيّر الصب تاسك دي') }}"
+                                title="{{ $subtask->assignee ? __('هذه المهمة الفرعية تخص :name', ['name' => $subtask->assignee->name]) : __('ليس من حقك تغيير هذه المهمة الفرعية') }}"
                             @endif>
                         @foreach ($quick as $optionKey)
                             <option value="{{ $optionKey }}" @selected($subtask->status->value === $optionKey)>{{ \App\Casts\SubtaskStatusValue::for($optionKey)->label() }}</option>
@@ -68,7 +68,7 @@
                         {{ $subtask->assignee->name }}
                     </span>
                 @else
-                    <span class="u-subtle">{{ __('مش مسندة') }}</span>
+                    <span class="u-subtle">{{ __('غير مُسندة') }}</span>
                 @endif
 
                 @if ($subtask->deadline())
@@ -96,8 +96,8 @@
 
                     <span @class(['points-cell', 'points-cell--negative' => $costs])
                           title="{{ $costs
-                                ? __('اتأخرت عن تاريخ الاستحقاق — النقط دي هتتخصم مش هتتصرف لما التذكرة تتحل')
-                                : __('النقاط الي هتتصرف لما التذكرة تتحل') }}">
+                                ? __('تجاوزت تاريخ الاستحقاق — ستُخصم هذه النقاط بدلًا من احتسابها عند حل التذكرة')
+                                : __('النقاط التي ستُحتسب عند حل التذكرة') }}">
                         {{ $costs ? '−' : '' }}{{ __(':count نقطة', ['count' => rtrim(rtrim($subtask->points, '0'), '.')]) }}
                     </span>
                 @endif
@@ -165,7 +165,7 @@
                      editing your own step. --}}
                 @can('delete', [$subtask, $ticket])
                     <form method="POST" action="{{ route('tickets.subtasks.destroy', [$ticket, $subtask]) }}"
-                          onsubmit="return confirm({{ Js::from(__('متأكد إنك عايز تحذف «:name»؟', ['name' => $subtask->title])) }})">
+                          onsubmit="return confirm({{ Js::from(__('هل أنت متأكد من حذف «:name»؟', ['name' => $subtask->title])) }})">
                         @csrf
                         @method('DELETE')
                         <x-button variant="ghost" size="sm">{{ __('حذف') }}</x-button>

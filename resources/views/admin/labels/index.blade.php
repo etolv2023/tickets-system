@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', __('اللابلز'))
+@section('title', __('الوسوم'))
 
 @section('content')
     <div class="page">
         <div class="page__head">
             <div>
-                <h1 class="page-title">{{ __('اللابلز') }}</h1>
-                <p class="page-subtitle">{{ __('الألوان من الباليتة الدلالية بس — مفيش لون عشوائي.') }}</p>
+                <h1 class="page-title">{{ __('الوسوم') }}</h1>
+                <p class="page-subtitle">{{ __('الألوان من اللوحة الدلالية فقط — لا توجد ألوان عشوائية.') }}</p>
             </div>
         </div>
 
@@ -17,11 +17,11 @@
 
         <x-form-errors />
 
-        <x-card :title="__('لابل جديد')">
+        <x-card :title="__('وسم جديد')">
             <form method="POST" action="{{ route('admin.labels.store') }}" class="form-grid">
                 @csrf
                 <x-field name="name" :label="__('الاسم بالعربية')" required />
-                <x-field name="name_en" :label="__('الاسم بالإنجليزية')" dir="ltr" :hint="__('اختياري — لو فاضي بيظهر الاسم العربي.')" />
+                <x-field name="name_en" :label="__('الاسم بالإنجليزية')" dir="ltr" :hint="__('اختياري — إذا تُرك فارغًا يظهر الاسم العربي.')" />
                 <x-field name="color" :label="__('اللون')" required>
                     <select id="color" name="color" class="select" required>
                         @foreach ($colors as $value => $label)
@@ -30,7 +30,7 @@
                     </select>
                 </x-field>
                 <div class="form-actions">
-                    <x-button variant="primary">{{ __('أضف') }}</x-button>
+                    <x-button variant="primary">{{ __('إضافة') }}</x-button>
                 </div>
             </form>
         </x-card>
@@ -40,7 +40,7 @@
                 <table class="table table--hover">
                     <thead>
                         <tr>
-                            <th>{{ __('اللابل') }}</th>
+                            <th>{{ __('الوسم') }}</th>
                             <th>{{ __('الاسم / اللون') }}</th>
                             <th>{{ __('التذاكر') }}</th>
                             <th class="table__cell--actions"></th>
@@ -67,7 +67,7 @@
                                 <td class="u-nums">{{ $label->tickets_count }}</td>
                                 <td class="table__cell--actions">
                                     <form method="POST" action="{{ route('admin.labels.destroy', $label) }}"
-                                          onsubmit="return confirm(@js(__('هيتشال من :count تذكرة. متأكد؟', ['count' => $label->tickets_count])))">
+                                          onsubmit="return confirm(@js(__('سيُزال من :count تذكرة. هل أنت متأكد؟', ['count' => $label->tickets_count])))">
                                         @csrf
                                         @method('DELETE')
                                         <x-button variant="ghost" size="sm">{{ __('حذف') }}</x-button>
@@ -76,7 +76,7 @@
                             </tr>
                         @empty
                             <tr class="table__empty">
-                                <td colspan="4">{{ __('مفيش لابلز.') }}</td>
+                                <td colspan="4">{{ __('لا توجد وسوم.') }}</td>
                             </tr>
                         @endforelse
                     </tbody>

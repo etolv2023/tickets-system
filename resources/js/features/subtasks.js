@@ -95,7 +95,7 @@ export function mountSubtaskStatus(root = document) {
                 const payload = await response.json().catch(() => ({}));
 
                 if (!response.ok) {
-                    throw new Error(payload.message ?? t('الحفظ فشل.'));
+                    throw new Error(payload.message ?? t('تعذّر الحفظ.'));
                 }
 
                 select.dataset.current = select.value;

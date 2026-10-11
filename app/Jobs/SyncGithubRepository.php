@@ -9,7 +9,7 @@ use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
 
 /**
- * F27 — the "زامن دلوقتي" button, off the request thread.
+ * F27 — the "مزامنة الآن" button, off the request thread.
  *
  * The nightly `github:sync` command does not use this: four repositories in
  * sequence from a cron is exactly what a cron is for. This exists only so a

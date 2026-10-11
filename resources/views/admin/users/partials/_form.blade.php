@@ -7,7 +7,7 @@
         <div class="form-stack">
             <div class="form-grid">
                 <x-field name="name" :label="__('الاسم')" :value="$user?->name" required />
-                <x-field name="email" :label="__('الإيميل')" type="email" :value="$user?->email" required />
+                <x-field name="email" :label="__('البريد الإلكتروني')" type="email" :value="$user?->email" required />
             </div>
 
             <div class="form-grid">
@@ -32,7 +32,7 @@
                 step="0.5"
                 min="0.5"
                 max="24"
-                :hint="__('ساعات إنتاجية في اليوم. الكاليندر بيحسب منها الحمل.')"
+                :hint="__('الساعات الإنتاجية في اليوم. يحسب التقويم منها عبء العمل.')"
             />
 
             {{-- ★ (2026-08-19) F26.1 — الشخص نفسه بيقدر يحطها من /profile،
@@ -40,12 +40,12 @@
                  التحقق. فاضية = مفيش منشن، والاسم بيتكتب نص عادي. --}}
             <x-field
                 name="discord_user_id"
-                :label="__('الـ Discord User ID')"
+                :label="__('معرّف المستخدم في Discord')"
                 :value="$user?->discord_user_id"
                 inputmode="numeric"
                 autocomplete="off"
                 placeholder="709211234567890123"
-                :hint="__('الـ ID الرقمي مش اسم المستخدم — عشان الاكسبشن يعمله منشن على ديسكورد. سيبها فاضية والشخص نفسه يحطها من صفحة «حسابي».')"
+                :hint="__('المعرّف الرقمي وليس اسم المستخدم — ليُشار إليه في Discord عند الاستثناءات. اتركه فارغًا ليضيفه الشخص بنفسه من صفحة «حسابي».')"
             />
 
             <label class="checkbox-row">
@@ -53,7 +53,7 @@
                        @checked(old('is_active', $user?->is_active ?? true))>
                 <span class="checkbox-row__label">
                     {{ __('الحساب مفعّل') }}
-                    <small>{{ __('الموقوف ميقدرش يدخل، بس تاريخه بيفضل موجود.') }}</small>
+                    <small>{{ __('لا يستطيع المستخدم الموقوف الدخول، لكن سجله يبقى محفوظًا.') }}</small>
                 </span>
             </label>
         </div>
@@ -74,11 +74,11 @@
              role's set and exceptions are added by editing them after. --}}
         <x-card :title="__('صلاحيات الشخص')">
             <x-slot:actions>
-                <span class="u-subtle">{{ __('استثناءات فوق الدور') }}</span>
+                <span class="u-subtle">{{ __('استثناءات إضافية على الدور') }}</span>
             </x-slot:actions>
 
             <p class="field__hint">
-                {{ __('علّم اللي :name يقدر يعمله. المعلّم بـ«من الدور» جاي من دوره — لو شيلت العلامة عنه بيتمنع منه هو لوحده، ولو علّمت حاجة زيادة بتتدي له هو لوحده. زمايله في نفس الدور مش بيتأثروا.', ['name' => $user->name]) }}
+                {{ __('حدّد ما يستطيع :name فعله. العناصر المميزة بـ «من الدور» مصدرها دوره — إلغاء التحديد يمنعها عنه وحده، وتحديد عنصر إضافي يمنحه له وحده. لا يتأثر زملاؤه في الدور نفسه.', ['name' => $user->name]) }}
             </p>
 
             <x-permission-picker :groups="$groups" :selected="$effectivePermissionIds"
@@ -89,11 +89,11 @@
     @endisset
 
     @unless ($user)
-        <x-card :title="__('كلمة السر')">
+        <x-card :title="__('كلمة المرور')">
             <div class="form-grid">
-                <x-field name="password" :label="__('كلمة السر')" type="password" required
-                         :hint="__('10 حروف على الأقل.')" autocomplete="new-password" />
-                <x-field name="password_confirmation" :label="__('تأكيد كلمة السر')" type="password" required
+                <x-field name="password" :label="__('كلمة المرور')" type="password" required
+                         :hint="__('10 أحرف على الأقل.')" autocomplete="new-password" />
+                <x-field name="password_confirmation" :label="__('تأكيد كلمة المرور')" type="password" required
                          autocomplete="new-password" />
             </div>
         </x-card>

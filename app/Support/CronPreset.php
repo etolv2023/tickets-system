@@ -24,14 +24,14 @@ final class CronPreset
         'daily' => 'كل يوم',
         'weekly' => 'كل أسبوع',
         'monthly' => 'كل شهر',
-        'custom' => 'متقدم — cron خام',
+        'custom' => 'متقدم — صيغة cron مباشرة',
     ];
 
     /** Cron numbers the days of the week from Sunday = 0. */
     public const WEEKDAYS = [
         6 => 'السبت',
         0 => 'الأحد',
-        1 => 'الاتنين',
+        1 => 'الاثنين',
         2 => 'الثلاثاء',
         3 => 'الأربعاء',
         4 => 'الخميس',
@@ -147,7 +147,7 @@ final class CronPreset
                 : __('كل ساعة عند الدقيقة :minute', ['minute' => $parts['minute']]),
             'daily' => __('كل يوم الساعة :at', ['at' => $at]),
             'weekly' => __('كل :day الساعة :at', ['day' => __(self::WEEKDAYS[$parts['weekday']] ?? '؟'), 'at' => $at]),
-            'monthly' => __('كل شهر يوم :day الساعة :at', ['day' => $parts['monthday'], 'at' => $at]),
+            'monthly' => __('شهريًا يوم :day الساعة :at', ['day' => $parts['monthday'], 'at' => $at]),
             default => (string) $cron,
         };
     }

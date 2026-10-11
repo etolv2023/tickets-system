@@ -9,7 +9,7 @@
             <div>
                 <h1 class="page-title">{{ __('سجل التدقيق') }}</h1>
                 <p class="page-subtitle">
-                    {{ __('للقراءة بس — مفيش تعديل ولا حذف. سجل بيتعدّل مش سجل.') }}
+                    {{ __('للقراءة فقط — لا تعديل ولا حذف. السجل القابل للتعديل لا يُعدّ سجلًا.') }}
                 </p>
             </div>
             <div class="page__actions">
@@ -22,18 +22,18 @@
                 <x-combobox name="user" resource="users"
                             :value="$filters['user'] ?? null"
                             :selected="$selectedUser ?? null"
-                            :placeholder="__('كل المستخدمين')" />
+                            :placeholder="__('جميع المستخدمين')" />
             </div>
 
             <select name="action" class="select filters__select">
-                <option value="">{{ __('كل الأفعال') }}</option>
+                <option value="">{{ __('جميع الإجراءات') }}</option>
                 @foreach ($actions as $action)
                     <option value="{{ $action }}" @selected(($filters['action'] ?? '') === $action)>{{ $action }}</option>
                 @endforeach
             </select>
 
             <select name="subject" class="select filters__select">
-                <option value="">{{ __('كل الكائنات') }}</option>
+                <option value="">{{ __('جميع الكائنات') }}</option>
                 @foreach ($subjects as $class => $label)
                     <option value="{{ __($label) }}" @selected(($filters['subject'] ?? '') === $label)>{{ __($label) }}</option>
                 @endforeach
@@ -42,10 +42,10 @@
             <div class="filters__group">
                 <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" class="input" aria-label="{{ __('من') }}">
                 <span class="u-subtle" aria-hidden="true">—</span>
-                <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" class="input" aria-label="{{ __('لـ') }}">
+                <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" class="input" aria-label="{{ __('إلى') }}">
             </div>
 
-            <x-button variant="secondary">{{ __('فلترة') }}</x-button>
+            <x-button variant="secondary">{{ __('تصفية') }}</x-button>
 
             @if (array_filter($filters))
                 <x-button variant="ghost" :href="route('admin.audit.index')">{{ __('مسح') }}</x-button>
@@ -58,8 +58,8 @@
                     <thead>
                         <tr>
                             <th>{{ __('الوقت') }}</th>
-                            <th>{{ __('مين') }}</th>
-                            <th>{{ __('الفعل') }}</th>
+                            <th>{{ __('المستخدم') }}</th>
+                            <th>{{ __('الإجراء') }}</th>
                             <th>{{ __('الكائن') }}</th>
                             <th>{{ __('قبل / بعد') }}</th>
                             <th>IP</th>
@@ -93,7 +93,7 @@
                                 <td>
                                     @if ($log->changes)
                                         <details>
-                                            <summary class="u-subtle">{{ __('اعرض') }}</summary>
+                                            <summary class="u-subtle">{{ __('عرض') }}</summary>
                                             <pre class="install__log">{{ json_encode($log->changes, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) }}</pre>
                                         </details>
                                     @else
@@ -104,7 +104,7 @@
                             </tr>
                         @empty
                             <tr class="table__empty">
-                                <td colspan="6">{{ __('مفيش سجلات بالفلاتر دي.') }}</td>
+                                <td colspan="6">{{ __('لا توجد سجلات مطابقة لعوامل التصفية.') }}</td>
                             </tr>
                         @endforelse
                     </tbody>

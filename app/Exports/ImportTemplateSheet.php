@@ -30,6 +30,6 @@ class ImportTemplateSheet implements FromArray, WithHeadings, WithTitle, ShouldA
 
     public function title(): string
     {
-        return 'البيانات';
+        return __('البيانات');
     }
 }

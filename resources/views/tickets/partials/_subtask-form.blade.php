@@ -4,7 +4,7 @@
 <div x-data="{ open: {{ $errors->any() && old('title') ? 'true' : 'false' }} }">
     <x-button variant="secondary" size="sm" type="button" @click="open = true">
         <x-icon name="plus" class="btn__icon" />
-        {{ __('صب تاسك جديدة') }}
+        {{ __('مهمة فرعية جديدة') }}
     </x-button>
 
     {{-- Backdrop closes; the panel stops the click so a stray click inside a
@@ -14,7 +14,7 @@
          role="dialog" aria-modal="true" aria-labelledby="subtask-modal-title">
         <div class="modal__panel" @click.stop>
             <header class="modal__header">
-                <h2 class="modal__title" id="subtask-modal-title">{{ __('صب تاسك جديدة') }}</h2>
+                <h2 class="modal__title" id="subtask-modal-title">{{ __('مهمة فرعية جديدة') }}</h2>
                 <button type="button" class="modal__close" @click="open = false" aria-label="{{ __('إغلاق') }}">
                     <x-icon name="close" size="0.85em" />
                 </button>
@@ -29,7 +29,7 @@
                 </div>
 
                 <footer class="modal__footer">
-                    <x-button variant="primary" size="sm">{{ __('أضف') }}</x-button>
+                    <x-button variant="primary" size="sm">{{ __('إضافة') }}</x-button>
                     <x-button variant="ghost" size="sm" type="button" @click="open = false">{{ __('إلغاء') }}</x-button>
                 </footer>
             </form>

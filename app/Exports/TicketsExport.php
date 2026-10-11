@@ -58,10 +58,10 @@ class TicketsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, 
     public function headings(): array
     {
         return [
-            'رقم التذكرة', 'العنوان', 'الشركة', 'المُبلغ', 'النوع',
-            'الأولوية', 'الحالة', 'فتحها', 'التوزيع',
-            'وقت الإبلاغ', 'مهلة SLA', 'تاريخ التسليم', 'وقت الحل', 'العمر / زمن الحل', 'التأخير',
-            'المقدّر (س)', 'الفعلي (س)', 'صب تاسكس', 'الوصف',
+            __('رقم التذكرة'), __('العنوان'), __('الشركة'), __('المُبلغ'), __('النوع'),
+            __('الأولوية'), __('الحالة'), __('أنشأها'), __('التوزيع'),
+            __('وقت الإبلاغ'), __('مهلة SLA'), __('تاريخ التسليم'), __('وقت الحل'), __('العمر / زمن الحل'), __('التأخير'),
+            __('المقدّر (س)'), __('الفعلي (س)'), __('المهام الفرعية'), __('الوصف'),
         ];
     }
 
@@ -79,7 +79,7 @@ class TicketsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, 
             $ticket->creator?->name,
             $ticket->roleAssignments
                 ->map(fn ($a) => "{$a->role->label()}: {$a->user?->name}")
-                ->implode('، '),
+                ->implode(__('، ')),
             $ticket->reported_at?->timezone(config('app.display_timezone'))->format('Y-m-d H:i'),
             $ticket->sla_due_at?->timezone(config('app.display_timezone'))->format('Y-m-d H:i'),
             $ticket->due_date?->format('Y-m-d'),
@@ -88,8 +88,8 @@ class TicketsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, 
             // Same words as the list's marker, so the sheet and the screen agree.
             $ticket->hasDeadline()
                 ? ($ticket->missedDeadlines() !== []
-                    ? 'متأخرة: ' . implode('، ', array_map(fn ($k) => Ticket::DEADLINE_LABELS[$k], $ticket->missedDeadlines()))
-                    : 'في معادها')
+                    ? __('متأخرة: ') . implode(__('، '), array_map(fn ($k) => Ticket::DEADLINE_LABELS[$k], $ticket->missedDeadlines()))
+                    : __('في الموعد'))
                 : null,
             $ticket->original_estimate_hours,
             $ticket->spent_hours,
@@ -100,6 +100,6 @@ class TicketsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, 
 
     public function title(): string
     {
-        return 'التذاكر';
+        return __('التذاكر');
     }
 }

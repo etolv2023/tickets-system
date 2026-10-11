@@ -21,12 +21,12 @@
     <x-card :title="__('المشكلة')">
         <div class="form-stack">
             <x-field name="title" :label="__('العنوان')" :value="$ticket?->title" required
-                     :placeholder="__('وصف قصير للمشكلة في سطر')" />
+                     :placeholder="__('وصف قصير للمشكلة في سطر واحد')" />
 
             <div class="field">
                 <label class="field__label" for="description">{{ __('الوصف') }}</label>
                 <x-editor name="description" :value="$ticket?->description"
-                          :placeholder="__('اشرح المشكلة بالتفصيل. تقدر تلصق صور جوه المحرر.')" />
+                          :placeholder="__('اشرح المشكلة بالتفصيل. يمكنك لصق الصور داخل المحرر.')" />
             </div>
         </div>
     </x-card>
@@ -45,7 +45,7 @@
                  skipped approval). On an edit the ticket's own value is
                  pre-selected, so nothing changes there. --}}
             <x-field name="type" :label="__('النوع')" required
-                     :hint="__('الفيتشر والموديول الجديد بيستنوا موافقة الأدمن قبل التوزيع.')">
+                     :hint="__('تنتظر الميزات والوحدات الجديدة موافقة المسؤول قبل الإسناد.')">
                 <select id="type" name="type" required @class(['select', 'select--invalid' => $errors->has('type')])>
                     <option value="" disabled @selected(blank(old('type', $ticket?->type?->value)))>{{ __('— اختر النوع —') }}</option>
                     @foreach ($types as $value => $label)
@@ -56,18 +56,18 @@
                 </select>
             </x-field>
 
-            <x-field name="priority" :label="__('الأولوية')" required :hint="__('بتحدد مهلة الـ SLA أوتوماتيك.')">
+            <x-field name="priority" :label="__('الأولوية')" required :hint="__('تحدد مهلة SLA تلقائيًا.')">
                 <select id="priority" name="priority" required @class(['select', 'select--invalid' => $errors->has('priority')])>
                     @foreach ($priorities as $priority)
                         <option value="{{ $priority->key }}"
                                 @selected(old('priority', $ticket?->priority?->value ?? 'medium') === $priority->key)>
-                            {{ $priority->label() }} — {{ trans_choice(':count ساعة', $priority->sla_hours) }}
+                            {{ $priority->label() }} — {{ trans_choice(':count ساعة|ساعة واحدة|ساعتان|:count ساعات|:count ساعة|:count ساعة', $priority->sla_hours) }}
                         </option>
                     @endforeach
                 </select>
             </x-field>
 
-            <x-field name="module" :label="__('الموديول')" :value="$ticket?->module"
+            <x-field name="module" :label="__('الوحدة')" :value="$ticket?->module"
                      :placeholder="__('الفواتير، المخزون…')" />
 
             <x-field name="due_date" :label="__('تاريخ التسليم')" type="date"
@@ -122,9 +122,9 @@
             {{-- No tickets.assign means no distribution on this page, and a
                  subtask with nobody on it earns nothing. The plan waits for the
                  ticket page, after someone distributes it. --}}
-            <x-card :title="__('الصب تاسكس')">
+            <x-card :title="__('المهام الفرعية')">
                 <p class="field__hint">
-                    {{ __('الصب تاسكس بتتضاف من صفحة التذكرة بعد ما تتوزّع — كل صب تاسك لازم يكون ليها صاحب عشان تكسب نقطها.') }}
+                    {{ __('تُضاف المهام الفرعية من صفحة التذكرة بعد إسنادها — يجب أن يكون لكل مهمة فرعية صاحب ليحصل على نقاطها.') }}
                 </p>
             </x-card>
         @endisset

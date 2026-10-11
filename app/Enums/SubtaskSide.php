@@ -18,17 +18,17 @@ enum SubtaskSide: string
     public function label(): string
     {
         return match ($this) {
-            self::Frontend => __('فرونت'),
-            self::Backend => __('باك'),
+            self::Frontend => __('الواجهة الأمامية'),
+            self::Backend => __('الأنظمة الخلفية'),
             self::Qa => __('اختبار'),
-            self::Support => __('دعم'),
-            self::Devops => __('ديف أوبس'),
+            self::Support => __('الدعم'),
+            self::Devops => __('عمليات التطوير'),
             self::Other => __('أخرى'),
         };
     }
 
     /**
-     * Only these two gate a work log's "خلصت". F07
+     * Only these two gate a work log's "مكتملة". F07
      *
      * Devops is deliberately not one of them: it holds no work log, so there is
      * nothing for it to block. An open devops subtask still stops the TICKET

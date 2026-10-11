@@ -44,7 +44,7 @@ class StoreTicketTypeRequest extends FormRequest
             'name_en' => __('الاسم بالإنجليزية'),
             'color' => __('اللون'),
             'icon' => __('الأيقونة'),
-            'needs_approval' => __('يحتاج موافقة'),
+            'needs_approval' => __('يتطلب موافقة'),
             'default_points' => __('النقاط الافتراضية'),
         ];
     }
@@ -52,8 +52,8 @@ class StoreTicketTypeRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'key.regex' => __('المفتاح لازم يكون حروف إنجليزي صغير وأرقام و_ بس، وميبدأش برقم.'),
-            'key.unique' => __('المفتاح ده مستخدم قبل كده.'),
+            'key.regex' => __('يجب أن يتكون المفتاح من أحرف إنجليزية صغيرة وأرقام و_ فقط، وألّا يبدأ برقم.'),
+            'key.unique' => __('هذا المفتاح مستخدم بالفعل.'),
         ];
     }
 }

@@ -36,18 +36,18 @@
         <div class="today-stats">
             <div class="stat-tile stat-tile--teal">
                 <div class="stat-tile__figure">{{ rtrim(rtrim(number_format($total, 2), '0'), '.') }}</div>
-                <div class="stat-tile__caption">{{ $isAll ? __('إجمالي كل الأوقات') : __('نقاط الشهر ده') }}</div>
+                <div class="stat-tile__caption">{{ $isAll ? __('إجمالي كل الأوقات') : __('نقاط هذا الشهر') }}</div>
             </div>
 
             <div class="stat-tile stat-tile--slate">
                 <div class="stat-tile__figure">{{ $awardsCount }}</div>
-                <div class="stat-tile__caption">{{ __('عمليات استحقاق نقاط') }}</div>
+                <div class="stat-tile__caption">{{ __('عمليات احتساب النقاط') }}</div>
             </div>
 
             @if ($lastEarned)
                 <div class="stat-tile stat-tile--green">
                     <div class="stat-tile__figure u-mono">{{ $lastEarned->format('j M') }}</div>
-                    <div class="stat-tile__caption">{{ __('آخر عملية استحقاق') }}</div>
+                    <div class="stat-tile__caption">{{ __('آخر عملية احتساب') }}</div>
                 </div>
             @endif
 
@@ -57,7 +57,7 @@
             @if ($penaltiesTotal !== 0.0)
                 <div class="stat-tile stat-tile--red">
                     <div class="stat-tile__figure">{{ rtrim(rtrim(number_format($penaltiesTotal, 2), '0'), '.') }}</div>
-                    <div class="stat-tile__caption">{{ __('خصم تأخير (:count صب تاسك)', ['count' => $penalties->count()]) }}</div>
+                    <div class="stat-tile__caption">{{ __('خصم التأخير (:count مهام فرعية)', ['count' => $penalties->count()]) }}</div>
                 </div>
             @endif
 
@@ -94,7 +94,7 @@
                     <thead>
                         <tr>
                             <th>{{ __('المصدر') }}</th>
-                            <th>{{ __('الصب تاسك') }}</th>
+                            <th>{{ __('المهمة الفرعية') }}</th>
                             <th>{{ __('الجهة') }}</th>
                             <th>{{ __('السبب') }}</th>
                             <th class="table__cell--num">{{ __('النقاط') }}</th>
@@ -136,7 +136,7 @@
                             </tr>
                         @empty
                             <tr class="table__empty">
-                                <td colspan="5">{{ $isAll ? __('مأخدتش نقاط لسه خالص.') : __('مأخدتش نقاط في الشهر ده.') }}</td>
+                                <td colspan="5">{{ $isAll ? __('لم تحصل على أي نقاط بعد.') : __('لم تحصل على نقاط هذا الشهر.') }}</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -145,7 +145,7 @@
         </x-card>
 
         <p class="field__hint">
-            {{ __('تسجيل الوقت مالوش علاقة بالنقاط — النقاط على إنجاز التذكرة مش على الساعات.') }}
+            {{ __('تسجيل الوقت لا علاقة له بالنقاط — تُحتسب النقاط على إنجاز التذكرة لا على الساعات.') }}
         </p>
     </div>
 @endsection

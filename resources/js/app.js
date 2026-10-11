@@ -126,7 +126,7 @@ Alpine.store('fullscreen', {
             if ((document.fullscreenElement !== null) === wasOn) {
                 // The toast store is declared further down this file; the
                 // lookup happens at click time, so the order does not matter.
-                Alpine.store('toast').push(t('المتصفح رفض ملء الشاشة. جرّب F11.'), 'error');
+                Alpine.store('toast').push(t('رفض المتصفح وضع ملء الشاشة. جرّب F11.'), 'error');
             }
         }, 600);
     },
@@ -230,11 +230,11 @@ Alpine.store('toast', {
 // screen is already wrong by then (the drag already happened), so this is
 // the one and only place that gets to say so. It used to go nowhere.
 document.addEventListener('reorder-failed', () => {
-    Alpine.store('toast').push(t('الترتيب الجديد ماتسجّلش. حدّث الصفحة وجرّب تاني.'), 'error');
+    Alpine.store('toast').push(t('لم يُحفظ الترتيب الجديد. حدّث الصفحة وحاول مرة أخرى.'), 'error');
 });
 
 document.addEventListener('calendar-save-failed', () => {
-    Alpine.store('toast').push(t('مقدرناش نغيّر الموعد. رجّعناه لمكانه؛ جرّب تاني.'), 'error');
+    Alpine.store('toast').push(t('تعذّر تغيير الموعد، وأُعيد إلى مكانه. حاول مرة أخرى.'), 'error');
 });
 
 // Copy-to-clipboard for a single value, with a two-second "copied" state.

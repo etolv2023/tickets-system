@@ -1,6 +1,6 @@
 {{-- One person: the counts per type, then the tickets behind them. --}}
 <div class="form-grid">
-    <x-card :title="__('إيه الي حلّه')" flush>
+    <x-card :title="__('ما الذي حلّه')" flush>
         <x-slot:actions>
             <span class="u-subtle">{{ $selectedPerson }} · {{ __(\App\Models\Ticket::RELATIONS[$data['relation']]) }} · {{ __('من') }} <span class="u-nums">{{ $filters['from'] }}</span> {{ __('إلى') }} <span class="u-nums">{{ $filters['to'] }}</span></span>
         </x-slot:actions>
@@ -10,7 +10,7 @@
                 <thead>
                     <tr>
                         <th>{{ __('النوع') }}</th>
-                        <th class="table__cell--num">{{ __('اتحلت') }}</th>
+                        <th class="table__cell--num">{{ __('محلولة') }}</th>
                         <th class="table__cell--num">{{ __('متوسط زمن الحل') }}</th>
                     </tr>
                 </thead>
@@ -37,7 +37,7 @@
     </x-card>
 </div>
 
-<x-card :title="__('التذاكر الي اتحلت')" flush>
+<x-card :title="__('التذاكر المحلولة')" flush>
     <x-slot:actions>
         <span class="u-subtle">{{ $data['tickets']->total() }}</span>
     </x-slot:actions>
@@ -74,14 +74,14 @@
                             @if ($ticket->missedDeadlines() !== [])
                                 <x-badge variant="urgent" class="badge--sm">{{ __('متأخرة') }}</x-badge>
                             @elseif ($ticket->hasDeadline())
-                                <span class="tickets__ontime">{{ __('في معادها') }}</span>
+                                <span class="tickets__ontime">{{ __('في الموعد') }}</span>
                             @else
                                 <span class="u-subtle">—</span>
                             @endif
                         </td>
                     </tr>
                 @empty
-                    <tr class="table__empty"><td colspan="7">{{ __('مفيش تذاكر اتحلت بالفلاتر دي.') }}</td></tr>
+                    <tr class="table__empty"><td colspan="7">{{ __('لا توجد تذاكر محلولة مطابقة لعوامل التصفية.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

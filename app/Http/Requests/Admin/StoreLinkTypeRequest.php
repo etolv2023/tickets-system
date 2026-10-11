@@ -29,8 +29,8 @@ class StoreLinkTypeRequest extends FormRequest
     {
         return [
             'key' => __('المفتاح'),
-            'name_ar' => __('الاسم من التذكرة'),
-            'name_en' => __('الاسم من التذكرة بالإنجليزية'),
+            'name_ar' => __('الاسم من التذكرة الأصلية'),
+            'name_en' => __('الاسم من التذكرة الأصلية بالإنجليزية'),
             'inverse_label_ar' => __('الاسم العكسي'),
             'inverse_label_en' => __('الاسم العكسي بالإنجليزية'),
             'color' => __('اللون'),
@@ -40,8 +40,8 @@ class StoreLinkTypeRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'key.regex' => __('المفتاح لازم يكون حروف إنجليزي صغير وأرقام و_ بس، وميبدأش برقم.'),
-            'key.unique' => __('المفتاح ده مستخدم قبل كده.'),
+            'key.regex' => __('يجب أن يتكون المفتاح من أحرف إنجليزية صغيرة وأرقام و_ فقط، وألّا يبدأ برقم.'),
+            'key.unique' => __('هذا المفتاح مستخدم بالفعل.'),
         ];
     }
 }

@@ -24,7 +24,7 @@
         @include('reports.partials._month-picker', ['route' => 'reports.employee'])
 
         <div class="form-grid">
-            <x-card :title="__('إيه الي عمله')" flush>
+            <x-card :title="__('ما الذي أنجزه')" flush>
                 <div class="facts card__body">
                     @foreach (\App\Models\TicketTypeDefinition::map() as $key => $def)
                         @if ($key !== 'undefined')
@@ -52,7 +52,7 @@
                             </span>
                         </div>
                     @empty
-                        <p class="u-subtle">{{ __('مفيش نقاط في الشهر ده.') }}</p>
+                        <p class="u-subtle">{{ __('لا توجد نقاط هذا الشهر.') }}</p>
                     @endforelse
                 </div>
             </x-card>
@@ -68,13 +68,13 @@
                     <div class="facts__row">
                         <span class="facts__label">{{ __('متوسط زمن الحل') }}</span>
                         <span class="facts__value facts__value--num">
-                            {{ $data['avgResolutionHours'] ? trans_choice(':count ساعة', $data['avgResolutionHours']) : '—' }}
+                            {{ $data['avgResolutionHours'] ? trans_choice(':count ساعة|ساعة واحدة|ساعتان|:count ساعات|:count ساعة|:count ساعة', $data['avgResolutionHours']) : '—' }}
                         </span>
                     </div>
                     <div class="facts__row">
                         <span class="facts__label">
                             {{ __('دقة التقدير') }}
-                            <small class="u-subtle">{{ __('مقدّر ÷ فعلي') }}</small>
+                            <small class="u-subtle">{{ __('المقدَّر ÷ الفعلي') }}</small>
                         </span>
                         <span class="facts__value facts__value--num">
                             {{ $data['estimateAccuracy'] ?? '—' }}
@@ -87,7 +87,7 @@
                         </span>
                     </div>
                     <div class="facts__row">
-                        <span class="facts__label">{{ __('معدل الارتجاع') }}</span>
+                        <span class="facts__label">{{ __('معدل إعادة الفتح') }}</span>
                         <span @class([
                             'facts__value', 'facts__value--num',
                             'facts__value--overdue' => $data['reopenRate']['rate'] > 20,
@@ -102,7 +102,7 @@
             </x-card>
         </div>
 
-        <x-card :title="__('التذاكر الي شارك فيها')" flush>
+        <x-card :title="__('التذاكر التي شارك فيها')" flush>
             <div class="table-wrap">
                 <table class="table table--hover">
                     <thead>
@@ -131,7 +131,7 @@
                             </tr>
                         @empty
                             <tr class="table__empty">
-                                <td colspan="5">{{ __('مفيش تذاكر اتحلت في الشهر ده.') }}</td>
+                                <td colspan="5">{{ __('لم تُحل أي تذكرة هذا الشهر.') }}</td>
                             </tr>
                         @endforelse
                     </tbody>

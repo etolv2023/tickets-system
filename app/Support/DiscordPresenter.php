@@ -119,7 +119,7 @@ final class DiscordPresenter
      * left-to-right so the arrow keeps pointing from the old value to the new
      * one even on an Arabic line.
      */
-    public static function transition(?string $from, ?string $to, string $emptyLabel = 'غير موزع'): string
+    public static function transition(?string $from, ?string $to, string $emptyLabel = 'غير مُسندة'): string
     {
         return self::ltr(
             self::isolate($from ?: $emptyLabel) . ' → ' . self::isolate($to ?: $emptyLabel)

@@ -18,7 +18,7 @@
                         <td class="table__cell--num">{{ $row->open }}</td>
                     </tr>
                 @empty
-                    <tr class="table__empty"><td colspan="4">{{ __('مفيش تذاكر في الفترة دي.') }}</td></tr>
+                    <tr class="table__empty"><td colspan="4">{{ __('لا توجد تذاكر في هذه الفترة.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

@@ -21,8 +21,8 @@
               title="{{ $value }}">{{ $value }}</span>
 
         <button type="button" class="copy-row__btn" @click="copy()"
-                :title="copied ? {{ Js::from(__('اتنسخ')) }} : {{ Js::from(__('انسخ')) }}"
-                :aria-label="copied ? {{ Js::from(__('اتنسخ')) }} : {{ Js::from(__('انسخ')) }}">
+                :title="copied ? {{ Js::from(__('تم النسخ')) }} : {{ Js::from(__('نسخ')) }}"
+                :aria-label="copied ? {{ Js::from(__('تم النسخ')) }} : {{ Js::from(__('نسخ')) }}">
             <template x-if="!copied"><x-icon name="copy" size="0.95em" /></template>
             <template x-if="copied"><x-icon name="check" size="0.95em" /></template>
         </button>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\Phrase;
 use App\Casts\TicketStatusValue;
 use App\Http\Requests\BoardMoveRequest;
 use App\Models\Ticket;
@@ -35,7 +36,7 @@ class BoardMoveController extends Controller
         $column = BoardController::COLUMNS[$request->validated('column')];
         $actorId = $request->user()->id;
 
-        // Already in this bucket. A "reopened" card dropped inside "مسندة إليّ"
+        // Already in this bucket. A "reopened" card dropped inside "مُسندة إليّ"
         // is a no-op, not a transition to assigned — transition()'s own
         // from === to check would not have caught that, because reopened →
         // assigned is a real and legal move, just not the one that was asked
@@ -55,7 +56,7 @@ class BoardMoveController extends Controller
         // The move was accepted but the ticket did not land in the column it
         // was dropped into. That is not a failure: finish() only moves a ticket
         // to dev_done once EVERY side is done, so a frontend dev dropping into
-        // "تم التطوير" while the backend is still working has genuinely
+        // "اكتمل التطوير" while the backend is still working has genuinely
         // finished their own work — the ticket just isn't there yet. Without
         // saying so, the card silently bounces back and reads as a bug.
         $landed = in_array($ticket->status->value, $column['statuses'], true);
@@ -81,7 +82,7 @@ class BoardMoveController extends Controller
             // here under a guess.
             'message' => $landed
                 ? null
-                : __('اتسجّل إن شغلك خلص، بس التذكرة لسه في «:status» — فيه جهة تانية لسه شغالة.', ['status' => $ticket->status->label()]),
+                : __('سُجّل انتهاء عملك، لكن التذكرة ما زالت في «:status» — جهة أخرى لم تُنهِ عملها بعد.', ['status' => $ticket->status->label()]),
         ]);
     }
 
@@ -94,7 +95,7 @@ class BoardMoveController extends Controller
      */
     private function apply(Ticket $ticket, string $column, string $target, int $actorId): void
     {
-        // Dropping into "جاري العمل" means "this is what I'm on now" — whether
+        // Dropping into "قيد التنفيذ" means "this is what I'm on now" — whether
         // the side hasn't started yet or was finished and is being taken back.
         // Both readings are the same gesture, so the log's state picks the verb
         // rather than the user having to.
@@ -117,10 +118,10 @@ class BoardMoveController extends Controller
             return;
         }
 
-        // Dropping back into "مسندة إليّ" means "I'm not on this now", so the
+        // Dropping back into "مُسندة إليّ" means "I'm not on this now", so the
         // commitment comes back down with the badge. Writing the status alone
         // left every side still saying in_progress: the card kept offering
-        // خلصت for work it thought had started, and "جاري العمل" then refused
+        // خلصت for work it thought had started, and "قيد التنفيذ" then refused
         // to take the card back because no log was pending or done.
         //
         // unstart() moves the ticket itself once nobody is left working, so the
@@ -134,7 +135,7 @@ class BoardMoveController extends Controller
             }
         }
 
-        $this->workflow->transition($ticket, TicketStatusValue::for($target), $actorId, __('نقل من البورد'));
+        $this->workflow->transition($ticket, TicketStatusValue::for($target), $actorId, new Phrase('نُقلت من لوحة المهام'));
     }
 
     /**
@@ -156,8 +157,8 @@ class BoardMoveController extends Controller
 
         throw new DomainException(
             ($from->value === 'resolved' || $from->value === 'closed'
-                ? __('مينفعش تنقل التذكرة من «:from» لـ «:to» — لو محتاج تشتغل عليها تاني، استخدم «الارتجاع» في صفحة التذكرة (بيطلب سبب).', ['from' => $from->label(), 'to' => $this->labelFor($target)])
-                : __('مينفعش تنقل التذكرة من «:from» لـ «:to».', ['from' => $from->label(), 'to' => $this->labelFor($target)]))
+                ? __('لا يمكن نقل التذكرة من «:from» إلى «:to» — إذا احتجت إلى العمل عليها مجددًا فاستخدم «إعادة الفتح» من صفحة التذكرة (يتطلب سببًا).', ['from' => $from->label(), 'to' => $this->labelFor($target)])
+                : __('لا يمكن نقل التذكرة من «:from» إلى «:to».', ['from' => $from->label(), 'to' => $this->labelFor($target)]))
         );
     }
 
@@ -188,7 +189,7 @@ class BoardMoveController extends Controller
         $logs = $ticket->workLogs->where('user_id', $actorId);
 
         if ($logs->isEmpty()) {
-            throw new DomainException(__('مفيش شغل مسند لك على التذكرة دي — استخدم صفحة التذكرة.'));
+            throw new DomainException(__('لا يوجد عمل مُسند إليك في هذه التذكرة — استخدم صفحة التذكرة.'));
         }
 
         $actionable = $logs->filter(fn ($log) => isset($verbs[$log->status]));
@@ -199,8 +200,8 @@ class BoardMoveController extends Controller
 
         if ($actionable->isEmpty()) {
             throw new DomainException(isset($verbs['in_progress'])
-                ? __('مفيش شغل شغّال دلوقتي تقفله — اسحبها لـ«جاري العمل» الأول.')
-                : __('شغلك على التذكرة دي في المكان الصح بالفعل.'));
+                ? __('لا يوجد عمل قيد التنفيذ لإنهائه — اسحبها إلى «قيد التنفيذ» أولًا.')
+                : __('عملك على هذه التذكرة في المكان الصحيح بالفعل.'));
         }
 
         foreach ($actionable as $log) {

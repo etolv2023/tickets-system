@@ -47,8 +47,8 @@
                         <tr>
                             <th>{{ __('الاسم') }}</th>
                             <th>{{ __('رقم الموظف (ERP)') }}</th>
-                            <th>{{ __('الإيميل') }}</th>
-                            <th>{{ __('التليفون') }}</th>
+                            <th>{{ __('البريد الإلكتروني') }}</th>
+                            <th>{{ __('الهاتف') }}</th>
                             <th>{{ __('الحالة') }}</th>
                             <th class="table__cell--actions">{{ __('إجراءات') }}</th>
                         </tr>
@@ -73,7 +73,7 @@
                                                   :href="route('admin.companies.contacts.edit', [$company, $contact])">{{ __('تعديل') }}</x-button>
                                         <form method="POST"
                                               action="{{ route('admin.companies.contacts.destroy', [$company, $contact]) }}"
-                                              onsubmit="return confirm({{ Js::from(__('متأكد إنك عايز تحذف «:name»؟', ['name' => $contact->name])) }})">
+                                              onsubmit="return confirm({{ Js::from(__('هل أنت متأكد من حذف «:name»؟', ['name' => $contact->name])) }})">
                                             @csrf
                                             @method('DELETE')
                                             <x-button variant="ghost" size="sm">{{ __('حذف') }}</x-button>
@@ -83,7 +83,7 @@
                             </tr>
                         @empty
                             <tr class="table__empty">
-                                <td colspan="6">{{ __('مفيش جهات اتصال للشركة دي لسه.') }}</td>
+                                <td colspan="6">{{ __('لا توجد جهات اتصال لهذه الشركة بعد.') }}</td>
                             </tr>
                         @endforelse
                     </tbody>

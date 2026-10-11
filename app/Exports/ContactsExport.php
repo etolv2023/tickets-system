@@ -43,7 +43,7 @@ class ContactsExport implements FromQuery, WithHeadings, WithMapping, WithTitle,
 
     public function headings(): array
     {
-        return ['الاسم', 'الشركة', 'كود الشركة', 'رقم الموظف', 'الإيميل', 'التليفون', 'الحالة'];
+        return [__('الاسم'), __('الشركة'), __('كود الشركة'), __('رقم الموظف'), __('البريد الإلكتروني'), __('الهاتف'), __('الحالة')];
     }
 
     /** @param CompanyContact $contact */
@@ -56,12 +56,12 @@ class ContactsExport implements FromQuery, WithHeadings, WithMapping, WithTitle,
             $contact->erp_employee_id,
             $contact->email,
             $contact->phone,
-            $contact->is_active ? 'مفعّلة' : 'موقوفة',
+            $contact->is_active ? __('مفعّلة') : __('موقوفة'),
         ]);
     }
 
     public function title(): string
     {
-        return 'جهات الاتصال';
+        return __('جهات الاتصال');
     }
 }

@@ -9,12 +9,12 @@
     >
 
     <select name="status" class="select filters__select">
-        <option value="">{{ __('كل الحالات') }}</option>
+        <option value="">{{ __('جميع الحالات') }}</option>
         <option value="active" @selected(($filters['status'] ?? '') === 'active')>{{ __('مفعّلة') }}</option>
         <option value="inactive" @selected(($filters['status'] ?? '') === 'inactive')>{{ __('موقوفة') }}</option>
     </select>
 
-    <x-button variant="secondary">{{ __('فلترة') }}</x-button>
+    <x-button variant="secondary">{{ __('تصفية') }}</x-button>
 
     @if (array_filter($filters))
         <x-button variant="ghost" :href="route('admin.companies.index')">{{ __('مسح') }}</x-button>

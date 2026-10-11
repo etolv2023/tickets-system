@@ -14,13 +14,13 @@
             type="search"
             name="q"
             value="{{ $filters['q'] ?? '' }}"
-            placeholder="{{ __('ابحث بالعنوان أو الوصف، أو الصق رقم تذكرة') }}"
+            placeholder="{{ __('ابحث بالعنوان أو الوصف، أو الصق رقم التذكرة') }}"
             class="input filters__search"
         >
 
         <button type="button" class="btn btn--secondary" @click="panelOpen = !panelOpen"
                 :aria-expanded="panelOpen.toString()">
-            <x-icon name="filter" class="btn__icon" /> {{ __('الفلاتر') }}
+            <x-icon name="filter" class="btn__icon" /> {{ __('عوامل التصفية') }}
         </button>
 
         <x-button variant="secondary">{{ __('تطبيق') }}</x-button>
@@ -32,7 +32,7 @@
 
     <div class="filters__narrow filters__narrow--panel" x-show="panelOpen" x-cloak>
         <select name="status" class="select" aria-label="{{ __('الحالة') }}">
-            <option value="">{{ __('كل الحالات المفتوحة') }}</option>
+            <option value="">{{ __('جميع الحالات المفتوحة') }}</option>
             @foreach ($statuses as $value => $label)
                 <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ __($label) }}</option>
             @endforeach
@@ -46,7 +46,7 @@
         </select>
 
         <select name="priority" class="select" aria-label="{{ __('الأولوية') }}">
-            <option value="">{{ __('كل الأولويات') }}</option>
+            <option value="">{{ __('جميع الأولويات') }}</option>
             @foreach ($priorities as $value => $label)
                 <option value="{{ $value }}" @selected(($filters['priority'] ?? '') === $value)>{{ __($label) }}</option>
             @endforeach
@@ -56,7 +56,7 @@
             <x-combobox name="company" resource="companies"
                         :value="$filters['company'] ?? null"
                         :selected="$selectedCompany"
-                        :placeholder="__('كل الشركات')" />
+                        :placeholder="__('جميع الشركات')" />
         </div>
 
         <div class="filters__person">
@@ -77,7 +77,7 @@
         <div class="filters__group">
             <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" class="input" aria-label="{{ __('من تاريخ') }}">
             <span class="u-subtle">→</span>
-            <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" class="input" aria-label="{{ __('لتاريخ') }}">
+            <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" class="input" aria-label="{{ __('حتى تاريخ') }}">
         </div>
     </div>
 </form>

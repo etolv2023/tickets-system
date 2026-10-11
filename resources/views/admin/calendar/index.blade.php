@@ -8,7 +8,7 @@
             <div>
                 <h1 class="page-title">{{ __('العطلات والإجازات') }}</h1>
                 <p class="page-subtitle">
-                    {{ __('من غير دول، الكاليندر بيقول إن حد عليه شغل وهو أصلاً مش موجود.') }}
+                    {{ __('بدون هذه البيانات سيُظهر التقويم أن شخصًا لديه عمل وهو غير موجود أصلًا.') }}
                 </p>
             </div>
         </div>
@@ -28,11 +28,11 @@
                     <label class="checkbox-row">
                         <input type="checkbox" name="is_recurring" value="1" class="checkbox">
                         <span class="checkbox-row__label">
-                            {{ __('بتتكرر كل سنة') }}
-                            <small>{{ __('هتتحسب في نفس اليوم والشهر من كل سنة.') }}</small>
+                            {{ __('تتكرر كل سنة') }}
+                            <small>{{ __('تُحتسب في اليوم والشهر نفسيهما من كل سنة.') }}</small>
                         </span>
                     </label>
-                    <x-button variant="primary">{{ __('أضف') }}</x-button>
+                    <x-button variant="primary">{{ __('إضافة') }}</x-button>
                 </form>
             </x-card>
 
@@ -49,7 +49,7 @@
 
                     <div class="form-grid">
                         <x-field name="start_date" :label="__('من')" type="date" required />
-                        <x-field name="end_date" :label="__('لـ')" type="date" required />
+                        <x-field name="end_date" :label="__('إلى')" type="date" required />
                     </div>
 
                     <x-field name="type" :label="__('النوع')" required>
@@ -61,7 +61,7 @@
                     </x-field>
 
                     <x-field name="note" :label="__('ملاحظة')" />
-                    <x-button variant="primary">{{ __('سجّل') }}</x-button>
+                    <x-button variant="primary">{{ __('تسجيل') }}</x-button>
                 </form>
             </x-card>
         </div>
@@ -70,7 +70,7 @@
             <div class="table-wrap">
                 <table class="table table--hover">
                     <thead>
-                        <tr><th>{{ __('الاسم') }}</th><th>{{ __('التاريخ') }}</th><th>{{ __('بتتكرر؟') }}</th><th class="table__cell--actions"></th></tr>
+                        <tr><th>{{ __('الاسم') }}</th><th>{{ __('التاريخ') }}</th><th>{{ __('تتكرر؟') }}</th><th class="table__cell--actions"></th></tr>
                     </thead>
                     <tbody>
                         @forelse ($holidays as $holiday)
@@ -92,7 +92,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr class="table__empty"><td colspan="4">{{ __('مفيش عطلات مسجّلة.') }}</td></tr>
+                            <tr class="table__empty"><td colspan="4">{{ __('لا توجد عطلات مسجّلة.') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -103,7 +103,7 @@
             <div class="table-wrap">
                 <table class="table table--hover">
                     <thead>
-                        <tr><th>{{ __('الموظف') }}</th><th>{{ __('من') }}</th><th>{{ __('لـ') }}</th><th>{{ __('النوع') }}</th><th>{{ __('سجّلها') }}</th><th class="table__cell--actions"></th></tr>
+                        <tr><th>{{ __('الموظف') }}</th><th>{{ __('من') }}</th><th>{{ __('إلى') }}</th><th>{{ __('النوع') }}</th><th>{{ __('سجّلها') }}</th><th class="table__cell--actions"></th></tr>
                     </thead>
                     <tbody>
                         @forelse ($leaves as $leave)
@@ -126,7 +126,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr class="table__empty"><td colspan="6">{{ __('مفيش إجازات مسجّلة.') }}</td></tr>
+                            <tr class="table__empty"><td colspan="6">{{ __('لا توجد إجازات مسجّلة.') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>

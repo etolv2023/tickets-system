@@ -38,7 +38,7 @@ class CompanyRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'code.regex' => __('الكود لازم يكون حروف إنجليزية وأرقام و - و _ بس.'),
+            'code.regex' => __('يجب أن يتكون الكود من أحرف إنجليزية وأرقام و- و_ فقط.'),
         ];
     }
 

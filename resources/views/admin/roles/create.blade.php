@@ -7,7 +7,7 @@
         <div class="page__head">
             <div>
                 <h1 class="page-title">{{ __('دور جديد') }}</h1>
-                <p class="page-subtitle">{{ __('اختار أي تركيبة صلاحيات تحتاجها.') }}</p>
+                <p class="page-subtitle">{{ __('اختر أي مجموعة صلاحيات تحتاج إليها.') }}</p>
             </div>
         </div>
 

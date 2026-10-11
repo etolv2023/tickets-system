@@ -48,16 +48,16 @@ class MoneyExport implements WithMultipleSheets
     /** @param array<string, mixed> $data */
     private function summary(array $data): ArraySheet
     {
-        return new ArraySheet('الملخص', ['البند', 'القيمة'], [
-            ['الشهر', $this->period],
-            ['إجمالي المستحقات', (float) $data['total']],
-            ['عدد الموظفين', $data['rows']->count()],
-            ['أنواع اتصرفت عليها نقاط وسعرها لسه صفر', $data['unpriced']],
+        return new ArraySheet(__('الملخص'), [__('البند'), __('القيمة')], [
+            [__('الشهر'), $this->period],
+            [__('إجمالي المستحقات'), (float) $data['total']],
+            [__('عدد الموظفين'), $data['rows']->count()],
+            [__('أنواع احتُسبت عليها نقاط وسعرها ما زال صفرًا'), $data['unpriced']],
             [
-                'تنبيه',
+                __('تنبيه'),
                 $data['unpriced'] > 0
-                    ? 'فيه أنواع شغّالة بسعر صفر — الإجمالي أقل من الحقيقة لحد ما تتسعّر.'
-                    : 'كل الأنواع الي اتصرف عليها متسعّرة.',
+                    ? __('توجد أنواع عليها عمل وسعرها صفر — الإجمالي أقل من الحقيقي حتى يُحدَّد سعرها.')
+                    : __('جميع الأنواع التي احتُسبت عليها نقاط محددة السعر.'),
             ],
         ]);
     }
@@ -65,8 +65,8 @@ class MoneyExport implements WithMultipleSheets
     private function people(iterable $rows): ArraySheet
     {
         return new ArraySheet(
-            'المستحقات لكل موظف',
-            ['الموظف', 'إجمالي النقاط', 'المستحق'],
+            __('المستحقات لكل موظف'),
+            [__('الموظف'), __('إجمالي النقاط'), __('المستحق')],
             collect($rows)->map(fn (array $r) => [
                 $r['name'],
                 round($r['points'], 2),
@@ -94,8 +94,8 @@ class MoneyExport implements WithMultipleSheets
         }
 
         return new ArraySheet(
-            'التفصيل',
-            ['الموظف', 'نوع التذكرة', 'النقاط', 'سعر النقطة', 'المستحق', 'عدد الصفوف'],
+            __('التفصيل'),
+            [__('الموظف'), __('نوع التذكرة'), __('النقاط'), __('سعر النقطة'), __('المستحق'), __('عدد الصفوف')],
             $out,
         );
     }
@@ -103,8 +103,8 @@ class MoneyExport implements WithMultipleSheets
     private function byType(iterable $rows): ArraySheet
     {
         return new ArraySheet(
-            'حسب نوع التذكرة',
-            ['النوع', 'سعر النقطة', 'النقاط', 'المستحق'],
+            __('حسب نوع التذكرة'),
+            [__('النوع'), __('سعر النقطة'), __('النقاط'), __('المستحق')],
             collect($rows)->map(fn (array $t) => [
                 $t['label'],
                 $t['rate'],
@@ -118,8 +118,8 @@ class MoneyExport implements WithMultipleSheets
     private function rateCard(): ArraySheet
     {
         return new ArraySheet(
-            'سعر النقطة',
-            ['النوع', 'المفتاح', 'سعر النقطة'],
+            __('سعر النقطة'),
+            [__('النوع'), __('المفتاح'), __('سعر النقطة')],
             TicketTypeDefinition::orderBy('position')->get()
                 ->map(fn ($t) => [$t->label(), $t->key, (float) $t->point_value])
                 ->all(),

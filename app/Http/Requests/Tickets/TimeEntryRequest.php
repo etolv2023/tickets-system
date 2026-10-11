@@ -37,16 +37,16 @@ class TimeEntryRequest extends FormRequest
             'hours' => __('الساعات'),
             'spent_on' => __('التاريخ'),
             'note' => __('الملاحظة'),
-            'subtask_id' => __('الصب تاسك'),
+            'subtask_id' => __('المهمة الفرعية'),
         ];
     }
 
     public function messages(): array
     {
         return [
-            'spent_on.before_or_equal' => __('مينفعش تسجّل وقت في المستقبل.'),
-            'hours.min' => __('أقل وقت ممكن تسجّله ربع ساعة.'),
-            'hours.max' => __('مينفعش تسجّل أكتر من 24 ساعة في اليوم الواحد.'),
+            'spent_on.before_or_equal' => __('لا يمكن تسجيل وقت في المستقبل.'),
+            'hours.min' => __('أقل مدة يمكن تسجيلها ربع ساعة.'),
+            'hours.max' => __('لا يمكن تسجيل أكثر من 24 ساعة في اليوم الواحد.'),
         ];
     }
 }

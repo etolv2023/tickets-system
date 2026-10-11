@@ -46,7 +46,7 @@ class AuditExport implements FromQuery, WithHeadings, WithMapping, WithTitle, Sh
 
     public function headings(): array
     {
-        return ['التاريخ', 'المستخدم', 'الفعل', 'الكائن', 'رقم الكائن', 'التفاصيل', 'IP', 'المتصفح'];
+        return [__('التاريخ'), __('المستخدم'), __('الإجراء'), __('الكائن'), __('رقم الكائن'), __('التفاصيل'), 'IP', __('المتصفح')];
     }
 
     /** @param ActivityLog $log */
@@ -54,7 +54,7 @@ class AuditExport implements FromQuery, WithHeadings, WithMapping, WithTitle, Sh
     {
         return $this->sanitizeRow([
             $log->created_at?->timezone(config('app.display_timezone'))->format('Y-m-d H:i:s'),
-            $log->user?->name ?? 'النظام',
+            $log->user?->name ?? __('النظام'),
             $log->action,
             $log->subject_type === null ? null : class_basename($log->subject_type),
             $log->subject_id,
@@ -66,6 +66,6 @@ class AuditExport implements FromQuery, WithHeadings, WithMapping, WithTitle, Sh
 
     public function title(): string
     {
-        return 'سجل التدقيق';
+        return __('سجل التدقيق');
     }
 }

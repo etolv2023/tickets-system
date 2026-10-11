@@ -17,7 +17,7 @@
             @csrf
             <x-button variant="ghost" size="sm">
                 <x-icon name="refresh" class="btn__icon" />
-                {{ __('زامن دلوقتي') }}
+                {{ __('مزامنة الآن') }}
             </x-button>
         </form>
     </x-slot:actions>
@@ -32,11 +32,11 @@
             </a>
 
             @unless ($repository->is_active)
-                <x-badge variant="slate">{{ __('مقفول') }}</x-badge>
+                <x-badge variant="slate">{{ __('معطّل') }}</x-badge>
             @endunless
 
             <span class="gh-repo__stat u-mono">
-                {{ __(':count برانش', ['count' => $branchCounts[$repository->id] ?? 0]) }} · {{ $pullCounts[$repository->id] ?? 0 }} PR
+                {{ __(':count فرع', ['count' => $branchCounts[$repository->id] ?? 0]) }} · {{ $pullCounts[$repository->id] ?? 0 }} PR
             </span>
 
             @if ($repository->last_sync_error)
@@ -47,7 +47,7 @@
                     {{ $repository->last_synced_at->timezone(config('app.display_timezone'))->translatedFormat('j M — H:i') }}
                 </span>
             @else
-                <span class="u-subtle">{{ __('لسه مزامنتش') }}</span>
+                <span class="u-subtle">{{ __('لم تتم المزامنة بعد') }}</span>
             @endif
         </div>
 
@@ -65,14 +65,14 @@
                        value="{{ $repository->owner }}" class="input u-mono u-ltr" required>
             </x-field>
 
-            <x-field :name="'repo_' . $repository->id" :label="__('الريبو')" required>
+            <x-field :name="'repo_' . $repository->id" :label="__('المستودع')" required>
                 <input type="text" id="repo_{{ $repository->id }}" name="repo" dir="ltr"
                        value="{{ $repository->repo }}" class="input u-mono u-ltr" required>
             </x-field>
 
             <x-field :name="'side_' . $repository->id" :label="__('الجانب')">
                 <select id="side_{{ $repository->id }}" name="side" class="select">
-                    <option value="">{{ __('— من غير جانب —') }}</option>
+                    <option value="">{{ __('— دون جهة —') }}</option>
                     @foreach ($sides as $value => $label)
                         <option value="{{ $value }}" @selected($repository->side?->value === $value)>{{ __($label) }}</option>
                     @endforeach
@@ -87,7 +87,7 @@
             <div class="gh-repo__foot">
                 <label class="gh-repo__toggle">
                     <input type="checkbox" name="is_active" value="1" @checked($repository->is_active)>
-                    {{ __('مفعّل — يتقرا في المزامنة') }}
+                    {{ __('مفعّل — يُقرأ أثناء المزامنة') }}
                 </label>
 
                 <x-button variant="secondary" size="sm">{{ __('حفظ') }}</x-button>

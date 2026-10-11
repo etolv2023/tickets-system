@@ -36,7 +36,7 @@
 
         <div x-show="frequency === 'monthly'" x-cloak>
             <x-field :name="'monthday_' . $task->id" :label="__('يوم الشهر')"
-                     :hint="__('من 1 لـ 28 — عشان الشهور القصيرة ماتتخطاش.')">
+                     :hint="__('من 1 إلى 28 — حتى لا تُتخطّى الأشهر القصيرة.')">
                 <input type="number" min="1" max="28" id="monthday_{{ $task->id }}" name="monthday"
                        class="input" value="{{ $parts['monthday'] }}">
             </x-field>
@@ -58,7 +58,7 @@
 
         <div x-show="frequency === 'custom'" x-cloak>
             <x-field :name="'cron_' . $task->id" :label="__('صيغة cron')"
-                     :hint="__('خمس خانات: دقيقة، ساعة، يوم الشهر، الشهر، يوم الأسبوع.')">
+                     :hint="__('خمس خانات: الدقيقة، الساعة، يوم الشهر، الشهر، يوم الأسبوع.')">
                 <input type="text" id="cron_{{ $task->id }}" name="cron" dir="ltr"
                        class="input u-mono u-ltr" value="{{ $parts['cron'] }}" maxlength="100">
             </x-field>
@@ -68,15 +68,15 @@
     <div class="cron-foot">
         <label class="cron-toggle">
             <input type="checkbox" name="is_enabled" value="1" @checked($task->is_enabled)>
-            {{ __('شغّالة') }}
+            {{ __('مفعّلة') }}
         </label>
 
         @if ($task->touchesPoints())
             {{-- Worth saying out loud on this one: turning it off stops points
                  moving and nothing on any other screen looks different. --}}
-            <span class="cron-foot__warn">{{ __('لو قفلتها، خصم التأخير هيقف ومحدش هياخد باله غير وقت المكافآت.') }}</span>
+            <span class="cron-foot__warn">{{ __('إذا عطّلتها فسيتوقف خصم التأخير، ولن يلاحظ أحد ذلك إلا وقت المكافآت.') }}</span>
         @endif
 
-        <x-button variant="secondary" size="sm">{{ __('احفظ الميعاد') }}</x-button>
+        <x-button variant="secondary" size="sm">{{ __('حفظ الموعد') }}</x-button>
     </div>
 </form>

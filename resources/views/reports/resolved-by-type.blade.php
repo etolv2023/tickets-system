@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('الحلول بالنوع'))
+@section('title', __('الحلول حسب النوع'))
 
 @section('content')
     {{-- ★ (2026-10-05) F19.5 — people down, ticket types across. The question
@@ -11,10 +11,10 @@
             <div>
                 <h1 class="page-title row">
                     <x-icon name="check-circle" class="u-icon-accent" />
-                    {{ __('الحلول بالنوع') }}
+                    {{ __('الحلول حسب النوع') }}
                 </h1>
                 <p class="page-subtitle">
-                    {{ __('مين حل كام تذكرة من كل نوع في الفترة دي. «اتحلت» يعني حالتها محلولة أو مغلقة النهاردة وتاريخ حلها جوه الفترة — تذكرة اترجعت بعد ما اتحلت مبتتحسبش.') }}
+                    {{ __('من حلّ كم تذكرة من كل نوع في هذه الفترة. «محلولة» تعني أن حالتها اليوم محلولة أو مغلقة وأن تاريخ حلها ضمن الفترة — التذكرة التي أُعيد فتحها بعد حلها لا تُحتسب.') }}
                 </p>
             </div>
             <div class="page__actions">
@@ -29,12 +29,12 @@
         <div class="today-stats">
             <div class="stat-tile stat-tile--green">
                 <div class="stat-tile__figure">{{ $data['total'] }}</div>
-                <div class="stat-tile__caption">{{ __('تذكرة اتحلت في الفترة') }}</div>
+                <div class="stat-tile__caption">{{ __('تذاكر حُلّت في الفترة') }}</div>
             </div>
             @if ($data['tickets'] === null)
                 <div class="stat-tile stat-tile--teal">
                     <div class="stat-tile__figure">{{ $data['rows']->count() }}</div>
-                    <div class="stat-tile__caption">{{ __('شخص حل حاجة') }}</div>
+                    <div class="stat-tile__caption">{{ __('أشخاص حلّوا تذاكر') }}</div>
                 </div>
             @else
                 <div class="stat-tile stat-tile--slate">
@@ -44,7 +44,7 @@
             @endif
             <div class="stat-tile stat-tile--amber">
                 <div class="stat-tile__figure">{{ $data['lateCount'] }}</div>
-                <div class="stat-tile__caption">{{ __('منها اتحلت بعد معادها') }}</div>
+                <div class="stat-tile__caption">{{ __('منها حُلّت بعد موعدها') }}</div>
             </div>
         </div>
 

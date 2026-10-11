@@ -28,8 +28,8 @@ class UpdateLinkTypeRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name_ar' => __('الاسم من التذكرة'),
-            'name_en' => __('الاسم من التذكرة بالإنجليزية'),
+            'name_ar' => __('الاسم من التذكرة الأصلية'),
+            'name_en' => __('الاسم من التذكرة الأصلية بالإنجليزية'),
             'inverse_label_ar' => __('الاسم العكسي'),
             'inverse_label_en' => __('الاسم العكسي بالإنجليزية'),
             'color' => __('اللون'),

@@ -10,6 +10,7 @@ use App\Services\NotificationService;
 use App\Services\TicketService;
 use Illuminate\Http\RedirectResponse;
 use RuntimeException;
+use App\Support\Phrase;
 
 class TicketCommentController extends Controller
 {
@@ -64,12 +65,14 @@ class TicketCommentController extends Controller
         $this->notifications->dispatch(
             $ticket,
             NotificationEvent::CommentAdded,
-            ($comment->is_internal ? __('ملاحظة داخلية') : __('تعليق جديد'))
-                . " من {$request->user()->name} على {$ticket->ticket_number}",
+            new Phrase(
+                $comment->is_internal ? 'ملاحظة داخلية من :name في :number' : 'تعليق جديد من :name في :number',
+                ['name' => $request->user()->name, 'number' => $ticket->ticket_number]
+            ),
             $request->user()->id,
         );
 
         return redirect()->route('tickets.show', [$ticket, '#comment-' . $comment->id])
-            ->with('status', __('تم إضافة التعليق.'));
+            ->with('status', __('تمت إضافة التعليق.'));
     }
 }

@@ -31,7 +31,7 @@ class BackupService
      */
     private const SKIP_TABLES = ['jobs', 'job_batches', 'failed_jobs', 'cache', 'cache_locks', 'sessions'];
 
-    public const CONFIRM_PHRASE = 'استرجاع';
+    public const CONFIRM_PHRASE = 'استعادة';
 
     /** Same deliberate act for someone on an English keyboard. */
     public const CONFIRM_PHRASE_EN = 'RESTORE';
@@ -55,7 +55,7 @@ class BackupService
         $tmpPath = tempnam(sys_get_temp_dir(), 'backup_');
 
         if ($zip->open($tmpPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-            throw new RuntimeException('مقدرش أفتح ملف مؤقت للباك أب.');
+            throw new RuntimeException(__('تعذّر فتح ملف مؤقت للنسخة الاحتياطية.'));
         }
 
         $tables = $this->backupableTables();
@@ -155,7 +155,7 @@ class BackupService
         $zip->close();
 
         if (! is_array($manifest) || ! isset($manifest['tables'])) {
-            throw new RuntimeException('الملف ده مش باك أب صالح — manifest.json ناقص أو تالف.');
+            throw new RuntimeException(__('هذا الملف ليس نسخة احتياطية صالحة — ملف manifest.json مفقود أو تالف.'));
         }
 
         return $manifest;
@@ -225,11 +225,11 @@ class BackupService
 
         foreach ($manifest['tables'] as $table => $columnCount) {
             if (! isset($current[$table])) {
-                throw new RuntimeException("الباك أب فيه جدول «{$table}» مش موجود في النظام الحالي. النسخة مختلفة عن اللي عندك دلوقتي.");
+                throw new RuntimeException(__('تحتوي النسخة الاحتياطية على جدول «:table» غير موجود في النظام الحالي. النسخة مختلفة عن الإصدار المثبّت لديك.', ['table' => $table]));
             }
 
             if ($current[$table] !== $columnCount) {
-                throw new RuntimeException("جدول «{$table}» في الباك أب شكله مختلف عن الحالي — النظام لازم يبقى نفس الإصدار وقت الاسترجاع.");
+                throw new RuntimeException(__('بنية الجدول «:table» في النسخة الاحتياطية تختلف عن الحالية — يجب أن يكون النظام على الإصدار نفسه وقت الاستعادة.', ['table' => $table]));
             }
         }
     }
@@ -268,13 +268,13 @@ class BackupService
         $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($zipPath);
 
         if (! in_array($mime, ['application/zip', 'application/x-zip-compressed'], true)) {
-            throw new RuntimeException("الملف ده مش zip حقيقي (النوع الفعلي: {$mime}).");
+            throw new RuntimeException(__('هذا الملف ليس ملف zip حقيقيًا (النوع الفعلي: :mime).', ['mime' => $mime]));
         }
 
         $zip = new ZipArchive();
 
         if ($zip->open($zipPath) !== true) {
-            throw new RuntimeException('الملف مش zip صالح.');
+            throw new RuntimeException(__('الملف ليس ملف zip صالحًا.'));
         }
 
         return $zip;

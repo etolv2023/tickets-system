@@ -526,14 +526,14 @@ class DiscordNotificationService
             TicketDiscordMessage::TYPE_ASSIGNED => [
                 'embeds' => [$this->ticketEmbed(
                     $ticket,
-                    ($payload['initial'] ?? false) ? '🎯 التذكرة دي بقت معاك' : '🎯 اتعملك أساين على التذكرة دي',
+                    ($payload['initial'] ?? false) ? '🎯 أصبحت هذه التذكرة مُسندة إليك' : '🎯 تم إسنادك إلى هذه التذكرة',
                     $this->assignedNote($payload),
                 )],
             ],
             TicketDiscordMessage::TYPE_UNASSIGNED => [
                 'embeds' => [$this->plainEmbed(
                     $ticket,
-                    '👤 التذكرة دي مبقتش معاك',
+                    '👤 لم تعد هذه التذكرة مُسندة إليك',
                     $this->unassignedNote($payload),
                     'slate',
                 )],
@@ -541,14 +541,14 @@ class DiscordNotificationService
             TicketDiscordMessage::TYPE_REASSIGNED_GENERAL => [
                 'embeds' => [$this->plainEmbed(
                     $ticket,
-                    '🔄 تغيير توزيع',
+                    '🔄 تغيير الإسناد',
                     $this->reassignedNote($payload),
                     'blue',
                 )],
             ],
             TicketDiscordMessage::TYPE_STATUS_CHANGED => [
                 'embeds' => [$this->plainEmbed(
-                    $ticket, '🔵 تغيرت الحالة', $this->statusNote($payload), $ticket['variant'] ?? 'slate',
+                    $ticket, '🔵 تغيّرت الحالة', $this->statusNote($payload), $ticket['variant'] ?? 'slate',
                 )],
             ],
             TicketDiscordMessage::TYPE_RESOLVED => [
@@ -559,7 +559,7 @@ class DiscordNotificationService
             TicketDiscordMessage::TYPE_SUBTASK_ASSIGNED => [
                 'embeds' => [$this->plainEmbed(
                     $ticket,
-                    ($payload['created'] ?? false) ? '🧩 صب تاسك جديدة معاك' : '🧩 صب تاسك بقت معاك',
+                    ($payload['created'] ?? false) ? '🧩 مهمة فرعية جديدة مُسندة إليك' : '🧩 أصبحت مهمة فرعية مُسندة إليك',
                     $this->subtaskNote($payload, forOwner: true),
                     $ticket['variant'] ?? 'slate',
                 )],
@@ -567,26 +567,26 @@ class DiscordNotificationService
             TicketDiscordMessage::TYPE_SUBTASK_UNASSIGNED => [
                 'embeds' => [$this->plainEmbed(
                     $ticket,
-                    '👤 الصب تاسك دي مبقتش معاك',
+                    '👤 لم تعد هذه المهمة الفرعية مُسندة إليك',
                     $this->subtaskNote($payload, forOwner: false),
                     'slate',
                 )],
             ],
             TicketDiscordMessage::TYPE_SUBTASK_STATUS => [
                 'embeds' => [$this->plainEmbed(
-                    $ticket, '🧩 تحديث صب تاسك', $this->subtaskStatusNote($payload),
+                    $ticket, '🧩 تحديث مهمة فرعية', $this->subtaskStatusNote($payload),
                     $payload['to_variant'] ?? 'slate',
                 )],
             ],
             TicketDiscordMessage::TYPE_SUBTASK_CREATED => [
                 'embeds' => [$this->plainEmbed(
-                    $ticket, '🧩 صب تاسك جديدة', $this->subtaskThreadNote($payload), 'indigo',
+                    $ticket, '🧩 مهمة فرعية جديدة', $this->subtaskThreadNote($payload), 'indigo',
                 )],
             ],
             TicketDiscordMessage::TYPE_SUBTASK_REASSIGNED_GENERAL => [
                 'embeds' => [$this->plainEmbed(
                     $ticket,
-                    ($payload['to'] ?? null) === null ? '👤 إلغاء توزيع صب تاسك' : '🔄 نقل صب تاسك',
+                    ($payload['to'] ?? null) === null ? '👤 إلغاء إسناد مهمة فرعية' : '🔄 نقل مهمة فرعية',
                     $this->subtaskThreadNote($payload),
                     'slate',
                 )],
@@ -673,8 +673,8 @@ class DiscordNotificationService
             'color' => $this->color('indigo'),
             'fields' => [
                 ['name' => '🎫 التذاكر', 'value' => (string) $counts['total'], 'inline' => true],
-                ['name' => '🔵 شغّالة', 'value' => (string) $counts['open'], 'inline' => true],
-                ['name' => '✅ خلصت', 'value' => (string) $counts['done'], 'inline' => true],
+                ['name' => '🔵 قيد التنفيذ', 'value' => (string) $counts['open'], 'inline' => true],
+                ['name' => '✅ مكتملة', 'value' => (string) $counts['done'], 'inline' => true],
             ],
         ], fn ($v) => $v !== null && $v !== '');
     }
@@ -694,7 +694,7 @@ class DiscordNotificationService
     private function arabicDate(string $businessDate): string
     {
         $months = [1=>'يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-        $days = ['Sunday'=>'الأحد','Monday'=>'الإتنين','Tuesday'=>'التلات','Wednesday'=>'الأربع','Thursday'=>'الخميس','Friday'=>'الجمعة','Saturday'=>'السبت'];
+        $days = ['Sunday'=>'الأحد','Monday'=>'الاثنين','Tuesday'=>'الثلاثاء','Wednesday'=>'الأربعاء','Thursday'=>'الخميس','Friday'=>'الجمعة','Saturday'=>'السبت'];
 
         try {
             $d = \Carbon\CarbonImmutable::parse($businessDate);
@@ -988,8 +988,8 @@ class DiscordNotificationService
                 $ticket['status_key'] ?? null, $ticket['status'] ?? null,
                 $ticket['variant'] ?? null, $ticket['status_open'] ?? null
             ), 'inline' => true],
-            ['name' => '👤 فتحها', 'value' => P::isolate($ticket['creator'] ?? null), 'inline' => true],
-            ['name' => '🕒 اتفتحت', 'value' => P::timestamp($ticket['reported_at'] ?? null, 'R'), 'inline' => true],
+            ['name' => '👤 أنشأها', 'value' => P::isolate($ticket['creator'] ?? null), 'inline' => true],
+            ['name' => '🕒 أُنشئت', 'value' => P::timestamp($ticket['reported_at'] ?? null, 'R'), 'inline' => true],
         ];
 
         if ($team = $this->teamLines($ticket)) {
@@ -1034,7 +1034,7 @@ class DiscordNotificationService
 
         $lines = array_map(
             fn ($row) => P::role($row['role_key'] ?? null, $row['role'] ?? null)
-                . ' → ' . P::isolate($row['user'] ?? null ?: 'غير موزع'),
+                . ' → ' . P::isolate($row['user'] ?? null ?: 'غير مُسندة'),
             $rows
         );
 
@@ -1087,7 +1087,7 @@ class DiscordNotificationService
     /** @param array<string, mixed> $payload */
     private function assignedNote(array $payload): string
     {
-        $note = 'دورك على التذكرة دي: **' . ($payload['role'] ?? '—') . '**';
+        $note = 'دورك في هذه التذكرة: **' . ($payload['role'] ?? '—') . '**';
 
         if (filled($payload['previous'] ?? null)) {
             $note .= "\nكانت مع: " . $payload['previous'];
@@ -1099,13 +1099,13 @@ class DiscordNotificationService
     /** @param array<string, mixed> $payload */
     private function unassignedNote(array $payload): string
     {
-        $note = 'التذكرة دي اتوزّعت من تاني، وبقت مش معاك.'
+        $note = 'أُعيد إسناد هذه التذكرة، ولم تعد مُسندة إليك.'
             . "\nالدور: **" . ($payload['role'] ?? '—') . '**';
 
         if (filled($payload['successor'] ?? null)) {
-            $note .= "\nبقت مع: " . $payload['successor'];
+            $note .= "\nأصبحت مع: " . $payload['successor'];
         } else {
-            $note .= "\nمحدش واخدها دلوقتي.";
+            $note .= "\nغير مُسندة لأحد حاليًا.";
         }
 
         return $note;
@@ -1121,11 +1121,11 @@ class DiscordNotificationService
         // nobody — «مفيش → محمد» was noise pretending to be history.
         $note = P::role($payload['role_key'] ?? null, $payload['role'] ?? null) . "\n"
             . ($from === null
-                ? '➡️ ' . P::isolate($to ?: 'غير موزع')
+                ? '➡️ ' . P::isolate($to ?: 'غير مُسندة')
                 : P::transition($from, $to));
 
         if (filled($payload['actor'] ?? null)) {
-            $note .= "\n👤 غيّرها: " . P::isolate($payload['actor']);
+            $note .= "\n👤 بواسطة: " . P::isolate($payload['actor']);
         }
 
         return $note;
@@ -1141,7 +1141,7 @@ class DiscordNotificationService
         );
 
         if (filled($payload['actor'] ?? null)) {
-            $note .= "\n👤 غيّرها: " . P::isolate($payload['actor']);
+            $note .= "\n👤 بواسطة: " . P::isolate($payload['actor']);
         }
 
         if (filled($payload['note'] ?? null)) {
@@ -1168,8 +1168,8 @@ class DiscordNotificationService
             }
         } else {
             $note .= "\n" . (filled($payload['to'] ?? null)
-                ? '➡️ بقت مع: ' . P::isolate($payload['to'])
-                : '➡️ محدش واخدها دلوقتي.');
+                ? '➡️ أصبحت مع: ' . P::isolate($payload['to'])
+                : '➡️ غير مُسندة لأحد حاليًا.');
         }
 
         return $note;
@@ -1193,7 +1193,7 @@ class DiscordNotificationService
         );
 
         if (filled($payload['actor'] ?? null)) {
-            $note .= "\n👤 غيّرها: " . P::isolate($payload['actor']);
+            $note .= "\n👤 بواسطة: " . P::isolate($payload['actor']);
         }
 
         return $note;
@@ -1218,15 +1218,15 @@ class DiscordNotificationService
 
         // A first assignment is not a hand-off from nobody.
         $note .= "\n" . ($from === null
-            ? '👤 ' . P::isolate($to ?: 'غير موزع')
+            ? '👤 ' . P::isolate($to ?: 'غير مُسندة')
             : P::transition($from, $to));
 
         if ($payload['synced'] ?? false) {
-            $note .= "\n↪️ وتوزيع التذكرة اتظبط على كده.";
+            $note .= "\n↪️ وتم تحديث إسناد التذكرة وفقًا لذلك.";
         }
 
         if (filled($payload['actor'] ?? null)) {
-            $note .= "\n👤 غيّرها: " . P::isolate($payload['actor']);
+            $note .= "\n👤 بواسطة: " . P::isolate($payload['actor']);
         }
 
         return $note;

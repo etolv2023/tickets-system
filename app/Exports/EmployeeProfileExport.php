@@ -37,9 +37,9 @@ class EmployeeProfileExport implements WithMultipleSheets
     private function summary(array $data): ArraySheet
     {
         $rows = [
-            ['الموظف', $this->employee->name],
-            ['الدور', $this->employee->role?->label()],
-            ['الشهر', $this->period],
+            [__('الموظف'), $this->employee->name],
+            [__('الدور'), $this->employee->role?->label()],
+            [__('الشهر'), $this->period],
         ];
 
         // Types are admin-defined now, so the list comes from the table rather
@@ -48,23 +48,23 @@ class EmployeeProfileExport implements WithMultipleSheets
             $rows[] = [$type->label(), $data['byType'][$type->key] ?? 0];
         }
 
-        $rows[] = ['إجمالي نقاط الشهر', (float) $data['pointsTotal']];
-        $rows[] = ['متوسط التقييم', $data['avgRating'] === null ? '—' : round((float) $data['avgRating'], 2)];
-        $rows[] = ['متوسط زمن الحل (ساعة)', $data['avgResolutionHours'] ?? '—'];
-        $rows[] = ['دقة التقدير (مقدّر ÷ فعلي)', $data['estimateAccuracy'] ?? '—'];
-        $rows[] = ['ساعات مسجّلة', $data['hoursLogged']];
-        $rows[] = ['تذاكر اتحلت', $data['reopenRate']['resolved']];
-        $rows[] = ['منها رجّعها التيستر', $data['reopenRate']['reopened']];
-        $rows[] = ['معدل الارتجاع', $data['reopenRate']['rate'] . '٪'];
+        $rows[] = [__('إجمالي نقاط الشهر'), (float) $data['pointsTotal']];
+        $rows[] = [__('متوسط التقييم'), $data['avgRating'] === null ? '—' : round((float) $data['avgRating'], 2)];
+        $rows[] = [__('متوسط زمن الحل (ساعة)'), $data['avgResolutionHours'] ?? '—'];
+        $rows[] = [__('دقة التقدير (مقدّر ÷ فعلي)'), $data['estimateAccuracy'] ?? '—'];
+        $rows[] = [__('ساعات مسجّلة'), $data['hoursLogged']];
+        $rows[] = [__('تذاكر محلولة'), $data['reopenRate']['resolved']];
+        $rows[] = [__('منها أعادها المختبِر'), $data['reopenRate']['reopened']];
+        $rows[] = [__('معدل إعادة الفتح'), $data['reopenRate']['rate'] . __('٪')];
 
-        return new ArraySheet('الملخص', ['البند', 'القيمة'], $rows);
+        return new ArraySheet(__('الملخص'), [__('البند'), __('القيمة')], $rows);
     }
 
     private function points(iterable $rows): ArraySheet
     {
         return new ArraySheet(
-            'النقاط حسب الجهة',
-            ['الجهة / الدور', 'الإجمالي'],
+            __('النقاط حسب الجهة'),
+            [__('الجهة / الدور'), __('الإجمالي')],
             collect($rows)->map(fn ($r) => [
                 // A role-based award has side = null and role_id set instead.
                 $r->side?->label() ?? $r->role?->label() ?? '—',
@@ -78,8 +78,8 @@ class EmployeeProfileExport implements WithMultipleSheets
         $tz = config('app.display_timezone');
 
         return new ArraySheet(
-            'التذاكر',
-            ['رقم التذكرة', 'العنوان', 'الجهة الطالبة', 'النوع', 'الأولوية', 'الحالة', 'تاريخ الفتح', 'تاريخ الحل'],
+            __('التذاكر'),
+            [__('رقم التذكرة'), __('العنوان'), __('الجهة الطالبة'), __('النوع'), __('الأولوية'), __('الحالة'), __('تاريخ الفتح'), __('تاريخ الحل')],
             collect($rows)->map(fn ($t) => [
                 $t->ticket_number,
                 $t->title,

@@ -57,7 +57,7 @@
                                 :class="tab === 'subtasks' && 'tabs__tab--active'"
                                 :aria-selected="tab === 'subtasks' ? 'true' : 'false'"
                                 class="tabs__tab">
-                            {{ __('الصب تاسكس') }}
+                            {{ __('المهام الفرعية') }}
                             @if ($ticket->subtasks_total > 0)
                                 <span class="tabs__count">{{ $ticket->subtasks_total }}</span>
                             @endif
@@ -124,7 +124,7 @@
                 <div class="ticket__side-head">
                     <div>
                         <strong>{{ __('إدارة التذكرة') }}</strong>
-                        <span>{{ __('الإجراءات والتفاصيل المكملة') }}</span>
+                        <span>{{ __('الإجراءات والتفاصيل الإضافية') }}</span>
                     </div>
                     <x-icon name="settings" />
                 </div>

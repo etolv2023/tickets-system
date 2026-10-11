@@ -7,11 +7,11 @@
         <x-form-errors />
 
         <x-alert>
-            {{ __('آخر خطوة هتعمل الآتي:') }}
+            {{ __('ستنفّذ الخطوة الأخيرة ما يلي:') }}
             <ul class="alert__list">
-                <li>{{ __('تولّد مفتاح تشفير جديد خاص بالتنصيب ده.') }}</li>
-                <li>{{ __('تقفل وضع التطوير (') }}<span class="u-mono">APP_DEBUG=false</span>).</li>
-                <li>{{ __('تكتب') }} <span class="u-mono">storage/installed.lock</span> {{ __('— وبعدها صفحة التنصيب هترجع 404.') }}</li>
+                <li>{{ __('توليد مفتاح تشفير جديد خاص بهذا التثبيت.') }}</li>
+                <li>{{ __('تعطيل وضع التطوير (') }}<span class="u-mono">APP_DEBUG=false</span>).</li>
+                <li>{{ __('كتابة') }} <span class="u-mono">storage/installed.lock</span> {{ __('— وبعدها ستُرجع صفحة التثبيت الخطأ 404.') }}</li>
             </ul>
         </x-alert>
 

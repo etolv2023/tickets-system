@@ -48,9 +48,9 @@ class TicketWorkLog extends Model
     public function statusLabel(): string
     {
         return match ($this->status) {
-            'pending' => __('مستنية'),
-            'in_progress' => __('جاري العمل'),
-            'done' => __('خلصت'),
+            'pending' => __('قيد الانتظار'),
+            'in_progress' => __('قيد التنفيذ'),
+            'done' => __('مكتملة'),
             default => $this->status,
         };
     }

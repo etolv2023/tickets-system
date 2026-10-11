@@ -37,7 +37,7 @@
     >
         {{-- A subtask says who and how long. A ticket deadline says neither —
              that is the difference you are meant to see without reading. --}}
-        <span class="cal__kind-label">{{ __('صب تاسك') }}</span>
+        <span class="cal__kind-label">{{ __('مهمة فرعية') }}</span>
         @if ($subtask->assignee)
             <span class="cal__who">{{ $subtask->assignee->initials() }}</span>
         @endif

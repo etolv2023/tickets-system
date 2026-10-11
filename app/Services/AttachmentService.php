@@ -175,7 +175,7 @@ class AttachmentService
         // browsers silently split, breaking the surrounding sentence.
         return preg_replace(
             '#<img[^>]*>#i',
-            '<em>[صورة داخلية]</em>',
+            '<em>[صورة مضمّنة]</em>',
             $html
         );
     }
@@ -193,7 +193,7 @@ class AttachmentService
         $max = (int) config('uploads.portal.max_per_comment', 3);
 
         if (count($files) > $max) {
-            throw new RuntimeException(__('مسموح بـ :max ملفات في الرسالة الواحدة.', ['max' => $max]));
+            throw new RuntimeException(__('يُسمح بـ :max ملفات في الرسالة الواحدة.', ['max' => $max]));
         }
 
         return array_map(
@@ -251,7 +251,7 @@ class AttachmentService
                     ->encodeByExtension($extension, quality: 75);
             } catch (\Throwable $e) {
                 throw new RuntimeException(
-                    __('«:name» مقدرناش نقراها كصورة — الملف غالباً ناقص أو باظ.', ['name' => $file->getClientOriginalName()])
+                    __('تعذّرت قراءة «:name» كصورة — الملف غالبًا ناقص أو تالف.', ['name' => $file->getClientOriginalName()])
                 );
             }
 
@@ -304,7 +304,7 @@ class AttachmentService
 
         if (! array_key_exists($mime, self::ALLOWED)) {
             throw new RuntimeException(
-                __('«:name» نوعه الحقيقي :mime — مرفوض. المسموح: صور أو PDF أو فيديو.', ['name' => $file->getClientOriginalName(), 'mime' => $mime])
+                __('النوع الفعلي لـ «:name» هو :mime — مرفوض. المسموح: صور أو PDF أو فيديو.', ['name' => $file->getClientOriginalName(), 'mime' => $mime])
             );
         }
 
@@ -313,7 +313,7 @@ class AttachmentService
         if ($file->getSize() > $limit) {
             $mb = (int) ($limit / 1024 / 1024);
 
-            throw new RuntimeException(__('«:name» أكبر من :size ميجا.', ['name' => $file->getClientOriginalName(), 'size' => $mb]));
+            throw new RuntimeException(__('حجم «:name» أكبر من :size ميغابايت.', ['name' => $file->getClientOriginalName(), 'size' => $mb]));
         }
 
         $this->assertDecodable($file, $mime);
@@ -334,7 +334,7 @@ class AttachmentService
         if ($file->getSize() > $max) {
             $mb = round($max / 1024 / 1024, 1);
 
-            throw new RuntimeException(__('الملف أكبر من :size ميجا.', ['size' => $mb]));
+            throw new RuntimeException(__('حجم الملف أكبر من :size ميغابايت.', ['size' => $mb]));
         }
 
         $mime = $this->sniff($file);
@@ -342,7 +342,7 @@ class AttachmentService
 
         if (! array_key_exists($mime, $allowed)) {
             throw new RuntimeException(
-                __('«:name» نوعه الحقيقي :mime — مرفوض.', ['name' => $file->getClientOriginalName(), 'mime' => $mime])
+                __('النوع الفعلي لـ «:name» هو :mime — مرفوض.', ['name' => $file->getClientOriginalName(), 'mime' => $mime])
             );
         }
 
@@ -370,7 +370,7 @@ class AttachmentService
 
         return [
             'accept' => implode(',', array_keys($types)),
-            'hint' => __(':types · حد أقصى :size ميجا للملف · :count ملفات', ['types' => $labels, 'size' => $mb, 'count' => $count]),
+            'hint' => __(':types · الحد الأقصى :size ميغابايت للملف · :count ملفات', ['types' => $labels, 'size' => $mb, 'count' => $count]),
         ];
     }
 
@@ -409,11 +409,11 @@ class AttachmentService
         $size = @getimagesize($file->getRealPath());
 
         if ($size === false) {
-            throw new RuntimeException(__('«:name» مش صورة سليمة.', ['name' => $file->getClientOriginalName()]));
+            throw new RuntimeException(__('«:name» ليست صورة سليمة.', ['name' => $file->getClientOriginalName()]));
         }
 
         if (($size[0] * $size[1]) > self::MAX_PIXELS) {
-            throw new RuntimeException(__('«:name» أبعادها كبيرة جداً.', ['name' => $file->getClientOriginalName()]));
+            throw new RuntimeException(__('أبعاد «:name» كبيرة جدًا.', ['name' => $file->getClientOriginalName()]));
         }
     }
 
@@ -440,7 +440,7 @@ class AttachmentService
         $verdict = $this->scanner->scan($file->getRealPath());
 
         if (is_string($verdict)) {
-            throw new RuntimeException(__('«:name» فيه برمجية خبيثة (:verdict) — اترفض.', ['name' => $name, 'verdict' => $verdict]));
+            throw new RuntimeException(__('يحتوي «:name» على برمجية خبيثة (:verdict) — تم رفضه.', ['name' => $name, 'verdict' => $verdict]));
         }
     }
 }

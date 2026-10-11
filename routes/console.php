@@ -84,11 +84,11 @@ Artisan::command('schedule:audit', function () {
     $orphans = array_diff($rows, ScheduledTaskRegistry::keys());
 
     foreach ($missing as $key) {
-        $this->warn("في الكود ومفيش ليه صف: {$key} — شغّل db:seed --class=ScheduledTaskSeeder");
+        $this->warn("موجودة في الكود ولا صف لها: {$key} — شغّل db:seed --class=ScheduledTaskSeeder");
     }
 
     foreach ($orphans as $key) {
-        $this->warn("صف في الداتابيز مش موجود في الكود (بيتجاهل): {$key}");
+        $this->warn("صف في قاعدة البيانات غير موجود في الكود (سيُتجاهل): {$key}");
     }
 
     if ($missing === [] && $orphans === []) {

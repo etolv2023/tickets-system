@@ -335,8 +335,8 @@ class LatePenaltyService
             : ((int) $deadline->copy()->startOfDay()->diffInDays($asOf->copy()->startOfDay())) . ' يوم';
 
         $note = $this->wasCharged($subtask)
-            ? "خصم تأخير متراكم ({$asOf->translatedFormat('j M')}): لسه متأخرة عن {$due} بـ {$late} — التراكم مفعّل فبيتخصم كل يوم"
-            : "خصم تأخير: كانت مستحقة {$due} ومتأخرة {$late}";
+            ? "خصم تأخير متراكم ({$asOf->translatedFormat('j M')}): ما زالت متأخرة عن {$due} بمقدار {$late} — الخصم التراكمي مفعّل، لذا يُخصم يوميًا"
+            : "خصم تأخير: كان موعد استحقاقها {$due} وتأخرت {$late}";
 
         $head = "{$ticket->type->label()} — {$earner} (";
         $tail = ") — {$note}";

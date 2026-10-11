@@ -19,7 +19,7 @@ class Label extends Model
      * @var array<string, string>
      */
     /* The full picker. Keys are hue names, not role names: an admin choosing a
-       colour for a custom status is picking "تركوازي", not "progress".
+       colour for a custom status is picking "فيروزي", not "progress".
        Every hue here has a matching --c-<key> / --c-<key>-bg token pair in
        tokens.css and a .badge--<key> / .stripe--<key> rule. Adding one means
        adding all three.
@@ -37,7 +37,7 @@ class Label extends Model
         'yellow' => 'أصفر',
         'lime' => 'ليموني',
         'green' => 'أخضر',
-        'teal' => 'تركوازي',
+        'teal' => 'فيروزي',
         'cyan' => 'سماوي',
         'indigo' => 'نيلي',
         'violet' => 'بنفسجي',

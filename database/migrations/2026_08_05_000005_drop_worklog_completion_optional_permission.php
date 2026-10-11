@@ -63,7 +63,7 @@ return new class extends Migration
             ['key' => self::KEY],
             [
                 'group' => 'workflow',
-                'name_ar' => 'مش ملزم يضغط «خلصت» لإقفال التذكرة',
+                'name_ar' => 'غير مُلزَم بضغط «إنهاء العمل» لإغلاق التذكرة',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]

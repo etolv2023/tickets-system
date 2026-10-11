@@ -22,7 +22,7 @@
                         type="button"
                         class="gallery__item"
                         @click="show(@js($lightboxItems), {{ $index }})"
-                        aria-label="{{ __('كبّر :name', ['name' => $image->original_name]) }}"
+                        aria-label="{{ __('تكبير :name', ['name' => $image->original_name]) }}"
                     >
                         {{-- The thumbnail, not the original: a 4MB photo never
                              loads into a grid. CLAUDE.md § 4.8 --}}
@@ -58,10 +58,10 @@
             <div class="lightbox__bar">
                 <span class="lightbox__name" x-text="current?.name"></span>
                 <div class="row">
-                    <a class="lightbox__btn" :href="current?.download" aria-label="{{ __('نزّل') }}">
+                    <a class="lightbox__btn" :href="current?.download" aria-label="{{ __('تنزيل') }}">
                         <x-icon name="download" />
                     </a>
-                    <button type="button" class="lightbox__btn" @click="close()" aria-label="{{ __('اقفل') }}">
+                    <button type="button" class="lightbox__btn" @click="close()" aria-label="{{ __('إغلاق') }}">
                         <x-icon name="close" />
                     </button>
                 </div>

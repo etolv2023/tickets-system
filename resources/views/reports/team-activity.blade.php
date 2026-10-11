@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
-@section('title', __('تقرير التيم التفصيلي'))
+@section('title', __('تقرير الفريق التفصيلي'))
 
 @section('content')
     {{-- ★★★★ (2026-07-21): raw-row filterable tables, same case as the ticket list. --}}
     <div class="page page--wide">
         <div class="page__head">
             <div>
-                <h1 class="page-title">{{ __('تقرير التيم التفصيلي') }}</h1>
-                <p class="page-subtitle">{{ __('التذاكر والصب تاسكس الفعلية — مش أرقام مجمّعة، الصفوف نفسها.') }}</p>
+                <h1 class="page-title">{{ __('تقرير الفريق التفصيلي') }}</h1>
+                <p class="page-subtitle">{{ __('التذاكر والمهام الفرعية الفعلية — ليست أرقامًا مجمّعة، بل الصفوف نفسها.') }}</p>
             </div>
             <div class="page__actions">
                 <x-export-button route="export.team-activity" />
@@ -55,7 +55,7 @@
                                             @forelse ($ticket->roleAssignments as $assignment)
                                                 @if ($assignment->user)<x-avatar :user="$assignment->user" size="sm" />@endif
                                             @empty
-                                                <span class="u-subtle">{{ __('مش موزعة') }}</span>
+                                                <span class="u-subtle">{{ __('غير مُسندة') }}</span>
                                             @endforelse
                                         </div>
                                     </td>
@@ -65,7 +65,7 @@
                                         @if ($ticket->missedDeadlines() !== [])
                                             <x-badge variant="urgent" class="badge--sm">{{ __('متأخرة') }}</x-badge>
                                         @elseif ($ticket->hasDeadline())
-                                            <span class="tickets__ontime">{{ __('في معادها') }}</span>
+                                            <span class="tickets__ontime">{{ __('في الموعد') }}</span>
                                         @else
                                             <span class="u-subtle">—</span>
                                         @endif
@@ -73,7 +73,7 @@
                                 </tr>
                             @empty
                                 <tr class="table__empty">
-                                    <td colspan="8">{{ __('مفيش تذاكر بالفلاتر دي.') }}</td>
+                                    <td colspan="8">{{ __('لا توجد تذاكر مطابقة لعوامل التصفية.') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>

@@ -8,6 +8,7 @@ use App\Models\TicketSubtask;
 use App\Models\User;
 use DomainException;
 use Illuminate\Support\Facades\DB;
+use App\Support\Phrase;
 
 /**
  * Keeps a subtask's owner and the parent ticket's distribution telling the same
@@ -253,9 +254,7 @@ class SubtaskAssignmentService
         $rivalOwner = User::whereKey($rival->assignee_id)->value('name') ?? '#' . $rival->assignee_id;
 
         throw new DomainException(
-            'مينفعش: فيه صب تاسك تانية على نفس الدور لسه مخلصتش ومع حد تاني — '
-            . "«{$rival->title}» مع {$rivalOwner}. "
-            . 'التذكرة بتشيل شخص واحد بس لكل دور، فسلّم الصب تاسك دي أو قفلها الأول.'
+            __('لا يمكن ذلك: توجد مهمة فرعية أخرى على الدور نفسه لم تكتمل ومُسندة إلى شخص آخر — «:title» مع :owner. تتسع التذكرة لشخص واحد فقط لكل دور، فسلّم هذه المهمة الفرعية أو أغلقها أولًا.', ['title' => $rival->title, 'owner' => $rivalOwner])
         );
     }
 
@@ -285,7 +284,7 @@ class SubtaskAssignmentService
                 $to,
                 $ticket,
                 'subtask.assigned',
-                "اتسندت لك صب تاسك على {$ticket->ticket_number}: {$subtask->title}",
+                new Phrase('أُسندت إليك مهمة فرعية في :number: :title', ['number' => $ticket->ticket_number, 'title' => $subtask->title]),
                 $actorId,
             );
         }

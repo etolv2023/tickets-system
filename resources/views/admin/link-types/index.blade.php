@@ -8,7 +8,7 @@
             <div>
                 <h1 class="page-title">{{ __('أنواع الروابط') }}</h1>
                 <p class="page-subtitle">
-                    {{ __('كل نوع بيتقري باتجاهين: من التذكرة الأصلية ومن التذكرة التانية (مثلاً «بتبلوك» / «مبلوكة بـ»). الأنواع الأساسية (تحتها «أساسي») تقدر تعدّلها بس مينفعش تتحذف — «بتبلوك» ليه سلوك في النظام (علامة التبلوك).') }}
+                    {{ __('يُقرأ كل نوع في اتجاهين: من التذكرة الأصلية ومن التذكرة الأخرى (مثل «يعطّل» / «معطَّلة بسبب»). الأنواع الأساسية (المميزة بـ «أساسي») يمكن تعديلها لكن لا يمكن حذفها — لأن لـ «يعطّل» سلوكًا في النظام (علامة التعطيل).') }}
                 </p>
             </div>
         </div>
@@ -22,11 +22,11 @@
         <x-card :title="__('نوع ربط جديد')">
             <form method="POST" action="{{ route('admin.link-types.store') }}" class="form-grid">
                 @csrf
-                <x-field name="key" :label="__('المفتاح')" required :hint="__('إنجليزي، زي :example — ميتغيّرش بعد كده.', ['example' => 'split_from'])" />
-                <x-field name="name_ar" :label="__('الاسم من التذكرة (عربي)')" required :hint="__('زي «بتبلوك».')" />
-                <x-field name="name_en" :label="__('الاسم من التذكرة (إنجليزي)')" dir="ltr" :hint="__('زي «Blocks» — اختياري.')" />
-                <x-field name="inverse_label_ar" :label="__('الاسم العكسي (عربي)')" required :hint="__('زي «مبلوكة بـ» — بيظهر على التذكرة التانية.')" />
-                <x-field name="inverse_label_en" :label="__('الاسم العكسي (إنجليزي)')" dir="ltr" :hint="__('زي «Blocked by» — اختياري.')" />
+                <x-field name="key" :label="__('المفتاح')" required :hint="__('بالإنجليزية، مثل :example — لا يمكن تغييره لاحقًا.', ['example' => 'split_from'])" />
+                <x-field name="name_ar" :label="__('الاسم من التذكرة الأصلية (عربي)')" required :hint="__('مثل «يعطّل».')" />
+                <x-field name="name_en" :label="__('الاسم من التذكرة الأصلية (إنجليزي)')" dir="ltr" :hint="__('مثل «Blocks» — اختياري.')" />
+                <x-field name="inverse_label_ar" :label="__('الاسم العكسي (عربي)')" required :hint="__('مثل «معطَّلة بسبب» — يظهر في التذكرة الأخرى.')" />
+                <x-field name="inverse_label_en" :label="__('الاسم العكسي (إنجليزي)')" dir="ltr" :hint="__('مثل «Blocked by» — اختياري.')" />
                 <x-field name="color" :label="__('اللون')" required>
                     <select id="color" name="color" class="select" required>
                         @foreach ($colors as $value => $label)
@@ -35,7 +35,7 @@
                     </select>
                 </x-field>
                 <div class="form-actions">
-                    <x-button variant="primary">{{ __('أضف') }}</x-button>
+                    <x-button variant="primary">{{ __('إضافة') }}</x-button>
                 </div>
             </form>
         </x-card>
@@ -66,8 +66,8 @@
                                     <form method="POST" action="{{ route('admin.link-types.update', $t) }}" class="opt-form">
                                         @csrf
                                         @method('PUT')
-                                        <input type="text" name="name_ar" value="{{ $t->name_ar }}" class="input opt-form__name" aria-label="{{ __('الاسم من التذكرة (عربي)') }}" placeholder="{{ __('الاسم من التذكرة (عربي)') }}">
-                                        <input type="text" name="name_en" value="{{ $t->name_en }}" class="input opt-form__name" dir="ltr" aria-label="{{ __('الاسم من التذكرة (إنجليزي)') }}" placeholder="{{ __('الاسم من التذكرة (إنجليزي)') }}">
+                                        <input type="text" name="name_ar" value="{{ $t->name_ar }}" class="input opt-form__name" aria-label="{{ __('الاسم من التذكرة الأصلية (عربي)') }}" placeholder="{{ __('الاسم من التذكرة الأصلية (عربي)') }}">
+                                        <input type="text" name="name_en" value="{{ $t->name_en }}" class="input opt-form__name" dir="ltr" aria-label="{{ __('الاسم من التذكرة الأصلية (إنجليزي)') }}" placeholder="{{ __('الاسم من التذكرة الأصلية (إنجليزي)') }}">
                                         <input type="text" name="inverse_label_ar" value="{{ $t->inverse_label_ar }}" class="input opt-form__name" aria-label="{{ __('الاسم العكسي (عربي)') }}" placeholder="{{ __('الاسم العكسي (عربي)') }}">
                                         <input type="text" name="inverse_label_en" value="{{ $t->inverse_label_en }}" class="input opt-form__name" dir="ltr" aria-label="{{ __('الاسم العكسي (إنجليزي)') }}" placeholder="{{ __('الاسم العكسي (إنجليزي)') }}">
                                         <select name="color" class="select filters__select">
@@ -81,7 +81,7 @@
                                 <td class="table__cell--actions">
                                     @unless ($t->is_system)
                                         <form method="POST" action="{{ route('admin.link-types.destroy', $t) }}"
-                                              onsubmit="return confirm(@js(__('متأكد من حذف «:name»؟', ['name' => $t->label()])))">
+                                              onsubmit="return confirm(@js(__('هل أنت متأكد من حذف «:name»؟', ['name' => $t->label()])))">
                                             @csrf
                                             @method('DELETE')
                                             <x-button variant="ghost" size="sm">{{ __('حذف') }}</x-button>

@@ -38,7 +38,7 @@ class UserPolicy
         }
 
         if ($user->is($target)) {
-            return Response::deny(__('مينفعش توقف حسابك انت.'));
+            return Response::deny(__('لا يمكنك إيقاف حسابك.'));
         }
 
         return Response::allow();
@@ -62,7 +62,7 @@ class UserPolicy
         }
 
         if ($user->is($target)) {
-            return Response::deny(__('مينفعش تحذف حسابك انت.'));
+            return Response::deny(__('لا يمكنك حذف حسابك.'));
         }
 
         return Response::allow();

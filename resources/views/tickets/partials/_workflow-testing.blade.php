@@ -5,7 +5,7 @@
 @endphp
 @if ($iAmTester && in_array($ticket->status->value, ['dev_done', 'testing'], true))
     <x-collapsible-card :title="__('اعتماد الجودة')" name="testing" :open="true">
-        <p class="field__hint">{{ __('اعتماد النتيجة ينقل التذكرة إلى «تم الحل» ويؤدي إلى احتساب النقاط مرة واحدة. الإرجاع يعيدها للتنفيذ مع سبب واضح.') }}</p>
+        <p class="field__hint">{{ __('يؤدي اعتماد النتيجة إلى نقل التذكرة إلى «تم الحل» واحتساب النقاط مرة واحدة، بينما يعيدها الإرجاع إلى التنفيذ مع سبب واضح.') }}</p>
         <div class="stack stack--tight">
             <form method="POST" action="{{ route('tickets.verify', $ticket) }}">
                 @csrf

@@ -52,12 +52,18 @@ class TicketStatusHistory extends Model
         return TicketStatusValue::for($this->to_status)->label();
     }
 
+    /** The note in the reader's language when the system wrote it; as typed when a person did. */
+    public function noteText(): ?string
+    {
+        return \App\Support\Phrase::fromStored($this->note);
+    }
+
     /** "مستني رد من فلان (تيم)" / "مستني رد من فلان (عميل)" — null if no recipient was named. */
     public function recipientLabel(): ?string
     {
         return match ($this->recipient_type) {
-            'team' => $this->recipientUser ? __(':name (تيم)', ['name' => $this->recipientUser->name]) : null,
-            'company' => $this->recipientContact ? __(':name (عميل)', ['name' => $this->recipientContact->name]) : null,
+            'team' => $this->recipientUser ? __(':name (الفريق)', ['name' => $this->recipientUser->name]) : null,
+            'company' => $this->recipientContact ? __(':name (العميل)', ['name' => $this->recipientContact->name]) : null,
             default => null,
         };
     }

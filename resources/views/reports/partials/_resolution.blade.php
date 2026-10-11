@@ -20,7 +20,7 @@
                             <td class="table__cell--num">{{ $row->n }}</td>
                         </tr>
                     @empty
-                        <tr class="table__empty"><td colspan="3">{{ __('مفيش تذاكر اتحلت.') }}</td></tr>
+                        <tr class="table__empty"><td colspan="3">{{ __('لم تُحل أي تذكرة.') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -46,7 +46,7 @@
                             <td class="table__cell--num">{{ $row->n }}</td>
                         </tr>
                     @empty
-                        <tr class="table__empty"><td colspan="3">{{ __('مفيش تذاكر اتحلت.') }}</td></tr>
+                        <tr class="table__empty"><td colspan="3">{{ __('لم تُحل أي تذكرة.') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

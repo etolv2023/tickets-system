@@ -61,10 +61,10 @@ class PointsLedgerExport implements FromQuery, WithHeadings, WithMapping, WithTi
     public function headings(): array
     {
         return [
-            'التاريخ', 'الشهر', 'الموظف', 'دور الموظف',
-            'رقم التذكرة', 'عنوان التذكرة', 'الجهة الطالبة', 'نوع التذكرة',
-            'الصب تاسك', 'الجهة / الدور', 'المصدر', 'اللي عمل التصحيح', 'السبب', 'النقاط',
-            'وصف التذكرة', 'وصف الصب تاسك',
+            __('التاريخ'), __('الشهر'), __('الموظف'), __('دور الموظف'),
+            __('رقم التذكرة'), __('عنوان التذكرة'), __('الجهة الطالبة'), __('نوع التذكرة'),
+            __('المهمة الفرعية'), __('الجهة / الدور'), __('المصدر'), __('منفّذ التصحيح'), __('السبب'), __('النقاط'),
+            __('وصف التذكرة'), __('وصف المهمة الفرعية'),
         ];
     }
 
@@ -82,7 +82,7 @@ class PointsLedgerExport implements FromQuery, WithHeadings, WithMapping, WithTi
             $row->ticket?->type?->label(),
             // A correction has no subtask behind it — saying so beats a dash
             // the reader has to interpret.
-            $row->type === 'correction' ? '— تصحيح يدوي —' : $row->subtask?->title,
+            $row->type === 'correction' ? __('— تصحيح يدوي —') : $row->subtask?->title,
             $row->sideLabel(),
             $row->kindLabel(),
             // Only a correction has an author: nobody "made" a late penalty,
@@ -97,6 +97,6 @@ class PointsLedgerExport implements FromQuery, WithHeadings, WithMapping, WithTi
 
     public function title(): string
     {
-        return 'دفتر النقاط';
+        return __('دفتر النقاط');
     }
 }

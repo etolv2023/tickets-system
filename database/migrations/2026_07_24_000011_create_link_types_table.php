@@ -20,10 +20,10 @@ return new class extends Migration
 {
     /** @var array<int, array{key: string, name_ar: string, inverse_label_ar: string, color: string}> */
     private const SYSTEM_TYPES = [
-        ['key' => 'blocks', 'name_ar' => 'بتبلوك', 'inverse_label_ar' => 'مبلوكة بـ', 'color' => 'red'],
+        ['key' => 'blocks', 'name_ar' => 'يعطّل', 'inverse_label_ar' => 'معطَّلة بسبب', 'color' => 'red'],
         ['key' => 'relates', 'name_ar' => 'مرتبطة بـ', 'inverse_label_ar' => 'مرتبطة بـ', 'color' => 'slate'],
-        ['key' => 'duplicates', 'name_ar' => 'مكررة لـ', 'inverse_label_ar' => 'متكررة في', 'color' => 'amber'],
-        ['key' => 'caused_by', 'name_ar' => 'سببها', 'inverse_label_ar' => 'تسببت في', 'color' => 'plum'],
+        ['key' => 'duplicates', 'name_ar' => 'مكرَّرة من', 'inverse_label_ar' => 'مكرَّرة في', 'color' => 'amber'],
+        ['key' => 'caused_by', 'name_ar' => 'ناتجة عن', 'inverse_label_ar' => 'تسببت في', 'color' => 'plum'],
     ];
 
     public function up(): void

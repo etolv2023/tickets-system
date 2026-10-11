@@ -69,13 +69,13 @@ class VirusScanner
 
         if ($verdict === null) {
             throw new RuntimeException(
-                "مقدرناش نفحص «{$displayName}» ضد الفيروسات دلوقتي. جرّب تاني بعد شوية."
+                __('تعذّر فحص «:name» ضد الفيروسات حاليًا. حاول مرة أخرى بعد قليل.', ['name' => $displayName])
             );
         }
 
         if ($verdict !== true) {
             throw new RuntimeException(
-                "«{$displayName}» فيه برمجية خبيثة ({$verdict}) — اترفض."
+                __('يحتوي «:name» على برمجية خبيثة (:verdict) — تم رفضه.', ['name' => $displayName, 'verdict' => $verdict])
             );
         }
 

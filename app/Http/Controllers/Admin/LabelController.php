@@ -30,7 +30,7 @@ class LabelController extends Controller
 
         Label::create($data + ['created_by' => $request->user()->id]);
 
-        return back()->with('status', __('تم إضافة لابل «:name».', ['name' => $data['name']]));
+        return back()->with('status', __('تمت إضافة الوسم «:name».', ['name' => $data['name']]));
     }
 
     public function update(Request $request, Label $label): RedirectResponse
@@ -39,7 +39,7 @@ class LabelController extends Controller
 
         $label->update($this->validated($request, $label));
 
-        return back()->with('status', __('تم حفظ اللابل.'));
+        return back()->with('status', __('تم حفظ الوسم.'));
     }
 
     public function destroy(Request $request, Label $label): RedirectResponse
@@ -49,7 +49,7 @@ class LabelController extends Controller
         $name = $label->name;
         $label->delete();
 
-        return back()->with('status', __('تم حذف لابل «:name».', ['name' => $name]));
+        return back()->with('status', __('تم حذف الوسم «:name».', ['name' => $name]));
     }
 
     /** @return array<string, mixed> */
@@ -60,6 +60,6 @@ class LabelController extends Controller
             'name_en' => ['nullable', 'string', 'max:50'],
             // Only the semantic palette — no free colour picker (§ 6).
             'color' => ['required', Rule::in(array_keys(Label::COLORS))],
-        ], [], ['name' => __('اسم اللابل'), 'name_en' => __('اسم اللابل بالإنجليزية'), 'color' => __('اللون')]);
+        ], [], ['name' => __('اسم الوسم'), 'name_en' => __('اسم الوسم بالإنجليزية'), 'color' => __('اللون')]);
     }
 }

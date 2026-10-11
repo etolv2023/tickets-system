@@ -30,7 +30,7 @@
                             <th>{{ __('الدور') }}</th>
                             <th>{{ __('الكود') }}</th>
                             <th>{{ __('الصلاحيات') }}</th>
-                            <th>{{ __('المستخدمين') }}</th>
+                            <th>{{ __('المستخدمون') }}</th>
                             <th class="table__cell--actions">{{ __('إجراءات') }}</th>
                         </tr>
                     </thead>
@@ -56,7 +56,7 @@
 
                                         {{-- ★ (2026-07-22) Duplicating starts a new, ordinary role from the
                                              same permissions — the copy is never itself a system role, so
-                                             it's a quick way to get a variant of "مدير النظام" or "تيستر"
+                                             it's a quick way to get a variant of "مدير النظام" or "المختبِر"
                                              without retyping every checkbox. --}}
                                         <form method="POST" action="{{ route('admin.roles.duplicate', $role) }}">
                                             @csrf
@@ -69,7 +69,7 @@
                                             <form
                                                 method="POST"
                                                 action="{{ route('admin.roles.destroy', $role) }}"
-                                                onsubmit="return confirm({{ Js::from(__('متأكد إنك عايز تحذف دور «:name»؟', ['name' => $role->label()])) }})"
+                                                onsubmit="return confirm({{ Js::from(__('هل أنت متأكد من حذف الدور «:name»؟', ['name' => $role->label()])) }})"
                                             >
                                                 @csrf
                                                 @method('DELETE')

@@ -13,12 +13,12 @@
 
 <x-card :title="__('الخط الزمني')">
     <x-slot:actions>
-        <span class="u-subtle">{{ trans_choice(':count تعليق', $comments->count()) }} · {{ trans_choice(':count حدث', $ticket->statusHistory->count()) }}</span>
+        <span class="u-subtle">{{ trans_choice(':count تعليق|تعليق واحد|تعليقان|:count تعليقات|:count تعليقًا|:count تعليق', $comments->count()) }} · {{ trans_choice(':count حدث|حدث واحد|حدثان|:count أحداث|:count حدثًا|:count حدث', $ticket->statusHistory->count()) }}</span>
     </x-slot:actions>
 
     <div class="stack">
         @if ($entries->isEmpty())
-            <p class="prose__empty">{{ __('مفيش حاجة حصلت لسه.') }}</p>
+            <p class="prose__empty">{{ __('لم يحدث شيء بعد.') }}</p>
         @else
             <div class="timeline">
                 @foreach ($entries as $entry)

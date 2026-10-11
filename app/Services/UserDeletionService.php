@@ -43,19 +43,19 @@ class UserDeletionService
         $tickets = $this->openTicketRoles($user);
 
         if ($tickets->isNotEmpty()) {
-            $reasons[] = 'لسه موزّع عليه شغل على ' . $tickets->count() . ' تذكرة مفتوحة ('
-                . $tickets->take(5)->implode('، ')
-                . ($tickets->count() > 5 ? '، وغيرها' : '')
-                . ') — وزّعها على حد تاني الأول.';
+            $reasons[] = __('ما زال مُسندًا إليه عمل في :count تذكرة مفتوحة (:list) — أعد إسنادها لشخص آخر أولًا.', [
+                'count' => $tickets->count(),
+                'list' => $tickets->take(5)->implode(__('، ')) . ($tickets->count() > 5 ? __('، وغيرها') : ''),
+            ]);
         }
 
         $subtasks = $this->openSubtasks($user);
 
         if ($subtasks->isNotEmpty()) {
-            $reasons[] = 'لسه معاه ' . $subtasks->count() . ' صب تاسك مخلصتش ('
-                . $subtasks->take(5)->implode('، ')
-                . ($subtasks->count() > 5 ? '، وغيرها' : '')
-                . ') — سلّمها لحد تاني أو قفلها الأول.';
+            $reasons[] = __('ما زالت لديه :count مهام فرعية غير مكتملة (:list) — سلّمها لشخص آخر أو أغلقها أولًا.', [
+                'count' => $subtasks->count(),
+                'list' => $subtasks->take(5)->implode(__('، ')) . ($subtasks->count() > 5 ? __('، وغيرها') : ''),
+            ]);
         }
 
         return $reasons;

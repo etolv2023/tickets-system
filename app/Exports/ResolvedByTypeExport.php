@@ -53,12 +53,12 @@ class ResolvedByTypeExport implements WithMultipleSheets
         })->all();
 
         if ($rows !== []) {
-            $rows[] = array_merge(['إجمالي النوع', null], array_values($data['totals']), [array_sum($data['totals'])]);
+            $rows[] = array_merge([__('إجمالي النوع'), null], array_values($data['totals']), [array_sum($data['totals'])]);
         }
 
         return new ArraySheet(
-            'الحلول بالنوع',
-            array_merge(['الموظف', 'الدور'], array_values($data['types']), ['الإجمالي']),
+            __('الحلول حسب النوع'),
+            array_merge([__('الموظف'), __('الدور')], array_values($data['types']), [__('الإجمالي')]),
             $rows,
         );
     }
@@ -73,9 +73,9 @@ class ResolvedByTypeExport implements WithMultipleSheets
             $rows[] = [$label, (int) ($cell->n ?? 0), $cell ? round((float) $cell->avg_hours) : null];
         }
 
-        $rows[] = ['الإجمالي', $data['total'], null];
+        $rows[] = [__('الإجمالي'), $data['total'], null];
 
-        return new ArraySheet('إيه الي حلّه', ['النوع', 'اتحلت', 'متوسط زمن الحل (ساعة)'], $rows);
+        return new ArraySheet(__('ما الذي حلّه'), [__('النوع'), __('محلولة'), __('متوسط زمن الحل (ساعة)')], $rows);
     }
 
     /** @param array<string, mixed> $data */
@@ -88,8 +88,8 @@ class ResolvedByTypeExport implements WithMultipleSheets
         $rows = collect($data['tickets']);
 
         return new ArraySheet(
-            'التذاكر',
-            ['رقم التذكرة', 'العنوان', 'الجهة الطالبة', 'النوع', 'الأولوية', 'الحالة', 'تاريخ الفتح', 'تاريخ الحل', 'التأخير'],
+            __('التذاكر'),
+            [__('رقم التذكرة'), __('العنوان'), __('الجهة الطالبة'), __('النوع'), __('الأولوية'), __('الحالة'), __('تاريخ الفتح'), __('تاريخ الحل'), __('التأخير')],
             $rows->map(fn ($t) => [
                 $t->ticket_number,
                 $t->title,
@@ -99,7 +99,7 @@ class ResolvedByTypeExport implements WithMultipleSheets
                 $t->status->label(),
                 $t->reported_at?->timezone($tz)->format('Y-m-d H:i'),
                 $t->resolved_at?->timezone($tz)->format('Y-m-d H:i'),
-                $t->missedDeadlines() !== [] ? 'متأخرة' : ($t->hasDeadline() ? 'في معادها' : null),
+                $t->missedDeadlines() !== [] ? __('متأخرة') : ($t->hasDeadline() ? __('في الموعد') : null),
             ])->all(),
         );
     }

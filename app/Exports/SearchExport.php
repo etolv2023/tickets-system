@@ -57,8 +57,8 @@ class SearchExport implements WithMultipleSheets
             ->get();
 
         return new ArraySheet(
-            'التذاكر',
-            ['رقم التذكرة', 'العنوان', 'الجهة الطالبة', 'النوع', 'الأولوية', 'الحالة', 'الوصف'],
+            __('التذاكر'),
+            [__('رقم التذكرة'), __('العنوان'), __('الجهة الطالبة'), __('النوع'), __('الأولوية'), __('الحالة'), __('الوصف')],
             $rows->map(fn ($t) => [
                 $t->ticket_number,
                 $t->title,
@@ -82,8 +82,8 @@ class SearchExport implements WithMultipleSheets
             ->get();
 
         return new ArraySheet(
-            'الصب تاسكس',
-            ['رقم التذكرة', 'عنوان التذكرة', 'الصب تاسك', 'الجهة / الدور', 'الحالة'],
+            __('المهام الفرعية'),
+            [__('رقم التذكرة'), __('عنوان التذكرة'), __('المهمة الفرعية'), __('الجهة / الدور'), __('الحالة')],
             $rows->map(fn ($s) => [
                 $s->ticket?->ticket_number,
                 $s->ticket?->title,
@@ -106,14 +106,14 @@ class SearchExport implements WithMultipleSheets
             ->get();
 
         return new ArraySheet(
-            'التعليقات',
-            ['التاريخ', 'رقم التذكرة', 'عنوان التذكرة', 'صاحب التعليق', 'داخلي', 'التعليق'],
+            __('التعليقات'),
+            [__('التاريخ'), __('رقم التذكرة'), __('عنوان التذكرة'), __('كاتب التعليق'), __('داخلي'), __('التعليق')],
             $rows->map(fn ($c) => [
                 $c->created_at?->timezone(config('app.display_timezone'))->format('Y-m-d H:i'),
                 $c->ticket?->ticket_number,
                 $c->ticket?->title,
                 $c->user?->name ?? $c->contact?->name,
-                $c->is_internal ? 'أيوه' : 'لأ',
+                $c->is_internal ? __('نعم') : __('لا'),
                 // The stored HTML is already purified; strip it back to prose
                 // so no markup lands in a cell.
                 Str::limit(trim(preg_replace('/\s+/u', ' ', strip_tags($c->body))), 500),
@@ -131,9 +131,9 @@ class SearchExport implements WithMultipleSheets
         $rows = Company::search($this->term)->limit(10)->get(['id', 'name', 'code', 'is_active']);
 
         return new ArraySheet(
-            'الشركات',
-            ['الشركة', 'الكود', 'الحالة'],
-            $rows->map(fn ($c) => [$c->name, $c->code, $c->is_active ? 'مفعّلة' : 'موقوفة'])->all(),
+            __('الشركات'),
+            [__('الشركة'), __('الكود'), __('الحالة')],
+            $rows->map(fn ($c) => [$c->name, $c->code, $c->is_active ? __('مفعّلة') : __('موقوفة')])->all(),
         );
     }
 }

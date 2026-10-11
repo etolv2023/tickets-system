@@ -178,7 +178,7 @@ class StoreTicketRequest extends FormRequest
                     ->exists();
 
                 if (! $belongs) {
-                    $validator->errors()->add('contact_id', __('جهة الاتصال دي مش تابعة للشركة المختارة.'));
+                    $validator->errors()->add('contact_id', __('جهة الاتصال هذه لا تتبع الشركة المختارة.'));
                 }
             },
         ];
@@ -188,34 +188,34 @@ class StoreTicketRequest extends FormRequest
     {
         return [
             'company_id' => __('الشركة'),
-            'requested_by' => __('طالب الشغل'),
+            'requested_by' => __('طالب العمل'),
             'is_internal' => __('نوع التذكرة'),
             'contact_id' => __('جهة الاتصال'),
-            'reporter_name' => __('اسم المُبلغ'),
+            'reporter_name' => __('اسم المُبلِّغ'),
             'title' => __('العنوان'),
             'description' => __('الوصف'),
             'type' => __('النوع'),
             'priority' => __('الأولوية'),
-            'module' => __('الموديول'),
+            'module' => __('الوحدة'),
             'due_date' => __('تاريخ التسليم'),
-            'client_user_code' => __('يوزر الدخول'),
-            'page_url' => __('لينك الصفحة'),
+            'client_user_code' => __('مستخدم الدخول'),
+            'page_url' => __('رابط الصفحة'),
             'attachments' => __('المرفقات'),
             'attachments.*' => __('المرفق'),
-            'subtasks' => __('الصب تاسكس'),
-            'subtasks.*.title' => __('عنوان الصب تاسك'),
-            'subtasks.*.role_id' => __('صاحب الصب تاسك'),
-            'subtasks.*.due_date' => __('تاريخ استحقاق الصب تاسك'),
+            'subtasks' => __('المهام الفرعية'),
+            'subtasks.*.title' => __('عنوان المهمة الفرعية'),
+            'subtasks.*.role_id' => __('صاحب المهمة الفرعية'),
+            'subtasks.*.due_date' => __('تاريخ استحقاق المهمة الفرعية'),
         ];
     }
 
     public function messages(): array
     {
         return [
-            'subtasks.*.role_id.required' => __('لازم تحدد الصب تاسك دي بتاعة مين من اللي وزّعت عليهم.'),
-            'subtasks.*.role_id.in' => __('الصب تاسك لازم تبقى لواحد من اللي وزّعت عليهم التذكرة.'),
-            'client_user_code.digits_between' => __('يوزر الدخول أرقام بس.'),
-            'page_url.url' => __('اللينك لازم يبدأ بـ http:// أو https://.'),
+            'subtasks.*.role_id.required' => __('حدّد صاحب هذه المهمة الفرعية من بين المُسندة إليهم التذكرة.'),
+            'subtasks.*.role_id.in' => __('يجب أن تكون المهمة الفرعية لأحد المُسندة إليهم التذكرة.'),
+            'client_user_code.digits_between' => __('مستخدم الدخول أرقام فقط.'),
+            'page_url.url' => __('يجب أن يبدأ الرابط بـ http:// أو https://.'),
         ];
     }
 }

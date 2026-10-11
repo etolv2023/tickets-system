@@ -124,7 +124,7 @@ class WebPushService
         $key = openssl_pkey_get_private($this->privateKeyPem());
 
         if ($key === false) {
-            throw new RuntimeException('مفتاح VAPID الخاص مش صالح — شغّل php artisan push:vapid تاني.');
+            throw new RuntimeException(__('مفتاح VAPID الخاص غير صالح — شغّل php artisan push:vapid مجددًا.'));
         }
 
         openssl_sign($input, $der, $key, OPENSSL_ALGO_SHA256);

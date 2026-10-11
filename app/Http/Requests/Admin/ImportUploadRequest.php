@@ -35,7 +35,7 @@ class ImportUploadRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'file.max' => __('الملف كبير أوي. الحد 10 ميجا و :rows صف.', ['rows' => ImportService::MAX_ROWS]),
+            'file.max' => __('الملف كبير جدًا. الحد الأقصى 10 ميغابايت و:rows صف.', ['rows' => ImportService::MAX_ROWS]),
         ];
     }
 }

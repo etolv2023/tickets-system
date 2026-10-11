@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
-@section('title', __('طابور الموافقات'))
+@section('title', __('قائمة الموافقات'))
 
 @section('content')
     {{-- ★★★★ (2026-07-21): a ticket table, same case as /tickets. --}}
     <div class="page page--wide">
         <div class="page__head">
             <div>
-                <h1 class="page-title">{{ __('مستني قرارك') }}</h1>
-                <p class="page-subtitle">{{ __('فيتشرات وموديولات جديدة مستنية موافقتك قبل ما تتوزّع على المبرمجين.') }}</p>
+                <h1 class="page-title">{{ __('بانتظار قرارك') }}</h1>
+                <p class="page-subtitle">{{ __('ميزات ووحدات جديدة تنتظر موافقتك قبل إسنادها إلى المطورين.') }}</p>
             </div>
             <div class="page__actions">
                 <x-export-button route="export.approvals" />
@@ -43,7 +43,7 @@
                     </select>
                 </div>
 
-                <x-button variant="secondary">{{ __('فلترة') }}</x-button>
+                <x-button variant="secondary">{{ __('تصفية') }}</x-button>
 
                 @if (array_filter($filters))
                     <x-button variant="ghost" :href="route('queues.approvals')">{{ __('مسح') }}</x-button>
@@ -53,7 +53,7 @@
                    @class(['btn', 'btn--secondary', 'filters__mine',
                            'filters__mine--on' => (int) ($filters['assignee'] ?? 0) === auth()->id()])>
                     <x-icon name="user" class="btn__icon" />
-                    {{ __('بتاعتي') }}
+                    {{ __('الخاصة بي') }}
                 </a>
             </div>
         </form>
@@ -108,15 +108,15 @@
                         @csrf
                         <label class="u-label" for="reject-reason-{{ $ticket->id }}">{{ __('سبب الرفض') }}</label>
                         <textarea id="reject-reason-{{ $ticket->id }}" name="reason" class="textarea" rows="2"
-                                  maxlength="500" placeholder="{{ __('رفض من غير سبب مجرد حيطة…') }}"></textarea>
+                                  maxlength="500" placeholder="{{ __('الرفض دون سبب لا يساعد أحدًا…') }}"></textarea>
                         <div class="queue-card__reason-actions">
-                            <x-button variant="danger" size="sm">{{ __('ارفضها') }}</x-button>
+                            <x-button variant="danger" size="sm">{{ __('رفض') }}</x-button>
                             <x-button variant="ghost" size="sm" type="button" x-on:click="rejecting = false">{{ __('إلغاء') }}</x-button>
                         </div>
                     </form>
                 </article>
             @empty
-                <p class="queue__empty">{{ __('مفيش حاجة مستنية قرارك.') }}</p>
+                <p class="queue__empty">{{ __('لا يوجد ما ينتظر قرارك.') }}</p>
             @endforelse
         </div>
 

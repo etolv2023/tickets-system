@@ -7,7 +7,7 @@
         <div class="page__head">
             <div>
                 <h1 class="page-title">{{ __('فتح تذكرة') }}</h1>
-                <p class="page-subtitle">{{ __('وقت الإبلاغ ورقم التذكرة بيتحطوا أوتوماتيك.') }}</p>
+                <p class="page-subtitle">{{ __('يُضاف وقت الإبلاغ ورقم التذكرة تلقائيًا.') }}</p>
             </div>
         </div>
 

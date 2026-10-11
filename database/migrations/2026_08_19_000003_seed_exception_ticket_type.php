@@ -41,7 +41,7 @@ return new class extends Migration
         DB::table('ticket_types')->updateOrInsert(
             ['key' => self::KEY],
             [
-                'name_ar' => 'اكسبشن',
+                'name_ar' => 'استثناء',
                 // Red is the incident colour the badge palette already uses for
                 // بج and «بتبلوك» — an error is the same family of bad news.
                 'color' => 'red',

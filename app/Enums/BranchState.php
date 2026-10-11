@@ -19,7 +19,7 @@ enum BranchState: string
     {
         return match ($this) {
             self::Active => __('موجود'),
-            self::Deleted => __('اتمسح من جيت هب'),
+            self::Deleted => __('حُذف من GitHub'),
         };
     }
 

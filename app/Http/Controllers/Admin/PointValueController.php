@@ -87,8 +87,8 @@ class PointValueController extends Controller
         return redirect()
             ->route('admin.point-values.index', $request->only('period'))
             ->with('status', $changes === []
-                ? __('مفيش حاجة اتغيّرت.')
-                : trans_choice('اتحفظ سعر النقطة لـ :count نوع.', count($changes)));
+                ? __('لم يتغيّر شيء.')
+                : trans_choice('تم حفظ سعر النقطة لـ :count نوع.|تم حفظ سعر النقطة لنوع واحد.|تم حفظ سعر النقطة لنوعين.|تم حفظ سعر النقطة لـ :count أنواع.|تم حفظ سعر النقطة لـ :count نوعًا.|تم حفظ سعر النقطة لـ :count نوع.', count($changes)));
     }
 
     /** The month being reported on. Defaults to this one; anything malformed falls back to it too. */

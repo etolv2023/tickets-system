@@ -37,7 +37,7 @@ class GithubIdentityController extends Controller
             ['github_login' => ['before' => null, 'after' => $user->github_login]],
             $request->ip(), $request->userAgent());
 
-        return back()->with('status', __('اتحفظ ربط حساب GitHub بالمستخدم.'));
+        return back()->with('status', __('تم ربط حساب GitHub بالمستخدم.'));
     }
 
     public function update(
@@ -56,7 +56,7 @@ class GithubIdentityController extends Controller
             ['github_login' => ['before' => $before, 'after' => $updated->github_login]],
             $request->ip(), $request->userAgent());
 
-        return back()->with('status', __('اتعدل الربط.'));
+        return back()->with('status', __('تم تعديل الربط.'));
     }
 
     public function destroy(Request $request, User $user, ActivityLogger $activity): RedirectResponse
@@ -68,20 +68,20 @@ class GithubIdentityController extends Controller
             ['github_login' => ['before' => $before, 'after' => null]],
             $request->ip(), $request->userAgent());
 
-        return back()->with('status', __('اتفك ربط حساب GitHub من المستخدم.'));
+        return back()->with('status', __('تم فك ربط حساب GitHub عن المستخدم.'));
     }
 
     public function sync(): RedirectResponse
     {
         if (! config('github.enabled') || blank(config('github.token'))) {
-            return back()->withErrors(['sync' => __('تكامل GitHub مقفول أو توكن القراءة ناقص.')]);
+            return back()->withErrors(['sync' => __('تكامل GitHub معطّل أو رمز القراءة غير موجود.')]);
         }
 
         foreach (GithubRepository::activeList() as $repository) {
             SyncGithubRepository::dispatch($repository->id);
         }
 
-        return back()->with('status', __('مزامنة GitHub اتحطت في الطابور. حدّث الصفحة بعد ما الـ worker يخلص.'));
+        return back()->with('status', __('أُضيفت مزامنة GitHub إلى قائمة الانتظار. حدّث الصفحة بعد انتهاء المعالج.'));
     }
 
     /** @return array<string, array<int, mixed>> */
@@ -99,11 +99,11 @@ class GithubIdentityController extends Controller
             $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
 
             if (! $allowExistingUser && filled($user->github_login)) {
-                throw ValidationException::withMessages(['user_id' => __('الشخص ده مربوط بحساب GitHub بالفعل.')]);
+                throw ValidationException::withMessages(['user_id' => __('هذا الشخص مرتبط بحساب GitHub بالفعل.')]);
             }
             if (User::query()->where('id', '!=', $user->id)
                 ->whereRaw('LOWER(github_login) = ?', [mb_strtolower($login)])->exists()) {
-                throw ValidationException::withMessages(['github_login' => __('حساب GitHub ده مربوط بشخص بالفعل.')]);
+                throw ValidationException::withMessages(['github_login' => __('حساب GitHub هذا مرتبط بشخص آخر بالفعل.')]);
             }
 
             $user->forceFill(['github_login' => trim($login)])->save();

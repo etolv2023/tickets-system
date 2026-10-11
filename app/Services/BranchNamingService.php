@@ -103,23 +103,24 @@ class BranchNamingService
         $branch = trim($branch);
 
         if ($branch === '') {
-            return 'اكتب اسم البرانش.';
+            return __('اكتب اسم الفرع.');
         }
 
         // Git's own rules, the subset that a typed name realistically breaks.
         if (preg_match('/(^[\/.]|[\/.]$|\.\.|[\s~^:?*\[\\\\]|\/\/)/', $branch) === 1) {
-            return 'اسم البرانش فيه حروف مش مسموح بيها في جيت.';
+            return __('يحتوي اسم الفرع على أحرف غير مسموح بها في Git.');
         }
 
         $found = $this->ticketNumberIn($branch);
 
         if ($found === null) {
-            return 'اسم البرانش لازم يبدأ برقم التذكرة — يعني «' . $this->suggest($ticketNumber) . '»'
-                . (config('github.allow_type_prefix') ? '، أو «feature/' . $this->suggest($ticketNumber) . '».' : '.');
+            return config('github.allow_type_prefix')
+                ? __('يجب أن يبدأ اسم الفرع برقم التذكرة — أي «:name» أو «feature/:name».', ['name' => $this->suggest($ticketNumber)])
+                : __('يجب أن يبدأ اسم الفرع برقم التذكرة — أي «:name».', ['name' => $this->suggest($ticketNumber)]);
         }
 
         if ($found !== strtoupper(trim($ticketNumber))) {
-            return 'البرانش ده بتاع تذكرة تانية (' . $found . ').';
+            return __('هذا الفرع يخص تذكرة أخرى (:number).', ['number' => $found]);
         }
 
         return null;
