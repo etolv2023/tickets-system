@@ -1,3 +1,5 @@
+import { t } from '../i18n';
+
 /**
  * Keeps the bell's unread count fresh, and announces new ones.
  *
@@ -144,7 +146,7 @@ export default function bell(initial = 0) {
                 return;
             }
 
-            const notification = new Notification('نظام التذاكر', {
+            const notification = new Notification(t('نظام التذاكر'), {
                 body: latest.message,
                 icon: '/favicon.svg',
                 // Same tag replaces rather than stacks: ten arrivals while you

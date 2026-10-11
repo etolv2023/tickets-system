@@ -1,14 +1,14 @@
 @if ($paginator->hasPages())
-    <nav class="pagination" role="navigation" aria-label="تنقل بين الصفحات">
+    <nav class="pagination" role="navigation" aria-label="{{ __('تنقل بين الصفحات') }}">
         <p class="pagination__summary">
-            {{ $paginator->firstItem() }}–{{ $paginator->lastItem() }} من {{ $paginator->total() }}
+            {{ __(':from–:to من :total', ['from' => $paginator->firstItem(), 'to' => $paginator->lastItem(), 'total' => $paginator->total()]) }}
         </p>
 
         <div class="pagination__list">
             @if ($paginator->onFirstPage())
-                <span class="pagination__link pagination__link--disabled" aria-hidden="true"><x-icon name="chevron-right" /> السابق</span>
+                <span class="pagination__link pagination__link--disabled" aria-hidden="true"><x-icon name="chevron-right" /> {{ __('السابق') }}</span>
             @else
-                <a href="{{ $paginator->previousPageUrl() }}" class="pagination__link" rel="prev"><x-icon name="chevron-right" /> السابق</a>
+                <a href="{{ $paginator->previousPageUrl() }}" class="pagination__link" rel="prev"><x-icon name="chevron-right" /> {{ __('السابق') }}</a>
             @endif
 
             @foreach ($elements as $element)
@@ -28,9 +28,9 @@
             @endforeach
 
             @if ($paginator->hasMorePages())
-                <a href="{{ $paginator->nextPageUrl() }}" class="pagination__link" rel="next">التالي <x-icon name="chevron-left" /></a>
+                <a href="{{ $paginator->nextPageUrl() }}" class="pagination__link" rel="next">{{ __('التالي') }} <x-icon name="chevron-left" /></a>
             @else
-                <span class="pagination__link pagination__link--disabled" aria-hidden="true">التالي <x-icon name="chevron-left" /></span>
+                <span class="pagination__link pagination__link--disabled" aria-hidden="true">{{ __('التالي') }} <x-icon name="chevron-left" /></span>
             @endif
         </div>
     </nav>

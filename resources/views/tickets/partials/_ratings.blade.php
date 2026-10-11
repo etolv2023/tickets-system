@@ -36,10 +36,10 @@
 @endphp
 
 @if ($visibleRows->isNotEmpty())
-    <x-collapsible-card title="التقييمات" name="ratings" :open="true">
+    <x-collapsible-card :title="__('التقييمات')" name="ratings" :open="true">
         <div class="stack stack--tight">
             @can('ratings.give')
-                <p class="field__hint">اختياري — مش بيعطّل إغلاق التذكرة.</p>
+                <p class="field__hint">{{ __('اختياري — مش بيعطّل إغلاق التذكرة.') }}</p>
 
                 @foreach ($visibleRows as $row)
                     <form method="POST" action="{{ route('tickets.ratings.store', $ticket) }}" class="rating">
@@ -62,9 +62,9 @@
                         </select>
 
                         <input type="text" name="comment" class="input rating__comment"
-                               placeholder="تعليق (اختياري)" value="{{ $row['existing']?->comment }}">
+                               placeholder="{{ __('تعليق (اختياري)') }}" value="{{ $row['existing']?->comment }}">
 
-                        <x-button variant="ghost" size="sm">حفظ</x-button>
+                        <x-button variant="ghost" size="sm">{{ __('حفظ') }}</x-button>
                     </form>
                 @endforeach
             @else

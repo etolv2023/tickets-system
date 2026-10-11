@@ -5,8 +5,8 @@
         </div>
     </div>
     <div class="concept-guide__grid concept-guide__grid--three">
-        <div class="concept-guide__item"><strong>+ {{ app()->isLocale('en') ? 'Award' : 'استحقاق' }}</strong><span>{{ __('ui.points_award') }}</span></div>
-        <div class="concept-guide__item"><strong>− {{ app()->isLocale('en') ? 'Late penalty' : 'خصم تأخير' }}</strong><span>{{ __('ui.points_penalty') }}</span></div>
-        <div class="concept-guide__item"><strong>± {{ app()->isLocale('en') ? 'Correction' : 'تصحيح' }}</strong><span>{{ __('ui.points_correction') }}</span></div>
+        <div class="concept-guide__item"><strong>+ {{ __('استحقاق') }}</strong><span>{{ __('ui.points_award') }}</span></div>
+        <div class="concept-guide__item"><strong>− {{ __('خصم تأخير') }}</strong><span>{{ __('ui.points_penalty') }}</span></div>
+        <div class="concept-guide__item"><strong>± {{ __('تصحيح') }}</strong><span>{{ __('ui.points_correction') }}</span></div>
     </div>
 </section>

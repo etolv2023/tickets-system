@@ -1,4 +1,5 @@
 import Sortable from 'sortablejs';
+import { t } from '../i18n';
 
 /**
  * Subtask interactions: reordering (F08) and one-click status.
@@ -94,7 +95,7 @@ export function mountSubtaskStatus(root = document) {
                 const payload = await response.json().catch(() => ({}));
 
                 if (!response.ok) {
-                    throw new Error(payload.message ?? 'الحفظ فشل.');
+                    throw new Error(payload.message ?? t('الحفظ فشل.'));
                 }
 
                 select.dataset.current = select.value;

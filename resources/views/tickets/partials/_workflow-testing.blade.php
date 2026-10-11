@@ -4,18 +4,18 @@
     $iAmTester = $ticket->roleAssignments->contains(fn ($a) => $a->user_id === $me->id && $a->role?->is_tester);
 @endphp
 @if ($iAmTester && in_array($ticket->status->value, ['dev_done', 'testing'], true))
-    <x-collapsible-card title="اعتماد الجودة" name="testing" :open="true">
-        <p class="field__hint">اعتماد النتيجة ينقل التذكرة إلى «تم الحل» ويؤدي إلى احتساب النقاط مرة واحدة. الإرجاع يعيدها للتنفيذ مع سبب واضح.</p>
+    <x-collapsible-card :title="__('اعتماد الجودة')" name="testing" :open="true">
+        <p class="field__hint">{{ __('اعتماد النتيجة ينقل التذكرة إلى «تم الحل» ويؤدي إلى احتساب النقاط مرة واحدة. الإرجاع يعيدها للتنفيذ مع سبب واضح.') }}</p>
         <div class="stack stack--tight">
             <form method="POST" action="{{ route('tickets.verify', $ticket) }}">
                 @csrf
-                <x-button variant="primary" size="sm" block>اعتماد النتيجة وحل التذكرة</x-button>
+                <x-button variant="primary" size="sm" block>{{ __('اعتماد النتيجة وحل التذكرة') }}</x-button>
             </form>
 
             <form method="POST" action="{{ route('tickets.reopen', $ticket) }}" class="stack stack--tight">
                 @csrf
-                <input type="text" name="reason" class="input" placeholder="سبب الإرجاع للتنفيذ (مطلوب)" required>
-                <x-button variant="ghost" size="sm" block>إعادة إلى التنفيذ</x-button>
+                <input type="text" name="reason" class="input" placeholder="{{ __('سبب الإرجاع للتنفيذ (مطلوب)') }}" required>
+                <x-button variant="ghost" size="sm" block>{{ __('إعادة إلى التنفيذ') }}</x-button>
             </form>
         </div>
     </x-collapsible-card>

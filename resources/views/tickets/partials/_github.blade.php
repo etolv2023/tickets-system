@@ -5,17 +5,17 @@
      the controller, because a naming convention is a business rule and Blade
      does not hold those (CLAUDE.md § 3). --}}
 
-<x-card title="البرانشات">
+<x-card :title="__('البرانشات')">
     <div class="stack stack--tight">
         @if ($ticket->branches->isEmpty())
             <div class="gh-empty">
-                <p class="gh-empty__title">التذكرة دي ملهاش برانش لسه.</p>
+                <p class="gh-empty__title">{{ __('التذكرة دي ملهاش برانش لسه.') }}</p>
                 <p class="field__hint">
-                    البرانش لازم يبدأ برقم التذكرة عشان النظام يلاقيه لوحده.
+                    {{ __('البرانش لازم يبدأ برقم التذكرة عشان النظام يلاقيه لوحده.') }}
                 </p>
 
-                <x-copy-row label="الاسم المقترح" :value="$suggestedBranch" />
-                <x-copy-row label="الأمر" :value="'git checkout -b ' . $suggestedBranch" />
+                <x-copy-row :label="__('الاسم المقترح')" :value="$suggestedBranch" />
+                <x-copy-row :label="__('الأمر')" :value="'git checkout -b ' . $suggestedBranch" />
             </div>
         @else
             <div class="gh-list">
@@ -40,7 +40,7 @@
                                 {{-- Worth showing: this row is somebody's
                                      assertion, checked against GitHub, rather
                                      than something the sync found on its own. --}}
-                                <x-badge variant="slate">اترّبط بإيد</x-badge>
+                                <x-badge variant="slate">{{ __('اترّبط بإيد') }}</x-badge>
                             @endif
                         </div>
 
@@ -51,7 +51,7 @@
 
                             @if ($branch->last_commit_at)
                                 <span class="u-mono">
-                                    آخر كوميت
+                                    {{ __('آخر كوميت') }}
                                     {{ $branch->last_commit_at->timezone(config('app.display_timezone'))->translatedFormat('j M — H:i') }}
                                 </span>
                             @endif
@@ -61,7 +61,7 @@
                             @endif
                         </div>
 
-                        <x-copy-row label="شغّله عندك" :value="$branch->checkoutCommand()" />
+                        <x-copy-row :label="__('شغّله عندك')" :value="$branch->checkoutCommand()" />
                     </div>
                 @endforeach
             </div>
@@ -84,7 +84,7 @@
                         <x-badge :variant="$pull->state->variant()">{{ $pull->state->label() }}</x-badge>
 
                         @if ($pull->is_draft)
-                            <x-badge variant="slate">مسودة</x-badge>
+                            <x-badge variant="slate">{{ __('مسودة') }}</x-badge>
                         @endif
                     </div>
                 @endforeach
@@ -92,7 +92,7 @@
         @endif
 
         @if (! config('github.enabled'))
-            <p class="field__hint">تكامل جيت هب مقفول، فمفيش حاجة بتتقرا دلوقتي.</p>
+            <p class="field__hint">{{ __('تكامل جيت هب مقفول، فمفيش حاجة بتتقرا دلوقتي.') }}</p>
         @endif
 
         @if ($githubRepositories !== [])

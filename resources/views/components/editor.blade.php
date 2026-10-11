@@ -1,7 +1,7 @@
 @props([
     'name',
     'value' => null,
-    'placeholder' => 'اكتب هنا…',
+    'placeholder' => __('اكتب هنا…'),
     /* A shorter toolbar for the client portal: someone writing to support
        needs emphasis, a list and a link — headings and code blocks are the
        staff editor's job. */

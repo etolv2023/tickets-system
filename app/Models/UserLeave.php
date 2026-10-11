@@ -28,9 +28,9 @@ class UserLeave extends Model
     public function typeLabel(): string
     {
         return match ($this->type) {
-            'annual' => 'سنوية',
-            'sick' => 'مرضية',
-            default => 'أخرى',
+            'annual' => __('سنوية'),
+            'sick' => __('مرضية'),
+            default => __('أخرى'),
         };
     }
 

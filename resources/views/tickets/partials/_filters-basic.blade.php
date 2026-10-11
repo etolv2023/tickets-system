@@ -5,18 +5,18 @@
 
 <div class="filters__bar">
     <input type="search" name="q" value="{{ $filters['q'] ?? '' }}"
-           placeholder="ابحث بالعنوان أو الوصف، أو الصق رقم تذكرة" class="input filters__search">
+           placeholder="{{ __('ابحث بالعنوان أو الوصف، أو الصق رقم تذكرة') }}" class="input filters__search">
     @if ($canSeeOthers)
         <a href="{{ $mine ? route('tickets.index') : route('tickets.index', ['assignee' => auth()->id(), 'relation' => 'any']) }}"
            @class(['btn', 'btn--secondary', 'filters__mine', 'filters__mine--on' => $mine])
            @if ($mine) aria-pressed="true" @endif>
-            <x-icon name="user" class="btn__icon" /> تذاكري
+            <x-icon name="user" class="btn__icon" /> {{ __('تذاكري') }}
         </a>
     @endif
     <button type="button" class="btn btn--secondary filters__panel-toggle"
             @click="panelOpen = !panelOpen" :aria-expanded="panelOpen.toString()">
         <x-icon name="filter" class="btn__icon" />
-        الفلاتر
+        {{ __('الفلاتر') }}
         @if ($activeFilterCount)
             <span class="filters__active-count">{{ $activeFilterCount }}</span>
         @endif
@@ -25,27 +25,27 @@
         <button type="button" class="btn btn--secondary" @click="open = !open"
                 :aria-expanded="open.toString()" aria-haspopup="menu">
             <x-icon name="grid" class="btn__icon" />
-            الأعمدة
+            {{ __('الأعمدة') }}
         </button>
         <div class="table-columns__menu" x-show="open" x-cloak role="menu">
             @foreach ([
-                'priority' => 'الأولوية',
-                'status' => 'الحالة',
-                'assignees' => 'المسؤولون',
-                'creator' => 'أنشأها',
+                'priority' => __('الأولوية'),
+                'status' => __('الحالة'),
+                'assignees' => __('المسؤولون'),
+                'creator' => __('أنشأها'),
                 'date' => \App\Models\Ticket::DATE_BASES[$dateBasis],
-                'deadline' => 'الموعد والعمر',
+                'deadline' => __('الموعد والعمر'),
             ] as $column => $label)
                 <label class="table-columns__option">
                     <input type="checkbox" :checked="isVisible('{{ $column }}')" @change="toggle('{{ $column }}')">
-                    <span>{{ $label }}</span>
+                    <span>{{ __($label) }}</span>
                 </label>
             @endforeach
-            <button type="button" class="table-columns__reset" @click="reset()">الوضع الافتراضي</button>
+            <button type="button" class="table-columns__reset" @click="reset()">{{ __('الوضع الافتراضي') }}</button>
         </div>
     </div>
     <x-export-button route="export.tickets" />
     @can('create', App\Models\Ticket::class)
-        <x-button variant="primary" :href="route('tickets.create')"><x-icon name="plus" class="btn__icon" /> تذكرة جديدة</x-button>
+        <x-button variant="primary" :href="route('tickets.create')"><x-icon name="plus" class="btn__icon" /> {{ __('تذكرة جديدة') }}</x-button>
     @endcan
 </div>

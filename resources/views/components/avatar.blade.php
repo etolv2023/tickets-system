@@ -5,7 +5,7 @@
 ])
 
 @php
-    $label = $user?->name ?? 'غير معروف';
+    $label = $user?->name ?? __('غير معروف');
 @endphp
 
 <span
@@ -19,6 +19,6 @@
     @if ($user?->avatar_path)
         <img class="avatar__img" src="{{ asset('storage/' . $user->avatar_path) }}" alt="{{ $label }}">
     @else
-        {{ $user?->initials() ?? '؟' }}
+        {{ $user?->initials() ?? __('؟') }}
     @endif
 </span>

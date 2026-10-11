@@ -22,7 +22,7 @@
                         type="button"
                         class="gallery__item"
                         @click="show(@js($lightboxItems), {{ $index }})"
-                        aria-label="كبّر {{ $image->original_name }}"
+                        aria-label="{{ __('كبّر :name', ['name' => $image->original_name]) }}"
                     >
                         {{-- The thumbnail, not the original: a 4MB photo never
                              loads into a grid. CLAUDE.md § 4.8 --}}
@@ -58,17 +58,17 @@
             <div class="lightbox__bar">
                 <span class="lightbox__name" x-text="current?.name"></span>
                 <div class="row">
-                    <a class="lightbox__btn" :href="current?.download" aria-label="نزّل">
+                    <a class="lightbox__btn" :href="current?.download" aria-label="{{ __('نزّل') }}">
                         <x-icon name="download" />
                     </a>
-                    <button type="button" class="lightbox__btn" @click="close()" aria-label="اقفل">
+                    <button type="button" class="lightbox__btn" @click="close()" aria-label="{{ __('اقفل') }}">
                         <x-icon name="close" />
                     </button>
                 </div>
             </div>
 
             <template x-if="items.length > 1">
-                <button type="button" class="lightbox__nav lightbox__nav--prev" @click.stop="prev()" aria-label="السابق">
+                <button type="button" class="lightbox__nav lightbox__nav--prev" @click.stop="prev()" aria-label="{{ __('السابق') }}">
                     {{-- In RTL the previous item sits to the right. --}}
                     <span class="lightbox__btn"><x-icon name="chevron-right" /></span>
                 </button>
@@ -77,7 +77,7 @@
             <img class="lightbox__img" :src="current?.src" :alt="current?.name" @click.stop>
 
             <template x-if="items.length > 1">
-                <button type="button" class="lightbox__nav lightbox__nav--next" @click.stop="next()" aria-label="التالي">
+                <button type="button" class="lightbox__nav lightbox__nav--next" @click.stop="next()" aria-label="{{ __('التالي') }}">
                     <span class="lightbox__btn"><x-icon name="chevron-left" /></span>
                 </button>
             </template>

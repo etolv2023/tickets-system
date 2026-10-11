@@ -2,8 +2,8 @@
 @can('changeStatus', $ticket)
     @if ($nextStatuses->isNotEmpty())
         {{-- Open by default: the single most-used control on this screen. --}}
-        <x-collapsible-card title="تحديث مرحلة التذكرة" name="status-change" :open="true">
-            <p class="field__hint">اختر المرحلة التي تصف وضع الالتزام الآن. لا تستخدم «تم الحل» لمجرد انتهاء البرمجة؛ يجب اعتماد النتيجة أولًا.</p>
+        <x-collapsible-card :title="__('تحديث مرحلة التذكرة')" name="status-change" :open="true">
+            <p class="field__hint">{{ __('اختر المرحلة التي تصف وضع الالتزام الآن. لا تستخدم «تم الحل» لمجرد انتهاء البرمجة؛ يجب اعتماد النتيجة أولًا.') }}</p>
             <form method="POST" action="{{ route('tickets.status.change', $ticket) }}"
                   class="form-stack" x-data="{ recipient: '' }">
                 @csrf
@@ -12,9 +12,9 @@
                     <p class="field__error">{{ $message }}</p>
                 @enderror
 
-                <x-field name="to_status" label="الحالة الجديدة" required>
+                <x-field name="to_status" :label="__('الحالة الجديدة')" required>
                     <select id="to_status" name="to_status" class="select" required>
-                        <option value="">— اختر المرحلة —</option>
+                        <option value="">{{ __('— اختر المرحلة —') }}</option>
                         @foreach ($nextStatuses as $s)
                             <option value="{{ $s->key }}" @selected(old('to_status') === $s->key)>{{ $s->label() }}</option>
                         @endforeach
@@ -27,18 +27,18 @@
                     @endif
                 @endforeach
 
-                <x-field name="recipient_type" label="الطرف المنتظر منه رد" hint="اختياري — ينشئ النظام مهمة متابعة تلقائية لمسؤول التذكرة.">
+                <x-field name="recipient_type" :label="__('الطرف المنتظر منه رد')" :hint="__('اختياري — ينشئ النظام مهمة متابعة تلقائية لمسؤول التذكرة.')">
                     <select id="recipient_type" name="recipient_type" class="select" x-model="recipient">
-                        <option value="">لا يوجد طرف منتظر</option>
-                        <option value="team">عضو من الفريق</option>
-                        <option value="company">جهة اتصال لدى العميل</option>
+                        <option value="">{{ __('لا يوجد طرف منتظر') }}</option>
+                        <option value="team">{{ __('عضو من الفريق') }}</option>
+                        <option value="company">{{ __('جهة اتصال لدى العميل') }}</option>
                     </select>
                 </x-field>
 
                 <div x-show="recipient === 'team'" x-cloak>
-                    <x-field name="recipient_user_id" label="الشخص من التيم">
+                    <x-field name="recipient_user_id" :label="__('الشخص من التيم')">
                         <select id="recipient_user_id" name="recipient_user_id" class="select">
-                            <option value="">— اختار —</option>
+                            <option value="">{{ __('— اختار —') }}</option>
                             @foreach ($recipientTeam as $person)
                                 <option value="{{ $person->id }}" @selected((int) old('recipient_user_id') === $person->id)>
                                     {{ $person->name }}
@@ -49,9 +49,9 @@
                 </div>
 
                 <div x-show="recipient === 'company'" x-cloak>
-                    <x-field name="recipient_contact_id" label="الشخص من الشركة">
+                    <x-field name="recipient_contact_id" :label="__('الشخص من الشركة')">
                         <select id="recipient_contact_id" name="recipient_contact_id" class="select">
-                            <option value="">— اختار —</option>
+                            <option value="">{{ __('— اختار —') }}</option>
                             @foreach ($recipientContacts as $contact)
                                 <option value="{{ $contact->id }}" @selected((int) old('recipient_contact_id') === $contact->id)>
                                     {{ $contact->name }}
@@ -61,11 +61,11 @@
                     </x-field>
                 </div>
 
-                <x-field name="note" label="ملاحظة">
+                <x-field name="note" :label="__('ملاحظة')">
                     <textarea id="note" name="note" class="textarea" rows="2">{{ old('note') }}</textarea>
                 </x-field>
 
-                <x-button variant="primary" size="sm">حفظ المرحلة الجديدة</x-button>
+                <x-button variant="primary" size="sm">{{ __('حفظ المرحلة الجديدة') }}</x-button>
             </form>
         </x-collapsible-card>
     @endif

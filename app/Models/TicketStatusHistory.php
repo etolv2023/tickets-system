@@ -56,8 +56,8 @@ class TicketStatusHistory extends Model
     public function recipientLabel(): ?string
     {
         return match ($this->recipient_type) {
-            'team' => $this->recipientUser ? "{$this->recipientUser->name} (تيم)" : null,
-            'company' => $this->recipientContact ? "{$this->recipientContact->name} (عميل)" : null,
+            'team' => $this->recipientUser ? __(':name (تيم)', ['name' => $this->recipientUser->name]) : null,
+            'company' => $this->recipientContact ? __(':name (عميل)', ['name' => $this->recipientContact->name]) : null,
             default => null,
         };
     }

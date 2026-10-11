@@ -18,12 +18,12 @@ enum SubtaskSide: string
     public function label(): string
     {
         return match ($this) {
-            self::Frontend => 'فرونت',
-            self::Backend => 'باك',
-            self::Qa => 'اختبار',
-            self::Support => 'دعم',
-            self::Devops => 'ديف أوبس',
-            self::Other => 'أخرى',
+            self::Frontend => __('فرونت'),
+            self::Backend => __('باك'),
+            self::Qa => __('اختبار'),
+            self::Support => __('دعم'),
+            self::Devops => __('ديف أوبس'),
+            self::Other => __('أخرى'),
         };
     }
 

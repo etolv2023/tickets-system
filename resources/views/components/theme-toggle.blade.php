@@ -13,7 +13,7 @@
 
 <button type="button" {{ $attributes->class('topbar__btn topbar__theme tooltip--end tooltip--below') }} x-data
         @click="$store.theme.toggle()"
-        aria-label="تبديل المظهر" data-tooltip="تبديل المظهر">
+        aria-label="{{ __('تبديل المظهر') }}" data-tooltip="{{ __('تبديل المظهر') }}">
     <x-icon name="moon" class="topbar__theme-light" />
     <x-icon name="sun" class="topbar__theme-dark" />
 </button>

@@ -59,8 +59,8 @@
 
             <button type="button" class="card__collapse" @click="toggle()"
                     :aria-expanded="open ? 'true' : 'false'"
-                    :title="open ? 'اطوِ' : 'افتح'"
-                    aria-label="طيّ أو فتح القسم">
+                    :title="open ? {{ Js::from(__('اطوِ')) }} : {{ Js::from(__('افتح')) }}"
+                    aria-label="{{ __('طيّ أو فتح القسم') }}">
                 <x-icon name="chevron-up" size="0.85em" class="card__collapse-icon" />
             </button>
         </div>

@@ -21,14 +21,13 @@
         <x-icon name="user" class="impersonation__icon" />
 
         <span class="impersonation__text">
-            انت شغّال دلوقتي بعين <strong>{{ auth()->user()->name }}</strong> —
-            أي حاجة تعملها هتتسجل باسمه، وهتتربط بجلسة الدخول دي في السجل.
+            {{ __('انت شغّال دلوقتي بعين') }} <strong>{{ auth()->user()->name }}</strong> {{ __('— أي حاجة تعملها هتتسجل باسمه، وهتتربط بجلسة الدخول دي في السجل.') }}
         </span>
 
         <form method="POST" action="{{ route('admin.impersonate.stop') }}">
             @csrf
             @method('DELETE')
-            <x-button variant="secondary" size="sm">ارجع لحسابك</x-button>
+            <x-button variant="secondary" size="sm">{{ __('ارجع لحسابك') }}</x-button>
         </form>
     </div>
 @endif

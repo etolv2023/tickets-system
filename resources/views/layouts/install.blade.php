@@ -9,6 +9,8 @@
          database to read a system name or logo from. --}}
     <link rel="preload" href="{{ asset('fonts/cairo-arabic.woff2') }}" as="font" type="font/woff2" crossorigin>
 
+    {{-- JS strings for the current language; empty in the Arabic UI (see JsTranslations). --}}
+    <script>window.__i18n = @json(\App\Support\JsTranslations::current());</script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>

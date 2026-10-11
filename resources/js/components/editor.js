@@ -1,4 +1,5 @@
 import Quill, { Delta, Parchment } from 'quill';
+import { t } from '../i18n';
 
 /**
  * ★ (2026-08-04) Quill refuses to hold a blob: URL, and that refusal is the
@@ -531,10 +532,10 @@ export default function editor({ name, value = '', placeholder = '', simple = fa
             }
 
             this.notice = ! taken
-                ? 'الصور بتتضاف من المرفقات — مفيش مرفقات في الصفحة دي.'
+                ? t('الصور بتتضاف من المرفقات — مفيش مرفقات في الصفحة دي.')
                 : accepted.length
-                    ? `${accepted.length > 1 ? `${accepted.length} صور اتحطوا` : 'الصورة اتحطت'} هنا وكمان في المرفقات.`
-                    : 'الصورة مادخلتش — شوف رسالة المرفقات تحت.';
+                    ? (accepted.length > 1 ? t(':count صور اتحطوا هنا وكمان في المرفقات.', { count: accepted.length }) : t('الصورة اتحطت هنا وكمان في المرفقات.'))
+                    : t('الصورة مادخلتش — شوف رسالة المرفقات تحت.');
 
             clearTimeout(noticeTimer);
             noticeTimer = setTimeout(() => { this.notice = ''; }, 5000);

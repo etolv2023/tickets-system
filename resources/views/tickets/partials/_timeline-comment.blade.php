@@ -8,7 +8,7 @@
             <span class="timeline__who">
                 {{ $comment->authorName() }}
                 @if ($comment->contact_id)
-                    <x-badge variant="inquiry">عميل</x-badge>
+                    <x-badge variant="inquiry">{{ __('عميل') }}</x-badge>
                 @endif
             </span>
             <time class="timeline__when"
@@ -17,7 +17,7 @@
                 {{ $comment->created_at->diffForHumans() }}
             </time>
             @if ($comment->is_internal)
-                <x-badge variant="medium">داخلي</x-badge>
+                <x-badge variant="medium">{{ __('داخلي') }}</x-badge>
             @endif
         </div>
 

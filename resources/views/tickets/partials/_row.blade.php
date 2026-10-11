@@ -17,7 +17,7 @@
                 ($filters['branch'] ?? null) === 'none'
                 || in_array($ticket->status->value, \App\Models\TicketStatusDefinition::resolvedKeys(), true)
             ))
-                <x-badge variant="amber" class="badge--sm">ملهاش برانش</x-badge>
+                <x-badge variant="amber" class="badge--sm">{{ __('ملهاش برانش') }}</x-badge>
             @endif
         @endcan
         </div>
@@ -50,7 +50,7 @@
                          every other row is noise that teaches you to stop
                          reading the column. --}}
                     <span class="tickets__subtasks"
-                          title="الصب تاسكس المكتملة من الإجمالي">
+                          title="{{ __('الصب تاسكس المكتملة من الإجمالي') }}">
                         <x-icon name="list-checks" size="0.9em" />
                         {{ $ticket->subtasks_done }}/{{ $ticket->subtasks_total }}
                     </span>
@@ -81,7 +81,7 @@
                     <x-avatar :user="$assignment->user" size="sm" />
                 @endif
             @empty
-                <span class="u-subtle">مش موزعة</span>
+                <span class="u-subtle">{{ __('مش موزعة') }}</span>
             @endforelse
         </div>
     </td>

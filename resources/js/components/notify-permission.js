@@ -1,3 +1,5 @@
+import { t } from '../i18n';
+
 /**
  * The "turn on browser notifications" control.
  *
@@ -83,19 +85,19 @@ export default function notifyPermission(vapidKey = '') {
 
         get label() {
             return {
-                granted: 'الإشعارات مفعّلة',
-                denied: 'الإشعارات مرفوضة من المتصفح',
-                unsupported: 'متصفحك مش بيدعم الإشعارات',
-                default: 'فعّل إشعارات المتصفح',
+                granted: t('الإشعارات مفعّلة'),
+                denied: t('الإشعارات مرفوضة من المتصفح'),
+                unsupported: t('متصفحك مش بيدعم الإشعارات'),
+                default: t('فعّل إشعارات المتصفح'),
             }[this.state];
         },
 
         get hint() {
             return {
-                granted: 'هتوصلك حتى لو التاب مقفول والمتصفح شغال في الخلفية.',
-                denied: 'اسمح بالإشعارات لـ«نظام التذاكر» من إعدادات الموقع في متصفحك.',
+                granted: t('هتوصلك حتى لو التاب مقفول والمتصفح شغال في الخلفية.'),
+                denied: t('اسمح بالإشعارات لـ«نظام التذاكر» من إعدادات الموقع في متصفحك.'),
                 unsupported: '',
-                default: 'عشان يوصلك إشعار وانت شغّال على حاجة تانية.',
+                default: t('عشان يوصلك إشعار وانت شغّال على حاجة تانية.'),
             }[this.state];
         },
     };

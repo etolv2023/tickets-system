@@ -13,20 +13,20 @@
     @if ($ticket)
         @include('tickets.partials._snapshot')
     @else
-        <x-card title="المُبلغ">
+        <x-card :title="__('المُبلغ')">
             @include('tickets.partials._reporter')
         </x-card>
     @endif
 
-    <x-card title="المشكلة">
+    <x-card :title="__('المشكلة')">
         <div class="form-stack">
-            <x-field name="title" label="العنوان" :value="$ticket?->title" required
-                     placeholder="وصف قصير للمشكلة في سطر" />
+            <x-field name="title" :label="__('العنوان')" :value="$ticket?->title" required
+                     :placeholder="__('وصف قصير للمشكلة في سطر')" />
 
             <div class="field">
-                <label class="field__label" for="description">الوصف</label>
+                <label class="field__label" for="description">{{ __('الوصف') }}</label>
                 <x-editor name="description" :value="$ticket?->description"
-                          placeholder="اشرح المشكلة بالتفصيل. تقدر تلصق صور جوه المحرر." />
+                          :placeholder="__('اشرح المشكلة بالتفصيل. تقدر تلصق صور جوه المحرر.')" />
             </div>
         </div>
     </x-card>
@@ -36,7 +36,7 @@
     </div>
 
     <div class="ticket-form__col">
-    <x-card title="التصنيف">
+    <x-card :title="__('التصنيف')">
         <div class="form-grid">
             {{-- ★★★★★ (2026-07-21): type is a deliberate choice, not a silent
                  «غير محدد» default. A disabled empty placeholder + required
@@ -44,10 +44,10 @@
                  is what stopped features being created as «غير محدد» (so they
                  skipped approval). On an edit the ticket's own value is
                  pre-selected, so nothing changes there. --}}
-            <x-field name="type" label="النوع" required
-                     hint="الفيتشر والموديول الجديد بيستنوا موافقة الأدمن قبل التوزيع.">
+            <x-field name="type" :label="__('النوع')" required
+                     :hint="__('الفيتشر والموديول الجديد بيستنوا موافقة الأدمن قبل التوزيع.')">
                 <select id="type" name="type" required @class(['select', 'select--invalid' => $errors->has('type')])>
-                    <option value="" disabled @selected(blank(old('type', $ticket?->type?->value)))>— اختر النوع —</option>
+                    <option value="" disabled @selected(blank(old('type', $ticket?->type?->value)))>{{ __('— اختر النوع —') }}</option>
                     @foreach ($types as $value => $label)
                         <option value="{{ $value }}" @selected(old('type', $ticket?->type?->value) === $value)>
                             {{ $label }}
@@ -56,21 +56,21 @@
                 </select>
             </x-field>
 
-            <x-field name="priority" label="الأولوية" required hint="بتحدد مهلة الـ SLA أوتوماتيك.">
+            <x-field name="priority" :label="__('الأولوية')" required :hint="__('بتحدد مهلة الـ SLA أوتوماتيك.')">
                 <select id="priority" name="priority" required @class(['select', 'select--invalid' => $errors->has('priority')])>
                     @foreach ($priorities as $priority)
                         <option value="{{ $priority->key }}"
                                 @selected(old('priority', $ticket?->priority?->value ?? 'medium') === $priority->key)>
-                            {{ $priority->label() }} — {{ $priority->sla_hours }} ساعة
+                            {{ $priority->label() }} — {{ trans_choice(':count ساعة', $priority->sla_hours) }}
                         </option>
                     @endforeach
                 </select>
             </x-field>
 
-            <x-field name="module" label="الموديول" :value="$ticket?->module"
-                     placeholder="الفواتير، المخزون…" />
+            <x-field name="module" :label="__('الموديول')" :value="$ticket?->module"
+                     :placeholder="__('الفواتير، المخزون…')" />
 
-            <x-field name="due_date" label="تاريخ التسليم" type="date"
+            <x-field name="due_date" :label="__('تاريخ التسليم')" type="date"
                      :value="$ticket?->due_date?->toDateString()" />
         </div>
     </x-card>
@@ -122,9 +122,9 @@
             {{-- No tickets.assign means no distribution on this page, and a
                  subtask with nobody on it earns nothing. The plan waits for the
                  ticket page, after someone distributes it. --}}
-            <x-card title="الصب تاسكس">
+            <x-card :title="__('الصب تاسكس')">
                 <p class="field__hint">
-                    الصب تاسكس بتتضاف من صفحة التذكرة بعد ما تتوزّع — كل صب تاسك لازم يكون ليها صاحب عشان تكسب نقطها.
+                    {{ __('الصب تاسكس بتتضاف من صفحة التذكرة بعد ما تتوزّع — كل صب تاسك لازم يكون ليها صاحب عشان تكسب نقطها.') }}
                 </p>
             </x-card>
         @endisset
@@ -136,14 +136,14 @@
          hands its images to whichever uploader shares its <form> (editor.js →
          uploader.js), so no uploader on the page means no inline images on the
          page. --}}
-    <x-card title="المرفقات">
+    <x-card :title="__('المرفقات')">
         <x-uploader />
     </x-card>
     </div>
     </div>
 
     <div class="form-actions form-actions--sticky">
-        <x-button variant="primary">{{ $ticket ? 'حفظ التعديلات' : 'افتح التذكرة' }}</x-button>
-        <x-button variant="ghost" :href="$ticket ? route('tickets.show', $ticket) : route('tickets.index')">إلغاء</x-button>
+        <x-button variant="primary">{{ $ticket ? __('حفظ التعديلات') : __('افتح التذكرة') }}</x-button>
+        <x-button variant="ghost" :href="$ticket ? route('tickets.show', $ticket) : route('tickets.index')">{{ __('إلغاء') }}</x-button>
     </div>
 </div>

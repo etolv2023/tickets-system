@@ -18,8 +18,8 @@ enum BranchState: string
     public function label(): string
     {
         return match ($this) {
-            self::Active => 'موجود',
-            self::Deleted => 'اتمسح من جيت هب',
+            self::Active => __('موجود'),
+            self::Deleted => __('اتمسح من جيت هب'),
         };
     }
 

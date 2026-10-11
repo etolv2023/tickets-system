@@ -1,3 +1,5 @@
+import { t } from '../i18n';
+
 /**
  * Calendar drag-to-reschedule (F13).
  *
@@ -91,7 +93,7 @@ function mount() {
 
                 // F13: crossing the SLA is allowed, but the person has to be
                 // told — silently letting it slide is how deadlines get missed.
-                if (data.warning && !window.confirm(`${data.warning}\n\nنسيبها كده؟`)) {
+                if (data.warning && !window.confirm(`${data.warning}\n\n${t('نسيبها كده؟')}`)) {
                     return moveSubtask(id, item.dataset.originalDue || date).then(() => {
                         window.location.reload();
                     });

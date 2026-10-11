@@ -44,7 +44,7 @@
         <span class="nav__label">{{ __('ui.nav.github') }}</span>
     </a>
 
-    <a href="{{ route('admin.link-types.index') }}" class="nav__link" title="أنواع الروابط"
+    <a href="{{ route('admin.link-types.index') }}" class="nav__link" title="{{ __('أنواع الروابط') }}"
        @if (request()->routeIs('admin.link-types.*')) aria-current="page" @endif>
         <x-icon name="link" class="nav__icon" />
         <span class="nav__label">{{ __('ui.nav.link_types') }}</span>
@@ -52,7 +52,7 @@
 @endcan
 
 @can('github.identities.manage')
-    <a href="{{ route('admin.github-identities.index') }}" class="nav__link" title="ربط حسابات GitHub"
+    <a href="{{ route('admin.github-identities.index') }}" class="nav__link" title="{{ __('ربط حسابات GitHub') }}"
        @if(request()->routeIs('admin.github-identities.*')) aria-current="page" @endif>
         <x-icon name="user" class="nav__icon" />
         <span class="nav__label">{{ __('ui.nav.github_accounts') }}</span>
@@ -60,7 +60,7 @@
 @endcan
 
 @can('settings.manage')
-    <a href="{{ route('admin.point-values.index') }}" class="nav__link" title="سعر النقطة والمستحقات"
+    <a href="{{ route('admin.point-values.index') }}" class="nav__link" title="{{ __('سعر النقطة والمستحقات') }}"
        @if (request()->routeIs('admin.point-values.*')) aria-current="page" @endif>
         <x-icon name="trophy" class="nav__icon" />
         <span class="nav__label">{{ __('ui.nav.point_value') }}</span>
@@ -68,7 +68,7 @@
 @endcan
 
 @can('points.rules.manage')
-    <a href="{{ route('admin.point-rules.index') }}" class="nav__link" title="تصحيحات النقاط"
+    <a href="{{ route('admin.point-rules.index') }}" class="nav__link" title="{{ __('تصحيحات النقاط') }}"
        @if (request()->routeIs('admin.point-rules.*')) aria-current="page" @endif>
         <x-icon name="grid" class="nav__icon" />
         <span class="nav__label">{{ __('ui.nav.point_corrections') }}</span>
@@ -82,7 +82,7 @@
         <span class="nav__label">{{ __('ui.nav.impersonation') }}</span>
     </a>
 
-    <a href="{{ route('admin.audit.index') }}" class="nav__link" title="سجل التدقيق"
+    <a href="{{ route('admin.audit.index') }}" class="nav__link" title="{{ __('سجل التدقيق') }}"
        @if (request()->routeIs('admin.audit.*')) aria-current="page" @endif>
         <x-icon name="audit" class="nav__icon" />
         <span class="nav__label">{{ __('ui.nav.audit_log') }}</span>
@@ -90,7 +90,7 @@
 @endcan
 
 @can('schedule.manage')
-    <a href="{{ route('admin.scheduled-tasks.index') }}" class="nav__link" title="المهام المجدولة"
+    <a href="{{ route('admin.scheduled-tasks.index') }}" class="nav__link" title="{{ __('المهام المجدولة') }}"
        @if (request()->routeIs('admin.scheduled-tasks.*')) aria-current="page" @endif>
         <x-icon name="timer" class="nav__icon" />
         <span class="nav__label">{{ __('ui.nav.scheduled_tasks') }}</span>

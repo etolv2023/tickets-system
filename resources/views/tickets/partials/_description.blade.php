@@ -1,7 +1,7 @@
-<x-card title="المشكلة">
+<x-card :title="__('المشكلة')">
     <x-slot:actions>
         <span class="u-subtle">
-            فتحها {{ $ticket->creator->name }} ·
+            {{ __('فتحها :name', ['name' => $ticket->creator->name]) }} ·
             {{ $ticket->reported_at->timezone(config('app.display_timezone'))->translatedFormat('j F Y — H:i') }}
         </span>
     </x-slot:actions>
@@ -14,7 +14,7 @@
                  the user their own markup as text. --}}
             <div class="prose">{!! $ticket->description !!}</div>
         @else
-            <p class="prose__empty">مفيش وصف.</p>
+            <p class="prose__empty">{{ __('مفيش وصف.') }}</p>
         @endif
 
         @if ($ticket->bodyAttachments->isNotEmpty())

@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'فتح تذكرة')
+@section('title', __('فتح تذكرة'))
 
 @section('content')
     <div class="page page--ticket-workspace">
         <div class="page__head">
             <div>
-                <h1 class="page-title">فتح تذكرة</h1>
-                <p class="page-subtitle">وقت الإبلاغ ورقم التذكرة بيتحطوا أوتوماتيك.</p>
+                <h1 class="page-title">{{ __('فتح تذكرة') }}</h1>
+                <p class="page-subtitle">{{ __('وقت الإبلاغ ورقم التذكرة بيتحطوا أوتوماتيك.') }}</p>
             </div>
         </div>
 

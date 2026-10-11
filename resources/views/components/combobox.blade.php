@@ -9,7 +9,7 @@
     'selected' => null,
     /* id of another field this one depends on — contacts under a company. */
     'scope' => null,
-    'placeholder' => 'اكتب للبحث…',
+    'placeholder' => __('اكتب للبحث…'),
     'required' => false,
     'hint' => null,
 ])
@@ -62,7 +62,7 @@
                @keydown.escape="close()">
 
         <button type="button" class="combobox__clear" x-show="value" x-cloak
-                @click="clear()" aria-label="امسح الاختيار" data-tooltip="امسح الاختيار">
+                @click="clear()" aria-label="{{ __('امسح الاختيار') }}" data-tooltip="{{ __('امسح الاختيار') }}">
             <x-icon name="close" size="0.85em" />
         </button>
 
@@ -80,8 +80,8 @@
                 </li>
             </template>
 
-            <li class="combobox__empty" x-show="loading">بيدوّر…</li>
-            <li class="combobox__empty" x-show="showEmpty">مفيش نتايج.</li>
+            <li class="combobox__empty" x-show="loading">{{ __('بيدوّر…') }}</li>
+            <li class="combobox__empty" x-show="showEmpty">{{ __('مفيش نتايج.') }}</li>
         </ul>
     </div>
 

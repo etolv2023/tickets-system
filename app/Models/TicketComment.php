@@ -38,6 +38,6 @@ class TicketComment extends Model
     /** F24: a portal comment has a contact, not a user — whichever is set wins. */
     public function authorName(): string
     {
-        return $this->user?->name ?? $this->contact?->name ?? 'عميل';
+        return $this->user?->name ?? $this->contact?->name ?? __('عميل');
     }
 }

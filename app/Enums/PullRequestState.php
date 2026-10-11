@@ -21,9 +21,9 @@ enum PullRequestState: string
     public function label(): string
     {
         return match ($this) {
-            self::Open => 'مفتوح',
-            self::Merged => 'اتدمج',
-            self::Closed => 'اتقفل من غير دمج',
+            self::Open => __('مفتوح'),
+            self::Merged => __('اتدمج'),
+            self::Closed => __('اتقفل من غير دمج'),
         };
     }
 

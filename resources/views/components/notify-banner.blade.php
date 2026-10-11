@@ -8,11 +8,11 @@
          x-show="state === 'default' || state === 'denied'"
          class="notify-banner">
         <div class="notify-banner__text">
-            <span class="notify-banner__title" x-text="label">فعّل إشعارات المتصفح</span>
+            <span class="notify-banner__title" x-text="label">{{ __('فعّل إشعارات المتصفح') }}</span>
             <span class="notify-banner__hint" x-text="hint"></span>
         </div>
 
         <x-button variant="primary" size="sm" type="button"
-                  x-show="state === 'default'" @click="request()">فعّل دلوقتي</x-button>
+                  x-show="state === 'default'" @click="request()">{{ __('فعّل دلوقتي') }}</x-button>
     </div>
 @endauth

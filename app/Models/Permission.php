@@ -33,14 +33,14 @@ class Permission extends Model
     public function groupLabel(): string
     {
         return match ($this->group) {
-            'tickets' => 'التذاكر',
-            'comments' => 'التعليقات',
-            'workflow' => 'سير العمل',
-            'ratings' => 'التقييمات',
-            'points' => 'النقاط',
-            'reports' => 'التقارير',
-            'github' => 'جيت هب',
-            'admin' => 'الإدارة',
+            'tickets' => __('التذاكر'),
+            'comments' => __('التعليقات'),
+            'workflow' => __('سير العمل'),
+            'ratings' => __('التقييمات'),
+            'points' => __('النقاط'),
+            'reports' => __('التقارير'),
+            'github' => __('جيت هب'),
+            'admin' => __('الإدارة'),
             default => $this->group,
         };
     }

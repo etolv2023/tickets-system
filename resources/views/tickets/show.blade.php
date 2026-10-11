@@ -50,14 +50,14 @@
                                 :class="tab === 'timeline' && 'tabs__tab--active'"
                                 :aria-selected="tab === 'timeline' ? 'true' : 'false'"
                                 class="tabs__tab">
-                            الخط الزمني
+                            {{ __('الخط الزمني') }}
                         </button>
 
                         <button type="button" role="tab" @click="tab = 'subtasks'"
                                 :class="tab === 'subtasks' && 'tabs__tab--active'"
                                 :aria-selected="tab === 'subtasks' ? 'true' : 'false'"
                                 class="tabs__tab">
-                            الصب تاسكس
+                            {{ __('الصب تاسكس') }}
                             @if ($ticket->subtasks_total > 0)
                                 <span class="tabs__count">{{ $ticket->subtasks_total }}</span>
                             @endif
@@ -67,14 +67,14 @@
                                 :class="tab === 'time' && 'tabs__tab--active'"
                                 :aria-selected="tab === 'time' ? 'true' : 'false'"
                                 class="tabs__tab">
-                            تسجيل الوقت
+                            {{ __('تسجيل الوقت') }}
                         </button>
 
                         <button type="button" role="tab" @click="tab = 'links'"
                                 :class="tab === 'links' && 'tabs__tab--active'"
                                 :aria-selected="tab === 'links' ? 'true' : 'false'"
                                 class="tabs__tab">
-                            الروابط
+                            {{ __('الروابط') }}
                             @if ($linkCount > 0)
                                 <span class="tabs__count">{{ $linkCount }}</span>
                             @endif
@@ -88,7 +88,7 @@
                                     :class="tab === 'code' && 'tabs__tab--active'"
                                     :aria-selected="tab === 'code' ? 'true' : 'false'"
                                     class="tabs__tab">
-                                الكود
+                                {{ __('الكود') }}
                                 @if ($ticket->branches->isNotEmpty())
                                     <span class="tabs__count">{{ $ticket->branches->count() }}</span>
                                 @endif
@@ -123,8 +123,8 @@
             <aside class="ticket__side">
                 <div class="ticket__side-head">
                     <div>
-                        <strong>إدارة التذكرة</strong>
-                        <span>الإجراءات والتفاصيل المكملة</span>
+                        <strong>{{ __('إدارة التذكرة') }}</strong>
+                        <span>{{ __('الإجراءات والتفاصيل المكملة') }}</span>
                     </div>
                     <x-icon name="settings" />
                 </div>

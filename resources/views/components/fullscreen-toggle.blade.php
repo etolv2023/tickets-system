@@ -20,9 +20,9 @@
         x-data
         x-show="$store.fullscreen.supported"
         @click="$store.fullscreen.toggle()"
-        :aria-label="$store.fullscreen.on ? 'خروج من ملء الشاشة' : 'ملء الشاشة'"
-        :data-tooltip="$store.fullscreen.on ? 'خروج من ملء الشاشة' : 'ملء الشاشة'"
-        aria-label="ملء الشاشة" data-tooltip="ملء الشاشة">
+        :aria-label="$store.fullscreen.on ? {{ Js::from(__('خروج من ملء الشاشة')) }} : {{ Js::from(__('ملء الشاشة')) }}"
+        :data-tooltip="$store.fullscreen.on ? {{ Js::from(__('خروج من ملء الشاشة')) }} : {{ Js::from(__('ملء الشاشة')) }}"
+        aria-label="{{ __('ملء الشاشة') }}" data-tooltip="{{ __('ملء الشاشة') }}">
     <x-icon name="expand" x-show="! $store.fullscreen.on" />
     <x-icon name="shrink" x-show="$store.fullscreen.on" x-cloak />
 </button>

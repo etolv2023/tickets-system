@@ -11,14 +11,14 @@
         ->values();
 @endphp
 
-<x-card title="الخط الزمني">
+<x-card :title="__('الخط الزمني')">
     <x-slot:actions>
-        <span class="u-subtle">{{ $comments->count() }} تعليق · {{ $ticket->statusHistory->count() }} حدث</span>
+        <span class="u-subtle">{{ trans_choice(':count تعليق', $comments->count()) }} · {{ trans_choice(':count حدث', $ticket->statusHistory->count()) }}</span>
     </x-slot:actions>
 
     <div class="stack">
         @if ($entries->isEmpty())
-            <p class="prose__empty">مفيش حاجة حصلت لسه.</p>
+            <p class="prose__empty">{{ __('مفيش حاجة حصلت لسه.') }}</p>
         @else
             <div class="timeline">
                 @foreach ($entries as $entry)

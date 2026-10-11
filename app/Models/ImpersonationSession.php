@@ -62,7 +62,7 @@ class ImpersonationSession extends Model
     public function durationLabel(): string
     {
         if ($this->isOpen()) {
-            return 'لسه مفتوحة';
+            return __('لسه مفتوحة');
         }
 
         return $this->started_at->diffForHumans($this->ended_at, syntax: true, parts: 2);

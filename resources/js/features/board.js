@@ -1,5 +1,6 @@
 import Sortable from 'sortablejs';
 import { jsonHeaders, mountSubtaskStatus } from './subtasks.js';
+import { t } from '../i18n';
 
 /**
  * Dragging a ticket between board columns (F12.1).
@@ -69,7 +70,7 @@ async function move(event) {
         const payload = await response.json().catch(() => ({}));
 
         if (!response.ok || payload.ok === false) {
-            throw new Error(payload.message ?? 'النقلة اترفضت.');
+            throw new Error(payload.message ?? t('النقلة اترفضت.'));
         }
 
         // Accepted, but the ticket did not end up in this column — a side

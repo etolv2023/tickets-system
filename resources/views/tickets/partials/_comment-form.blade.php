@@ -3,8 +3,8 @@
     @csrf
 
     <div class="field">
-        <label class="field__label" for="body">تعليق جديد</label>
-        <x-editor name="body" placeholder="اكتب تعليق. تقدر تلصق صور." />
+        <label class="field__label" for="body">{{ __('تعليق جديد') }}</label>
+        <x-editor name="body" :placeholder="__('اكتب تعليق. تقدر تلصق صور.')" />
     </div>
 
     <x-uploader name="attachments" />
@@ -14,14 +14,14 @@
             <label class="checkbox-row">
                 <input type="checkbox" name="is_internal" value="1" class="checkbox">
                 <span class="checkbox-row__label">
-                    تعليق داخلي
-                    <small>مايتشوفش لو الخيط اتصدّر للعميل بعدين.</small>
+                    {{ __('تعليق داخلي') }}
+                    <small>{{ __('مايتشوفش لو الخيط اتصدّر للعميل بعدين.') }}</small>
                 </span>
             </label>
         @else
             <span></span>
         @endcan
 
-        <x-button variant="primary">أضف التعليق</x-button>
+        <x-button variant="primary">{{ __('أضف التعليق') }}</x-button>
     </div>
 </form>

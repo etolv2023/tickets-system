@@ -1,4 +1,4 @@
-<x-card title="الصب تاسكس" flush>
+<x-card :title="__('الصب تاسكس')" flush>
     <x-slot:actions>
         @if ($ticket->subtasks_total > 0)
             <div class="progress">
@@ -7,7 +7,7 @@
                 <div class="progress__track">
                     <div class="progress__bar" style="--value: {{ $ticket->progressPercent() }}%"></div>
                 </div>
-                <span class="progress__label"><span data-subtask-counter>{{ $ticket->subtasks_done }}/{{ $ticket->subtasks_total }}</span> مكتملة</span>
+                <span class="progress__label"><span data-subtask-counter>{{ $ticket->subtasks_done }}/{{ $ticket->subtasks_total }}</span> {{ __('مكتملة') }}</span>
             </div>
         @endif
     </x-slot:actions>
@@ -27,7 +27,7 @@
             @include('tickets.partials._subtask-row', ['subtask' => $subtask])
         @empty
             <p class="card__empty">
-                مفيش صب تاسكس. الصب تاسكس اختيارية — اعملها لو الشغل يستاهل تقسيم.
+                {{ __('مفيش صب تاسكس. الصب تاسكس اختيارية — اعملها لو الشغل يستاهل تقسيم.') }}
             </p>
         @endforelse
     </div>
@@ -35,11 +35,9 @@
     <p class="subtasks__note">
         <x-icon name="star" size="0.9em" />
         <span>
-            <strong>كل صب تاسك ليه نقاطه الخاصة.</strong>
-            بيتحط افتراضياً بنقطة واحدة وقت الإنشاء، وتقدر تعدّلها
-            لكل صب تاسك لوحده. لما التذكرة تتحل، كل صب تاسك <strong>خلص</strong>
-            بياخد صاحبه نقاطه هو بالظبط — مفيش تقسيم ومفيش نقاط على مستوى
-            التذكرة نفسها.
+            <strong>{{ __('كل صب تاسك ليه نقاطه الخاصة.') }}</strong>
+            {{ __('بيتحط افتراضياً بنقطة واحدة وقت الإنشاء، وتقدر تعدّلها لكل صب تاسك لوحده. لما التذكرة تتحل، كل صب تاسك') }} <strong>{{ __('خلص') }}</strong>
+            {{ __('بياخد صاحبه نقاطه هو بالظبط — مفيش تقسيم ومفيش نقاط على مستوى التذكرة نفسها.') }}
         </span>
     </p>
 

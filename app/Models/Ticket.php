@@ -106,7 +106,7 @@ class Ticket extends Model
     public function originLabel(): string
     {
         return $this->isInternal()
-            ? ($this->requester?->name ?? 'داخلية')
+            ? ($this->requester?->name ?? __('داخلية'))
             : ($this->company?->name ?? '—');
     }
 
@@ -454,6 +454,12 @@ class Ticket extends Model
         $days = (int) $interval->totalDays;
         $hours = $interval->hours;
 
+        // Arabic counts with dual and plural forms that a translation file
+        // cannot express, so English gets its own short branch.
+        if (app()->isLocale('en')) {
+            return $this->humanIntervalEn($days, $hours, $interval);
+        }
+
         if ($days >= 1) {
             $d = $days === 1 ? 'يوم' : ($days === 2 ? 'يومين' : ($days <= 10 ? "{$days} أيام" : "{$days} يوم"));
 
@@ -469,6 +475,25 @@ class Ticket extends Model
         $m = max(1, (int) $interval->totalMinutes);
 
         return "{$m} دقيقة";
+    }
+
+    private function humanIntervalEn(int $days, int $hours, CarbonInterval $interval): string
+    {
+        if ($days >= 1) {
+            $d = $days === 1 ? '1 day' : "{$days} days";
+
+            return $hours > 0 ? $d . ' ' . ($hours === 1 ? '1 hour' : "{$hours} hours") : $d;
+        }
+
+        if ($interval->totalHours >= 1) {
+            $h = (int) $interval->totalHours;
+
+            return $h === 1 ? '1 hour' : "{$h} hours";
+        }
+
+        $m = max(1, (int) $interval->totalMinutes);
+
+        return $m === 1 ? '1 minute' : "{$m} minutes";
     }
 
     /**
@@ -829,14 +854,14 @@ class Ticket extends Model
         $deadline = $this->deadlineAt();
 
         if ($deadline === null) {
-            return ['key' => 'none', 'label' => self::DEADLINE_FILTERS['none'], 'delta' => '—'];
+            return ['key' => 'none', 'label' => __(self::DEADLINE_FILTERS['none']), 'delta' => '—'];
         }
 
         $open = $this->status->isOpen();
         $moment = $open ? now($deadline->timezone) : $this->resolved_at?->copy()->setTimezone($deadline->timezone);
 
         if ($moment === null) {
-            return ['key' => 'none', 'label' => self::DEADLINE_FILTERS['none'], 'delta' => '—'];
+            return ['key' => 'none', 'label' => __(self::DEADLINE_FILTERS['none']), 'delta' => '—'];
         }
 
         if (! $open) {
@@ -856,7 +881,7 @@ class Ticket extends Model
 
         return [
             'key' => $key,
-            'label' => self::DEADLINE_FILTERS[$key],
+            'label' => __(self::DEADLINE_FILTERS[$key]),
             'delta' => $this->humanInterval($moment->diffAsCarbonInterval($deadline)),
         ];
     }

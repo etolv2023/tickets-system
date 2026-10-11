@@ -11,16 +11,16 @@
         ->filter(fn ($row) => $row['other'] !== null);
 @endphp
 
-<x-card title="الروابط">
+<x-card :title="__('الروابط')">
     <div class="stack stack--tight">
         @if ($ticket->isBlocked())
             <x-alert variant="error">
-                التذكرة دي مبلوكة بتذكرة تانية لسه مقفلتش.
+                {{ __('التذكرة دي مبلوكة بتذكرة تانية لسه مقفلتش.') }}
             </x-alert>
         @endif
 
         @if ($rows->isEmpty())
-            <p class="field__hint">مفيش روابط.</p>
+            <p class="field__hint">{{ __('مفيش روابط.') }}</p>
         @else
             <div class="links">
                 @foreach ($rows as $row)
@@ -50,7 +50,7 @@
             <form method="POST" action="{{ route('tickets.links.store', $ticket) }}" class="stack stack--tight">
                 @csrf
 
-                <x-field name="type" label="نوع الربط">
+                <x-field name="type" :label="__('نوع الربط')">
                     <select id="type" name="type" class="select" required>
                         @foreach (\App\Models\LinkTypeDefinition::options() as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
@@ -60,10 +60,10 @@
 
                 {{-- Searched server-side by number OR title: nobody remembers
                      TK-2026-00147, they remember "the double-tax invoice one". --}}
-                <x-combobox name="to_ticket_id" resource="tickets" label="التذكرة" required
-                            placeholder="اكتب رقم التذكرة أو جزء من عنوانها…" />
+                <x-combobox name="to_ticket_id" resource="tickets" :label="__('التذكرة')" required
+                            :placeholder="__('اكتب رقم التذكرة أو جزء من عنوانها…')" />
 
-                <x-button variant="secondary" size="sm" block>اربط</x-button>
+                <x-button variant="secondary" size="sm" block>{{ __('اربط') }}</x-button>
             </form>
         @endcan
     </div>

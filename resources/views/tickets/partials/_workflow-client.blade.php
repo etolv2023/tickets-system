@@ -4,17 +4,17 @@
         {{-- name= is not optional here: the fold key is md5(title), and this shared
              one with the facts card that used to be called "العميل" too, so
              folding either folded both. --}}
-        <x-collapsible-card title="العميل" name="client-actions" :open="true">
+        <x-collapsible-card :title="__('العميل')" name="client-actions" :open="true">
             <div class="stack stack--tight">
                 @if ($ticket->client_notified_at)
                     <p class="field__hint">
-                        تم تسجيل إبلاغ العميل {{ $ticket->client_notified_at->diffForHumans() }}.
+                        {{ __('تم تسجيل إبلاغ العميل :when.', ['when' => $ticket->client_notified_at->diffForHumans()]) }}
                     </p>
                 @else
                     @can('notifyClient', $ticket)
                         <form method="POST" action="{{ route('tickets.notify', $ticket) }}">
                             @csrf
-                            <x-button variant="secondary" size="sm" block>تسجيل إبلاغ العميل</x-button>
+                            <x-button variant="secondary" size="sm" block>{{ __('تسجيل إبلاغ العميل') }}</x-button>
                         </form>
                     @endcan
                 @endif
@@ -25,12 +25,12 @@
                             @csrf
                             <x-button variant="primary" size="sm" block
                                       :disabled="$ticket->client_notified_at === null">
-                                إغلاق التذكرة نهائيًا
+                                {{ __('إغلاق التذكرة نهائيًا') }}
                             </x-button>
                         </form>
 
                         @unless ($ticket->client_notified_at)
-                            <p class="field__hint">يلزم تسجيل إبلاغ العميل قبل الإغلاق.</p>
+                            <p class="field__hint">{{ __('يلزم تسجيل إبلاغ العميل قبل الإغلاق.') }}</p>
                         @endunless
                     @endif
                 @endcan

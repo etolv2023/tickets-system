@@ -9,4 +9,4 @@
 
 {{-- Decorative to the eye, meaningful to a screen reader: the label carries
      what the colour says. --}}
-<span {{ $attributes->class(['stripe', 'stripe--' . $value->variant()]) }} role="img" aria-label="أولوية: {{ $value->label() }}"></span>
+<span {{ $attributes->class(['stripe', 'stripe--' . $value->variant()]) }} role="img" aria-label="{{ __('أولوية: :name', ['name' => $value->label()]) }}"></span>

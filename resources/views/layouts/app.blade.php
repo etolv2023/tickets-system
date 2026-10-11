@@ -58,6 +58,8 @@
         })();
     </script>
 
+    {{-- JS strings for the current language; empty in the Arabic UI (see JsTranslations). --}}
+    <script>window.__i18n = @json(\App\Support\JsTranslations::current());</script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     {{-- Screens that drag pull their own bundle. SortableJS has no business on

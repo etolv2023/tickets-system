@@ -48,7 +48,7 @@
     <div class="tcard__top">
         {{-- Only the grip starts a drag, so the title link, the status select,
              the accordion and the بدأت / خلصت buttons all still work. --}}
-        <span class="tcard__grip" data-drag-handle title="اسحب لعمود تاني">
+        <span class="tcard__grip" data-drag-handle title="{{ __('اسحب لعمود تاني') }}">
             <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path d="M7 4a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm9-12a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
             </svg>
@@ -81,7 +81,7 @@
     @if ($ticket->subtasks_total > 0 && $ticket->relationLoaded('subtasks'))
         <details class="tcard__subtasks">
             <summary class="tcard__subtasks-summary">
-                الصب تاسكس <span data-subtask-counter>{{ $ticket->subtasks_done }}/{{ $ticket->subtasks_total }}</span>
+                {{ __('الصب تاسكس') }} <span data-subtask-counter>{{ $ticket->subtasks_done }}/{{ $ticket->subtasks_total }}</span>
             </summary>
 
             <ul class="tcard__subtask-list">
@@ -93,7 +93,7 @@
 
                         @can('update', [$subtask, $ticket])
                             @if (! $subtask->status->needsReason())
-                                <select class="select select--sm" aria-label="حالة {{ $subtask->title }}"
+                                <select class="select select--sm" aria-label="{{ __('حالة :name', ['name' => $subtask->title]) }}"
                                         data-subtask-status="{{ route('subtasks.status', $subtask) }}"
                                         data-current="{{ $subtask->status->value }}">
                                     @foreach (\App\Models\SubtaskStatusDefinition::quickChangeKeys() as $optionKey)
@@ -130,12 +130,12 @@
             @if ($mine->status === 'pending')
                 <form method="POST" action="{{ route('tickets.work.start', [$ticket, $mine]) }}">
                     @csrf
-                    <x-button variant="primary" size="sm">بدأت</x-button>
+                    <x-button variant="primary" size="sm">{{ __('بدأت') }}</x-button>
                 </form>
             @else
                 <form method="POST" action="{{ route('tickets.work.finish', [$ticket, $mine]) }}">
                     @csrf
-                    <x-button variant="secondary" size="sm">خلصت</x-button>
+                    <x-button variant="secondary" size="sm">{{ __('خلصت') }}</x-button>
                 </form>
             @endif
         </div>

@@ -20,7 +20,7 @@
              full "غيّر الحالة" panel on the ticket page. --}}
         <form method="POST" action="{{ route('tickets.status.change', $ticket) }}" class="status-select">
             @csrf
-            <select name="to_status" class="select select--sm" aria-label="غيّر حالة {{ $ticket->ticket_number }}"
+            <select name="to_status" class="select select--sm" aria-label="{{ __('غيّر حالة :number', ['number' => $ticket->ticket_number]) }}"
                     x-data @change="$el.value && $el.form.submit()">
                 <option value="">{{ $ticket->status->label() }}</option>
                 @foreach ($next as $key)

@@ -17,11 +17,11 @@ enum PointSide: string
     public function label(): string
     {
         return match ($this) {
-            self::Support => 'دعم',
-            self::Frontend => 'فرونت',
-            self::Backend => 'باك',
-            self::Tester => 'تيستر',
-            self::Devops => 'ديف أوبس',
+            self::Support => __('دعم'),
+            self::Frontend => __('فرونت'),
+            self::Backend => __('باك'),
+            self::Tester => __('تيستر'),
+            self::Devops => __('ديف أوبس'),
         };
     }
 

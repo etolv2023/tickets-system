@@ -3,7 +3,7 @@
     'route',
     /* Extra route parameters this screen needs (a user id, a week…). */
     'params' => [],
-    'label' => 'تصدير Excel',
+    'label' => __('تصدير Excel'),
 ])
 
 @php

@@ -21,10 +21,10 @@
 @endcan
 
 @can('reports.view')
-    <a href="{{ route('reports.index') }}" class="nav__link" title="التقارير"
+    <a href="{{ route('reports.index') }}" class="nav__link" title="{{ __('التقارير') }}"
        @if (request()->routeIs('reports.index')) aria-current="page" @endif>
         <x-icon name="chart" class="nav__icon" />
-        <span class="nav__label">التقارير</span>
+        <span class="nav__label">{{ __('التقارير') }}</span>
     </a>
 
     <a href="{{ route('reports.team-activity') }}" class="nav__link" title="{{ __('ui.nav.team_activity') }}"

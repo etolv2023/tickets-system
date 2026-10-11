@@ -49,7 +49,7 @@
             <x-slot:actions>
                 <button type="button" class="fold__link"
                         @click="toggleAll(on < total)"
-                        x-text="on < total ? 'حدد الكل' : 'امسح الكل'"></button>
+                        x-text="on < total ? {{ Js::from(__('حدد الكل')) }} : {{ Js::from(__('امسح الكل')) }}"></button>
             </x-slot:actions>
 
             <div class="perms__list" x-ref="list" @change="recount()">
@@ -70,7 +70,7 @@
                                 <small>{{ app()->isLocale('en') && $permission->description_en ? $permission->description_en : $permission->description_ar }}</small>
                             @endif
                             @if ($inherited !== null && in_array($permission->id, $inherited, false))
-                                <span class="perms__inherited">من الدور</span>
+                                <span class="perms__inherited">{{ __('من الدور') }}</span>
                             @endif
                         </span>
                     </label>

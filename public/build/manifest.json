@@ -1,4 +1,8 @@
 {
+  "_i18n-BDZ_kEoU.js": {
+    "file": "assets/i18n-BDZ_kEoU.js",
+    "name": "i18n"
+  },
   "public/fonts/cairo-arabic.woff2": {
     "file": "assets/cairo-arabic-CJWMIGCx.woff2",
     "src": "public/fonts/cairo-arabic.woff2"
@@ -37,30 +41,40 @@
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-QabybEjg.js",
+    "file": "assets/app-CFMJHjY9.js",
     "name": "app",
     "src": "resources/js/app.js",
-    "isEntry": true
+    "isEntry": true,
+    "imports": [
+      "_i18n-BDZ_kEoU.js"
+    ]
   },
   "resources/js/features/board.js": {
-    "file": "assets/board-DoeegXr7.js",
+    "file": "assets/board-CCYnu18X.js",
     "name": "board",
     "src": "resources/js/features/board.js",
     "isEntry": true,
     "imports": [
-      "resources/js/features/subtasks.js"
+      "resources/js/features/subtasks.js",
+      "_i18n-BDZ_kEoU.js"
     ]
   },
   "resources/js/features/calendar.js": {
-    "file": "assets/calendar-Ck7Xn6Zx.js",
+    "file": "assets/calendar-juVXFzSu.js",
     "name": "calendar",
     "src": "resources/js/features/calendar.js",
-    "isEntry": true
+    "isEntry": true,
+    "imports": [
+      "_i18n-BDZ_kEoU.js"
+    ]
   },
   "resources/js/features/subtasks.js": {
-    "file": "assets/subtasks-DoMvXwzI.js",
+    "file": "assets/subtasks-cwJ8XTv2.js",
     "name": "subtasks",
     "src": "resources/js/features/subtasks.js",
-    "isEntry": true
+    "isEntry": true,
+    "imports": [
+      "_i18n-BDZ_kEoU.js"
+    ]
   }
 }

@@ -4,7 +4,7 @@
      Fully role-based (2026-07-24): one dropdown per role an admin opted into
      the distribution panel — no hardcoded frontend/backend/tester/devops
      fields any more, so nothing shows up twice. --}}
-<x-collapsible-card title="فريق التنفيذ ومسؤولياته">
+<x-collapsible-card :title="__('فريق التنفيذ ومسؤولياته')">
     @error('assign')
         <x-alert variant="error">{{ $message }}</x-alert>
     @enderror
@@ -16,16 +16,16 @@
         @forelse ($assignable['roles'] as $entry)
             <x-field name="role_assignments[{{ $entry['role']->id }}]" :label="$entry['role']->label()">
                 <select id="role_assignments_{{ $entry['role']->id }}" name="role_assignments[{{ $entry['role']->id }}]" class="select">
-                    <option value="">— غير مسندة —</option>
+                    <option value="">{{ __('— غير مسندة —') }}</option>
                     @foreach ($entry['candidates'] as $person)
                         <option value="{{ $person->id }}" @selected(($currentRoleAssignments[$entry['role']->id] ?? null) === $person->id)>{{ $person->name }}</option>
                     @endforeach
                 </select>
             </x-field>
         @empty
-            <p class="field__hint">لا توجد مسؤوليات قابلة للإسناد. فعّل «يمكن إسناد هذا الدور» من إدارة الأدوار.</p>
+            <p class="field__hint">{{ __('لا توجد مسؤوليات قابلة للإسناد. فعّل «يمكن إسناد هذا الدور» من إدارة الأدوار.') }}</p>
         @endforelse
 
-        <x-button variant="primary" size="sm" block>حفظ فريق التنفيذ</x-button>
+        <x-button variant="primary" size="sm" block>{{ __('حفظ فريق التنفيذ') }}</x-button>
     </form>
 </x-collapsible-card>

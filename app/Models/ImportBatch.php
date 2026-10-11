@@ -34,12 +34,12 @@ class ImportBatch extends Model
     public function statusLabel(): string
     {
         return match ($this->status) {
-            'pending' => 'في الانتظار',
-            'validating' => 'جاري التحقق',
-            'previewing' => 'معاينة',
-            'importing' => 'جاري الاستيراد',
-            'completed' => 'اكتمل',
-            'failed' => 'فشل',
+            'pending' => __('في الانتظار'),
+            'validating' => __('جاري التحقق'),
+            'previewing' => __('معاينة'),
+            'importing' => __('جاري الاستيراد'),
+            'completed' => __('اكتمل'),
+            'failed' => __('فشل'),
             default => $this->status,
         };
     }

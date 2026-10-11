@@ -6,14 +6,14 @@
     $remaining = max(0, $estimate - $spent);
 @endphp
 
-<x-card title="الوقت">
+<x-card :title="__('الوقت')">
     <div class="stack stack--tight">
         @if ($estimate > 0)
             {{-- F09: green inside the estimate, amber over it, red past double. --}}
             <div class="estimate estimate--{{ $ticket->estimateVariant() }}">
                 <div class="estimate__row">
-                    <span>المقدّر <strong>{{ rtrim(rtrim(number_format($estimate, 2), '0'), '.') }}</strong> س</span>
-                    <span class="estimate__spent">الفعلي {{ rtrim(rtrim(number_format($spent, 2), '0'), '.') }} س</span>
+                    <span>{{ __('المقدّر') }} <strong>{{ rtrim(rtrim(number_format($estimate, 2), '0'), '.') }}</strong> {{ __('س') }}</span>
+                    <span class="estimate__spent">{{ __('الفعلي :hours س', ['hours' => rtrim(rtrim(number_format($spent, 2), '0'), '.')]) }}</span>
                 </div>
 
                 <div class="estimate__bar">
@@ -21,17 +21,17 @@
                 </div>
 
                 <div class="estimate__row">
-                    <span class="u-subtle">المتبقي {{ rtrim(rtrim(number_format($remaining, 2), '0'), '.') }} س</span>
+                    <span class="u-subtle">{{ __('المتبقي :hours س', ['hours' => rtrim(rtrim(number_format($remaining, 2), '0'), '.')]) }}</span>
                     @if ($spent > $estimate)
-                        <span class="u-subtle">عدّى التقدير بـ {{ rtrim(rtrim(number_format($spent - $estimate, 2), '0'), '.') }} س</span>
+                        <span class="u-subtle">{{ __('عدّى التقدير بـ :hours س', ['hours' => rtrim(rtrim(number_format($spent - $estimate, 2), '0'), '.')]) }}</span>
                     @endif
                 </div>
             </div>
         @else
             <p class="field__hint">
-                مفيش تقدير. ضيف صب تاسكس بتقديرات وهيتجمعوا هنا أوتوماتيك.
+                {{ __('مفيش تقدير. ضيف صب تاسكس بتقديرات وهيتجمعوا هنا أوتوماتيك.') }}
                 @if ($spent > 0)
-                    <br>المسجّل لحد دلوقتي: <strong>{{ rtrim(rtrim(number_format($spent, 2), '0'), '.') }}</strong> س.
+                    <br>{{ __('المسجّل لحد دلوقتي:') }} <strong>{{ rtrim(rtrim(number_format($spent, 2), '0'), '.') }}</strong> {{ __('س.') }}
                 @endif
             </p>
         @endif
@@ -43,17 +43,17 @@
                 @csrf
 
                 <div class="form-grid">
-                    <x-field name="hours" label="ساعات" type="number" step="0.25" min="0.25" max="24"
+                    <x-field name="hours" :label="__('ساعات')" type="number" step="0.25" min="0.25" max="24"
                              required placeholder="1.5" />
-                    <x-field name="spent_on" label="التاريخ" type="date"
+                    <x-field name="spent_on" :label="__('التاريخ')" type="date"
                              :value="now(config('app.display_timezone'))->toDateString()"
                              required max="{{ now(config('app.display_timezone'))->toDateString() }}" />
                 </div>
 
                 @if ($ticket->subtasks->isNotEmpty())
-                    <x-field name="subtask_id" label="على أنهي صب تاسك؟">
+                    <x-field name="subtask_id" :label="__('على أنهي صب تاسك؟')">
                         <select id="subtask_id" name="subtask_id" class="select">
-                            <option value="">التذكرة نفسها</option>
+                            <option value="">{{ __('التذكرة نفسها') }}</option>
                             @foreach ($ticket->subtasks as $subtask)
                                 <option value="{{ $subtask->id }}">{{ $subtask->title }}</option>
                             @endforeach
@@ -61,14 +61,14 @@
                     </x-field>
                 @endif
 
-                <x-field name="note" label="ملاحظة" placeholder="اختياري" />
+                <x-field name="note" :label="__('ملاحظة')" :placeholder="__('اختياري')" />
 
-                <x-button variant="secondary" size="sm" block>سجّل الوقت</x-button>
+                <x-button variant="secondary" size="sm" block>{{ __('سجّل الوقت') }}</x-button>
             </form>
 
             @if ($myTimeEntries->isNotEmpty())
                 <hr class="divider">
-                <p class="u-subtle">وقتي على التذكرة دي</p>
+                <p class="u-subtle">{{ __('وقتي على التذكرة دي') }}</p>
 
                 <div class="facts">
                     @foreach ($myTimeEntries as $entry)
@@ -89,7 +89,7 @@
                             </span>
                             <span class="row">
                                 <span class="facts__value facts__value--num">
-                                    {{ rtrim(rtrim($entry->hours, '0'), '.') }} س
+                                    {{ __(':hours س', ['hours' => rtrim(rtrim($entry->hours, '0'), '.')]) }}
                                 </span>
                                 <form method="POST" action="{{ route('time.destroy', $entry) }}">
                                     @csrf

@@ -7,17 +7,17 @@
      have something to tell them. Rendered at all only when there is a contact
      with contact details: an empty card is worse than no card. --}}
 @if ($ticket->contact?->email || $ticket->contact?->phone)
-    <x-collapsible-card title="التواصل مع المُبلغ" name="reporter-contact">
+    <x-collapsible-card :title="__('التواصل مع المُبلغ')" name="reporter-contact">
         <div class="facts">
             @if ($ticket->contact?->email)
                 <div class="facts__row">
-                    <span class="facts__label">إيميل</span>
+                    <span class="facts__label">{{ __('إيميل') }}</span>
                     <span class="facts__value u-ltr">{{ $ticket->contact->email }}</span>
                 </div>
             @endif
             @if ($ticket->contact?->phone)
                 <div class="facts__row">
-                    <span class="facts__label">تليفون</span>
+                    <span class="facts__label">{{ __('تليفون') }}</span>
                     <span class="facts__value u-mono u-ltr">{{ $ticket->contact->phone }}</span>
                 </div>
             @endif
@@ -28,25 +28,25 @@
 {{-- F24: the link and password are only ever readable here, right after
      (re)generating — nobody, including the admin, can look up an old one. --}}
 @can('update', $ticket)
-    <x-collapsible-card :title="$ticket->isInternal() ? 'بوابة المتابعة' : 'بوابة العميل'">
+    <x-collapsible-card :title="$ticket->isInternal() ? __('بوابة المتابعة') : __('بوابة العميل')">
         {{-- The link and the password both get a copy button rather than being
              printed for hand-transcription: the password is random and the URL
              is long, and both get pasted into a chat window anyway. --}}
         <div class="stack stack--tight">
-            <x-copy-row label="لينك البوابة"
+            <x-copy-row :label="__('لينك البوابة')"
                         :value="route('portal.show', $ticket->ticket_number)" />
 
             @if (session('portalPassword'))
-                <x-copy-row label="الباسورد الجديد"
+                <x-copy-row :label="__('الباسورد الجديد')"
                             :value="session('portalPassword')"
                             secret />
-                <p class="field__hint">ابعته للعميل دلوقتي — مش هيتعرض تاني.</p>
+                <p class="field__hint">{{ __('ابعته للعميل دلوقتي — مش هيتعرض تاني.') }}</p>
             @endif
 
             <form method="POST" action="{{ route('tickets.portal.regenerate', $ticket) }}">
                 @csrf
                 <x-button variant="secondary" size="sm">
-                    {{ $ticket->portal_password_hash ? 'ولّد باسورد جديد' : 'ولّد باسورد' }}
+                    {{ $ticket->portal_password_hash ? __('ولّد باسورد جديد') : __('ولّد باسورد') }}
                 </x-button>
             </form>
         </div>
@@ -63,20 +63,20 @@
 
      What was left was two cards of two or three rows each, which is what turns
      an aside into a column of grey title bars. --}}
-<x-collapsible-card title="تفاصيل" name="ticket-details" :open="true">
+<x-collapsible-card :title="__('تفاصيل')" name="ticket-details" :open="true">
     <div class="facts">
         <div class="facts__row">
-            <span class="facts__label">أول رد</span>
+            <span class="facts__label">{{ __('أول رد') }}</span>
             <span class="facts__value facts__value--num">
                 {{ $ticket->first_response_at
                     ? $ticket->first_response_at->timezone(config('app.display_timezone'))->diffForHumans($ticket->reported_at, short: true)
-                    : 'لسه' }}
+                    : __('لسه') }}
             </span>
         </div>
 
         @if ($ticket->due_date)
             <div class="facts__row">
-                <span class="facts__label">تاريخ التسليم</span>
+                <span class="facts__label">{{ __('تاريخ التسليم') }}</span>
                 <span class="facts__value facts__value--num">
                     {{ $ticket->due_date->translatedFormat('j M Y') }}
                 </span>
@@ -85,7 +85,7 @@
 
         @if ($ticket->resolved_at)
             <div class="facts__row">
-                <span class="facts__label">اتحلت</span>
+                <span class="facts__label">{{ __('اتحلت') }}</span>
                 <span class="facts__value facts__value--num">
                     {{ $ticket->resolved_at->timezone(config('app.display_timezone'))->translatedFormat('j M Y') }}
                 </span>
@@ -101,8 +101,8 @@
             </div>
         @empty
             <div class="facts__row">
-                <span class="facts__label">التوزيع</span>
-                <span class="facts__value">لسه متوزعتش</span>
+                <span class="facts__label">{{ __('التوزيع') }}</span>
+                <span class="facts__value">{{ __('لسه متوزعتش') }}</span>
             </div>
         @endforelse
     </div>

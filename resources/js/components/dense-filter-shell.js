@@ -1,3 +1,5 @@
+import { t } from '../i18n';
+
 /* A safe disclosure layer for dense filter forms.
  *
  * Unlike the retired implementation, this never moves controls or changes
@@ -37,7 +39,7 @@ export default function registerDenseFilterShells() {
 
         button.type = 'button';
         button.className = 'btn btn--secondary dense-filter-toggle';
-        button.innerHTML = `<span aria-hidden="true">☷</span><span>الفلاتر</span>${activeCount ? `<span class="filters__active-count">${activeCount}</span>` : ''}`;
+        button.innerHTML = `<span aria-hidden="true">☷</span><span>${t('الفلاتر')}</span>${activeCount ? `<span class="filters__active-count">${activeCount}</span>` : ''}`;
 
         const render = () => {
             targets.forEach((target) => { target.hidden = !open; });

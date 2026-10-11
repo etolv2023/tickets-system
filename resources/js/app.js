@@ -11,6 +11,7 @@ import registerGlobalShortcuts from './components/global-shortcuts';
 import tableColumns from './components/table-columns';
 import calendarDayPreview from './components/calendar-day-preview';
 import registerDenseFilterShells from './components/dense-filter-shell';
+import { t } from './i18n';
 
 // Before Alpine, and before anything else can attach a submit handler: a
 // double-click on "إرسال" used to post the same comment three times.
@@ -125,7 +126,7 @@ Alpine.store('fullscreen', {
             if ((document.fullscreenElement !== null) === wasOn) {
                 // The toast store is declared further down this file; the
                 // lookup happens at click time, so the order does not matter.
-                Alpine.store('toast').push('المتصفح رفض ملء الشاشة. جرّب F11.', 'error');
+                Alpine.store('toast').push(t('المتصفح رفض ملء الشاشة. جرّب F11.'), 'error');
             }
         }, 600);
     },
@@ -229,11 +230,11 @@ Alpine.store('toast', {
 // screen is already wrong by then (the drag already happened), so this is
 // the one and only place that gets to say so. It used to go nowhere.
 document.addEventListener('reorder-failed', () => {
-    Alpine.store('toast').push('الترتيب الجديد ماتسجّلش. حدّث الصفحة وجرّب تاني.', 'error');
+    Alpine.store('toast').push(t('الترتيب الجديد ماتسجّلش. حدّث الصفحة وجرّب تاني.'), 'error');
 });
 
 document.addEventListener('calendar-save-failed', () => {
-    Alpine.store('toast').push('مقدرناش نغيّر الموعد. رجّعناه لمكانه؛ جرّب تاني.', 'error');
+    Alpine.store('toast').push(t('مقدرناش نغيّر الموعد. رجّعناه لمكانه؛ جرّب تاني.'), 'error');
 });
 
 // Copy-to-clipboard for a single value, with a two-second "copied" state.

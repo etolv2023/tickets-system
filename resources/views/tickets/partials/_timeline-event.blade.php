@@ -7,7 +7,7 @@
 
     <div class="timeline__body">
         <div class="timeline__head">
-            <span class="timeline__who">{{ $event->user?->name ?? 'النظام' }}</span>
+            <span class="timeline__who">{{ $event->user?->name ?? __('النظام') }}</span>
             <time class="timeline__when"
                   datetime="{{ $event->created_at->toIso8601String() }}"
                   title="{{ $event->created_at->timezone(config('app.display_timezone'))->translatedFormat('j F Y — H:i') }}">
@@ -19,9 +19,9 @@
             @if ($event->from_status === $event->to_status)
                 {{ $event->note }}
             @elseif ($event->fromLabel())
-                نقل التذكرة من «{{ $event->fromLabel() }}» لـ «{{ $event->toLabel() }}»
+                {{ __('نقل التذكرة من «:from» لـ «:to»', ['from' => $event->fromLabel(), 'to' => $event->toLabel()]) }}
             @else
-                فتح التذكرة
+                {{ __('فتح التذكرة') }}
             @endif
 
             @if ($event->note && $event->from_status !== $event->to_status)
@@ -29,7 +29,7 @@
             @endif
 
             @if ($event->recipientLabel())
-                — مستنيين رد من {{ $event->recipientLabel() }}
+                — {{ __('مستنيين رد من :who', ['who' => $event->recipientLabel()]) }}
             @endif
         </p>
     </div>

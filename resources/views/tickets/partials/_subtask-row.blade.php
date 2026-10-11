@@ -2,7 +2,7 @@
 
 <div class="subtask" data-subtask-id="{{ $subtask->id }}" x-data="subtaskRow">
     @can('update', [$subtask, $ticket])
-        <span class="subtask__handle" data-drag-handle title="اسحب لإعادة الترتيب">
+        <span class="subtask__handle" data-drag-handle title="{{ __('اسحب لإعادة الترتيب') }}">
             <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path d="M7 4a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm9-12a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
             </svg>
@@ -42,13 +42,13 @@
                          two states says both: the status is readable in the
                          same place on every row, and the greyed box says whose
                          it is without a word of explanation. --}}
-                    <select class="select select--sm" aria-label="حالة الصب تاسك"
+                    <select class="select select--sm" aria-label="{{ __('حالة الصب تاسك') }}"
                             @disabled(! $mayChange)
                             @if ($mayChange)
                                 data-subtask-status="{{ route('subtasks.status', $subtask) }}"
                                 data-current="{{ $subtask->status->value }}"
                             @else
-                                title="{{ $subtask->assignee ? "الصب تاسك دي بتاعة {$subtask->assignee->name}" : 'مش من حقك تغيّر الصب تاسك دي' }}"
+                                title="{{ $subtask->assignee ? __('الصب تاسك دي بتاعة :name', ['name' => $subtask->assignee->name]) : __('مش من حقك تغيّر الصب تاسك دي') }}"
                             @endif>
                         @foreach ($quick as $optionKey)
                             <option value="{{ $optionKey }}" @selected($subtask->status->value === $optionKey)>{{ \App\Casts\SubtaskStatusValue::for($optionKey)->label() }}</option>
@@ -68,7 +68,7 @@
                         {{ $subtask->assignee->name }}
                     </span>
                 @else
-                    <span class="u-subtle">مش مسندة</span>
+                    <span class="u-subtle">{{ __('مش مسندة') }}</span>
                 @endif
 
                 @if ($subtask->deadline())
@@ -77,9 +77,9 @@
                          ساعات عمل، فعرض «استحقاق 19 أغسطس» لوحده كان هيقول
                          لصاحبها إن قدامه اليوم كله وهو في الحقيقة قدامه للواحدة. --}}
                     <span @class(['subtask__date--overdue' => $subtask->isOverdue()])>
-                        استحقاق {{ $subtask->due_at
+                        {{ __('استحقاق :date', ['date' => $subtask->due_at
                             ? $subtask->due_at->translatedFormat('j M - H:i')
-                            : $subtask->due_date->translatedFormat('j M') }}
+                            : $subtask->due_date->translatedFormat('j M')]) }}
                         @if ($subtask->isOverdue())
                             <x-icon name="alert" size="0.9em" />
                         @endif
@@ -96,9 +96,9 @@
 
                     <span @class(['points-cell', 'points-cell--negative' => $costs])
                           title="{{ $costs
-                                ? 'اتأخرت عن تاريخ الاستحقاق — النقط دي هتتخصم مش هتتصرف لما التذكرة تتحل'
-                                : 'النقاط الي هتتصرف لما التذكرة تتحل' }}">
-                        {{ $costs ? '−' : '' }}{{ rtrim(rtrim($subtask->points, '0'), '.') }} نقطة
+                                ? __('اتأخرت عن تاريخ الاستحقاق — النقط دي هتتخصم مش هتتصرف لما التذكرة تتحل')
+                                : __('النقاط الي هتتصرف لما التذكرة تتحل') }}">
+                        {{ $costs ? '−' : '' }}{{ __(':count نقطة', ['count' => rtrim(rtrim($subtask->points, '0'), '.')]) }}
                     </span>
                 @endif
 
@@ -109,7 +109,7 @@
                         'subtask__hours',
                         'subtask__hours--over' => (float) $subtask->spent_hours > (float) $subtask->estimated_hours,
                     ])>
-                        {{ rtrim(rtrim($subtask->spent_hours, '0'), '.') }}/{{ rtrim(rtrim($subtask->estimated_hours, '0'), '.') }} س
+                        {{ rtrim(rtrim($subtask->spent_hours, '0'), '.') }}/{{ rtrim(rtrim($subtask->estimated_hours, '0'), '.') }} {{ __('س') }}
                     </span>
                 @endif
             </div>
@@ -127,11 +127,11 @@
 
                 <button type="button" class="subtask__more" x-show="overflows" x-cloak
                         @click="expanded = ! expanded" :aria-expanded="expanded"
-                        x-text="expanded ? 'أقل' : 'المزيد'"></button>
+                        x-text="expanded ? {{ Js::from(__('أقل')) }} : {{ Js::from(__('المزيد')) }}"></button>
             @endif
 
             @if ($subtask->blocked_reason)
-                <p class="subtask__reason">متوقفة: {{ $subtask->blocked_reason }}</p>
+                <p class="subtask__reason">{{ __('متوقفة:') }} {{ $subtask->blocked_reason }}</p>
             @endif
 
             {{-- Where a refused status change reports itself. Empty until the
@@ -148,8 +148,8 @@
                 @include('tickets.partials._subtask-fields', ['subtask' => $subtask])
 
                 <div class="form-actions">
-                    <x-button variant="primary" size="sm">حفظ</x-button>
-                    <x-button variant="ghost" size="sm" type="button" @click="editing = false">إلغاء</x-button>
+                    <x-button variant="primary" size="sm">{{ __('حفظ') }}</x-button>
+                    <x-button variant="ghost" size="sm" type="button" @click="editing = false">{{ __('إلغاء') }}</x-button>
                 </div>
             </form>
         </div>
@@ -158,17 +158,17 @@
     @can('update', [$subtask, $ticket])
         <div class="subtask__actions" x-show="!editing">
             <div class="row">
-                <x-button variant="ghost" size="sm" type="button" @click="editing = true">تعديل</x-button>
+                <x-button variant="ghost" size="sm" type="button" @click="editing = true">{{ __('تعديل') }}</x-button>
 
                 {{-- Its own permission since 2026-08-02: deleting destroys the
                      record F18 would have paid on, which is not the same act as
                      editing your own step. --}}
                 @can('delete', [$subtask, $ticket])
                     <form method="POST" action="{{ route('tickets.subtasks.destroy', [$ticket, $subtask]) }}"
-                          onsubmit="return confirm('متأكد إنك عايز تحذف «{{ $subtask->title }}»؟')">
+                          onsubmit="return confirm({{ Js::from(__('متأكد إنك عايز تحذف «:name»؟', ['name' => $subtask->title])) }})">
                         @csrf
                         @method('DELETE')
-                        <x-button variant="ghost" size="sm">حذف</x-button>
+                        <x-button variant="ghost" size="sm">{{ __('حذف') }}</x-button>
                     </form>
                 @endcan
             </div>

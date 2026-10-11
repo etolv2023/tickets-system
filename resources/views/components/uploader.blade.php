@@ -19,8 +19,8 @@
             <path d="M10 3a1 1 0 011 1v6.6l2.3-2.3a1 1 0 011.4 1.4l-4 4a1 1 0 01-1.4 0l-4-4a1 1 0 011.4-1.4L9 10.6V4a1 1 0 011-1z" />
             <path d="M3 13a1 1 0 011 1v2h12v-2a1 1 0 112 0v3a1 1 0 01-1 1H3a1 1 0 01-1-1v-3a1 1 0 011-1z" />
         </svg>
-        <span>اسحب الملفات هنا، أو الصق صورة من الكليب بورد، أو اضغط للاختيار</span>
-        <span class="uploader__hint">{{ $hint ?? 'صور أو PDF · 5 ميجا للملف · فيديو حتى 200 ميجا' }}</span>
+        <span>{{ __('اسحب الملفات هنا، أو الصق صورة من الكليب بورد، أو اضغط للاختيار') }}</span>
+        <span class="uploader__hint">{{ $hint ?? __('صور أو PDF · 5 ميجا للملف · فيديو حتى 200 ميجا') }}</span>
 
         <input
             type="file"
@@ -58,7 +58,7 @@
                     <div class="uploader__size" x-text="item.size"></div>
                 </div>
 
-                <button type="button" class="uploader__remove" @click="remove(index)" aria-label="شيل الملف">
+                <button type="button" class="uploader__remove" @click="remove(index)" aria-label="{{ __('شيل الملف') }}">
                     <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path d="M6.3 6.3a1 1 0 011.4 0L10 8.6l2.3-2.3a1 1 0 111.4 1.4L11.4 10l2.3 2.3a1 1 0 01-1.4 1.4L10 11.4l-2.3 2.3a1 1 0 01-1.4-1.4L8.6 10 6.3 7.7a1 1 0 010-1.4z" />
                     </svg>

@@ -16,7 +16,7 @@
                     <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM5.3 5.3a1 1 0 011.4 0l7 7a1 1 0 01-1.4 1.4l-7-7a1 1 0 010-1.4z" clip-rule="evenodd" />
                     </svg>
-                    مبلوكة
+                    {{ __('مبلوكة') }}
                 </span>
             @endif
         </div>
@@ -28,14 +28,14 @@
     @canany(['update', 'delete'], $ticket)
         <div class="page__actions">
             @can('update', $ticket)
-                <x-button variant="ghost" :href="route('tickets.edit', $ticket)">تعديل</x-button>
+                <x-button variant="ghost" :href="route('tickets.edit', $ticket)">{{ __('تعديل') }}</x-button>
             @endcan
             @can('delete', $ticket)
                 <form method="POST" action="{{ route('tickets.destroy', $ticket) }}"
-                      onsubmit="return confirm('متأكد إنك عايز تحذف {{ $ticket->ticket_number }}؟ هتتشال من كل القوايم هي والصب تاسكس بتاعتها.')">
+                      onsubmit="return confirm({{ Js::from(__('متأكد إنك عايز تحذف :number؟ هتتشال من كل القوايم هي والصب تاسكس بتاعتها.', ['number' => $ticket->ticket_number])) }})">
                     @csrf
                     @method('DELETE')
-                    <x-button variant="ghost" size="sm">حذف</x-button>
+                    <x-button variant="ghost" size="sm">{{ __('حذف') }}</x-button>
                 </form>
             @endcan
         </div>
