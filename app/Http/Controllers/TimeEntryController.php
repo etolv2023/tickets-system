@@ -33,17 +33,17 @@ class TimeEntryController extends Controller
             $request->user()->id,
         );
 
-        return back()->with('status', 'تم تسجيل الوقت.');
+        return back()->with('status', __('تم تسجيل الوقت.'));
     }
 
     public function destroy(Request $request, TimeEntry $entry): RedirectResponse
     {
         // Your own entries only. Someone else's hours aren't yours to erase.
-        abort_unless($entry->user_id === $request->user()->id, 403, 'ده مش وقتك انت.');
+        abort_unless($entry->user_id === $request->user()->id, 403, __('ده مش وقتك انت.'));
 
         $this->time->delete($entry);
 
-        return back()->with('status', 'تم حذف التسجيل.');
+        return back()->with('status', __('تم حذف التسجيل.'));
     }
 
     /** F09 — /my-timesheet */

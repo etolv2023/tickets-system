@@ -10,22 +10,22 @@
 
 <div class="cal__bar">
     <div class="cal__navigation">
-        <x-button variant="ghost" size="sm" :href="route($routeName, $keep(['date' => $step['prev']->toDateString()]))" aria-label="الفترة السابقة">
+        <x-button variant="ghost" size="sm" :href="route($routeName, $keep(['date' => $step['prev']->toDateString()]))" :aria-label="__('الفترة السابقة')">
             <x-icon name="chevron-right" />
         </x-button>
-        <x-button variant="secondary" size="sm" :href="route($routeName, $keep([]))">النهاردة</x-button>
-        <x-button variant="ghost" size="sm" :href="route($routeName, $keep(['date' => $step['next']->toDateString()]))" aria-label="الفترة التالية">
+        <x-button variant="secondary" size="sm" :href="route($routeName, $keep([]))">{{ __('النهاردة') }}</x-button>
+        <x-button variant="ghost" size="sm" :href="route($routeName, $keep(['date' => $step['next']->toDateString()]))" :aria-label="__('الفترة التالية')">
             <x-icon name="chevron-left" />
         </x-button>
     </div>
 
     <div class="cal__views">
-        @foreach (['month' => 'شهر', 'week' => 'أسبوع', 'day' => 'يوم', 'timeline' => 'جدول زمني'] as $key => $label)
+        @foreach (['month' => __('شهر'), 'week' => __('أسبوع'), 'day' => __('يوم'), 'timeline' => __('جدول زمني')] as $key => $label)
             <x-button
                 :variant="$view === $key ? 'secondary' : 'ghost'"
                 size="sm"
                 :href="route($routeName, array_merge(array_filter($filters), ['view' => $key, 'date' => $anchor->toDateString()]))"
-            >{{ $label }}</x-button>
+            >{{ __($label) }}</x-button>
         @endforeach
     </div>
 </div>

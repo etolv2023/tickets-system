@@ -42,11 +42,11 @@ class RolePolicy
     public function delete(User $user, Role $role): Response
     {
         if (! $user->hasPermission('users.manage')) {
-            return Response::deny('ليس لديك صلاحية لحذف الأدوار.');
+            return Response::deny(__('ليس لديك صلاحية لحذف الأدوار.'));
         }
 
         if ($role->users()->exists()) {
-            return Response::deny('فيه مستخدمين على الدور ده. انقلهم لدور تاني الأول.');
+            return Response::deny(__('فيه مستخدمين على الدور ده. انقلهم لدور تاني الأول.'));
         }
 
         return Response::allow();

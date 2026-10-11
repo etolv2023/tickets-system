@@ -1,9 +1,9 @@
-<x-card title="هوية النظام" flush>
+<x-card :title="__('هوية النظام')" flush>
     <div class="settings__group">
         <div class="settings__row">
             <div>
-                <div class="settings__row-label">اسم النظام</div>
-                <p class="settings__row-hint">بيظهر في السايدبار وعنوان الصفحة.</p>
+                <div class="settings__row-label">{{ __('اسم النظام') }}</div>
+                <p class="settings__row-hint">{{ __('بيظهر في السايدبار وعنوان الصفحة.') }}</p>
             </div>
             <div class="settings__row-control">
                 <input
@@ -19,17 +19,17 @@
 
         <div class="settings__row">
             <div>
-                <div class="settings__row-label">اللوجو</div>
-                <p class="settings__row-hint">PNG أو JPG أو WEBP، حد أقصى 2 ميجا. بيتعاد معالجته ويتصغّر لـ 400×120.</p>
+                <div class="settings__row-label">{{ __('اللوجو') }}</div>
+                <p class="settings__row-hint">{{ __('PNG أو JPG أو WEBP، حد أقصى 2 ميجا. بيتعاد معالجته ويتصغّر لـ 400×120.') }}</p>
             </div>
             <div class="settings__row-control">
                 <div class="stack stack--tight">
                     @if (! empty($values['app_logo']))
-                        <img src="{{ asset('storage/' . $values['app_logo']) }}" alt="اللوجو الحالي" height="32">
+                        <img src="{{ asset('storage/' . $values['app_logo']) }}" alt="{{ __('اللوجو الحالي') }}" height="32">
 
                         <label class="checkbox-row">
                             <input type="checkbox" name="remove_logo" value="1" class="checkbox">
-                            <span class="checkbox-row__label">شيل اللوجو الحالي</span>
+                            <span class="checkbox-row__label">{{ __('شيل اللوجو الحالي') }}</span>
                         </label>
                     @endif
 

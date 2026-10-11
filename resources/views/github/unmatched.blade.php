@@ -1,17 +1,17 @@
 @extends('layouts.app')
 
-@section('title', 'البرانشات المخالفة')
+@section('title', __('البرانشات المخالفة'))
 
 @section('content')
     <div class="page">
         <div class="page__head">
             <div>
-                <h1 class="page-title">البرانشات المخالفة</h1>
-                <p class="page-subtitle">برانشات GitHub التي لا يبدأ اسمها برقم تذكرة. تاريخ الإنشاء هنا هو أول مرة رآها النظام، لأن GitHub لا يرسل تاريخ إنشاء للبرانش.</p>
+                <h1 class="page-title">{{ __('البرانشات المخالفة') }}</h1>
+                <p class="page-subtitle">{{ __('برانشات GitHub التي لا يبدأ اسمها برقم تذكرة. تاريخ الإنشاء هنا هو أول مرة رآها النظام، لأن GitHub لا يرسل تاريخ إنشاء للبرانش.') }}</p>
             </div>
             <form method="POST" action="{{ route('github.sync') }}">
                 @csrf
-                <x-button variant="secondary"><x-icon name="refresh" class="btn__icon" /> زامن GitHub والحسابات</x-button>
+                <x-button variant="secondary"><x-icon name="refresh" class="btn__icon" /> {{ __('زامن GitHub والحسابات') }}</x-button>
             </form>
         </div>
 
@@ -20,15 +20,15 @@
         @endif
         <x-form-errors />
         @if(auth()->user()->hasPermission('github.branches.delete') && !$writeConfigured)
-            <x-alert>حذف البرانشات مقفول لحد ما تضيف <span class="u-mono u-ltr">GITHUB_WRITE_TOKEN</span> على السيرفر.</x-alert>
+            <x-alert>{{ __('حذف البرانشات مقفول لحد ما تضيف') }} <span class="u-mono u-ltr">GITHUB_WRITE_TOKEN</span> {{ __('على السيرفر.') }}</x-alert>
         @endif
 
         <x-card>
             <form method="GET" class="filters">
                 <div class="filters__bar">
-                    <input name="q" value="{{ request('q') }}" placeholder="اسم البرانش" class="input">
-                    <select name="author_user" class="select" aria-label="صاحب البرانش">
-                        <option value="">كل أصحاب البرانشات</option>
+                    <input name="q" value="{{ request('q') }}" placeholder="{{ __('اسم البرانش') }}" class="input">
+                    <select name="author_user" class="select" aria-label="{{ __('صاحب البرانش') }}">
+                        <option value="">{{ __('كل أصحاب البرانشات') }}</option>
                         @foreach($filterUsers as $user)
                             <option value="{{ $user->id }}" @selected((int) request('author_user') === $user->id)>
                                 {{ $user->name }} — {{ '@' . $user->github_login }}
@@ -36,18 +36,18 @@
                         @endforeach
                     </select>
                     <select name="repo" class="select">
-                        <option value="">كل الريبوز</option>
+                        <option value="">{{ __('كل الريبوز') }}</option>
                         @foreach($repositories as $repo)
                             <option value="{{ $repo->id }}" @selected((string) request('repo') === (string) $repo->id)>{{ $repo->name }}</option>
                         @endforeach
                     </select>
                     <select name="state" class="select">
-                        <option value="active" @selected(request('state', 'active') === 'active')>موجودة</option>
-                        <option value="deleted" @selected(request('state') === 'deleted')>اتحذفت</option>
+                        <option value="active" @selected(request('state', 'active') === 'active')>{{ __('موجودة') }}</option>
+                        <option value="deleted" @selected(request('state') === 'deleted')>{{ __('اتحذفت') }}</option>
                     </select>
-                    <x-button type="submit">فلتر</x-button>
+                    <x-button type="submit">{{ __('فلتر') }}</x-button>
                     @if(request()->hasAny(['q', 'author_user', 'repo', 'state']))
-                        <x-button variant="ghost" :href="route('github.unmatched-branches')">مسح</x-button>
+                        <x-button variant="ghost" :href="route('github.unmatched-branches')">{{ __('مسح') }}</x-button>
                     @endif
                 </div>
             </form>
@@ -56,7 +56,7 @@
         <x-card flush>
             <div class="table-wrap">
                 <table class="table table--hover">
-                    <thead><tr><th>الريبو</th><th>البرانش</th><th>صاحبه</th><th>أول ظهور</th><th>آخر commit</th><th>الحالة</th><th></th></tr></thead>
+                    <thead><tr><th>{{ __('الريبو') }}</th><th>{{ __('البرانش') }}</th><th>{{ __('صاحبه') }}</th><th>{{ __('أول ظهور') }}</th><th>{{ __('آخر commit') }}</th><th>{{ __('الحالة') }}</th><th></th></tr></thead>
                     <tbody>
                     @forelse($branches as $branch)
                         <tr>
@@ -72,21 +72,21 @@
                             </td>
                             <td>{{ $branch->first_seen_at?->timezone(config('app.display_timezone'))->translatedFormat('j M Y — H:i') ?? '—' }}</td>
                             <td>{{ $branch->last_commit_at?->timezone(config('app.display_timezone'))->translatedFormat('j M Y — H:i') ?? '—' }}</td>
-                            <td><x-badge :variant="$branch->state->value === 'active' ? 'red' : 'gray'">{{ $branch->state->value === 'active' ? 'مخالفة' : 'اتحذفت' }}</x-badge></td>
+                            <td><x-badge :variant="$branch->state->value === 'active' ? 'red' : 'gray'">{{ $branch->state->value === 'active' ? __('مخالفة') : __('اتحذفت') }}</x-badge></td>
                             <td>
                                 @if($branch->state->value === 'active' && auth()->user()->hasPermission('github.branches.delete'))
                                     <form method="POST" action="{{ route('github.unmatched-branches.destroy', $branch) }}"
-                                          onsubmit="const branchName = {{ Illuminate\Support\Js::from($branch->name) }}; const value = prompt('اكتب اسم البرانش للتأكيد:\n' + branchName); if (value === null) return false; this.elements.confirmation.value = value;">
+                                          onsubmit="const branchName = {{ Illuminate\Support\Js::from($branch->name) }}; const value = prompt({{ Js::from(__('اكتب اسم البرانش للتأكيد:')) }} + '\n' + branchName); if (value === null) return false; this.elements.confirmation.value = value;">
                                         @csrf
                                         @method('DELETE')
                                         <input type="hidden" name="confirmation">
-                                        <x-button variant="danger" size="sm" type="submit" :disabled="!$writeConfigured">احذف البرانش</x-button>
+                                        <x-button variant="danger" size="sm" type="submit" :disabled="!$writeConfigured">{{ __('احذف البرانش') }}</x-button>
                                     </form>
                                 @endif
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="u-subtle">مفيش برانشات بالفلاتر دي.</td></tr>
+                        <tr><td colspan="7" class="u-subtle">{{ __('مفيش برانشات بالفلاتر دي.') }}</td></tr>
                     @endforelse
                     </tbody>
                 </table>

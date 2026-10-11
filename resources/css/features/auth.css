@@ -38,12 +38,6 @@
 
 /* Corner-parked, out of the form's way. inset-inline-END so it lands top-left
    in this RTL layout — the far corner from where the eye starts reading. */
-.auth__theme {
-    position: absolute;
-    inset-block-start: var(--space-4);
-    inset-inline-end: var(--space-4);
-}
-
 .auth__box {
     width: 100%;
     max-width: 25rem;

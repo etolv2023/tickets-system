@@ -1,19 +1,19 @@
 @extends('layouts.app')
 
-@section('title', 'تعديل ' . $company->name)
+@section('title', __('تعديل :name', ['name' => $company->name]))
 
 @section('content')
     <div class="page page--medium">
         <div class="page__head">
             <div>
-                <h1 class="page-title">تعديل «{{ $company->name }}»</h1>
+                <h1 class="page-title">{{ __('تعديل «:name»', ['name' => $company->name]) }}</h1>
             </div>
             <div class="page__actions">
                 <form method="POST" action="{{ route('admin.companies.destroy', $company) }}"
-                      onsubmit="return confirm('متأكد إنك عايز تحذف «{{ $company->name }}»؟')">
+                      onsubmit="return confirm({{ Js::from(__('متأكد إنك عايز تحذف «:name»؟', ['name' => $company->name])) }})">
                     @csrf
                     @method('DELETE')
-                    <x-button variant="ghost" size="sm">حذف الشركة</x-button>
+                    <x-button variant="ghost" size="sm">{{ __('حذف الشركة') }}</x-button>
                 </form>
             </div>
         </div>

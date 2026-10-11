@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->isLocale('ar') ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -45,7 +45,10 @@
                      control on the page — and without it the one screen a
                      customer actually sees was stuck on whatever theme their
                      OS asked for, with no way out. --}}
-                <x-theme-toggle />
+                <div class="row">
+                    <x-locale-toggle />
+                    <x-theme-toggle />
+                </div>
             </div>
         </header>
 

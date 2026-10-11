@@ -23,13 +23,7 @@
 
     <div class="spacer"></div>
 
-    <form method="POST" action="{{ route('locale.update') }}">
-        @csrf
-        <input type="hidden" name="locale" value="{{ __('ui.language_code') }}">
-        <button type="submit" class="topbar__btn" aria-label="{{ __('ui.language') }}" title="{{ __('ui.language') }}">
-            <span class="u-mono">{{ app()->isLocale('ar') ? 'EN' : 'AR' }}</span>
-        </button>
-    </form>
+    <x-locale-toggle />
 
     <form method="GET" action="{{ route('search') }}" class="topbar__search" role="search">
         <x-icon name="search" class="topbar__search-icon" />

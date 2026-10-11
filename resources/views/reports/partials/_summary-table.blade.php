@@ -1,7 +1,7 @@
-<x-card title="التفاصيل" flush>
+<x-card :title="__('التفاصيل')" flush>
     <div class="table-wrap">
         <table class="table table--hover reports-table">
-            <thead><tr><th>البند</th><th>الإجمالي</th><th>مفتوحة</th><th>محلولة</th></tr></thead>
+            <thead><tr><th>{{ __('البند') }}</th><th>{{ __('الإجمالي') }}</th><th>{{ __('مفتوحة') }}</th><th>{{ __('محلولة') }}</th></tr></thead>
             <tbody>
                 @forelse ($rows as $row)
                     <tr>
@@ -19,7 +19,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr class="table__empty"><td colspan="4">مفيش بيانات بالفلاتر دي.</td></tr>
+                    <tr class="table__empty"><td colspan="4">{{ __('مفيش بيانات بالفلاتر دي.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

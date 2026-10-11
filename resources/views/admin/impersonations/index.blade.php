@@ -1,17 +1,16 @@
 @extends('layouts.app')
 
-@section('title', 'سجل الدخول بعين الغير')
+@section('title', __('سجل الدخول بعين الغير'))
 
 @section('content')
     <div class="page">
         <div class="page__head">
             <div>
-                <h1 class="page-title">سجل الدخول بعين الغير</h1>
+                <h1 class="page-title">{{ __('سجل الدخول بعين الغير') }}</h1>
                 <p class="page-subtitle">
-                    مين دخل بعين مين، امتى، وعمل إيه.
+                    {{ __('مين دخل بعين مين، امتى، وعمل إيه.') }}
                     <br>
-                    الأفعال نفسها بتتسجل <strong>باسم صاحب الحساب</strong> — عشان كل شاشة تفضل صادقة عن
-                    مين خلّص الشغل. الصفحة دي هي المكان الوحيد اللي بيعرف مين كان قاعد على الكيبورد.
+                    {{ __('الأفعال نفسها بتتسجل') }} <strong>{{ __('باسم صاحب الحساب') }}</strong> {{ __('— عشان كل شاشة تفضل صادقة عن مين خلّص الشغل. الصفحة دي هي المكان الوحيد اللي بيعرف مين كان قاعد على الكيبورد.') }}
                 </p>
             </div>
         </div>
@@ -19,19 +18,19 @@
         <x-card flush>
             @if ($sessions->isEmpty())
                 <div class="blank">
-                    <p class="blank__title">محدش دخل بعين حد.</p>
-                    <p class="blank__body">الصفحة دي بتتملي لوحدها أول ما حد يستخدم الصلاحية دي.</p>
+                    <p class="blank__title">{{ __('محدش دخل بعين حد.') }}</p>
+                    <p class="blank__body">{{ __('الصفحة دي بتتملي لوحدها أول ما حد يستخدم الصلاحية دي.') }}</p>
                 </div>
             @else
                 <div class="table-wrap">
                     <table class="table table--hover">
                         <thead>
                             <tr>
-                                <th>مين</th>
-                                <th>دخل بعين</th>
-                                <th>بدأت</th>
-                                <th>المدة</th>
-                                <th class="table__cell--num">أفعال</th>
+                                <th>{{ __('مين') }}</th>
+                                <th>{{ __('دخل بعين') }}</th>
+                                <th>{{ __('بدأت') }}</th>
+                                <th>{{ __('المدة') }}</th>
+                                <th class="table__cell--num">{{ __('أفعال') }}</th>
                                 <th>IP</th>
                                 <th class="table__cell--actions"></th>
                             </tr>
@@ -59,7 +58,7 @@
 
                                     <td>
                                         @if ($session->isOpen())
-                                            <x-badge variant="amber">لسه مفتوحة</x-badge>
+                                            <x-badge variant="amber">{{ __('لسه مفتوحة') }}</x-badge>
                                         @else
                                             <span class="u-subtle">{{ $session->durationLabel() }}</span>
                                         @endif
@@ -79,7 +78,7 @@
                                     <td class="table__cell--actions">
                                         <x-button variant="ghost" size="sm"
                                                   :href="route('admin.impersonations.show', $session)">
-                                            عمل إيه
+                                            {{ __('عمل إيه') }}
                                         </x-button>
                                     </td>
                                 </tr>

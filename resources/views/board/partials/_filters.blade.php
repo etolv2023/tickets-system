@@ -16,7 +16,7 @@
         type="search"
         name="q"
         value="{{ $filters['q'] ?? '' }}"
-        placeholder="ابحث بالعنوان أو الوصف، أو الصق رقم تذكرة"
+        placeholder="{{ __('ابحث بالعنوان أو الوصف، أو الصق رقم تذكرة') }}"
         class="input filters__search"
     >
 
@@ -25,7 +25,7 @@
             <x-combobox name="assignee" resource="users"
                         :value="$filters['assignee'] ?? null"
                         :selected="$selectedAssignee ?? null"
-                        placeholder="كل المسؤولين" />
+                        :placeholder="__('كل المسؤولين')" />
         </div>
     @endif
 
@@ -33,35 +33,35 @@
         <x-combobox name="company" resource="companies"
                     :value="$filters['company'] ?? null"
                     :selected="$selectedCompany ?? null"
-                    placeholder="كل الشركات" />
+                    :placeholder="__('كل الشركات')" />
     </div>
 
     <select name="type" class="select filters__select">
-        <option value="">كل الأنواع</option>
+        <option value="">{{ __('كل الأنواع') }}</option>
         @foreach (\App\Models\TicketTypeDefinition::options() as $value => $label)
-            <option value="{{ $value }}" @selected(($filters['type'] ?? '') === $value)>{{ $label }}</option>
+            <option value="{{ $value }}" @selected(($filters['type'] ?? '') === $value)>{{ __($label) }}</option>
         @endforeach
     </select>
 
     <select name="priority" class="select filters__select">
-        <option value="">كل الأولويات</option>
+        <option value="">{{ __('كل الأولويات') }}</option>
         @foreach (\App\Models\PriorityDefinition::options() as $value => $label)
-            <option value="{{ $value }}" @selected(($filters['priority'] ?? '') === $value)>{{ $label }}</option>
+            <option value="{{ $value }}" @selected(($filters['priority'] ?? '') === $value)>{{ __($label) }}</option>
         @endforeach
     </select>
 
-    <select name="period" class="select filters__select" aria-label="شهر العمود المغلق">
+    <select name="period" class="select filters__select" aria-label="{{ __('شهر العمود المغلق') }}">
         @foreach ($months as $value => $label)
-            <option value="{{ $value }}" @selected($period === $value)>{{ $label }}</option>
+            <option value="{{ $value }}" @selected($period === $value)>{{ __($label) }}</option>
         @endforeach
     </select>
 
-    <x-button variant="secondary">فلترة</x-button>
+    <x-button variant="secondary">{{ __('فلترة') }}</x-button>
 
     {{-- $filters only — «مسح» must not light up because a month is selected.
          One always is (the picker has no empty option), so including it here
          would leave the button showing on an untouched board. --}}
     @if (array_filter($filters))
-        <x-button variant="ghost" :href="route($routeName, isset($lane) ? ['lane' => $lane] : [])">مسح</x-button>
+        <x-button variant="ghost" :href="route($routeName, isset($lane) ? ['lane' => $lane] : [])">{{ __('مسح') }}</x-button>
     @endif
 </form>

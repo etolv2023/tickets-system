@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'تقرير النقاط التفصيلي')
+@section('title', __('تقرير النقاط التفصيلي'))
 
 @php
     $n = fn ($v) => rtrim(rtrim(number_format((float) $v, 2), '0'), '.');
@@ -11,12 +11,10 @@
     <div class="page page--wide">
         <div class="page__head">
             <div>
-                <h1 class="page-title">تقرير النقاط التفصيلي</h1>
+                <h1 class="page-title">{{ __('تقرير النقاط التفصيلي') }}</h1>
                 <p class="page-subtitle">
-                    صفوف الدفتر نفسها — مش أرقام مجمّعة. كل سطر بيرجع لصب تاسك واحدة
-                    وقاعدة واحدة ولحظة واحدة، فلما حد يعترض على رقم مكافأة، ده المكان
-                    اللي بيجاوب.
-                    <a href="{{ route('reports.points') }}">الملخص المجمّع هنا</a>.
+                    {{ __('صفوف الدفتر نفسها — مش أرقام مجمّعة. كل سطر بيرجع لصب تاسك واحدة وقاعدة واحدة ولحظة واحدة، فلما حد يعترض على رقم مكافأة، ده المكان اللي بيجاوب.') }}
+                    <a href="{{ route('reports.points') }}">{{ __('الملخص المجمّع هنا') }}</a>.
                 </p>
             </div>
             <div class="page__actions">
@@ -28,15 +26,15 @@
               class="filters reports-ledger-filters" x-data="{ filtersOpen: false }">
             <div class="filters__bar">
                 <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" class="input filters__search"
-                       placeholder="دوّر برقم تذكرة أو عنوان صب تاسك أو سبب…" aria-label="بحث">
+                       placeholder="{{ __('دوّر برقم تذكرة أو عنوان صب تاسك أو سبب…') }}" aria-label="{{ __('بحث') }}">
                 <button type="button" class="btn btn--secondary" @click="filtersOpen = !filtersOpen"
                         :aria-expanded="filtersOpen.toString()">
-                    <x-icon name="filter" class="btn__icon" /> الفلاتر
+                    <x-icon name="filter" class="btn__icon" /> {{ __('الفلاتر') }}
                 </button>
-                <x-button variant="secondary" size="sm">فلترة</x-button>
+                <x-button variant="secondary" size="sm">{{ __('فلترة') }}</x-button>
 
                 @if (array_filter($filters))
-                    <a class="btn btn--ghost btn--sm" href="{{ route('reports.points-detail') }}">مسح</a>
+                    <a class="btn btn--ghost btn--sm" href="{{ route('reports.points-detail') }}">{{ __('مسح') }}</a>
                 @endif
             </div>
 
@@ -46,53 +44,53 @@
                 <x-combobox name="person" resource="users"
                             :value="$filters['person'] ?? null"
                             :selected="$selectedPerson"
-                            placeholder="كل الموظفين" />
+                            :placeholder="__('كل الموظفين')" />
             </div>
 
-            <select name="period" class="select filters__select" aria-label="الشهر">
-                <option value="">كل الشهور</option>
+            <select name="period" class="select filters__select" aria-label="{{ __('الشهر') }}">
+                <option value="">{{ __('كل الشهور') }}</option>
                 @foreach ($months as $value => $label)
-                    <option value="{{ $value }}" @selected(($filters['period'] ?? '') === $value)>{{ $label }}</option>
+                    <option value="{{ $value }}" @selected(($filters['period'] ?? '') === $value)>{{ __($label) }}</option>
                 @endforeach
             </select>
 
-            <select name="role" class="select filters__select" aria-label="الدور">
-                <option value="">كل الأدوار</option>
+            <select name="role" class="select filters__select" aria-label="{{ __('الدور') }}">
+                <option value="">{{ __('كل الأدوار') }}</option>
                 @foreach ($roles as $role)
                     <option value="{{ $role->id }}" @selected((int) ($filters['role'] ?? 0) === $role->id)>{{ $role->label() }}</option>
                 @endforeach
             </select>
 
-            <select name="type" class="select filters__select" aria-label="نوع التذكرة">
-                <option value="">كل الأنواع</option>
+            <select name="type" class="select filters__select" aria-label="{{ __('نوع التذكرة') }}">
+                <option value="">{{ __('كل الأنواع') }}</option>
                 @foreach ($types as $value => $label)
-                    <option value="{{ $value }}" @selected(($filters['type'] ?? '') === $value)>{{ $label }}</option>
+                    <option value="{{ $value }}" @selected(($filters['type'] ?? '') === $value)>{{ __($label) }}</option>
                 @endforeach
             </select>
 
-            <select name="kind" class="select filters__select" aria-label="نوع السطر">
-                <option value="">كل السطور</option>
-                <option value="award" @selected(($filters['kind'] ?? '') === 'award')>صرف تلقائي بس</option>
+            <select name="kind" class="select filters__select" aria-label="{{ __('نوع السطر') }}">
+                <option value="">{{ __('كل السطور') }}</option>
+                <option value="award" @selected(($filters['kind'] ?? '') === 'award')>{{ __('صرف تلقائي بس') }}</option>
                 {{-- ★ (2026-08-05) الخصم التلقائي على التأخير نوع تالت — سؤال
                      «مين اتخصم منه الشهر ده» بقى فلتر واحد. --}}
-                <option value="penalty" @selected(($filters['kind'] ?? '') === 'penalty')>خصم تأخير بس</option>
-                <option value="correction" @selected(($filters['kind'] ?? '') === 'correction')>تصحيحات يدوية بس</option>
+                <option value="penalty" @selected(($filters['kind'] ?? '') === 'penalty')>{{ __('خصم تأخير بس') }}</option>
+                <option value="correction" @selected(($filters['kind'] ?? '') === 'correction')>{{ __('تصحيحات يدوية بس') }}</option>
             </select>
 
             <div class="filters__combobox">
                 <x-combobox name="company" resource="companies"
                             :value="$filters['company'] ?? null"
                             :selected="$selectedCompany"
-                            placeholder="كل الشركات" />
+                            :placeholder="__('كل الشركات')" />
             </div>
 
             {{-- A date pair reads as one control, so it gets one bordered
                  shell rather than two loose inputs with words between them. --}}
             <div class="filters__range">
-                <span class="filters__range-label">من</span>
-                <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" aria-label="من تاريخ">
-                <span class="filters__range-label">لـ</span>
-                <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" aria-label="لتاريخ">
+                <span class="filters__range-label">{{ __('من') }}</span>
+                <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" aria-label="{{ __('من تاريخ') }}">
+                <span class="filters__range-label">{{ __('لـ') }}</span>
+                <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" aria-label="{{ __('لتاريخ') }}">
             </div>
 
             </div>
@@ -103,17 +101,17 @@
         <div class="today-stats">
             <div class="stat-tile stat-tile--teal">
                 <div class="stat-tile__figure">{{ $n($summary->total) }}</div>
-                <div class="stat-tile__caption">إجمالي النقاط في النتيجة دي</div>
+                <div class="stat-tile__caption">{{ __('إجمالي النقاط في النتيجة دي') }}</div>
             </div>
 
             <div class="stat-tile stat-tile--slate">
                 <div class="stat-tile__figure">{{ $summary->entries }}</div>
-                <div class="stat-tile__caption">سطر</div>
+                <div class="stat-tile__caption">{{ __('سطر') }}</div>
             </div>
 
             <div class="stat-tile stat-tile--green">
                 <div class="stat-tile__figure">{{ $summary->people }}</div>
-                <div class="stat-tile__caption">موظف</div>
+                <div class="stat-tile__caption">{{ __('موظف') }}</div>
             </div>
         </div>
 
@@ -122,13 +120,13 @@
                 <table class="table table--hover">
                     <thead>
                         <tr>
-                            <th>التاريخ</th>
-                            <th>الموظف</th>
-                            <th>التذكرة</th>
-                            <th>الصب تاسك</th>
-                            <th>الجهة</th>
-                            <th>المصدر</th>
-                            <th class="table__cell--num">النقاط</th>
+                            <th>{{ __('التاريخ') }}</th>
+                            <th>{{ __('الموظف') }}</th>
+                            <th>{{ __('التذكرة') }}</th>
+                            <th>{{ __('الصب تاسك') }}</th>
+                            <th>{{ __('الجهة') }}</th>
+                            <th>{{ __('المصدر') }}</th>
+                            <th class="table__cell--num">{{ __('النقاط') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -179,15 +177,15 @@
                                      kind needs a name against it. --}}
                                 <td>
                                     @if ($row->type === 'correction')
-                                        <x-badge variant="amber" class="badge--sm">تصحيح يدوي</x-badge>
+                                        <x-badge variant="amber" class="badge--sm">{{ __('تصحيح يدوي') }}</x-badge>
                                         <span class="tickets__company">{{ $row->creator?->name ?? '—' }}</span>
                                     @elseif ($row->type === 'penalty')
                                         {{-- ★ (2026-08-05) مفيش اسم جنبه زي
                                              التصحيح اليدوي: محدش «عمل» الخصم ده
                                              — تاريخ الاستحقاق هو الي عمله. --}}
-                                        <x-badge variant="urgent" class="badge--sm">خصم تأخير</x-badge>
+                                        <x-badge variant="urgent" class="badge--sm">{{ __('خصم تأخير') }}</x-badge>
                                     @else
-                                        <span class="u-subtle">صرف تلقائي</span>
+                                        <span class="u-subtle">{{ __('صرف تلقائي') }}</span>
                                     @endif
                                 </td>
 
@@ -198,7 +196,7 @@
                         @empty
                             <tr class="table__empty">
                                 <td colspan="7">
-                                    {{ array_filter($filters) ? 'مفيش سطور مطابقة للفلتر.' : 'مفيش نقاط اتصرفت لسه.' }}
+                                    {{ array_filter($filters) ? __('مفيش سطور مطابقة للفلتر.') : __('مفيش نقاط اتصرفت لسه.') }}
                                 </td>
                             </tr>
                         @endforelse

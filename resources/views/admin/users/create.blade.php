@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'مستخدم جديد')
+@section('title', __('مستخدم جديد'))
 
 @section('content')
     <div class="page page--medium">
         <div class="page__head">
-            <h1 class="page-title">مستخدم جديد</h1>
+            <h1 class="page-title">{{ __('مستخدم جديد') }}</h1>
         </div>
 
         <form method="POST" action="{{ route('admin.users.store') }}">

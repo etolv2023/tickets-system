@@ -1,6 +1,6 @@
 @extends('layouts.install')
 
-@section('title', 'إنشاء الجداول')
+@section('title', __('إنشاء الجداول'))
 
 @section('content')
     <div class="form-stack">
@@ -8,25 +8,25 @@
 
         @if ($alreadyRun)
             <x-alert variant="success">
-                الجداول موجودة بالفعل. تقدر تكمل، أو تشغّل الخطوة تاني لو ضفت حاجة ناقصة.
+                {{ __('الجداول موجودة بالفعل. تقدر تكمل، أو تشغّل الخطوة تاني لو ضفت حاجة ناقصة.') }}
             </x-alert>
         @else
             <x-alert>
-                هعمل جداول النظام، وأزرع الأدوار والصلاحيات والإعدادات الافتراضية.
+                {{ __('هعمل جداول النظام، وأزرع الأدوار والصلاحيات والإعدادات الافتراضية.') }}
             </x-alert>
         @endif
 
         <div class="install__nav">
-            <x-button variant="ghost" :href="route('install.database')">رجوع</x-button>
+            <x-button variant="ghost" :href="route('install.database')">{{ __('رجوع') }}</x-button>
 
             <div class="row">
                 @if ($alreadyRun)
-                    <x-button variant="secondary" :href="route('install.admin')">تخطي</x-button>
+                    <x-button variant="secondary" :href="route('install.admin')">{{ __('تخطي') }}</x-button>
                 @endif
 
                 <form method="POST" action="{{ route('install.migrate.run') }}">
                     @csrf
-                    <x-button variant="primary">إنشاء الجداول</x-button>
+                    <x-button variant="primary">{{ __('إنشاء الجداول') }}</x-button>
                 </form>
             </div>
         </div>

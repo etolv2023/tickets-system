@@ -3,12 +3,12 @@
     $selectedDays = array_map('intval', (array) old('work_days', $values['work_days'] ?? []));
 @endphp
 
-<x-card title="أيام العمل والسعة" flush>
+<x-card :title="__('أيام العمل والسعة')" flush>
     <div class="settings__group">
         <div class="settings__row">
             <div>
-                <div class="settings__row-label">السعة اليومية</div>
-                <p class="settings__row-hint">ساعات إنتاجية في اليوم — مش ساعات الحضور. مؤشر السعة في الكاليندر بيتحسب منها.</p>
+                <div class="settings__row-label">{{ __('السعة اليومية') }}</div>
+                <p class="settings__row-hint">{{ __('ساعات إنتاجية في اليوم — مش ساعات الحضور. مؤشر السعة في الكاليندر بيتحسب منها.') }}</p>
             </div>
             <div class="settings__row-control">
                 <input
@@ -22,16 +22,15 @@
                     required
                     @class(['input', 'input--invalid' => $errors->has('daily_capacity_hours')])
                 >
-                <span class="settings__unit">ساعة</span>
+                <span class="settings__unit">{{ __('ساعة') }}</span>
             </div>
         </div>
 
         <div class="settings__row">
             <div>
-                <div class="settings__row-label">ساعات الدوام</div>
+                <div class="settings__row-label">{{ __('ساعات الدوام') }}</div>
                 <p class="settings__row-hint">
-                    دي ساعات شغل مهلة الـ SLA — مش السعة. تذكرة عاجلة اتفتحت 4 عصراً
-                    باقي مهلتها بيترحّل لأول يوم عمل، مش بيعدّي بالليل.
+                    {{ __('دي ساعات شغل مهلة الـ SLA — مش السعة. تذكرة عاجلة اتفتحت 4 عصراً باقي مهلتها بيترحّل لأول يوم عمل، مش بيعدّي بالليل.') }}
                 </p>
             </div>
             <div class="settings__row-control">
@@ -57,8 +56,8 @@
 
         <div class="settings__row">
             <div>
-                <div class="settings__row-label">بداية الأسبوع</div>
-                <p class="settings__row-hint">أول عمود في الكاليندر.</p>
+                <div class="settings__row-label">{{ __('بداية الأسبوع') }}</div>
+                <p class="settings__row-hint">{{ __('أول عمود في الكاليندر.') }}</p>
             </div>
             <div class="settings__row-control">
                 <select
@@ -68,7 +67,7 @@
                 >
                     @foreach ($weekDays as $number => $label)
                         <option value="{{ $number }}" @selected((int) old('week_start_day', $values['week_start_day'] ?? 6) === $number)>
-                            {{ $label }}
+                            {{ __($label) }}
                         </option>
                     @endforeach
                 </select>
@@ -77,8 +76,8 @@
 
         <div class="settings__row">
             <div>
-                <div class="settings__row-label">أيام العمل</div>
-                <p class="settings__row-hint">الأيام دي بس الي بتتحسب في المهل والسعة.</p>
+                <div class="settings__row-label">{{ __('أيام العمل') }}</div>
+                <p class="settings__row-hint">{{ __('الأيام دي بس الي بتتحسب في المهل والسعة.') }}</p>
             </div>
             <div class="settings__row-control">
                 <div class="stack stack--tight">
@@ -91,7 +90,7 @@
                                 class="checkbox"
                                 @checked(in_array($number, $selectedDays, true))
                             >
-                            <span class="checkbox-row__label">{{ $label }}</span>
+                            <span class="checkbox-row__label">{{ __($label) }}</span>
                         </label>
                     @endforeach
                 </div>

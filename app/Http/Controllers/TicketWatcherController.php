@@ -17,7 +17,7 @@ class TicketWatcherController extends Controller
 
         return back()->with(
             'status',
-            $result['attached'] !== [] ? 'بقيت بتتابع التذكرة دي.' : 'بطّلت متابعة التذكرة دي.'
+            $result['attached'] !== [] ? __('بقيت بتتابع التذكرة دي.') : __('بطّلت متابعة التذكرة دي.')
         );
     }
 }

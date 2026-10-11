@@ -1,6 +1,6 @@
-<x-card title="خرق الـ SLA" flush>
+<x-card :title="__('خرق الـ SLA')" flush>
     <x-slot:actions>
-        <span class="u-subtle">{{ $breaches->count() }} تذكرة</span>
+        <span class="u-subtle">{{ trans_choice(':count تذكرة', $breaches->count()) }}</span>
     </x-slot:actions>
 
     <div class="table-wrap">
@@ -8,9 +8,9 @@
             <thead>
                 <tr>
                     <th></th>
-                    <th>التذكرة</th>
-                    <th>المهلة كانت</th>
-                    <th>الحالة</th>
+                    <th>{{ __('التذكرة') }}</th>
+                    <th>{{ __('المهلة كانت') }}</th>
+                    <th>{{ __('الحالة') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -30,7 +30,7 @@
                         <td><x-badge :variant="$ticket->status->variant()">{{ $ticket->status->label() }}</x-badge></td>
                     </tr>
                 @empty
-                    <tr class="table__empty"><td colspan="4">مفيش خرق للمهلة في الفترة دي.</td></tr>
+                    <tr class="table__empty"><td colspan="4">{{ __('مفيش خرق للمهلة في الفترة دي.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

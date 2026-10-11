@@ -24,7 +24,9 @@ class EnsureInstalled
             abort(404);
         }
 
-        if (! $installed && ! $isInstallRoute) {
+        // The language switch is the one non-install route the wizard needs:
+        // it only writes the session, so it is safe before there is a database.
+        if (! $installed && ! $isInstallRoute && ! $request->routeIs('locale.update')) {
             return redirect()->route('install.requirements');
         }
 

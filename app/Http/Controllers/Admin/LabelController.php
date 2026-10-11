@@ -30,7 +30,7 @@ class LabelController extends Controller
 
         Label::create($data + ['created_by' => $request->user()->id]);
 
-        return back()->with('status', "تم إضافة لابل «{$data['name']}».");
+        return back()->with('status', __('تم إضافة لابل «:name».', ['name' => $data['name']]));
     }
 
     public function update(Request $request, Label $label): RedirectResponse
@@ -39,7 +39,7 @@ class LabelController extends Controller
 
         $label->update($this->validated($request, $label));
 
-        return back()->with('status', 'تم حفظ اللابل.');
+        return back()->with('status', __('تم حفظ اللابل.'));
     }
 
     public function destroy(Request $request, Label $label): RedirectResponse
@@ -49,7 +49,7 @@ class LabelController extends Controller
         $name = $label->name;
         $label->delete();
 
-        return back()->with('status', "تم حذف لابل «{$name}».");
+        return back()->with('status', __('تم حذف لابل «:name».', ['name' => $name]));
     }
 
     /** @return array<string, mixed> */

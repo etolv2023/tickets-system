@@ -4,19 +4,19 @@
         type="search"
         name="q"
         value="{{ $filters['q'] ?? '' }}"
-        placeholder="ابحث بالاسم أو الكود"
+        placeholder="{{ __('ابحث بالاسم أو الكود') }}"
         class="input filters__search"
     >
 
     <select name="status" class="select filters__select">
-        <option value="">كل الحالات</option>
-        <option value="active" @selected(($filters['status'] ?? '') === 'active')>مفعّلة</option>
-        <option value="inactive" @selected(($filters['status'] ?? '') === 'inactive')>موقوفة</option>
+        <option value="">{{ __('كل الحالات') }}</option>
+        <option value="active" @selected(($filters['status'] ?? '') === 'active')>{{ __('مفعّلة') }}</option>
+        <option value="inactive" @selected(($filters['status'] ?? '') === 'inactive')>{{ __('موقوفة') }}</option>
     </select>
 
-    <x-button variant="secondary">فلترة</x-button>
+    <x-button variant="secondary">{{ __('فلترة') }}</x-button>
 
     @if (array_filter($filters))
-        <x-button variant="ghost" :href="route('admin.companies.index')">مسح</x-button>
+        <x-button variant="ghost" :href="route('admin.companies.index')">{{ __('مسح') }}</x-button>
     @endif
 </form>

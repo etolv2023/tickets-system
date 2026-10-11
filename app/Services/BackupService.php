@@ -33,6 +33,15 @@ class BackupService
 
     public const CONFIRM_PHRASE = 'استرجاع';
 
+    /** Same deliberate act for someone on an English keyboard. */
+    public const CONFIRM_PHRASE_EN = 'RESTORE';
+
+    /** The phrase shown to the person, in their UI language. Either one is accepted. */
+    public static function confirmPhrase(): string
+    {
+        return app()->isLocale('ar') ? self::CONFIRM_PHRASE : self::CONFIRM_PHRASE_EN;
+    }
+
     /**
      * Builds the archive on a temp path and hands the path back. Returning a
      * path rather than sending the response is what keeps this a service: it

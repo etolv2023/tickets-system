@@ -9,9 +9,9 @@
 
      Edit only, like the permissions card above it: on create there is nobody to
      pair with yet. --}}
-<x-card title="الإعفاء من «خلصت»">
+<x-card :title="__('الإعفاء من «خلصت»')">
     <x-slot:actions>
-        <span class="u-subtle">مع مين مش لازم يخلّص</span>
+        <span class="u-subtle">{{ __('مع مين مش لازم يخلّص') }}</span>
     </x-slot:actions>
 
     <div class="form-stack" x-data="{ all: @js((bool) old('waiver_all', $waiverAll)) }">
@@ -21,23 +21,20 @@
         <input type="hidden" name="waivers_present" value="1">
 
         <p class="field__hint">
-            التذكرة مبتتقفلش لحد ما كل جهة تضغط «خلصت». هنا بتقول إن {{ $user->name }}
-            <strong>مش ملزم</strong> يضغطها — بس على التذاكر اللي فيها صب تاسك
-            لواحد من اللي هتختارهم. زراير «بدأت/خلصت» بتفضل عنده زي ما هي،
-            ونقاطه مبتتأثرش.
+            {!! __('التذكرة مبتتقفلش لحد ما كل جهة تضغط «خلصت». هنا بتقول إن :name <strong>مش ملزم</strong> يضغطها — بس على التذاكر اللي فيها صب تاسك لواحد من اللي هتختارهم. زراير «بدأت/خلصت» بتفضل عنده زي ما هي، ونقاطه مبتتأثرش.', ['name' => e($user->name)]) !!}
         </p>
 
         <label class="checkbox-row">
             <input type="checkbox" name="waiver_all" value="1" class="checkbox" x-model="all">
             <span class="checkbox-row__label">
-                مع الكل
-                <small>مش ملزم يضغط «خلصت» على أي تذكرة، مهما كان اللي معاه فيها.</small>
+                {{ __('مع الكل') }}
+                <small>{{ __('مش ملزم يضغط «خلصت» على أي تذكرة، مهما كان اللي معاه فيها.') }}</small>
             </span>
         </label>
 
         <div x-show="! all" x-cloak>
             <div class="field">
-                <label class="field__label">مع الأشخاص دول بس</label>
+                <label class="field__label">{{ __('مع الأشخاص دول بس') }}</label>
 
                 {{-- A plain multi-select, not a combobox: the list is the team,
                      it is short, and seeing every name at once is the point —
@@ -52,8 +49,8 @@
                 </select>
 
                 <p class="field__hint">
-                    امسك Ctrl (أو Cmd) عشان تختار أكتر من واحد.
-                    لو التذكرة مفيهاش صب تاسك لأي حد منهم، {{ $user->name }} هيفضل بيبلوك عادي.
+                    {{ __('امسك Ctrl (أو Cmd) عشان تختار أكتر من واحد.') }}
+                    {{ __('لو التذكرة مفيهاش صب تاسك لأي حد منهم، :name هيفضل بيبلوك عادي.', ['name' => $user->name]) }}
                 </p>
             </div>
         </div>

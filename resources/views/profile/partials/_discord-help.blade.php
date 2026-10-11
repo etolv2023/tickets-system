@@ -3,21 +3,20 @@
      person who cannot find the id simply leaves the field empty and never
      gets the notification. --}}
 <details class="help-note">
-    <summary class="help-note__summary">أجيب الـ ID ده منين؟</summary>
+    <summary class="help-note__summary">{{ __('أجيب الـ ID ده منين؟') }}</summary>
 
     <div class="help-note__body">
-        <p><strong>مهم:</strong> ده رقم، مش اسم المستخدم. اسم المستخدم بيتكتب نص عادي ومبيعملش إشعار.</p>
+        <p><strong>{{ __('مهم:') }}</strong> {{ __('ده رقم، مش اسم المستخدم. اسم المستخدم بيتكتب نص عادي ومبيعملش إشعار.') }}</p>
 
         <ol>
-            <li>افتح ديسكورد → <span class="u-ltr u-mono">Settings</span> (الترس جنب اسمك)</li>
-            <li><span class="u-ltr u-mono">Advanced</span> → شغّل <span class="u-ltr u-mono">Developer Mode</span></li>
-            <li>ارجع لأي سيرفر، كليك يمين على اسمك أو صورتك</li>
-            <li>اختار <span class="u-ltr u-mono">Copy User ID</span> — والصقه فوق</li>
+            <li>{{ __('افتح ديسكورد →') }} <span class="u-ltr u-mono">Settings</span> {{ __('(الترس جنب اسمك)') }}</li>
+            <li><span class="u-ltr u-mono">Advanced</span> {{ __('→ شغّل') }} <span class="u-ltr u-mono">Developer Mode</span></li>
+            <li>{{ __('ارجع لأي سيرفر، كليك يمين على اسمك أو صورتك') }}</li>
+            <li>{{ __('اختار') }} <span class="u-ltr u-mono">Copy User ID</span> {{ __('— والصقه فوق') }}</li>
         </ol>
 
         <p class="u-subtle">
-            على الموبايل: <span class="u-ltr u-mono">Settings → Behavior → Developer Mode</span>،
-            وبعدين اضغط مطوّل على اسمك واختار <span class="u-ltr u-mono">Copy User ID</span>.
+            {{ __('على الموبايل:') }} <span class="u-ltr u-mono">Settings → Behavior → Developer Mode</span>{{ __('، وبعدين اضغط مطوّل على اسمك واختار') }} <span class="u-ltr u-mono">Copy User ID</span>.
         </p>
     </div>
 </details>

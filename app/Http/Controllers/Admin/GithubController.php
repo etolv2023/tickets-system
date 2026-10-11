@@ -72,7 +72,7 @@ class GithubController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', 'اتضاف الريبو. شغّل مزامنة عشان يقرا البرانشات.');
+        return back()->with('status', __('اتضاف الريبو. شغّل مزامنة عشان يقرا البرانشات.'));
     }
 
     public function update(
@@ -93,7 +93,7 @@ class GithubController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', 'اتحفظ.');
+        return back()->with('status', __('اتحفظ.'));
     }
 
     /**
@@ -107,11 +107,11 @@ class GithubController extends Controller
     public function sync(Request $request, GithubRepository $repository): RedirectResponse
     {
         if (! config('github.enabled') || blank(config('github.token'))) {
-            return back()->withErrors(['sync' => 'التكامل مقفول أو التوكن ناقص — راجع GITHUB_ENABLED و GITHUB_TOKEN.']);
+            return back()->withErrors(['sync' => __('التكامل مقفول أو التوكن ناقص — راجع GITHUB_ENABLED و GITHUB_TOKEN.')]);
         }
 
         SyncGithubRepository::dispatch($repository->id);
 
-        return back()->with('status', 'المزامنة اتحطّت في الطابور. النتيجة هتبان هنا بعد ما الـ worker يخلّصها.');
+        return back()->with('status', __('المزامنة اتحطّت في الطابور. النتيجة هتبان هنا بعد ما الـ worker يخلّصها.'));
     }
 }

@@ -30,6 +30,6 @@ class PasswordChangeController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->route('home')->with('status', 'تم تغيير كلمة السر.');
+        return redirect()->route('home')->with('status', __('تم تغيير كلمة السر.'));
     }
 }

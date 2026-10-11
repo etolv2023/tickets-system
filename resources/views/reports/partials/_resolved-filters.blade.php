@@ -6,33 +6,33 @@
         <x-combobox name="person" resource="users"
                     :value="$filters['person'] ?? null"
                     :selected="$selectedPerson"
-                    placeholder="كل التيم" />
+                    :placeholder="__('كل التيم')" />
     </div>
 
-    <select name="relation" class="select filters__select" aria-label="علاقته بالتذكرة">
+    <select name="relation" class="select filters__select" aria-label="{{ __('علاقته بالتذكرة') }}">
         @foreach ($relations as $value => $label)
-            <option value="{{ $value }}" @selected($data['relation'] === $value)>{{ $label }}</option>
+            <option value="{{ $value }}" @selected($data['relation'] === $value)>{{ __($label) }}</option>
         @endforeach
     </select>
 
     <div class="filters__range">
-        <span class="filters__range-label">من</span>
-        <input type="date" name="from" value="{{ $filters['from'] }}" aria-label="من تاريخ">
-        <span class="filters__range-label">إلى</span>
-        <input type="date" name="to" value="{{ $filters['to'] }}" aria-label="لتاريخ">
+        <span class="filters__range-label">{{ __('من') }}</span>
+        <input type="date" name="from" value="{{ $filters['from'] }}" aria-label="{{ __('من تاريخ') }}">
+        <span class="filters__range-label">{{ __('إلى') }}</span>
+        <input type="date" name="to" value="{{ $filters['to'] }}" aria-label="{{ __('لتاريخ') }}">
     </div>
 
-    <select name="type" class="select filters__select" aria-label="النوع">
-        <option value="">كل الأنواع</option>
+    <select name="type" class="select filters__select" aria-label="{{ __('النوع') }}">
+        <option value="">{{ __('كل الأنواع') }}</option>
         @foreach ($types as $value => $label)
-            <option value="{{ $value }}" @selected(($filters['type'] ?? '') === $value)>{{ $label }}</option>
+            <option value="{{ $value }}" @selected(($filters['type'] ?? '') === $value)>{{ __($label) }}</option>
         @endforeach
     </select>
 
-    <select name="priority" class="select filters__select" aria-label="الأولوية">
-        <option value="">كل الأولويات</option>
+    <select name="priority" class="select filters__select" aria-label="{{ __('الأولوية') }}">
+        <option value="">{{ __('كل الأولويات') }}</option>
         @foreach ($priorities as $value => $label)
-            <option value="{{ $value }}" @selected(($filters['priority'] ?? '') === $value)>{{ $label }}</option>
+            <option value="{{ $value }}" @selected(($filters['priority'] ?? '') === $value)>{{ __($label) }}</option>
         @endforeach
     </select>
 
@@ -40,17 +40,17 @@
         <x-combobox name="company" resource="companies"
                     :value="$filters['company'] ?? null"
                     :selected="$selectedCompany"
-                    placeholder="كل الشركات" />
+                    :placeholder="__('كل الشركات')" />
     </div>
 
-    <x-button variant="secondary" size="sm">اعرض</x-button>
+    <x-button variant="secondary" size="sm">{{ __('اعرض') }}</x-button>
 
     @if (array_filter(array_diff_key($filters, ['from' => 1, 'to' => 1, 'relation' => 1])) || request()->hasAny(['from', 'to']))
-        <x-button variant="ghost" size="sm" :href="route('reports.resolved-by-type')">مسح</x-button>
+        <x-button variant="ghost" size="sm" :href="route('reports.resolved-by-type')">{{ __('مسح') }}</x-button>
     @endif
 
     <div class="filters__group filters__group--full">
-        <span class="u-label">فترة سريعة</span>
+        <span class="u-label">{{ __('فترة سريعة') }}</span>
         @foreach ($quickRanges as $range)
             @php($active = $filters['from'] === $range['from'] && $filters['to'] === $range['to'])
             <a href="{{ route('reports.resolved-by-type', array_filter($filters) + ['from' => $range['from'], 'to' => $range['to']]) }}"

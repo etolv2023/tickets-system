@@ -94,7 +94,7 @@ class ScheduledTask extends Model
 
     public function name(): string
     {
-        return $this->definition()['name'] ?? $this->key;
+        return __($this->definition()['name'] ?? $this->key);
     }
 
     public function touchesPoints(): bool

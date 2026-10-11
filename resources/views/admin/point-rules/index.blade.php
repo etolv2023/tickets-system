@@ -1,17 +1,16 @@
 @extends('layouts.app')
 
-@section('title', 'تصحيحات النقاط')
+@section('title', __('تصحيحات النقاط'))
 
 @section('content')
     <div class="page">
         <div class="page__head">
             <div>
-                <h1 class="page-title">تصحيحات النقاط</h1>
+                <h1 class="page-title">{{ __('تصحيحات النقاط') }}</h1>
                 <p class="page-subtitle">
-                    كل صب تاسك بيتصرف بنقاطه هو — تتعدّل من جوه الصب تاسك نفسه. الشاشة دي للتصحيح اليدوي بس.
+                    {{ __('كل صب تاسك بيتصرف بنقاطه هو — تتعدّل من جوه الصب تاسك نفسه. الشاشة دي للتصحيح اليدوي بس.') }}
                     <br>
-                    الإلغاء والتعديل بيتكتبوا كسطر عكسي — <strong>مفيش سطر بيتمسح من الدفتر</strong>، عشان تقرير أي شهر
-                    يفضل مطابق للي اتصرف فيه.
+                    {{ __('الإلغاء والتعديل بيتكتبوا كسطر عكسي —') }} <strong>{{ __('مفيش سطر بيتمسح من الدفتر') }}</strong>{{ __('، عشان تقرير أي شهر يفضل مطابق للي اتصرف فيه.') }}
                 </p>
             </div>
         </div>
@@ -32,21 +31,21 @@
 
         {{-- F18: a manual correction — a new row, never an edit to what's already
              paid. Positive tops someone up, negative claws a mistake back. --}}
-        <x-card title="تصحيح يدوي" :meta="'سطر جديد في دفتر النقاط — مش تعديل على المصروف'">
+        <x-card :title="__('تصحيح يدوي')" :meta="__('سطر جديد في دفتر النقاط — مش تعديل على المصروف')">
             <form method="POST" action="{{ route('admin.point-rules.corrections.store') }}" class="form-stack">
                 @csrf
 
                 <div class="form-grid">
-                    <x-field name="user_id" label="المستخدم" required>
+                    <x-field name="user_id" :label="__('المستخدم')" required>
                         <select id="user_id" name="user_id" class="select" required>
-                            <option value="">— اختار —</option>
+                            <option value="">{{ __('— اختار —') }}</option>
                             @foreach ($users as $user)
                                 <option value="{{ $user->id }}" @selected(old('user_id') == $user->id)>{{ $user->name }}</option>
                             @endforeach
                         </select>
                     </x-field>
 
-                    <x-field name="role_id" label="الدور" required>
+                    <x-field name="role_id" :label="__('الدور')" required>
                         <select id="role_id" name="role_id" class="select" required>
                             @foreach ($roles as $role)
                                 <option value="{{ $role->id }}" @selected((int) old('role_id') === $role->id)>{{ $role->label() }}</option>
@@ -54,18 +53,18 @@
                         </select>
                     </x-field>
 
-                    <x-field name="points" label="النقاط" type="number" step="0.5" required
+                    <x-field name="points" :label="__('النقاط')" type="number" step="0.5" required
                              :value="old('points')"
-                             hint="رقم موجب يضيف، رقم سالب يخصم." />
+                             :hint="__('رقم موجب يضيف، رقم سالب يخصم.')" />
 
-                    <x-field name="ticket_number" label="رقم التذكرة (اختياري)" :value="old('ticket_number')"
+                    <x-field name="ticket_number" :label="__('رقم التذكرة (اختياري)')" :value="old('ticket_number')"
                              placeholder="TK-2026-00001" />
                 </div>
 
-                <x-field name="reason" label="السبب" required :value="old('reason')" />
+                <x-field name="reason" :label="__('السبب')" required :value="old('reason')" />
 
                 <div class="form-actions">
-                    <x-button variant="primary" size="sm">سجّل التصحيح</x-button>
+                    <x-button variant="primary" size="sm">{{ __('سجّل التصحيح') }}</x-button>
                 </div>
             </form>
         </x-card>
@@ -77,18 +76,18 @@
              stays in the list, struck through — the sum stays right because the
              reversal is part of it, and a report printed last month still
              matches what was paid. --}}
-        <x-card title="آخر التصحيحات" flush>
+        <x-card :title="__('آخر التصحيحات')" flush>
             <div class="table-wrap">
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>المستخدم</th>
-                            <th>الجهة</th>
-                            <th class="table__cell--num">النقاط</th>
-                            <th>السبب</th>
-                            <th>التذكرة</th>
-                            <th>سجّلها</th>
-                            <th>التاريخ</th>
+                            <th>{{ __('المستخدم') }}</th>
+                            <th>{{ __('الجهة') }}</th>
+                            <th class="table__cell--num">{{ __('النقاط') }}</th>
+                            <th>{{ __('السبب') }}</th>
+                            <th>{{ __('التذكرة') }}</th>
+                            <th>{{ __('سجّلها') }}</th>
+                            <th>{{ __('التاريخ') }}</th>
                             <th class="table__cell--actions"></th>
                         </tr>
                     </thead>
@@ -99,7 +98,7 @@
                         @forelse ($corrections as $row)
                             @include('admin.point-rules.partials._correction-row', ['correction' => $row])
                         @empty
-                            <tr class="table__empty"><td colspan="8">مفيش تصحيحات لسه.</td></tr>
+                            <tr class="table__empty"><td colspan="8">{{ __('مفيش تصحيحات لسه.') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>

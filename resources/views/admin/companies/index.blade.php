@@ -1,19 +1,19 @@
 @extends('layouts.app')
 
-@section('title', 'الشركات')
+@section('title', __('الشركات'))
 
 @section('content')
     <div class="page">
         <div class="page__head">
             <div>
-                <h1 class="page-title">الشركات</h1>
-                <p class="page-subtitle">{{ $companies->total() }} شركة.</p>
+                <h1 class="page-title">{{ __('الشركات') }}</h1>
+                <p class="page-subtitle">{{ trans_choice(':count شركة.', $companies->total()) }}</p>
             </div>
             <div class="page__actions">
                 <x-export-button route="export.companies" />
-                <x-button variant="ghost" :href="route('admin.contacts.index')">جهات الاتصال</x-button>
-                <x-button variant="ghost" :href="route('admin.import.index')">استيراد من Excel</x-button>
-                <x-button variant="primary" :href="route('admin.companies.create')">شركة جديدة</x-button>
+                <x-button variant="ghost" :href="route('admin.contacts.index')">{{ __('جهات الاتصال') }}</x-button>
+                <x-button variant="ghost" :href="route('admin.import.index')">{{ __('استيراد من Excel') }}</x-button>
+                <x-button variant="primary" :href="route('admin.companies.create')">{{ __('شركة جديدة') }}</x-button>
             </div>
         </div>
 
@@ -35,13 +35,13 @@
         @if ($companies->total() === 0 && ! array_filter($filters))
             <x-card>
                 <div class="blank">
-                    <p class="blank__title">مفيش شركات لسه.</p>
+                    <p class="blank__title">{{ __('مفيش شركات لسه.') }}</p>
                     <p class="blank__body">
-                        ضيف أول شركة بإيدك، أو استورد شيت فيه شركاتك كلها دفعة واحدة.
+                        {{ __('ضيف أول شركة بإيدك، أو استورد شيت فيه شركاتك كلها دفعة واحدة.') }}
                     </p>
                     <div class="blank__actions">
-                        <x-button variant="primary" :href="route('admin.companies.create')">شركة جديدة</x-button>
-                        <x-button variant="ghost" :href="route('admin.import.index')">استيراد من Excel</x-button>
+                        <x-button variant="primary" :href="route('admin.companies.create')">{{ __('شركة جديدة') }}</x-button>
+                        <x-button variant="ghost" :href="route('admin.import.index')">{{ __('استيراد من Excel') }}</x-button>
                     </div>
                 </div>
             </x-card>
@@ -51,11 +51,11 @@
                     <table class="table table--hover">
                         <thead>
                             <tr>
-                                <th>الشركة</th>
-                                <th>الكود</th>
-                                <th>جهات الاتصال</th>
-                                <th>الحالة</th>
-                                <th class="table__cell--actions">إجراءات</th>
+                                <th>{{ __('الشركة') }}</th>
+                                <th>{{ __('الكود') }}</th>
+                                <th>{{ __('جهات الاتصال') }}</th>
+                                <th>{{ __('الحالة') }}</th>
+                                <th class="table__cell--actions">{{ __('إجراءات') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -68,23 +68,23 @@
                                     <td class="u-nums">{{ $company->contacts_count }}</td>
                                     <td>
                                         @if ($company->is_active)
-                                            <x-badge variant="resolved" dot>مفعّلة</x-badge>
+                                            <x-badge variant="resolved" dot>{{ __('مفعّلة') }}</x-badge>
                                         @else
-                                            <x-badge variant="neutral" dot>موقوفة</x-badge>
+                                            <x-badge variant="neutral" dot>{{ __('موقوفة') }}</x-badge>
                                         @endif
                                     </td>
                                     <td class="table__cell--actions">
                                         <div class="row">
                                             <x-button variant="ghost" size="sm" :href="route('admin.companies.show', $company)">
-                                                جهات الاتصال
+                                                {{ __('جهات الاتصال') }}
                                             </x-button>
-                                            <x-button variant="ghost" size="sm" :href="route('admin.companies.edit', $company)">تعديل</x-button>
+                                            <x-button variant="ghost" size="sm" :href="route('admin.companies.edit', $company)">{{ __('تعديل') }}</x-button>
                                         </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr class="table__empty">
-                                    <td colspan="5">مفيش نتايج للفلاتر دي.</td>
+                                    <td colspan="5">{{ __('مفيش نتايج للفلاتر دي.') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>

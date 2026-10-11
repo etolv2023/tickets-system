@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
-@section('title', 'الأدوار والصلاحيات')
+@section('title', __('الأدوار والصلاحيات'))
 
 @section('content')
     <div class="page">
         <div class="page__head">
             <div>
-                <h1 class="page-title">الأدوار والصلاحيات</h1>
-                <p class="page-subtitle">الدور يصف مسؤولية الشخص، والصلاحيات تحدد ما يستطيع الوصول إليه وتنفيذه.</p>
+                <h1 class="page-title">{{ __('الأدوار والصلاحيات') }}</h1>
+                <p class="page-subtitle">{{ __('الدور يصف مسؤولية الشخص، والصلاحيات تحدد ما يستطيع الوصول إليه وتنفيذه.') }}</p>
             </div>
             <div class="page__actions">
-                <x-button variant="primary" :href="route('admin.roles.create')">دور جديد</x-button>
+                <x-button variant="primary" :href="route('admin.roles.create')">{{ __('دور جديد') }}</x-button>
             </div>
         </div>
 
@@ -27,11 +27,11 @@
                 <table class="table table--hover">
                     <thead>
                         <tr>
-                            <th>الدور</th>
-                            <th>الكود</th>
-                            <th>الصلاحيات</th>
-                            <th>المستخدمين</th>
-                            <th class="table__cell--actions">إجراءات</th>
+                            <th>{{ __('الدور') }}</th>
+                            <th>{{ __('الكود') }}</th>
+                            <th>{{ __('الصلاحيات') }}</th>
+                            <th>{{ __('المستخدمين') }}</th>
+                            <th class="table__cell--actions">{{ __('إجراءات') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -41,10 +41,10 @@
                                     <strong>{{ $role->label() }}</strong>
                                     @if ($role->description())<div class="u-subtle">{{ $role->description() }}</div>@endif
                                     @if ($role->is_system)
-                                        <x-badge variant="neutral">أساسي</x-badge>
+                                        <x-badge variant="neutral">{{ __('أساسي') }}</x-badge>
                                     @endif
                                     @if ($role->isAssignableOnTickets())
-                                        <x-badge variant="neutral">قابل للإسناد</x-badge>
+                                        <x-badge variant="neutral">{{ __('قابل للإسناد') }}</x-badge>
                                     @endif
                                 </td>
                                 <td class="u-mono u-ltr">{{ $role->key }}</td>
@@ -52,7 +52,7 @@
                                 <td class="u-nums">{{ $role->users_count }}</td>
                                 <td class="table__cell--actions">
                                     <div class="row">
-                                        <x-button variant="ghost" size="sm" :href="route('admin.roles.edit', $role)">تعديل</x-button>
+                                        <x-button variant="ghost" size="sm" :href="route('admin.roles.edit', $role)">{{ __('تعديل') }}</x-button>
 
                                         {{-- ★ (2026-07-22) Duplicating starts a new, ordinary role from the
                                              same permissions — the copy is never itself a system role, so
@@ -60,20 +60,20 @@
                                              without retyping every checkbox. --}}
                                         <form method="POST" action="{{ route('admin.roles.duplicate', $role) }}">
                                             @csrf
-                                            <x-button variant="ghost" size="sm">نسخ</x-button>
+                                            <x-button variant="ghost" size="sm">{{ __('نسخ') }}</x-button>
                                         </form>
 
                                         @if ($role->users_count > 0)
-                                            <span class="settings__locked">مرتبط بمستخدمين</span>
+                                            <span class="settings__locked">{{ __('مرتبط بمستخدمين') }}</span>
                                         @else
                                             <form
                                                 method="POST"
                                                 action="{{ route('admin.roles.destroy', $role) }}"
-                                                onsubmit="return confirm('متأكد إنك عايز تحذف دور «{{ $role->label() }}»؟')"
+                                                onsubmit="return confirm({{ Js::from(__('متأكد إنك عايز تحذف دور «:name»؟', ['name' => $role->label()])) }})"
                                             >
                                                 @csrf
                                                 @method('DELETE')
-                                                <x-button variant="ghost" size="sm">حذف</x-button>
+                                                <x-button variant="ghost" size="sm">{{ __('حذف') }}</x-button>
                                             </form>
                                         @endif
                                     </div>
@@ -81,7 +81,7 @@
                             </tr>
                         @empty
                             <tr class="table__empty">
-                                <td colspan="5">لا توجد أدوار.</td>
+                                <td colspan="5">{{ __('لا توجد أدوار.') }}</td>
                             </tr>
                         @endforelse
                     </tbody>

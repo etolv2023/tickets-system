@@ -62,7 +62,7 @@ class NotificationController extends Controller
             // it lands. Null when there is nothing unread.
             'latest' => $latest === null ? null : [
                 'id' => $latest->id,
-                'message' => $latest->data['message'] ?? 'فيه تحديث على تذكرة.',
+                'message' => $latest->data['message'] ?? __('فيه تحديث على تذكرة.'),
                 'url' => route('notifications.read', $latest->id),
             ],
         ]);
@@ -89,7 +89,7 @@ class NotificationController extends Controller
 
         $this->refreshBadge($request->user()->id);
 
-        return back()->with('status', 'علّمنا الكل كمقروء.');
+        return back()->with('status', __('علّمنا الكل كمقروء.'));
     }
 
     private function unreadCount(Request $request): int

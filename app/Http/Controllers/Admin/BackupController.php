@@ -29,7 +29,7 @@ class BackupController extends Controller
     public function index(): View
     {
         return view('admin.backup.index', [
-            'confirmPhrase' => BackupService::CONFIRM_PHRASE,
+            'confirmPhrase' => BackupService::confirmPhrase(),
         ]);
     }
 
@@ -68,6 +68,6 @@ class BackupController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return redirect()->route('admin.backup')->with('status', 'تم استرجاع النظام بنجاح. الداتا والملفات رجعت زي وقت الباك أب.');
+        return redirect()->route('admin.backup')->with('status', __('تم استرجاع النظام بنجاح. الداتا والملفات رجعت زي وقت الباك أب.'));
     }
 }

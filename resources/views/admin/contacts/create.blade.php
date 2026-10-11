@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'جهة اتصال جديدة')
+@section('title', __('جهة اتصال جديدة'))
 
 @section('content')
     <div class="page page--medium">
         <div class="page__head">
             <div>
-                <h1 class="page-title">جهة اتصال جديدة</h1>
-                <p class="page-subtitle">في «{{ $company->name }}»</p>
+                <h1 class="page-title">{{ __('جهة اتصال جديدة') }}</h1>
+                <p class="page-subtitle">{{ __('في «:name»', ['name' => $company->name]) }}</p>
             </div>
         </div>
 

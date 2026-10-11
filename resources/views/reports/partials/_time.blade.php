@@ -1,16 +1,16 @@
-<x-card title="تقرير الوقت" flush>
+<x-card :title="__('تقرير الوقت')" flush>
     <x-slot:actions>
-        <span class="u-subtle">الوقت مالوش علاقة بالنقاط — ومش محكوم بفلاتر الشركة/النوع فوق</span>
+        <span class="u-subtle">{{ __('الوقت مالوش علاقة بالنقاط — ومش محكوم بفلاتر الشركة/النوع فوق') }}</span>
     </x-slot:actions>
 
     <div class="table-wrap">
         <table class="table">
             <thead>
                 <tr>
-                    <th>الموظف</th>
-                    <th class="table__cell--num">ساعات مسجّلة</th>
-                    <th class="table__cell--num">تذاكر</th>
-                    <th class="table__cell--num">دقة التقدير</th>
+                    <th>{{ __('الموظف') }}</th>
+                    <th class="table__cell--num">{{ __('ساعات مسجّلة') }}</th>
+                    <th class="table__cell--num">{{ __('تذاكر') }}</th>
+                    <th class="table__cell--num">{{ __('دقة التقدير') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -27,7 +27,7 @@
                         <td class="table__cell--num">{{ $row->accuracy ?? '—' }}</td>
                     </tr>
                 @empty
-                    <tr class="table__empty"><td colspan="4">مفيش وقت مسجّل في الفترة دي.</td></tr>
+                    <tr class="table__empty"><td colspan="4">{{ __('مفيش وقت مسجّل في الفترة دي.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

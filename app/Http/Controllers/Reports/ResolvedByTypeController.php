@@ -119,7 +119,7 @@ class ResolvedByTypeController extends Controller
 
         foreach (self::QUICK_RANGES as $key => $label) {
             $ranges[$key] = [
-                'label' => $label,
+                'label' => __($label),
                 'from' => $bounds[$key][0]->toDateString(),
                 'to' => $bounds[$key][1]->toDateString(),
             ];

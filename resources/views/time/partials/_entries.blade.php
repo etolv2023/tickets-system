@@ -1,13 +1,13 @@
-<x-card title="كل تسجيل على حدة" flush>
+<x-card :title="__('كل تسجيل على حدة')" flush>
     <div class="table-wrap">
         <table class="table">
             <thead>
                 <tr>
-                    <th>التاريخ</th>
-                    <th>التذكرة</th>
-                    <th>الصب تاسك</th>
-                    <th>ملاحظة</th>
-                    <th class="table__cell--num">ساعات</th>
+                    <th>{{ __('التاريخ') }}</th>
+                    <th>{{ __('التذكرة') }}</th>
+                    <th>{{ __('الصب تاسك') }}</th>
+                    <th>{{ __('ملاحظة') }}</th>
+                    <th class="table__cell--num">{{ __('ساعات') }}</th>
                     <th class="table__cell--actions"></th>
                 </tr>
             </thead>
@@ -28,7 +28,7 @@
                             <form method="POST" action="{{ route('time.destroy', $entry) }}">
                                 @csrf
                                 @method('DELETE')
-                                <x-button variant="ghost" size="sm">حذف</x-button>
+                                <x-button variant="ghost" size="sm">{{ __('حذف') }}</x-button>
                             </form>
                         </td>
                     </tr>

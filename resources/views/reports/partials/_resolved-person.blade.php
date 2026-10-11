@@ -1,17 +1,17 @@
 {{-- One person: the counts per type, then the tickets behind them. --}}
 <div class="form-grid">
-    <x-card title="إيه الي حلّه" flush>
+    <x-card :title="__('إيه الي حلّه')" flush>
         <x-slot:actions>
-            <span class="u-subtle">{{ $selectedPerson }} · {{ \App\Models\Ticket::RELATIONS[$data['relation']] }} · من <span class="u-nums">{{ $filters['from'] }}</span> إلى <span class="u-nums">{{ $filters['to'] }}</span></span>
+            <span class="u-subtle">{{ $selectedPerson }} · {{ __(\App\Models\Ticket::RELATIONS[$data['relation']]) }} · {{ __('من') }} <span class="u-nums">{{ $filters['from'] }}</span> {{ __('إلى') }} <span class="u-nums">{{ $filters['to'] }}</span></span>
         </x-slot:actions>
 
         <div class="table-wrap">
             <table class="table">
                 <thead>
                     <tr>
-                        <th>النوع</th>
-                        <th class="table__cell--num">اتحلت</th>
-                        <th class="table__cell--num">متوسط زمن الحل</th>
+                        <th>{{ __('النوع') }}</th>
+                        <th class="table__cell--num">{{ __('اتحلت') }}</th>
+                        <th class="table__cell--num">{{ __('متوسط زمن الحل') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -19,15 +19,15 @@
                         @php($type = \App\Casts\TicketTypeValue::for($key))
                         @php($cell = $data['byType'][$key] ?? null)
                         <tr>
-                            <td><x-badge :variant="$type->variant()" :icon="$type->icon()">{{ $label }}</x-badge></td>
+                            <td><x-badge :variant="$type->variant()" :icon="$type->icon()">{{ __($label) }}</x-badge></td>
                             <td @class(['table__cell--num', 'matrix__zero' => $cell === null])>{{ $cell->n ?? 0 }}</td>
-                            <td class="table__cell--num">{{ $cell ? round((float) $cell->avg_hours) . ' س' : '—' }}</td>
+                            <td class="table__cell--num">{{ $cell ? __(':hours س', ['hours' => round((float) $cell->avg_hours)]) : '—' }}</td>
                         </tr>
                     @endforeach
                 </tbody>
                 <tfoot>
                     <tr class="matrix__foot">
-                        <td>الإجمالي</td>
+                        <td>{{ __('الإجمالي') }}</td>
                         <td class="table__cell--num">{{ $data['total'] }}</td>
                         <td></td>
                     </tr>
@@ -37,7 +37,7 @@
     </x-card>
 </div>
 
-<x-card title="التذاكر الي اتحلت" flush>
+<x-card :title="__('التذاكر الي اتحلت')" flush>
     <x-slot:actions>
         <span class="u-subtle">{{ $data['tickets']->total() }}</span>
     </x-slot:actions>
@@ -47,12 +47,12 @@
             <thead>
                 <tr>
                     <th></th>
-                    <th>التذكرة</th>
-                    <th>النوع</th>
-                    <th>الحالة</th>
-                    <th>تاريخ الحل</th>
-                    <th>زمن الحل</th>
-                    <th>التسليم</th>
+                    <th>{{ __('التذكرة') }}</th>
+                    <th>{{ __('النوع') }}</th>
+                    <th>{{ __('الحالة') }}</th>
+                    <th>{{ __('تاريخ الحل') }}</th>
+                    <th>{{ __('زمن الحل') }}</th>
+                    <th>{{ __('التسليم') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -72,16 +72,16 @@
                         <td class="tickets__age">{{ $ticket->ageLabel() }}</td>
                         <td class="table__cell--tight">
                             @if ($ticket->missedDeadlines() !== [])
-                                <x-badge variant="urgent" class="badge--sm">متأخرة</x-badge>
+                                <x-badge variant="urgent" class="badge--sm">{{ __('متأخرة') }}</x-badge>
                             @elseif ($ticket->hasDeadline())
-                                <span class="tickets__ontime">في معادها</span>
+                                <span class="tickets__ontime">{{ __('في معادها') }}</span>
                             @else
                                 <span class="u-subtle">—</span>
                             @endif
                         </td>
                     </tr>
                 @empty
-                    <tr class="table__empty"><td colspan="7">مفيش تذاكر اتحلت بالفلاتر دي.</td></tr>
+                    <tr class="table__empty"><td colspan="7">{{ __('مفيش تذاكر اتحلت بالفلاتر دي.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

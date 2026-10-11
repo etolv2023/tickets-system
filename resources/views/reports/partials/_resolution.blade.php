@@ -1,12 +1,12 @@
 <div class="form-grid">
-    <x-card title="زمن الحل بالأولوية" flush>
+    <x-card :title="__('زمن الحل بالأولوية')" flush>
         <div class="table-wrap">
             <table class="table">
                 <thead>
                     <tr>
-                        <th>الأولوية</th>
-                        <th class="table__cell--num">متوسط الساعات</th>
-                        <th class="table__cell--num">العدد</th>
+                        <th>{{ __('الأولوية') }}</th>
+                        <th class="table__cell--num">{{ __('متوسط الساعات') }}</th>
+                        <th class="table__cell--num">{{ __('العدد') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -20,21 +20,21 @@
                             <td class="table__cell--num">{{ $row->n }}</td>
                         </tr>
                     @empty
-                        <tr class="table__empty"><td colspan="3">مفيش تذاكر اتحلت.</td></tr>
+                        <tr class="table__empty"><td colspan="3">{{ __('مفيش تذاكر اتحلت.') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
     </x-card>
 
-    <x-card title="زمن الحل بالنوع" flush>
+    <x-card :title="__('زمن الحل بالنوع')" flush>
         <div class="table-wrap">
             <table class="table">
                 <thead>
                     <tr>
-                        <th>النوع</th>
-                        <th class="table__cell--num">متوسط الساعات</th>
-                        <th class="table__cell--num">العدد</th>
+                        <th>{{ __('النوع') }}</th>
+                        <th class="table__cell--num">{{ __('متوسط الساعات') }}</th>
+                        <th class="table__cell--num">{{ __('العدد') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -46,7 +46,7 @@
                             <td class="table__cell--num">{{ $row->n }}</td>
                         </tr>
                     @empty
-                        <tr class="table__empty"><td colspan="3">مفيش تذاكر اتحلت.</td></tr>
+                        <tr class="table__empty"><td colspan="3">{{ __('مفيش تذاكر اتحلت.') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

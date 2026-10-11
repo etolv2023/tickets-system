@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'تقرير التيم التفصيلي')
+@section('title', __('تقرير التيم التفصيلي'))
 
 @section('content')
     {{-- ★★★★ (2026-07-21): raw-row filterable tables, same case as the ticket list. --}}
     <div class="page page--wide">
         <div class="page__head">
             <div>
-                <h1 class="page-title">تقرير التيم التفصيلي</h1>
-                <p class="page-subtitle">التذاكر والصب تاسكس الفعلية — مش أرقام مجمّعة، الصفوف نفسها.</p>
+                <h1 class="page-title">{{ __('تقرير التيم التفصيلي') }}</h1>
+                <p class="page-subtitle">{{ __('التذاكر والصب تاسكس الفعلية — مش أرقام مجمّعة، الصفوف نفسها.') }}</p>
             </div>
             <div class="page__actions">
                 <x-export-button route="export.team-activity" />
@@ -18,7 +18,7 @@
         @include('reports.partials._team-activity-filters')
 
         @if ($tickets !== null)
-            <x-card title="التذاكر" flush>
+            <x-card :title="__('التذاكر')" flush>
                 <x-slot:actions>
                     <span class="u-subtle">{{ $tickets->total() }}</span>
                 </x-slot:actions>
@@ -28,13 +28,13 @@
                         <thead>
                             <tr>
                                 <th></th>
-                                <th>التذكرة</th>
-                                <th>النوع</th>
-                                <th>الحالة</th>
-                                <th>المسؤولين</th>
-                                <th>تاريخ الفتح</th>
-                                <th>تاريخ الحل</th>
-                                <th>التسليم</th>
+                                <th>{{ __('التذكرة') }}</th>
+                                <th>{{ __('النوع') }}</th>
+                                <th>{{ __('الحالة') }}</th>
+                                <th>{{ __('المسؤولين') }}</th>
+                                <th>{{ __('تاريخ الفتح') }}</th>
+                                <th>{{ __('تاريخ الحل') }}</th>
+                                <th>{{ __('التسليم') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -55,7 +55,7 @@
                                             @forelse ($ticket->roleAssignments as $assignment)
                                                 @if ($assignment->user)<x-avatar :user="$assignment->user" size="sm" />@endif
                                             @empty
-                                                <span class="u-subtle">مش موزعة</span>
+                                                <span class="u-subtle">{{ __('مش موزعة') }}</span>
                                             @endforelse
                                         </div>
                                     </td>
@@ -63,9 +63,9 @@
                                     <td class="u-nums">{{ $ticket->resolved_at?->translatedFormat('j M Y') ?? '—' }}</td>
                                     <td class="table__cell--tight">
                                         @if ($ticket->missedDeadlines() !== [])
-                                            <x-badge variant="urgent" class="badge--sm">متأخرة</x-badge>
+                                            <x-badge variant="urgent" class="badge--sm">{{ __('متأخرة') }}</x-badge>
                                         @elseif ($ticket->hasDeadline())
-                                            <span class="tickets__ontime">في معادها</span>
+                                            <span class="tickets__ontime">{{ __('في معادها') }}</span>
                                         @else
                                             <span class="u-subtle">—</span>
                                         @endif
@@ -73,7 +73,7 @@
                                 </tr>
                             @empty
                                 <tr class="table__empty">
-                                    <td colspan="8">مفيش تذاكر بالفلاتر دي.</td>
+                                    <td colspan="8">{{ __('مفيش تذاكر بالفلاتر دي.') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>

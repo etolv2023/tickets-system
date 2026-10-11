@@ -83,11 +83,11 @@ class PointRuleController extends Controller
             'reason' => ['required', 'string', 'max:255'],
             'ticket_number' => ['nullable', 'string', 'max:50'],
         ], [], [
-            'user_id' => 'المستخدم',
-            'points' => 'النقاط',
-            'role_id' => 'الدور',
-            'reason' => 'السبب',
-            'ticket_number' => 'رقم التذكرة',
+            'user_id' => __('المستخدم'),
+            'points' => __('النقاط'),
+            'role_id' => __('الدور'),
+            'reason' => __('السبب'),
+            'ticket_number' => __('رقم التذكرة'),
         ]);
 
         try {
@@ -116,7 +116,7 @@ class PointRuleController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', 'تم تسجيل التصحيح.');
+        return back()->with('status', __('تم تسجيل التصحيح.'));
     }
 
     /**
@@ -149,7 +149,7 @@ class PointRuleController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', 'اتعدّل التصحيح — الأصلي اتلغى بسطر عكسي، والقيمة الجديدة اتسجلت.');
+        return back()->with('status', __('اتعدّل التصحيح — الأصلي اتلغى بسطر عكسي، والقيمة الجديدة اتسجلت.'));
     }
 
     /**
@@ -180,6 +180,6 @@ class PointRuleController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', 'اتلغى التصحيح بسطر عكسي. الأصلي لسه ظاهر في الدفتر.');
+        return back()->with('status', __('اتلغى التصحيح بسطر عكسي. الأصلي لسه ظاهر في الدفتر.'));
     }
 }

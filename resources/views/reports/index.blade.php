@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'التقارير')
+@section('title', __('التقارير'))
 
 @section('content')
     {{-- ★★★★ (2026-07-21): paired report-card grids, same case as the dashboard. --}}
     <div class="page page--wide">
         <div class="page__head">
             <div>
-                <h1 class="page-title">التقارير</h1>
-                <p class="page-subtitle">الأرقام مكانها هنا — بتروحلها بقصد.</p>
+                <h1 class="page-title">{{ __('التقارير') }}</h1>
+                <p class="page-subtitle">{{ __('الأرقام مكانها هنا — بتروحلها بقصد.') }}</p>
             </div>
             <div class="page__actions">
                 <x-export-button route="export.reports" />

@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'البحث')
+@section('title', __('البحث'))
 
 @section('content')
     <div class="page">
         <div class="page__head">
             <div>
-                <h1 class="page-title">البحث</h1>
-                <p class="page-subtitle">التذاكر والصب تاسكس والتعليقات والشركات.</p>
+                <h1 class="page-title">{{ __('البحث') }}</h1>
+                <p class="page-subtitle">{{ __('التذاكر والصب تاسكس والتعليقات والشركات.') }}</p>
             </div>
         </div>
 
@@ -16,11 +16,11 @@
                 type="search"
                 name="q"
                 value="{{ $term }}"
-                placeholder="ابحث… أو الصق رقم تذكرة زي TK-2026-00001"
+                placeholder="{{ __('ابحث… أو الصق رقم تذكرة زي TK-2026-00001') }}"
                 class="input filters__search"
                 autofocus
             >
-            <x-button variant="primary">ابحث</x-button>
+            <x-button variant="primary">{{ __('ابحث') }}</x-button>
 
             {{-- Only once there is a result list to export — an export button
                  over an empty page is an offer of nothing. --}}
@@ -31,7 +31,7 @@
 
         @if ($tooShort)
             <x-alert>
-                اكتب 3 حروف على الأقل — الفهرس بتاع MySQL بيتجاهل الكلمات الأقصر من كده.
+                {{ __('اكتب 3 حروف على الأقل — الفهرس بتاع MySQL بيتجاهل الكلمات الأقصر من كده.') }}
             </x-alert>
         @endif
 
@@ -40,12 +40,12 @@
 
             @if ($total === 0)
                 <x-card>
-                    <p class="card__empty">مفيش نتايج لـ «{{ $term }}».</p>
+                    <p class="card__empty">{{ __('مفيش نتايج لـ «:term».', ['term' => $term]) }}</p>
                 </x-card>
             @endif
 
             @if ($results['tickets']->isNotEmpty())
-                <x-card title="التذاكر" flush>
+                <x-card :title="__('التذاكر')" flush>
                     <x-slot:actions><span class="u-subtle">{{ $results['tickets']->count() }}</span></x-slot:actions>
                     <div class="subtasks">
                         @foreach ($results['tickets'] as $ticket)
@@ -66,7 +66,7 @@
             @endif
 
             @if ($results['subtasks']->isNotEmpty())
-                <x-card title="الصب تاسكس" flush>
+                <x-card :title="__('الصب تاسكس')" flush>
                     <x-slot:actions><span class="u-subtle">{{ $results['subtasks']->count() }}</span></x-slot:actions>
                     <div class="subtasks">
                         @foreach ($results['subtasks'] as $subtask)
@@ -88,7 +88,7 @@
             @endif
 
             @if ($results['comments']->isNotEmpty())
-                <x-card title="التعليقات" flush>
+                <x-card :title="__('التعليقات')" flush>
                     <x-slot:actions><span class="u-subtle">{{ $results['comments']->count() }}</span></x-slot:actions>
                     <div class="subtasks">
                         @foreach ($results['comments'] as $comment)
@@ -104,7 +104,7 @@
                                     </div>
                                 </div>
                                 @if ($comment->is_internal)
-                                    <x-badge variant="neutral">داخلي</x-badge>
+                                    <x-badge variant="neutral">{{ __('داخلي') }}</x-badge>
                                 @endif
                             </div>
                         @endforeach
@@ -113,7 +113,7 @@
             @endif
 
             @if ($results['companies']->isNotEmpty())
-                <x-card title="الشركات" flush>
+                <x-card :title="__('الشركات')" flush>
                     <div class="subtasks">
                         @foreach ($results['companies'] as $company)
                             <div class="today__row">
@@ -124,7 +124,7 @@
                                     <div class="today__row-meta u-mono u-ltr">{{ $company->code }}</div>
                                 </div>
                                 @unless ($company->is_active)
-                                    <x-badge variant="neutral">موقوفة</x-badge>
+                                    <x-badge variant="neutral">{{ __('موقوفة') }}</x-badge>
                                 @endunless
                             </div>
                         @endforeach

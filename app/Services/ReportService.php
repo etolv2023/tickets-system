@@ -325,7 +325,7 @@ class ReportService
             $people[$row->user_id]['money'] += $money;
             $people[$row->user_id]['types'][] = [
                 'type' => $type,
-                'label' => $type !== null ? ($rates[$type]['name'] ?? $type) : 'غير منسوبة',
+                'label' => $type !== null ? ($rates[$type]['name'] ?? $type) : __('غير منسوبة'),
                 'rate' => $rate,
                 'points' => $points,
                 'money' => $money,
@@ -334,7 +334,7 @@ class ReportService
 
             $key = $type ?? '—';
             $byType[$key] ??= [
-                'label' => $type !== null ? ($rates[$type]['name'] ?? $type) : 'غير منسوبة',
+                'label' => $type !== null ? ($rates[$type]['name'] ?? $type) : __('غير منسوبة'),
                 'rate' => $rate,
                 'points' => 0.0,
                 'money' => 0.0,
@@ -714,7 +714,7 @@ class ReportService
      */
     public function monthOptions(): array
     {
-        $months = ['current' => 'الشهر الحالي'];
+        $months = ['current' => __('الشهر الحالي')];
 
         for ($i = 0; $i < 12; $i++) {
             $month = \Carbon\CarbonImmutable::now()->subMonths($i);

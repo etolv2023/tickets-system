@@ -57,7 +57,7 @@
                 @foreach ($leavesToday as $leave)
                     <span class="cal__leave">
                         <x-avatar :user="$leave->user" size="sm" />
-                        إجازة {{ $leave->typeLabel() }}
+                        {{ __('إجازة :type', ['type' => $leave->typeLabel()]) }}
                     </span>
                 @endforeach
 
@@ -73,6 +73,6 @@
     @endforeach
 
     @unless ($hasAny)
-        <p class="cal-agenda__empty">مفيش شغل مجدول في الفترة دي.</p>
+        <p class="cal-agenda__empty">{{ __('مفيش شغل مجدول في الفترة دي.') }}</p>
     @endunless
 </div>

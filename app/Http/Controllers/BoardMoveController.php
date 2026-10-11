@@ -81,7 +81,7 @@ class BoardMoveController extends Controller
             // here under a guess.
             'message' => $landed
                 ? null
-                : "اتسجّل إن شغلك خلص، بس التذكرة لسه في «{$ticket->status->label()}» — فيه جهة تانية لسه شغالة.",
+                : __('اتسجّل إن شغلك خلص، بس التذكرة لسه في «:status» — فيه جهة تانية لسه شغالة.', ['status' => $ticket->status->label()]),
         ]);
     }
 
@@ -134,7 +134,7 @@ class BoardMoveController extends Controller
             }
         }
 
-        $this->workflow->transition($ticket, TicketStatusValue::for($target), $actorId, 'نقل من البورد');
+        $this->workflow->transition($ticket, TicketStatusValue::for($target), $actorId, __('نقل من البورد'));
     }
 
     /**
@@ -155,10 +155,9 @@ class BoardMoveController extends Controller
         }
 
         throw new DomainException(
-            "مينفعش تنقل التذكرة من «{$from->label()}» لـ «{$this->labelFor($target)}»"
-            . ($from->value === 'resolved' || $from->value === 'closed'
-                ? ' — لو محتاج تشتغل عليها تاني، استخدم «الارتجاع» في صفحة التذكرة (بيطلب سبب).'
-                : '.')
+            ($from->value === 'resolved' || $from->value === 'closed'
+                ? __('مينفعش تنقل التذكرة من «:from» لـ «:to» — لو محتاج تشتغل عليها تاني، استخدم «الارتجاع» في صفحة التذكرة (بيطلب سبب).', ['from' => $from->label(), 'to' => $this->labelFor($target)])
+                : __('مينفعش تنقل التذكرة من «:from» لـ «:to».', ['from' => $from->label(), 'to' => $this->labelFor($target)]))
         );
     }
 
@@ -189,7 +188,7 @@ class BoardMoveController extends Controller
         $logs = $ticket->workLogs->where('user_id', $actorId);
 
         if ($logs->isEmpty()) {
-            throw new DomainException('مفيش شغل مسند لك على التذكرة دي — استخدم صفحة التذكرة.');
+            throw new DomainException(__('مفيش شغل مسند لك على التذكرة دي — استخدم صفحة التذكرة.'));
         }
 
         $actionable = $logs->filter(fn ($log) => isset($verbs[$log->status]));
@@ -200,8 +199,8 @@ class BoardMoveController extends Controller
 
         if ($actionable->isEmpty()) {
             throw new DomainException(isset($verbs['in_progress'])
-                ? 'مفيش شغل شغّال دلوقتي تقفله — اسحبها لـ«جاري العمل» الأول.'
-                : 'شغلك على التذكرة دي في المكان الصح بالفعل.');
+                ? __('مفيش شغل شغّال دلوقتي تقفله — اسحبها لـ«جاري العمل» الأول.')
+                : __('شغلك على التذكرة دي في المكان الصح بالفعل.'));
         }
 
         foreach ($actionable as $log) {

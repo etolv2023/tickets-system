@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'طابور التيست')
+@section('title', __('طابور التيست'))
 
 @section('content')
     {{-- ★★★★ (2026-07-21): a ticket table, same case as /tickets. --}}
     <div class="page page--wide">
         <div class="page__head">
             <div>
-                <h1 class="page-title">طابور التيست</h1>
-                <p class="page-subtitle">تذاكر خلصت تطوير ومستنية مراجعتك — أكّد الحل أو رجّعها بملاحظة.</p>
+                <h1 class="page-title">{{ __('طابور التيست') }}</h1>
+                <p class="page-subtitle">{{ __('تذاكر خلصت تطوير ومستنية مراجعتك — أكّد الحل أو رجّعها بملاحظة.') }}</p>
             </div>
             <div class="page__actions">
                 <x-export-button route="export.testing" />
@@ -56,7 +56,7 @@
                                 @csrf
                                 <x-button variant="confirm">
                                     <x-icon name="check" class="btn__icon" />
-                                    أكّد الحل
+                                    {{ __('أكّد الحل') }}
                                 </x-button>
                             </form>
                         @endif
@@ -64,12 +64,12 @@
                         @if (auth()->user()->hasPermission('tickets.reopen'))
                             <x-button variant="secondary" type="button" x-on:click="returning = ! returning"
                                       x-bind:aria-expanded="returning ? 'true' : 'false'">
-                                رجّع بملاحظة
+                                {{ __('رجّع بملاحظة') }}
                             </x-button>
                         @endif
 
                         <a class="btn btn--ghost queue-card__open" href="{{ route('tickets.show', $ticket) }}">
-                            فتح التذكرة
+                            {{ __('فتح التذكرة') }}
                             <x-icon name="chevron-left" class="btn__icon" />
                         </a>
                     </div>
@@ -78,18 +78,18 @@
                         <form class="queue-card__reason" method="POST" action="{{ route('tickets.reopen', $ticket) }}"
                               x-show="returning" x-cloak>
                             @csrf
-                            <label class="u-label" for="reopen-reason-{{ $ticket->id }}">سبب الارتجاع</label>
+                            <label class="u-label" for="reopen-reason-{{ $ticket->id }}">{{ __('سبب الارتجاع') }}</label>
                             <textarea id="reopen-reason-{{ $ticket->id }}" name="reason" class="textarea" rows="2"
-                                      maxlength="500" placeholder="المبرمج محتاج يعرف يصلح إيه بالظبط…"></textarea>
+                                      maxlength="500" placeholder="{{ __('المبرمج محتاج يعرف يصلح إيه بالظبط…') }}"></textarea>
                             <div class="queue-card__reason-actions">
-                                <x-button variant="primary" size="sm">رجّعها</x-button>
-                                <x-button variant="ghost" size="sm" type="button" x-on:click="returning = false">إلغاء</x-button>
+                                <x-button variant="primary" size="sm">{{ __('رجّعها') }}</x-button>
+                                <x-button variant="ghost" size="sm" type="button" x-on:click="returning = false">{{ __('إلغاء') }}</x-button>
                             </div>
                         </form>
                     @endif
                 </article>
             @empty
-                <p class="queue__empty">مفيش حاجة مستنياك.</p>
+                <p class="queue__empty">{{ __('مفيش حاجة مستنياك.') }}</p>
             @endforelse
         </div>
 
@@ -98,9 +98,9 @@
         {{-- F16: dev_done with nobody assigned to test it. Support or a manager
              has to pick these up, or they sit forever. --}}
         @if ($unassigned->isNotEmpty())
-            <x-card title="خلص تطويرها ومفيش تيستر" flush>
+            <x-card :title="__('خلص تطويرها ومفيش تيستر')" flush>
                 <x-slot:actions>
-                    <span class="u-subtle">محتاجة حد يحلها أو يسند لها تيستر</span>
+                    <span class="u-subtle">{{ __('محتاجة حد يحلها أو يسند لها تيستر') }}</span>
                 </x-slot:actions>
 
                 <div class="table-wrap">
@@ -108,8 +108,8 @@
                         <thead>
                             <tr>
                                 <th></th>
-                                <th>التذكرة</th>
-                                <th>العمر</th>
+                                <th>{{ __('التذكرة') }}</th>
+                                <th>{{ __('العمر') }}</th>
                             </tr>
                         </thead>
                         <tbody>

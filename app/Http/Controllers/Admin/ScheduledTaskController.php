@@ -46,8 +46,8 @@ class ScheduledTaskController extends Controller
             'unseeded' => array_values(array_diff(ScheduledTaskRegistry::keys(), $rows->keys()->all())),
             'cronIsAlive' => ScheduledTask::cronIsAlive(),
             'lastHeartbeat' => ScheduledTask::lastHeartbeat(),
-            'frequencies' => CronPreset::FREQUENCIES,
-            'weekdays' => CronPreset::WEEKDAYS,
+            'frequencies' => array_map(fn (string $label) => __($label), CronPreset::FREQUENCIES),
+            'weekdays' => array_map(fn (string $label) => __($label), CronPreset::WEEKDAYS),
         ]);
     }
 
@@ -76,8 +76,8 @@ class ScheduledTaskController extends Controller
         );
 
         return back()->with('status', $scheduledTask->is_enabled
-            ? 'اتحفظ. المهمة هتشتغل ' . CronPreset::describe($scheduledTask->cron) . '.'
-            : 'اتحفظ. المهمة مقفولة دلوقتي ومش هتشتغل لوحدها.');
+            ? __('اتحفظ. المهمة هتشتغل :when.', ['when' => CronPreset::describe($scheduledTask->cron)])
+            : __('اتحفظ. المهمة مقفولة دلوقتي ومش هتشتغل لوحدها.'));
     }
 
     /**
@@ -90,7 +90,7 @@ class ScheduledTaskController extends Controller
     public function run(Request $request, ScheduledTask $scheduledTask, ActivityLogger $logger): RedirectResponse
     {
         if (! ScheduledTaskRegistry::has($scheduledTask->key)) {
-            return back()->withErrors(['run' => 'المهمة دي مش موجودة في الكود، فمش هتشتغل.']);
+            return back()->withErrors(['run' => __('المهمة دي مش موجودة في الكود، فمش هتشتغل.')]);
         }
 
         RunScheduledTask::dispatch($scheduledTask->key);
@@ -104,6 +104,6 @@ class ScheduledTaskController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', '«' . $scheduledTask->name() . '» اتحطت في الطابور. حدّث الصفحة بعد شوية عشان تشوف النتيجة.');
+        return back()->with('status', __('«:name» اتحطت في الطابور. حدّث الصفحة بعد شوية عشان تشوف النتيجة.', ['name' => $scheduledTask->name()]));
     }
 }

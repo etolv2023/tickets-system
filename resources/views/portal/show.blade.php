@@ -28,7 +28,7 @@
     <x-form-errors />
 
     @if ($ticket->description)
-        <x-card title="اللي اتبلّغ عنه">
+        <x-card :title="__('اللي اتبلّغ عنه')">
             {{-- F24: an image inline in the description is a ticket-level
                  attachment, which never crosses to the customer. Stripped here
                  rather than left to 403 as a broken image. --}}
@@ -40,7 +40,7 @@
          Writing a reply is the last step of reading the conversation — a
          separate floating form said otherwise, and left a bare textarea and a
          native "Choose Files" button sitting in the middle of the page. --}}
-    <x-card title="المحادثة" flush>
+    <x-card :title="__('المحادثة')" flush>
         @include('portal.partials._thread')
 
         <x-slot:footer>
@@ -48,19 +48,19 @@
                   class="portal-composer" enctype="multipart/form-data">
                 @csrf
 
-                <span class="u-label">اكتب ردك</span>
+                <span class="u-label">{{ __('اكتب ردك') }}</span>
 
                 {{-- The same editor the team writes in. Whatever it produces is
                      untrusted either way: TicketService runs Purifier over the
                      body on the server before it is stored (CLAUDE.md § 5), so
                      the toolbar decides what the client is offered, never what
                      the server accepts. --}}
-                <x-editor name="body" simple placeholder="اكتب أي تفاصيل تساعد الفريق…" />
+                <x-editor name="body" simple :placeholder="__('اكتب أي تفاصيل تساعد الفريق…')" />
 
                 <x-uploader name="files" :max="3" :accept="$uploadAccept" :hint="$uploadHint" />
 
                 <div class="portal-composer__actions">
-                    <x-button variant="primary">إرسال الرد</x-button>
+                    <x-button variant="primary">{{ __('إرسال الرد') }}</x-button>
                 </div>
             </form>
         </x-slot:footer>

@@ -1,16 +1,15 @@
 @extends('layouts.app')
 
-@section('title', 'الإعدادات')
+@section('title', __('الإعدادات'))
 
 @section('content')
     <div class="page page--medium">
         <div class="page__head">
             <div>
-                <h1 class="page-title">الإعدادات</h1>
+                <h1 class="page-title">{{ __('الإعدادات') }}</h1>
                 <p class="page-subtitle">
-                    إعدادات النظام العامة وساعات الدوام.
-                    مهل الـ SLA لكل أولوية بقت في
-                    <a href="{{ route('admin.priorities.index') }}">شاشة الأولويات</a>.
+                    {{ __('إعدادات النظام العامة وساعات الدوام. مهل الـ SLA لكل أولوية بقت في') }}
+                    <a href="{{ route('admin.priorities.index') }}">{{ __('شاشة الأولويات') }}</a>.
                 </p>
             </div>
         </div>
@@ -31,7 +30,7 @@
             @include('admin.settings.partials._notifications')
 
             <div class="form-actions">
-                <x-button variant="primary">حفظ الإعدادات</x-button>
+                <x-button variant="primary">{{ __('حفظ الإعدادات') }}</x-button>
             </div>
         </form>
     </div>

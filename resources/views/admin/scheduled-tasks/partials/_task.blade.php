@@ -22,7 +22,7 @@
             @csrf
             <x-button variant="ghost" size="sm">
                 <x-icon name="refresh" class="btn__icon" />
-                شغّلها دلوقتي
+                {{ __('شغّلها دلوقتي') }}
             </x-button>
         </form>
     </x-slot:actions>
@@ -33,26 +33,26 @@
             <span class="u-mono u-ltr cron-head__key">{{ $task->key }}</span>
 
             @if ($task->is_enabled)
-                <x-badge variant="green">شغّالة</x-badge>
+                <x-badge variant="green">{{ __('شغّالة') }}</x-badge>
             @else
-                <x-badge variant="red">مقفولة</x-badge>
+                <x-badge variant="red">{{ __('مقفولة') }}</x-badge>
             @endif
 
             @if ($task->touchesPoints())
-                <x-badge variant="amber">بتمس النقاط</x-badge>
+                <x-badge variant="amber">{{ __('بتمس النقاط') }}</x-badge>
             @endif
         </div>
 
-        <p class="field__hint">{{ $task->definition()['description'] ?? '' }}</p>
+        <p class="field__hint">{{ __($task->definition()['description'] ?? '') }}</p>
 
         <div class="cron-facts">
             <span>
-                الميعاد: <strong>{{ \App\Support\CronPreset::describe($task->cron) }}</strong>
+                {{ __('الميعاد:') }} <strong>{{ \App\Support\CronPreset::describe($task->cron) }}</strong>
                 <span class="u-mono u-ltr u-subtle">{{ $task->cron }}</span>
             </span>
 
             <span>
-                المرة الجاية:
+                {{ __('المرة الجاية:') }}
                 @if ($next)
                     <span class="u-mono">{{ $next->timezone(config('app.display_timezone'))->translatedFormat('j M — H:i') }}</span>
                 @else
@@ -61,22 +61,22 @@
             </span>
 
             <span>
-                آخر تشغيل:
+                {{ __('آخر تشغيل:') }}
                 @if (! $task->hasRun())
-                    <span class="u-subtle">لسه ماشتغلتش</span>
+                    <span class="u-subtle">{{ __('لسه ماشتغلتش') }}</span>
                 @else
                     <span class="u-mono">{{ $task->last_started_at->timezone(config('app.display_timezone'))->translatedFormat('j M — H:i') }}</span>
 
                     @if ($task->last_finished_at === null)
-                        <x-badge variant="blue">بتشتغل دلوقتي</x-badge>
+                        <x-badge variant="blue">{{ __('بتشتغل دلوقتي') }}</x-badge>
                     @elseif ($task->lastRunSucceeded())
-                        <x-badge variant="green">نجحت</x-badge>
+                        <x-badge variant="green">{{ __('نجحت') }}</x-badge>
                     @else
-                        <x-badge variant="red">فشلت</x-badge>
+                        <x-badge variant="red">{{ __('فشلت') }}</x-badge>
                     @endif
 
                     @if ($task->last_duration_ms !== null)
-                        <span class="u-mono u-subtle">{{ number_format($task->last_duration_ms / 1000, 1) }}ث</span>
+                        <span class="u-mono u-subtle">{{ __(':secondsث', ['seconds' => number_format($task->last_duration_ms / 1000, 1)]) }}</span>
                     @endif
                 @endif
             </span>
@@ -84,7 +84,7 @@
 
         @if (filled($task->last_output))
             <details class="cron-output">
-                <summary class="cron-output__summary">مخرجات آخر تشغيل</summary>
+                <summary class="cron-output__summary">{{ __('مخرجات آخر تشغيل') }}</summary>
                 <pre class="cron-output__body u-ltr">{{ $task->last_output }}</pre>
             </details>
         @endif

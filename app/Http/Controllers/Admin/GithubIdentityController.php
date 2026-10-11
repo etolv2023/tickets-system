@@ -37,7 +37,7 @@ class GithubIdentityController extends Controller
             ['github_login' => ['before' => null, 'after' => $user->github_login]],
             $request->ip(), $request->userAgent());
 
-        return back()->with('status', 'اتحفظ ربط حساب GitHub بالمستخدم.');
+        return back()->with('status', __('اتحفظ ربط حساب GitHub بالمستخدم.'));
     }
 
     public function update(
@@ -56,7 +56,7 @@ class GithubIdentityController extends Controller
             ['github_login' => ['before' => $before, 'after' => $updated->github_login]],
             $request->ip(), $request->userAgent());
 
-        return back()->with('status', 'اتعدل الربط.');
+        return back()->with('status', __('اتعدل الربط.'));
     }
 
     public function destroy(Request $request, User $user, ActivityLogger $activity): RedirectResponse
@@ -68,20 +68,20 @@ class GithubIdentityController extends Controller
             ['github_login' => ['before' => $before, 'after' => null]],
             $request->ip(), $request->userAgent());
 
-        return back()->with('status', 'اتفك ربط حساب GitHub من المستخدم.');
+        return back()->with('status', __('اتفك ربط حساب GitHub من المستخدم.'));
     }
 
     public function sync(): RedirectResponse
     {
         if (! config('github.enabled') || blank(config('github.token'))) {
-            return back()->withErrors(['sync' => 'تكامل GitHub مقفول أو توكن القراءة ناقص.']);
+            return back()->withErrors(['sync' => __('تكامل GitHub مقفول أو توكن القراءة ناقص.')]);
         }
 
         foreach (GithubRepository::activeList() as $repository) {
             SyncGithubRepository::dispatch($repository->id);
         }
 
-        return back()->with('status', 'مزامنة GitHub اتحطت في الطابور. حدّث الصفحة بعد ما الـ worker يخلص.');
+        return back()->with('status', __('مزامنة GitHub اتحطت في الطابور. حدّث الصفحة بعد ما الـ worker يخلص.'));
     }
 
     /** @return array<string, array<int, mixed>> */

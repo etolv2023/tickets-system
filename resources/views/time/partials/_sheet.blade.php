@@ -11,13 +11,13 @@
 
 <div class="sheet">
     <div class="sheet__row sheet__row--head">
-        <div class="sheet__label">التذكرة</div>
+        <div class="sheet__label">{{ __('التذكرة') }}</div>
         @foreach ($days as $day)
             <div @class(['sheet__cell', 'sheet__cell--today' => $day->isToday()])>
                 {{ $day->translatedFormat('D j') }}
             </div>
         @endforeach
-        <div class="sheet__cell">إجمالي</div>
+        <div class="sheet__cell">{{ __('إجمالي') }}</div>
     </div>
 
     @foreach ($byTicket as $ticketId => $rows)
@@ -45,7 +45,7 @@
     @endforeach
 
     <div class="sheet__row sheet__row--foot">
-        <div class="sheet__label">إجمالي اليوم</div>
+        <div class="sheet__label">{{ __('إجمالي اليوم') }}</div>
 
         @foreach ($days as $day)
             @php
@@ -76,14 +76,14 @@
 <ul class="legend">
     <li class="legend__item">
         <span class="legend__key legend__key--plain"></span>
-        تحت سعتك اليومية ({{ rtrim(rtrim($capacity, '0'), '.') }} ساعة)
+        {{ __('تحت سعتك اليومية (:hours ساعة)', ['hours' => rtrim(rtrim($capacity, '0'), '.')]) }}
     </li>
     <li class="legend__item">
         <span class="legend__key legend__key--near"></span>
-        قربت تكمل سعة اليوم
+        {{ __('قربت تكمل سعة اليوم') }}
     </li>
     <li class="legend__item">
         <span class="legend__key legend__key--over"></span>
-        عدّيت سعة اليوم
+        {{ __('عدّيت سعة اليوم') }}
     </li>
 </ul>

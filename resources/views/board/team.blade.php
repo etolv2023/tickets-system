@@ -61,7 +61,7 @@
 
                 <x-slot:actions>
                     <span class="u-subtle">
-                        {{ collect($swimlane['columns'])->sum(fn ($c) => $c['tickets']->count()) }} تذكرة
+                        {{ trans_choice(':count تذكرة', collect($swimlane['columns'])->sum(fn ($c) => $c['tickets']->count())) }}
                     </span>
                 </x-slot:actions>
 
@@ -84,7 +84,7 @@
                                     @forelse ($column['tickets'] as $ticket)
                                         <x-ticket-card :ticket="$ticket" :user="$user" />
                                     @empty
-                                        <p class="board__empty">فاضي</p>
+                                        <p class="board__empty">{{ __('فاضي') }}</p>
                                     @endforelse
                                 </div>
                             </section>

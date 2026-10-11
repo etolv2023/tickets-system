@@ -1,6 +1,6 @@
 {{-- F18.3 — the rate card. One form, one submit: a rate card is read across its
      rows, and saving them one at a time leaves it in states nobody meant. --}}
-<x-card title="سعر النقطة لكل نوع">
+<x-card :title="__('سعر النقطة لكل نوع')">
     <form method="POST" action="{{ route('admin.point-values.update', request()->only('period')) }}">
         @csrf
         @method('PUT')
@@ -9,9 +9,9 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>النوع</th>
-                        <th>النقاط الافتراضية</th>
-                        <th>سعر النقطة</th>
+                        <th>{{ __('النوع') }}</th>
+                        <th>{{ __('النقاط الافتراضية') }}</th>
+                        <th>{{ __('سعر النقطة') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -29,8 +29,8 @@
                                            value="{{ (float) $t->point_value }}"
                                            step="0.25" min="0" max="100000"
                                            class="input rate-cell__input"
-                                           aria-label="سعر النقطة لـ {{ $t->label() }}">
-                                    <span class="settings__unit">للنقطة</span>
+                                           aria-label="{{ __('سعر النقطة لـ :type', ['type' => $t->label()]) }}">
+                                    <span class="settings__unit">{{ __('للنقطة') }}</span>
                                 </div>
                             </td>
                         </tr>
@@ -40,7 +40,7 @@
         </div>
 
         <div class="form-actions">
-            <x-button variant="primary">احفظ الأسعار</x-button>
+            <x-button variant="primary">{{ __('احفظ الأسعار') }}</x-button>
         </div>
     </form>
 </x-card>

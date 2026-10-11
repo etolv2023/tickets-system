@@ -15,9 +15,9 @@
                     <span class="portal-comment__who">
                         {{ $comment->authorName() }}
                         @if ($fromClient)
-                            <span class="portal-comment__badge">أنت</span>
+                            <span class="portal-comment__badge">{{ __('أنت') }}</span>
                         @else
-                            <span class="portal-comment__badge portal-comment__badge--team">فريق الدعم</span>
+                            <span class="portal-comment__badge portal-comment__badge--team">{{ __('فريق الدعم') }}</span>
                         @endif
                     </span>
                     <time datetime="{{ $comment->created_at->toIso8601String() }}">
@@ -58,10 +58,9 @@
         {{-- "مفيش رسائل لسه" on its own reads as a dead end. It is not one —
              the team has the ticket, and the box below is how you reach them. --}}
         <div class="blank">
-            <h2 class="blank__title">لسه مفيش رسائل</h2>
+            <h2 class="blank__title">{{ __('لسه مفيش رسائل') }}</h2>
             <p class="blank__body">
-                التذكرة وصلت لفريق الدعم وهم شايفينها. أول ما يبقى في رد هيظهر هنا،
-                وتقدر تكتب أي تفاصيل زيادة في الخانة اللي تحت.
+                {{ __('التذكرة وصلت لفريق الدعم وهم شايفينها. أول ما يبقى في رد هيظهر هنا، وتقدر تكتب أي تفاصيل زيادة في الخانة اللي تحت.') }}
             </p>
         </div>
     @endforelse

@@ -55,18 +55,18 @@ class GithubUnmatchedBranchController extends Controller
         ]);
 
         if (! hash_equals($branch->name, (string) $request->input('confirmation'))) {
-            return back()->withErrors(['delete_branch' => 'اسم البرانش المكتوب لا يطابق البرانش المطلوب حذفه.']);
+            return back()->withErrors(['delete_branch' => __('اسم البرانش المكتوب لا يطابق البرانش المطلوب حذفه.')]);
         }
 
         $branch->loadMissing('repository');
         $repository = $branch->repository;
 
         if ($repository === null || $branch->state !== BranchState::Active) {
-            return back()->withErrors(['delete_branch' => 'البرانش غير موجود أو اتمسح قبل كده.']);
+            return back()->withErrors(['delete_branch' => __('البرانش غير موجود أو اتمسح قبل كده.')]);
         }
 
         if ($branch->name === $repository->default_branch) {
-            return back()->withErrors(['delete_branch' => 'مينفعش تمسح الـ default branch من نظام التذاكر.']);
+            return back()->withErrors(['delete_branch' => __('مينفعش تمسح الـ default branch من نظام التذاكر.')]);
         }
 
         try {
@@ -90,6 +90,6 @@ class GithubUnmatchedBranchController extends Controller
             $request->userAgent(),
         );
 
-        return back()->with('status', "اتمسح البرانش {$branch->name} من GitHub.");
+        return back()->with('status', __('اتمسح البرانش :name من GitHub.', ['name' => $branch->name]));
     }
 }

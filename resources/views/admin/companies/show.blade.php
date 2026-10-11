@@ -9,16 +9,16 @@
                 <h1 class="page-title">
                     {{ $company->name }}
                     @unless ($company->is_active)
-                        <x-badge variant="neutral">موقوفة</x-badge>
+                        <x-badge variant="neutral">{{ __('موقوفة') }}</x-badge>
                     @endunless
                 </h1>
                 <p class="page-subtitle">
-                    الكود: <span class="u-mono u-ltr">{{ $company->code }}</span>
+                    {{ __('الكود:') }} <span class="u-mono u-ltr">{{ $company->code }}</span>
                 </p>
             </div>
             <div class="page__actions">
-                <x-button variant="ghost" :href="route('admin.companies.edit', $company)">تعديل الشركة</x-button>
-                <x-button variant="primary" :href="route('admin.companies.contacts.create', $company)">جهة اتصال جديدة</x-button>
+                <x-button variant="ghost" :href="route('admin.companies.edit', $company)">{{ __('تعديل الشركة') }}</x-button>
+                <x-button variant="primary" :href="route('admin.companies.contacts.create', $company)">{{ __('جهة اتصال جديدة') }}</x-button>
             </div>
         </div>
 
@@ -31,12 +31,12 @@
         @endif
 
         @if ($company->notes)
-            <x-card title="ملاحظات">
+            <x-card :title="__('ملاحظات')">
                 <p>{{ $company->notes }}</p>
             </x-card>
         @endif
 
-        <x-card title="جهات الاتصال" flush>
+        <x-card :title="__('جهات الاتصال')" flush>
             <x-slot:actions>
                 <span class="u-subtle">{{ $contacts->total() }}</span>
             </x-slot:actions>
@@ -45,12 +45,12 @@
                 <table class="table table--hover">
                     <thead>
                         <tr>
-                            <th>الاسم</th>
-                            <th>رقم الموظف (ERP)</th>
-                            <th>الإيميل</th>
-                            <th>التليفون</th>
-                            <th>الحالة</th>
-                            <th class="table__cell--actions">إجراءات</th>
+                            <th>{{ __('الاسم') }}</th>
+                            <th>{{ __('رقم الموظف (ERP)') }}</th>
+                            <th>{{ __('الإيميل') }}</th>
+                            <th>{{ __('التليفون') }}</th>
+                            <th>{{ __('الحالة') }}</th>
+                            <th class="table__cell--actions">{{ __('إجراءات') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -62,28 +62,28 @@
                                 <td class="u-mono u-ltr">{{ $contact->phone ?: '—' }}</td>
                                 <td>
                                     @if ($contact->is_active)
-                                        <x-badge variant="resolved" dot>مفعّلة</x-badge>
+                                        <x-badge variant="resolved" dot>{{ __('مفعّلة') }}</x-badge>
                                     @else
-                                        <x-badge variant="neutral" dot>موقوفة</x-badge>
+                                        <x-badge variant="neutral" dot>{{ __('موقوفة') }}</x-badge>
                                     @endif
                                 </td>
                                 <td class="table__cell--actions">
                                     <div class="row">
                                         <x-button variant="ghost" size="sm"
-                                                  :href="route('admin.companies.contacts.edit', [$company, $contact])">تعديل</x-button>
+                                                  :href="route('admin.companies.contacts.edit', [$company, $contact])">{{ __('تعديل') }}</x-button>
                                         <form method="POST"
                                               action="{{ route('admin.companies.contacts.destroy', [$company, $contact]) }}"
-                                              onsubmit="return confirm('متأكد إنك عايز تحذف «{{ $contact->name }}»؟')">
+                                              onsubmit="return confirm({{ Js::from(__('متأكد إنك عايز تحذف «:name»؟', ['name' => $contact->name])) }})">
                                             @csrf
                                             @method('DELETE')
-                                            <x-button variant="ghost" size="sm">حذف</x-button>
+                                            <x-button variant="ghost" size="sm">{{ __('حذف') }}</x-button>
                                         </form>
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr class="table__empty">
-                                <td colspan="6">مفيش جهات اتصال للشركة دي لسه.</td>
+                                <td colspan="6">{{ __('مفيش جهات اتصال للشركة دي لسه.') }}</td>
                             </tr>
                         @endforelse
                     </tbody>

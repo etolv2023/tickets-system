@@ -1,14 +1,14 @@
-<x-card title="حِمل التيم" flush>
+<x-card :title="__('حِمل التيم')" flush>
     <x-slot:actions>
-        <span class="u-subtle">التذاكر المفتوحة دلوقتي — مش محكومة بالشهر ولا بالفلاتر فوق</span>
+        <span class="u-subtle">{{ __('التذاكر المفتوحة دلوقتي — مش محكومة بالشهر ولا بالفلاتر فوق') }}</span>
     </x-slot:actions>
 
     <div class="table-wrap">
         <table class="table table--hover">
             <thead>
                 <tr>
-                    <th>الموظف</th>
-                    <th class="table__cell--num">التذاكر المفتوحة</th>
+                    <th>{{ __('الموظف') }}</th>
+                    <th class="table__cell--num">{{ __('التذاكر المفتوحة') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -23,7 +23,7 @@
                         <td class="table__cell--num">{{ $person->open_load }}</td>
                     </tr>
                 @empty
-                    <tr class="table__empty"><td colspan="2">مفيش شغل مفتوح على حد.</td></tr>
+                    <tr class="table__empty"><td colspan="2">{{ __('مفيش شغل مفتوح على حد.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

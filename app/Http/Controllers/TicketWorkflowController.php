@@ -46,7 +46,7 @@ class TicketWorkflowController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', 'تم التوزيع.');
+        return back()->with('status', __('تم التوزيع.'));
     }
 
     /**
@@ -70,7 +70,7 @@ class TicketWorkflowController extends Controller
             return back()->withErrors(['worklog' => $e->getMessage()]);
         }
 
-        return back()->with('status', 'بالتوفيق — الشغل بدأ.');
+        return back()->with('status', __('بالتوفيق — الشغل بدأ.'));
     }
 
     public function finish(Request $request, Ticket $ticket, TicketWorkLog $workLog): RedirectResponse
@@ -83,7 +83,7 @@ class TicketWorkflowController extends Controller
             return back()->withErrors(['worklog' => $e->getMessage()]);
         }
 
-        return back()->with('status', 'تمام — سجّلنا إنك خلصت.');
+        return back()->with('status', __('تمام — سجّلنا إنك خلصت.'));
     }
 
     /** F15 */
@@ -101,7 +101,7 @@ class TicketWorkflowController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', 'تمت الموافقة — التذكرة بقت جاهزة للتوزيع.');
+        return back()->with('status', __('تمت الموافقة — التذكرة بقت جاهزة للتوزيع.'));
     }
 
     public function reject(Request $request, Ticket $ticket, ActivityLogger $logger): RedirectResponse
@@ -111,8 +111,8 @@ class TicketWorkflowController extends Controller
         // A rejection without a reason is just a wall. F15
         $data = $request->validate(
             ['reason' => ['required', 'string', 'max:500']],
-            ['reason.required' => 'لازم تكتب سبب الرفض.'],
-            ['reason' => 'سبب الرفض']
+            ['reason.required' => __('لازم تكتب سبب الرفض.')],
+            ['reason' => __('سبب الرفض')]
         );
 
         $this->workflow->reject($ticket, $request->user()->id, $data['reason']);
@@ -126,7 +126,7 @@ class TicketWorkflowController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', 'تم رفض التذكرة.');
+        return back()->with('status', __('تم رفض التذكرة.'));
     }
 
     /** F16: the tester confirms. */
@@ -140,7 +140,7 @@ class TicketWorkflowController extends Controller
             return back()->withErrors(['workflow' => $e->getMessage()]);
         }
 
-        return back()->with('status', 'تم تعليم التذكرة كمحلولة.');
+        return back()->with('status', __('تم تعليم التذكرة كمحلولة.'));
     }
 
     /** F16: the tester sends it back — with a reason, always. */
@@ -150,8 +150,8 @@ class TicketWorkflowController extends Controller
 
         $data = $request->validate(
             ['reason' => ['required', 'string', 'max:500']],
-            ['reason.required' => 'لازم تكتب سبب الارتجاع عشان المبرمج يعرف يصلح إيه.'],
-            ['reason' => 'سبب الارتجاع']
+            ['reason.required' => __('لازم تكتب سبب الارتجاع عشان المبرمج يعرف يصلح إيه.')],
+            ['reason' => __('سبب الارتجاع')]
         );
 
         try {
@@ -162,7 +162,7 @@ class TicketWorkflowController extends Controller
             return back()->withErrors(['workflow' => $e->getMessage()]);
         }
 
-        return back()->with('status', 'رجّعنا التذكرة للمبرمجين.');
+        return back()->with('status', __('رجّعنا التذكرة للمبرمجين.'));
     }
 
     public function notifyClient(Request $request, Ticket $ticket, ActivityLogger $logger): RedirectResponse
@@ -179,7 +179,7 @@ class TicketWorkflowController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', 'سجّلنا إن العميل اتبلغ.');
+        return back()->with('status', __('سجّلنا إن العميل اتبلغ.'));
     }
 
     /** F06: the manual "غيّر الحالة" action, with an optional "waiting on" recipient. */
@@ -214,7 +214,7 @@ class TicketWorkflowController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', 'اتغيّرت الحالة.');
+        return back()->with('status', __('اتغيّرت الحالة.'));
     }
 
     /** F24: only ever readable once, right after (re)generating. Sensitive — logged. */
@@ -245,7 +245,7 @@ class TicketWorkflowController extends Controller
             return back()->withErrors(['workflow' => $e->getMessage()]);
         }
 
-        return back()->with('status', 'تم إغلاق التذكرة.');
+        return back()->with('status', __('تم إغلاق التذكرة.'));
     }
 
     /** The log has to belong to this ticket, and to this user. F07 */
@@ -255,6 +255,6 @@ class TicketWorkflowController extends Controller
 
         $this->authorize('manageWorkLog', $ticket);
 
-        abort_unless($log->user_id === $request->user()->id, 403, 'ده مش شغلك انت.');
+        abort_unless($log->user_id === $request->user()->id, 403, __('ده مش شغلك انت.'));
     }
 }

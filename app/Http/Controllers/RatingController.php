@@ -26,9 +26,9 @@ class RatingController extends Controller
             'score' => ['required', 'integer', 'between:1,10'],
             'comment' => ['nullable', 'string', 'max:255'],
         ], [
-            'score.between' => 'التقييم لازم يكون من 1 لـ 10.',
+            'score.between' => __('التقييم لازم يكون من 1 لـ 10.'),
         ], [
-            'role_id' => 'الدور', 'score' => 'التقييم', 'comment' => 'التعليق',
+            'role_id' => __('الدور'), 'score' => __('التقييم'), 'comment' => __('التعليق'),
         ]);
 
         // The ratee is whoever holds that role on the ticket. A role nobody
@@ -36,7 +36,7 @@ class RatingController extends Controller
         $rateeId = $ticket->assigneeIdForRole((int) $data['role_id']);
 
         if ($rateeId === null) {
-            return back()->withErrors(['role_id' => 'مفيش حد متعيّن على الدور ده.']);
+            return back()->withErrors(['role_id' => __('مفيش حد متعيّن على الدور ده.')]);
         }
 
         $rating = Rating::updateOrCreate(
@@ -70,6 +70,6 @@ class RatingController extends Controller
             $request->user()->id,
         );
 
-        return back()->with('status', 'تم حفظ التقييم.');
+        return back()->with('status', __('تم حفظ التقييم.'));
     }
 }

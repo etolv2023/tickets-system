@@ -143,11 +143,11 @@ final class CronPreset
 
         return match ($parts['frequency']) {
             'hourly' => $parts['minute'] === 0
-                ? 'كل ساعة'
-                : 'كل ساعة عند الدقيقة ' . $parts['minute'],
-            'daily' => 'كل يوم الساعة ' . $at,
-            'weekly' => 'كل ' . (self::WEEKDAYS[$parts['weekday']] ?? '؟') . ' الساعة ' . $at,
-            'monthly' => 'كل شهر يوم ' . $parts['monthday'] . ' الساعة ' . $at,
+                ? __('كل ساعة')
+                : __('كل ساعة عند الدقيقة :minute', ['minute' => $parts['minute']]),
+            'daily' => __('كل يوم الساعة :at', ['at' => $at]),
+            'weekly' => __('كل :day الساعة :at', ['day' => __(self::WEEKDAYS[$parts['weekday']] ?? '؟'), 'at' => $at]),
+            'monthly' => __('كل شهر يوم :day الساعة :at', ['day' => $parts['monthday'], 'at' => $at]),
             default => (string) $cron,
         };
     }

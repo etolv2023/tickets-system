@@ -1,12 +1,12 @@
 @extends('layouts.install')
 
-@section('title', 'فحص المتطلبات')
+@section('title', __('فحص المتطلبات'))
 
 @section('content')
     <div class="form-stack">
         @unless ($result['passed'])
             <x-alert variant="error">
-                فيه متطلبات ناقصة. صلّحها في السيرفر وبعدين حدّث الصفحة.
+                {{ __('فيه متطلبات ناقصة. صلّحها في السيرفر وبعدين حدّث الصفحة.') }}
             </x-alert>
         @endunless
 
@@ -33,12 +33,12 @@
         </div>
 
         <div class="install__nav">
-            <x-button variant="ghost" :href="route('install.requirements')">إعادة الفحص</x-button>
+            <x-button variant="ghost" :href="route('install.requirements')">{{ __('إعادة الفحص') }}</x-button>
 
             @if ($result['passed'])
-                <x-button variant="primary" :href="route('install.database')">التالي — قاعدة البيانات</x-button>
+                <x-button variant="primary" :href="route('install.database')">{{ __('التالي — قاعدة البيانات') }}</x-button>
             @else
-                <x-button variant="primary" disabled aria-disabled="true">التالي — قاعدة البيانات</x-button>
+                <x-button variant="primary" disabled aria-disabled="true">{{ __('التالي — قاعدة البيانات') }}</x-button>
             @endif
         </div>
     </div>

@@ -109,14 +109,14 @@ class ImportController extends Controller
             RunImport::dispatch($batch->id);
 
             return redirect()->route('admin.import.report', $batch)
-                ->with('status', 'الملف كبير، فالاستيراد بيتعمل في الخلفية. حدّث الصفحة بعد شوية.');
+                ->with('status', __('الملف كبير، فالاستيراد بيتعمل في الخلفية. حدّث الصفحة بعد شوية.'));
         }
 
         try {
             $this->importer->commit($batch);
         } catch (\Throwable $e) {
             return redirect()->route('admin.import.report', $batch)
-                ->withErrors(['import' => 'فشل الاستيراد: ' . $e->getMessage()]);
+                ->withErrors(['import' => __('فشل الاستيراد: :error', ['error' => $e->getMessage()])]);
         }
 
         return redirect()->route('admin.import.report', $batch);

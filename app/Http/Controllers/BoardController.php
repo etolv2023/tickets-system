@@ -287,7 +287,7 @@ class BoardController extends Controller
             $all = $tickets->whereIn('status.value', $column['statuses'])->values();
 
             $columns[$key] = [
-                'label' => $column['label'],
+                'label' => __($column['label']),
                 'tickets' => $all->take(self::COLUMN_LIMIT),
                 // Surfaced in the header rather than dropped quietly — a column
                 // that says 12 while holding 112 is lying.
@@ -397,7 +397,7 @@ class BoardController extends Controller
                 $assignee = $this->assigneeOf($group->first());
 
                 return [
-                    'label' => $assignee?->name ?? 'مش موزعة',
+                    'label' => $assignee?->name ?? __('مش موزعة'),
                     'user' => $assignee,
                     'columns' => $this->columns($group),
                 ];

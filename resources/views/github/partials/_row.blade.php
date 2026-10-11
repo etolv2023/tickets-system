@@ -12,7 +12,7 @@
         </a>
     </td>
 
-    <td class="table__cell--muted">{{ $ticket->company?->name ?? 'داخلية' }}</td>
+    <td class="table__cell--muted">{{ $ticket->company?->name ?? __('داخلية') }}</td>
 
     <td class="tickets__type">
         <x-icon :name="$ticket->type->icon()" class="tickets__type-icon"
@@ -48,7 +48,7 @@
                     @if ($side['covered'])
                         <x-badge variant="green">{{ $side['label'] }} ✔</x-badge>
                     @else
-                        <x-badge variant="red">{{ $side['label'] }} ناقص</x-badge>
+                        <x-badge variant="red">{{ __(':side ناقص', ['side' => $side['label']]) }}</x-badge>
                     @endif
                 @endforeach
             </div>
@@ -66,7 +66,7 @@
                     <x-avatar :user="$assignment->user" size="sm" />
                 @endif
             @empty
-                <span class="u-subtle">مش موزعة</span>
+                <span class="u-subtle">{{ __('مش موزعة') }}</span>
             @endforelse
         </div>
     </td>

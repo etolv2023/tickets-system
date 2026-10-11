@@ -1,17 +1,17 @@
 @extends('layouts.install')
 
-@section('title', 'إنهاء التنصيب')
+@section('title', __('إنهاء التنصيب'))
 
 @section('content')
     <div class="form-stack">
         <x-form-errors />
 
         <x-alert>
-            آخر خطوة هتعمل الآتي:
+            {{ __('آخر خطوة هتعمل الآتي:') }}
             <ul class="alert__list">
-                <li>تولّد مفتاح تشفير جديد خاص بالتنصيب ده.</li>
-                <li>تقفل وضع التطوير (<span class="u-mono">APP_DEBUG=false</span>).</li>
-                <li>تكتب <span class="u-mono">storage/installed.lock</span> — وبعدها صفحة التنصيب هترجع 404.</li>
+                <li>{{ __('تولّد مفتاح تشفير جديد خاص بالتنصيب ده.') }}</li>
+                <li>{{ __('تقفل وضع التطوير (') }}<span class="u-mono">APP_DEBUG=false</span>).</li>
+                <li>{{ __('تكتب') }} <span class="u-mono">storage/installed.lock</span> {{ __('— وبعدها صفحة التنصيب هترجع 404.') }}</li>
             </ul>
         </x-alert>
 
@@ -19,7 +19,7 @@
             <span></span>
             <form method="POST" action="{{ route('install.finish.complete') }}">
                 @csrf
-                <x-button variant="primary">إنهاء التنصيب والدخول</x-button>
+                <x-button variant="primary">{{ __('إنهاء التنصيب والدخول') }}</x-button>
             </form>
         </div>
     </div>

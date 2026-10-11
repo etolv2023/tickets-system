@@ -1,20 +1,19 @@
 @extends('layouts.app')
 
-@section('title', 'جهات الاتصال')
+@section('title', __('جهات الاتصال'))
 
 @section('content')
     <div class="page">
         <div class="page__head">
             <div>
-                <h1 class="page-title">جهات الاتصال</h1>
+                <h1 class="page-title">{{ __('جهات الاتصال') }}</h1>
                 <p class="page-subtitle">
-                    كل جهات الاتصال في كل الشركات — {{ $contacts->total() }} جهة. ابحث بالاسم أو رقم
-                    الموظف أو الإيميل أو التليفون من غير ما تعرف الشركة.
+                    {{ __('كل جهات الاتصال في كل الشركات — :count جهة. ابحث بالاسم أو رقم الموظف أو الإيميل أو التليفون من غير ما تعرف الشركة.', ['count' => $contacts->total()]) }}
                 </p>
             </div>
             <div class="page__actions">
                 <x-export-button route="export.contacts" />
-                <x-button variant="ghost" :href="route('admin.companies.index')">الشركات</x-button>
+                <x-button variant="ghost" :href="route('admin.companies.index')">{{ __('الشركات') }}</x-button>
             </div>
         </div>
 
@@ -27,7 +26,7 @@
                 type="search"
                 name="q"
                 value="{{ $filters['q'] ?? '' }}"
-                placeholder="ابحث بالاسم أو رقم الموظف أو الإيميل أو التليفون"
+                placeholder="{{ __('ابحث بالاسم أو رقم الموظف أو الإيميل أو التليفون') }}"
                 class="input filters__search"
                 autofocus
             >
@@ -36,19 +35,19 @@
                 <x-combobox name="company" resource="companies"
                             :value="$filters['company'] ?? null"
                             :selected="$selectedCompany ?? null"
-                            placeholder="كل الشركات" />
+                            :placeholder="__('كل الشركات')" />
             </div>
 
             <select name="status" class="select filters__select">
-                <option value="">كل الحالات</option>
-                <option value="active" @selected(($filters['status'] ?? '') === 'active')>مفعّلة</option>
-                <option value="inactive" @selected(($filters['status'] ?? '') === 'inactive')>موقوفة</option>
+                <option value="">{{ __('كل الحالات') }}</option>
+                <option value="active" @selected(($filters['status'] ?? '') === 'active')>{{ __('مفعّلة') }}</option>
+                <option value="inactive" @selected(($filters['status'] ?? '') === 'inactive')>{{ __('موقوفة') }}</option>
             </select>
 
-            <x-button variant="secondary">فلترة</x-button>
+            <x-button variant="secondary">{{ __('فلترة') }}</x-button>
 
             @if (array_filter($filters))
-                <x-button variant="ghost" :href="route('admin.contacts.index')">مسح</x-button>
+                <x-button variant="ghost" :href="route('admin.contacts.index')">{{ __('مسح') }}</x-button>
             @endif
         </form>
 
@@ -57,13 +56,13 @@
                 <table class="table table--hover">
                     <thead>
                         <tr>
-                            <th>الاسم</th>
-                            <th>الشركة</th>
-                            <th>رقم الموظف (ERP)</th>
-                            <th>الإيميل</th>
-                            <th>التليفون</th>
-                            <th>الحالة</th>
-                            <th class="table__cell--actions">إجراءات</th>
+                            <th>{{ __('الاسم') }}</th>
+                            <th>{{ __('الشركة') }}</th>
+                            <th>{{ __('رقم الموظف (ERP)') }}</th>
+                            <th>{{ __('الإيميل') }}</th>
+                            <th>{{ __('التليفون') }}</th>
+                            <th>{{ __('الحالة') }}</th>
+                            <th class="table__cell--actions">{{ __('إجراءات') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -80,22 +79,22 @@
                                 <td class="u-mono u-ltr">{{ $contact->phone ?: '—' }}</td>
                                 <td>
                                     @if ($contact->is_active)
-                                        <x-badge variant="resolved" dot>مفعّلة</x-badge>
+                                        <x-badge variant="resolved" dot>{{ __('مفعّلة') }}</x-badge>
                                     @else
-                                        <x-badge variant="neutral" dot>موقوفة</x-badge>
+                                        <x-badge variant="neutral" dot>{{ __('موقوفة') }}</x-badge>
                                     @endif
                                 </td>
                                 <td class="table__cell--actions">
                                     <x-button variant="ghost" size="sm"
                                               :href="route('admin.companies.contacts.edit', [$contact->company, $contact])">
-                                        تعديل
+                                        {{ __('تعديل') }}
                                     </x-button>
                                 </td>
                             </tr>
                         @empty
                             <tr class="table__empty">
                                 <td colspan="7">
-                                    {{ array_filter($filters) ? 'مفيش نتايج للفلاتر دي.' : 'مفيش جهات اتصال لسه.' }}
+                                    {{ array_filter($filters) ? __('مفيش نتايج للفلاتر دي.') : __('مفيش جهات اتصال لسه.') }}
                                 </td>
                             </tr>
                         @endforelse

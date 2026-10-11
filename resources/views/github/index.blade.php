@@ -1,20 +1,18 @@
 @extends('layouts.app')
 
-@section('title', 'برانشات التذاكر')
+@section('title', __('برانشات التذاكر'))
 
 @section('content')
     <div class="page">
         <div class="page__head">
             <div>
-                <h1 class="page-title">برانشات التذاكر</h1>
+                <h1 class="page-title">{{ __('برانشات التذاكر') }}</h1>
                 <p class="page-subtitle">
-                    أنهي تذاكر ليها كود وراها وأنهي لأ — المطابقة بالبرانش اللي اسمه بيبدأ برقم التذكرة.
+                    {{ __('أنهي تذاكر ليها كود وراها وأنهي لأ — المطابقة بالبرانش اللي اسمه بيبدأ برقم التذكرة.') }}
                     <br>
-                    الافتراضي هو <strong>اللي اتقفلت وملهاش برانش</strong>؛ غيّر أول فلترين لو عايز تقلب السؤال.
+                    {{ __('الافتراضي هو') }} <strong>{{ __('اللي اتقفلت وملهاش برانش') }}</strong>{{ __('؛ غيّر أول فلترين لو عايز تقلب السؤال.') }}
                     <br>
-                    عمود <strong>«البرانشات بالجهة»</strong> بيقارن الجهات المسنودة على التذكرة بالبرانشات
-                    الموجودة فعلاً — تذكرة عليها باك وفرونت لازم يكون ليها برانش في الاتنين، ولو واحد ناقص
-                    هيبان <strong>أحمر</strong> حتى لو التذكرة «ليها برانش».
+                    {{ __('عمود') }} <strong>{{ __('«البرانشات بالجهة»') }}</strong> {{ __('بيقارن الجهات المسنودة على التذكرة بالبرانشات الموجودة فعلاً — تذكرة عليها باك وفرونت لازم يكون ليها برانش في الاتنين، ولو واحد ناقص هيبان') }} <strong>{{ __('أحمر') }}</strong> {{ __('حتى لو التذكرة «ليها برانش».') }}
                 </p>
             </div>
 
@@ -26,7 +24,7 @@
                 <div class="gh-score">
                     <span class="gh-score__value u-mono">{{ number_format($matchedCount) }}</span>
                     <span class="gh-score__label">
-                        {{ $modeLabel }} · من {{ number_format($totalCount) }} تذكرة
+                        {{ $modeLabel }} · {{ __('من :count تذكرة', ['count' => number_format($totalCount)]) }}
                     </span>
                 </div>
 
@@ -42,7 +40,7 @@
                         @csrf
                         <x-button variant="secondary">
                             <x-icon name="refresh" class="btn__icon" />
-                            زامن دلوقتي
+                            {{ __('زامن دلوقتي') }}
                         </x-button>
                     </form>
                 @endcan
@@ -57,9 +55,8 @@
 
         @unless ($connected)
             <x-alert variant="error">
-                تكامل جيت هب مقفول، فالقايمة دي مبنية على آخر مزامنة نجحت.
-                حط <span class="u-mono u-ltr">GITHUB_ENABLED=true</span> و
-                <span class="u-mono u-ltr">GITHUB_TOKEN</span> وشغّل
+                {{ __('تكامل جيت هب مقفول، فالقايمة دي مبنية على آخر مزامنة نجحت. حط') }} <span class="u-mono u-ltr">GITHUB_ENABLED=true</span> {{ __('و') }}
+                <span class="u-mono u-ltr">GITHUB_TOKEN</span> {{ __('وشغّل') }}
                 <span class="u-mono u-ltr">php artisan github:check</span>.
             </x-alert>
         @endunless
@@ -69,22 +66,22 @@
         <x-card flush>
             @if ($tickets->isEmpty())
                 <div class="blank">
-                    <p class="blank__title">مفيش تذاكر بالفلاتر دي.</p>
-                    <p class="blank__body">جرّب تغيّر فلتر البرانش أو الحالة.</p>
+                    <p class="blank__title">{{ __('مفيش تذاكر بالفلاتر دي.') }}</p>
+                    <p class="blank__body">{{ __('جرّب تغيّر فلتر البرانش أو الحالة.') }}</p>
                 </div>
             @else
                 <div class="table-wrap">
                     <table class="table table--hover">
                         <thead>
                             <tr>
-                                <th>التذكرة</th>
-                                <th>الشركة</th>
-                                <th>النوع</th>
-                                <th>الأولوية</th>
-                                <th>الحالة</th>
-                                <th>البرانشات بالجهة</th>
-                                <th>اتحلت</th>
-                                <th>مين شغّال عليها</th>
+                                <th>{{ __('التذكرة') }}</th>
+                                <th>{{ __('الشركة') }}</th>
+                                <th>{{ __('النوع') }}</th>
+                                <th>{{ __('الأولوية') }}</th>
+                                <th>{{ __('الحالة') }}</th>
+                                <th>{{ __('البرانشات بالجهة') }}</th>
+                                <th>{{ __('اتحلت') }}</th>
+                                <th>{{ __('مين شغّال عليها') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -99,11 +96,11 @@
 
         <span class="tickets__count">
             @if ($lastSyncedAt)
-                آخر مزامنة:
+                {{ __('آخر مزامنة:') }}
                 {{ \Illuminate\Support\Carbon::parse($lastSyncedAt)->timezone(config('app.display_timezone'))->translatedFormat('j M — H:i') }}
-                · المزامنة التلقائية كل ليلة 3 صباحاً.
+                · {{ __('المزامنة التلقائية كل ليلة 3 صباحاً.') }}
             @else
-                مفيش مزامنة اتعملت لسه.
+                {{ __('مفيش مزامنة اتعملت لسه.') }}
             @endif
         </span>
 

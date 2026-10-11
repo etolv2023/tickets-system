@@ -3,9 +3,9 @@
      (ReportService::constrain) — except the two the controller leaves alone,
      which say so in their own headers. --}}
 <form method="GET" action="{{ route('reports.index') }}" class="filters">
-    <select name="period" class="select filters__select" aria-label="الشهر">
+    <select name="period" class="select filters__select" aria-label="{{ __('الشهر') }}">
         @foreach ($months as $value => $label)
-            <option value="{{ $value }}" @selected($period === $value)>{{ $label }}</option>
+            <option value="{{ $value }}" @selected($period === $value)>{{ __($label) }}</option>
         @endforeach
     </select>
 
@@ -13,20 +13,20 @@
         <x-combobox name="company" resource="companies"
                     :value="$filters['company'] ?? null"
                     :selected="$selectedCompany"
-                    placeholder="كل الشركات" />
+                    :placeholder="__('كل الشركات')" />
     </div>
 
-    <select name="type" class="select filters__select" aria-label="النوع">
-        <option value="">كل الأنواع</option>
+    <select name="type" class="select filters__select" aria-label="{{ __('النوع') }}">
+        <option value="">{{ __('كل الأنواع') }}</option>
         @foreach ($types as $value => $label)
-            <option value="{{ $value }}" @selected(($filters['type'] ?? '') === $value)>{{ $label }}</option>
+            <option value="{{ $value }}" @selected(($filters['type'] ?? '') === $value)>{{ __($label) }}</option>
         @endforeach
     </select>
 
-    <select name="priority" class="select filters__select" aria-label="الأولوية">
-        <option value="">كل الأولويات</option>
+    <select name="priority" class="select filters__select" aria-label="{{ __('الأولوية') }}">
+        <option value="">{{ __('كل الأولويات') }}</option>
         @foreach ($priorities as $value => $label)
-            <option value="{{ $value }}" @selected(($filters['priority'] ?? '') === $value)>{{ $label }}</option>
+            <option value="{{ $value }}" @selected(($filters['priority'] ?? '') === $value)>{{ __($label) }}</option>
         @endforeach
     </select>
 
@@ -34,12 +34,12 @@
         <x-combobox name="person" resource="users"
                     :value="$filters['person'] ?? null"
                     :selected="$selectedPerson"
-                    placeholder="مسندة لأي حد" />
+                    :placeholder="__('مسندة لأي حد')" />
     </div>
 
-    <x-button variant="secondary" size="sm">اعرض</x-button>
+    <x-button variant="secondary" size="sm">{{ __('اعرض') }}</x-button>
 
     @if (array_filter($filters))
-        <x-button variant="ghost" size="sm" :href="route('reports.index', ['period' => $period])">مسح</x-button>
+        <x-button variant="ghost" size="sm" :href="route('reports.index', ['period' => $period])">{{ __('مسح') }}</x-button>
     @endif
 </form>

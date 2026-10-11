@@ -49,7 +49,7 @@ class CalendarSettingController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', 'تم إضافة العطلة.');
+        return back()->with('status', __('تم إضافة العطلة.'));
     }
 
     public function destroyHoliday(Request $request, Holiday $holiday): RedirectResponse
@@ -58,7 +58,7 @@ class CalendarSettingController extends Controller
 
         $holiday->delete();
 
-        return back()->with('status', 'تم حذف العطلة.');
+        return back()->with('status', __('تم حذف العطلة.'));
     }
 
     public function storeLeave(Request $request, ActivityLogger $logger): RedirectResponse
@@ -72,9 +72,9 @@ class CalendarSettingController extends Controller
             'type' => ['required', 'in:annual,sick,other'],
             'note' => ['nullable', 'string', 'max:255'],
         ], [
-            'end_date.after_or_equal' => 'تاريخ النهاية مينفعش يكون قبل البداية.',
+            'end_date.after_or_equal' => __('تاريخ النهاية مينفعش يكون قبل البداية.'),
         ], [
-            'user_id' => 'الموظف', 'start_date' => 'من', 'end_date' => 'لـ', 'type' => 'النوع',
+            'user_id' => __('الموظف'), 'start_date' => __('من'), 'end_date' => __('لـ'), 'type' => __('النوع'),
         ]);
 
         $leave = UserLeave::create($data + ['approved_by' => $request->user()->id]);
@@ -88,7 +88,7 @@ class CalendarSettingController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', 'تم تسجيل الإجازة.');
+        return back()->with('status', __('تم تسجيل الإجازة.'));
     }
 
     public function destroyLeave(Request $request, UserLeave $leave): RedirectResponse
@@ -97,6 +97,6 @@ class CalendarSettingController extends Controller
 
         $leave->delete();
 
-        return back()->with('status', 'تم حذف الإجازة.');
+        return back()->with('status', __('تم حذف الإجازة.'));
     }
 }

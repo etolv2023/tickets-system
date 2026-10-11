@@ -117,8 +117,8 @@ class GithubAuditController extends Controller
             'tickets' => $tickets,
             'filters' => $filters,
             'mode' => $mode,
-            'modeLabel' => self::BRANCH_MODES[$mode],
-            'branchModes' => self::BRANCH_MODES,
+            'modeLabel' => __(self::BRANCH_MODES[$mode]),
+            'branchModes' => array_map(fn (string $label) => __($label), self::BRANCH_MODES),
             // The denominator. "31" alone says nothing; "31 من 402" says
             // whether this is a habit or a slip. Both follow the filters, so
             // they always describe the same rows.
@@ -155,21 +155,20 @@ class GithubAuditController extends Controller
     public function sync(Request $request): RedirectResponse
     {
         if (! config('github.enabled') || blank(config('github.token'))) {
-            return back()->withErrors(['sync' => 'التكامل مقفول أو التوكن ناقص — راجع GITHUB_ENABLED و GITHUB_TOKEN.']);
+            return back()->withErrors(['sync' => __('التكامل مقفول أو التوكن ناقص — راجع GITHUB_ENABLED و GITHUB_TOKEN.')]);
         }
 
         $repositories = GithubRepository::activeList();
 
         if ($repositories === []) {
-            return back()->withErrors(['sync' => 'مفيش ريبوز مفعّلة.']);
+            return back()->withErrors(['sync' => __('مفيش ريبوز مفعّلة.')]);
         }
 
         foreach ($repositories as $repository) {
             SyncGithubRepository::dispatch($repository->id);
         }
 
-        return back()->with('status', count($repositories)
-            . ' ريبو اتحطوا في طابور المزامنة. حدّث الصفحة بعد شوية.');
+        return back()->with('status', trans_choice(':count ريبو اتحطوا في طابور المزامنة. حدّث الصفحة بعد شوية.', count($repositories)));
     }
 
     /**

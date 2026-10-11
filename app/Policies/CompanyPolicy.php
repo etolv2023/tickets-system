@@ -36,11 +36,11 @@ class CompanyPolicy
     public function delete(User $user, Company $company): Response
     {
         if (! $user->hasPermission('companies.manage')) {
-            return Response::deny('ليس لديك صلاحية لحذف الشركات.');
+            return Response::deny(__('ليس لديك صلاحية لحذف الشركات.'));
         }
 
         if ($company->contacts()->exists()) {
-            return Response::deny('الشركة دي عليها جهات اتصال. امسحهم الأول أو أوقف الشركة بدل ما تحذفها.');
+            return Response::deny(__('الشركة دي عليها جهات اتصال. امسحهم الأول أو أوقف الشركة بدل ما تحذفها.'));
         }
 
         return Response::allow();

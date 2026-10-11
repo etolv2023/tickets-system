@@ -20,7 +20,7 @@ class RestoreUploadRequest extends FormRequest
             // Typed by hand, not a checkbox — a restore replaces every row and
             // every file the system currently holds, and a checkbox is too easy
             // to tick on the way past.
-            'confirm' => ['required', Rule::in([BackupService::CONFIRM_PHRASE])],
+            'confirm' => ['required', Rule::in([BackupService::CONFIRM_PHRASE, BackupService::CONFIRM_PHRASE_EN])],
         ];
     }
 
@@ -33,7 +33,7 @@ class RestoreUploadRequest extends FormRequest
     {
         return [
             'file.max' => __('الملف كبير أوي. الحد 500 ميجا.'),
-            'confirm.in' => __('لازم تكتب «:phrase» بالظبط عشان تأكد.', ['phrase' => BackupService::CONFIRM_PHRASE]),
+            'confirm.in' => __('لازم تكتب «:phrase» بالظبط عشان تأكد.', ['phrase' => BackupService::confirmPhrase()]),
         ];
     }
 }

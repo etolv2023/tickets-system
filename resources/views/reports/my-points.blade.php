@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'نقاطي')
+@section('title', __('نقاطي'))
 
 @php
     // ★ (2026-08-05) 'award' explicitly, not "anything that isn't a
@@ -24,9 +24,9 @@
             <div>
                 <h1 class="page-title row">
                     <x-icon name="star" class="u-icon-accent" />
-                    نقاطي
+                    {{ __('نقاطي') }}
                 </h1>
-                <p class="page-subtitle">تُحتسب النقاط مرة واحدة عند اعتماد الحل، وتظهر الخصومات والتصحيحات كسجلات مستقلة قابلة للمراجعة.</p>
+                <p class="page-subtitle">{{ __('تُحتسب النقاط مرة واحدة عند اعتماد الحل، وتظهر الخصومات والتصحيحات كسجلات مستقلة قابلة للمراجعة.') }}</p>
             </div>
             <div class="page__actions">
                 <x-export-button route="export.my-points" />
@@ -36,18 +36,18 @@
         <div class="today-stats">
             <div class="stat-tile stat-tile--teal">
                 <div class="stat-tile__figure">{{ rtrim(rtrim(number_format($total, 2), '0'), '.') }}</div>
-                <div class="stat-tile__caption">{{ $isAll ? 'إجمالي كل الأوقات' : 'نقاط الشهر ده' }}</div>
+                <div class="stat-tile__caption">{{ $isAll ? __('إجمالي كل الأوقات') : __('نقاط الشهر ده') }}</div>
             </div>
 
             <div class="stat-tile stat-tile--slate">
                 <div class="stat-tile__figure">{{ $awardsCount }}</div>
-                <div class="stat-tile__caption">عمليات استحقاق نقاط</div>
+                <div class="stat-tile__caption">{{ __('عمليات استحقاق نقاط') }}</div>
             </div>
 
             @if ($lastEarned)
                 <div class="stat-tile stat-tile--green">
                     <div class="stat-tile__figure u-mono">{{ $lastEarned->format('j M') }}</div>
-                    <div class="stat-tile__caption">آخر عملية استحقاق</div>
+                    <div class="stat-tile__caption">{{ __('آخر عملية استحقاق') }}</div>
                 </div>
             @endif
 
@@ -57,14 +57,14 @@
             @if ($penaltiesTotal !== 0.0)
                 <div class="stat-tile stat-tile--red">
                     <div class="stat-tile__figure">{{ rtrim(rtrim(number_format($penaltiesTotal, 2), '0'), '.') }}</div>
-                    <div class="stat-tile__caption">خصم تأخير ({{ $penalties->count() }} صب تاسك)</div>
+                    <div class="stat-tile__caption">{{ __('خصم تأخير (:count صب تاسك)', ['count' => $penalties->count()]) }}</div>
                 </div>
             @endif
 
             @if ($correctionsTotal !== 0.0)
                 <div @class(['stat-tile', $correctionsTotal > 0 ? 'stat-tile--green' : 'stat-tile--red'])>
                     <div class="stat-tile__figure">{{ rtrim(rtrim(number_format($correctionsTotal, 2), '0'), '.') }}</div>
-                    <div class="stat-tile__caption">تصحيحات يدوية</div>
+                    <div class="stat-tile__caption">{{ __('تصحيحات يدوية') }}</div>
                 </div>
             @endif
         </div>
@@ -74,18 +74,18 @@
 
             @if ($isAll)
                 <a class="btn btn--ghost btn--sm" href="{{ route('reports.my-points') }}">
-                    العودة إلى الشهر الحالي
+                    {{ __('العودة إلى الشهر الحالي') }}
                 </a>
             @else
                 <a class="btn btn--ghost btn--sm" href="{{ route('reports.my-points', ['period' => 'all']) }}">
                     <x-icon name="clock" class="btn__icon" />
-                    عرض السجل الكامل
+                    {{ __('عرض السجل الكامل') }}
                 </a>
             @endif
         </div>
 
         @if ($isAll)
-            <x-alert>يعرض هذا النطاق سجل النقاط بالكامل منذ أول عملية، وليس الشهر الحالي فقط.</x-alert>
+            <x-alert>{{ __('يعرض هذا النطاق سجل النقاط بالكامل منذ أول عملية، وليس الشهر الحالي فقط.') }}</x-alert>
         @endif
 
         <x-card flush>
@@ -93,11 +93,11 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>المصدر</th>
-                            <th>الصب تاسك</th>
-                            <th>الجهة</th>
-                            <th>السبب</th>
-                            <th class="table__cell--num">النقاط</th>
+                            <th>{{ __('المصدر') }}</th>
+                            <th>{{ __('الصب تاسك') }}</th>
+                            <th>{{ __('الجهة') }}</th>
+                            <th>{{ __('السبب') }}</th>
+                            <th class="table__cell--num">{{ __('النقاط') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -116,14 +116,14 @@
                                 </td>
                                 <td class="u-subtle">
                                     @if ($row->type === 'correction')
-                                        <x-badge variant="neutral">تصحيح يدوي</x-badge>
+                                        <x-badge variant="neutral">{{ __('تصحيح يدوي') }}</x-badge>
                                     @else
                                         {{-- ★ (2026-08-05) الخصم لسه بيشاور على
                                              الصب تاسك بتاعته — العنوان هو الي
                                              بيخلي السطر مفهوم، والبادج بيقول
                                              ليه بالسالب. --}}
                                         @if ($row->type === 'penalty')
-                                            <x-badge variant="urgent">خصم تأخير</x-badge>
+                                            <x-badge variant="urgent">{{ __('خصم تأخير') }}</x-badge>
                                         @endif
                                         {{ $row->subtask->title ?? '—' }}
                                     @endif
@@ -136,7 +136,7 @@
                             </tr>
                         @empty
                             <tr class="table__empty">
-                                <td colspan="5">{{ $isAll ? 'مأخدتش نقاط لسه خالص.' : 'مأخدتش نقاط في الشهر ده.' }}</td>
+                                <td colspan="5">{{ $isAll ? __('مأخدتش نقاط لسه خالص.') : __('مأخدتش نقاط في الشهر ده.') }}</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -145,7 +145,7 @@
         </x-card>
 
         <p class="field__hint">
-            تسجيل الوقت مالوش علاقة بالنقاط — النقاط على إنجاز التذكرة مش على الساعات.
+            {{ __('تسجيل الوقت مالوش علاقة بالنقاط — النقاط على إنجاز التذكرة مش على الساعات.') }}
         </p>
     </div>
 @endsection

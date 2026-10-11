@@ -137,8 +137,11 @@ Route::get('/__diag/slow-ticket/{ticket}', function (\App\Models\Ticket $ticket)
 });
 Route::get('/__diag/fast', fn () => 'fast');
 
+// Outside auth: the login screen, the client portal and the install wizard
+// switch language too. It only writes the session.
+Route::post('/locale', [LocaleController::class, 'update'])->name('locale.update');
+
 Route::middleware('auth')->group(function () {
-    Route::post('/locale', [LocaleController::class, 'update'])->name('locale.update');
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
     // Stays reachable while must_change_password is set — ForcePasswordChange

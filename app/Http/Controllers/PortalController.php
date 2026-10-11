@@ -171,7 +171,7 @@ class PortalController extends Controller
             }
         }
 
-        return redirect()->route('portal.show', $ticketNumber)->with('status', 'تم إرسال ردك.');
+        return redirect()->route('portal.show', $ticketNumber)->with('status', __('تم إرسال ردك.'));
     }
 
     private function hasAccess(Request $request, Ticket $ticket): bool

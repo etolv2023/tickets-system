@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'تعديل ' . $role->label())
+@section('title', __('تعديل :name', ['name' => $role->label()]))
 
 @section('content')
     <div class="page">
         <div class="page__head">
             <div>
-                <h1 class="page-title">تعديل «{{ $role->label() }}»</h1>
-                <p class="page-subtitle">تسري التغييرات فورًا على جميع المستخدمين المرتبطين بهذا الدور.</p>
+                <h1 class="page-title">{{ __('تعديل «:name»', ['name' => $role->label()]) }}</h1>
+                <p class="page-subtitle">{{ __('تسري التغييرات فورًا على جميع المستخدمين المرتبطين بهذا الدور.') }}</p>
             </div>
         </div>
 

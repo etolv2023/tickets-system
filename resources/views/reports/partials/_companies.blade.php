@@ -1,16 +1,16 @@
-<x-card title="أداء الشركات" flush>
+<x-card :title="__('أداء الشركات')" flush>
     <x-slot:actions>
-        <span class="u-subtle">مين بيبعت أكتر</span>
+        <span class="u-subtle">{{ __('مين بيبعت أكتر') }}</span>
     </x-slot:actions>
 
     <div class="table-wrap">
         <table class="table table--hover">
             <thead>
                 <tr>
-                    <th>الشركة</th>
-                    <th class="table__cell--num">التذاكر</th>
-                    <th class="table__cell--num">اتحلت</th>
-                    <th class="table__cell--num">متوسط زمن الحل</th>
+                    <th>{{ __('الشركة') }}</th>
+                    <th class="table__cell--num">{{ __('التذاكر') }}</th>
+                    <th class="table__cell--num">{{ __('اتحلت') }}</th>
+                    <th class="table__cell--num">{{ __('متوسط زمن الحل') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -21,7 +21,7 @@
                              does not exist. F25 --}}
                         <td>
                             @if ($row->company_id === null)
-                                <span class="u-muted">شغل داخلي</span>
+                                <span class="u-muted">{{ __('شغل داخلي') }}</span>
                             @elsecan('companies.manage')
                                 <a href="{{ route('admin.companies.show', $row->company_id) }}">{{ $row->company?->name ?? '—' }}</a>
                             @else
@@ -30,10 +30,10 @@
                         </td>
                         <td class="table__cell--num">{{ $row->total }}</td>
                         <td class="table__cell--num">{{ $row->resolved }}</td>
-                        <td class="table__cell--num">{{ $row->avg_hours ? round($row->avg_hours) . ' س' : '—' }}</td>
+                        <td class="table__cell--num">{{ $row->avg_hours ? __(':hours س', ['hours' => round($row->avg_hours)]) : '—' }}</td>
                     </tr>
                 @empty
-                    <tr class="table__empty"><td colspan="4">مفيش بيانات في الفترة دي.</td></tr>
+                    <tr class="table__empty"><td colspan="4">{{ __('مفيش بيانات في الفترة دي.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

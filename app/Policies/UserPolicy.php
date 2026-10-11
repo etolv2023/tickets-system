@@ -34,11 +34,11 @@ class UserPolicy
     public function deactivate(User $user, User $target): Response
     {
         if (! $user->hasPermission('users.manage')) {
-            return Response::deny('ليس لديك صلاحية لإدارة المستخدمين.');
+            return Response::deny(__('ليس لديك صلاحية لإدارة المستخدمين.'));
         }
 
         if ($user->is($target)) {
-            return Response::deny('مينفعش توقف حسابك انت.');
+            return Response::deny(__('مينفعش توقف حسابك انت.'));
         }
 
         return Response::allow();
@@ -58,11 +58,11 @@ class UserPolicy
     public function delete(User $user, User $target): Response
     {
         if (! $user->hasPermission('users.manage')) {
-            return Response::deny('ليس لديك صلاحية لحذف المستخدمين.');
+            return Response::deny(__('ليس لديك صلاحية لحذف المستخدمين.'));
         }
 
         if ($user->is($target)) {
-            return Response::deny('مينفعش تحذف حسابك انت.');
+            return Response::deny(__('مينفعش تحذف حسابك انت.'));
         }
 
         return Response::allow();

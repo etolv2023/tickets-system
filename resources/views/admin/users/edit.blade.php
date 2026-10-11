@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'تعديل ' . $user->name)
+@section('title', __('تعديل :name', ['name' => $user->name]))
 
 @section('content')
     <div class="page page--medium">
         <div class="page__head">
             <div>
-                <h1 class="page-title">تعديل «{{ $user->name }}»</h1>
+                <h1 class="page-title">{{ __('تعديل «:name»', ['name' => $user->name]) }}</h1>
                 <p class="page-subtitle u-ltr">{{ $user->email }}</p>
             </div>
         </div>
@@ -25,16 +25,16 @@
             @include('admin.users.partials._form')
         </form>
 
-        <x-card title="كلمة السر">
+        <x-card :title="__('كلمة السر')">
             <div class="row row--between row--wrap">
                 <div>
-                    <p>إعادة تعيين بتولّد كلمة سر عشوائية وتجبره يغيّرها أول دخول.</p>
-                    <p class="field__hint">مفيش طريقة تشوف كلمة سره الحالية — دي متخزنة مشفّرة.</p>
+                    <p>{{ __('إعادة تعيين بتولّد كلمة سر عشوائية وتجبره يغيّرها أول دخول.') }}</p>
+                    <p class="field__hint">{{ __('مفيش طريقة تشوف كلمة سره الحالية — دي متخزنة مشفّرة.') }}</p>
                 </div>
                 <form method="POST" action="{{ route('admin.users.reset-password', $user) }}"
-                      onsubmit="return confirm('هتتولّد كلمة سر جديدة لـ «{{ $user->name }}» وكلمة السر القديمة هتبطل. تمام؟')">
+                      onsubmit="return confirm({{ Js::from(__('هتتولّد كلمة سر جديدة لـ «:name» وكلمة السر القديمة هتبطل. تمام؟', ['name' => $user->name])) }})">
                     @csrf
-                    <x-button variant="secondary">إعادة تعيين كلمة السر</x-button>
+                    <x-button variant="secondary">{{ __('إعادة تعيين كلمة السر') }}</x-button>
                 </form>
             </div>
         </x-card>

@@ -78,7 +78,7 @@ class UserController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return redirect()->route('admin.users.index')->with('status', "تم إضافة «{$user->name}».");
+        return redirect()->route('admin.users.index')->with('status', __('تم إضافة «:name».', ['name' => $user->name]));
     }
 
     public function edit(User $user): View
@@ -135,14 +135,14 @@ class UserController extends Controller
         $rows = $user->completionWaivers()->with('counterpart:id,name')->get();
 
         if ($rows->isEmpty()) {
-            return 'مفيش';
+            return __('مفيش');
         }
 
         if ($rows->contains(fn ($r) => $r->counterpart_user_id === null)) {
-            return 'مع الكل';
+            return __('مع الكل');
         }
 
-        return $rows->map(fn ($r) => $r->counterpart?->name)->filter()->implode('، ');
+        return $rows->map(fn ($r) => $r->counterpart?->name)->filter()->implode(__('، '));
     }
 
     public function update(UserRequest $request, User $user, ActivityLogger $logger, TicketWorkflowService $workflow): RedirectResponse
@@ -194,7 +194,7 @@ class UserController extends Controller
             $moved = $workflow->reevaluateFor($user->id, $request->user()->id);
 
             if ($moved > 0) {
-                session()->flash('status', "تم حفظ التعديلات. و{$moved} تذكرة اتحرّكت بعد الإعفاء.");
+                session()->flash('status', __('تم حفظ التعديلات. و:count تذكرة اتحرّكت بعد الإعفاء.', ['count' => $moved]));
             }
         }
 
@@ -212,7 +212,7 @@ class UserController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return redirect()->route('admin.users.index')->with('status', 'تم حفظ التعديلات.');
+        return redirect()->route('admin.users.index')->with('status', __('تم حفظ التعديلات.'));
     }
 
     /**
@@ -248,7 +248,7 @@ class UserController extends Controller
         );
 
         return redirect()->route('admin.users.index')
-            ->with('status', "تم حذف «{$user->name}». تاريخه على التذاكر زي ما هو.");
+            ->with('status', __('تم حذف «:name». تاريخه على التذاكر زي ما هو.', ['name' => $user->name]));
     }
 
     /** Puts a deleted user back — still deactivated, so nobody is re-armed by surprise. */
@@ -268,7 +268,7 @@ class UserController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', "تم رجوع «{$target->name}». لسه موقوف — فعّله من صفحة التعديل.");
+        return back()->with('status', __('تم رجوع «:name». لسه موقوف — فعّله من صفحة التعديل.', ['name' => $target->name]));
     }
 
     /**
@@ -338,7 +338,7 @@ class UserController extends Controller
     private function overrideSummary(User $user): array
     {
         return $user->permissionOverrides()->get()
-            ->mapWithKeys(fn (Permission $p) => [$p->key => $p->pivot->granted ? 'مزوّدة' : 'متشالة'])
+            ->mapWithKeys(fn (Permission $p) => [$p->key => $p->pivot->granted ? __('مزوّدة') : __('متشالة')])
             ->all();
     }
 

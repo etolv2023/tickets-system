@@ -9,12 +9,12 @@
 <div class="today-stats">
     <div class="stat-tile stat-tile--teal">
         <div class="stat-tile__figure">{{ $m($total) }}</div>
-        <div class="stat-tile__caption">إجمالي مستحقات الشهر</div>
+        <div class="stat-tile__caption">{{ __('إجمالي مستحقات الشهر') }}</div>
     </div>
 
     <div class="stat-tile stat-tile--green">
         <div class="stat-tile__figure">{{ $rows->count() }}</div>
-        <div class="stat-tile__caption">موظف له مستحقات</div>
+        <div class="stat-tile__caption">{{ __('موظف له مستحقات') }}</div>
     </div>
 
     @if ($unpriced > 0)
@@ -23,20 +23,20 @@
              مش «محدش اشتغل». --}}
         <div class="stat-tile stat-tile--amber">
             <div class="stat-tile__figure">{{ $unpriced }}</div>
-            <div class="stat-tile__caption">نوع عليه شغل وسعره لسه صفر</div>
+            <div class="stat-tile__caption">{{ __('نوع عليه شغل وسعره لسه صفر') }}</div>
         </div>
     @endif
 </div>
 
-<x-card title="المستحقات بالنوع" flush>
+<x-card :title="__('المستحقات بالنوع')" flush>
     <div class="table-wrap">
         <table class="table">
             <thead>
                 <tr>
-                    <th>النوع</th>
-                    <th>سعر النقطة</th>
-                    <th>النقاط</th>
-                    <th>المستحق</th>
+                    <th>{{ __('النوع') }}</th>
+                    <th>{{ __('سعر النقطة') }}</th>
+                    <th>{{ __('النقاط') }}</th>
+                    <th>{{ __('المستحق') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -48,22 +48,22 @@
                         <td class="u-mono">{{ $m($row['money']) }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="4" class="u-subtle">مفيش نقاط في الشهر ده.</td></tr>
+                    <tr><td colspan="4" class="u-subtle">{{ __('مفيش نقاط في الشهر ده.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
 </x-card>
 
-<x-card title="المستحقات لكل شخص" flush>
+<x-card :title="__('المستحقات لكل شخص')" flush>
     <div class="table-wrap">
         <table class="table table--hover">
             <thead>
                 <tr>
-                    <th>الموظف</th>
-                    <th>التفصيل بالنوع</th>
-                    <th>إجمالي النقاط</th>
-                    <th>المستحق</th>
+                    <th>{{ __('الموظف') }}</th>
+                    <th>{{ __('التفصيل بالنوع') }}</th>
+                    <th>{{ __('إجمالي النقاط') }}</th>
+                    <th>{{ __('المستحق') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -85,7 +85,7 @@
                         <td class="u-mono">{{ $m($row['money']) }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="4" class="u-subtle">مفيش مستحقات في الشهر ده.</td></tr>
+                    <tr><td colspan="4" class="u-subtle">{{ __('مفيش مستحقات في الشهر ده.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

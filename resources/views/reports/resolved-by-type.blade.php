@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'الحلول بالنوع')
+@section('title', __('الحلول بالنوع'))
 
 @section('content')
     {{-- ★ (2026-10-05) F19.5 — people down, ticket types across. The question
@@ -11,11 +11,10 @@
             <div>
                 <h1 class="page-title row">
                     <x-icon name="check-circle" class="u-icon-accent" />
-                    الحلول بالنوع
+                    {{ __('الحلول بالنوع') }}
                 </h1>
                 <p class="page-subtitle">
-                    مين حل كام تذكرة من كل نوع في الفترة دي. «اتحلت» يعني حالتها محلولة
-                    أو مغلقة النهاردة وتاريخ حلها جوه الفترة — تذكرة اترجعت بعد ما اتحلت مبتتحسبش.
+                    {{ __('مين حل كام تذكرة من كل نوع في الفترة دي. «اتحلت» يعني حالتها محلولة أو مغلقة النهاردة وتاريخ حلها جوه الفترة — تذكرة اترجعت بعد ما اتحلت مبتتحسبش.') }}
                 </p>
             </div>
             <div class="page__actions">
@@ -30,22 +29,22 @@
         <div class="today-stats">
             <div class="stat-tile stat-tile--green">
                 <div class="stat-tile__figure">{{ $data['total'] }}</div>
-                <div class="stat-tile__caption">تذكرة اتحلت في الفترة</div>
+                <div class="stat-tile__caption">{{ __('تذكرة اتحلت في الفترة') }}</div>
             </div>
             @if ($data['tickets'] === null)
                 <div class="stat-tile stat-tile--teal">
                     <div class="stat-tile__figure">{{ $data['rows']->count() }}</div>
-                    <div class="stat-tile__caption">شخص حل حاجة</div>
+                    <div class="stat-tile__caption">{{ __('شخص حل حاجة') }}</div>
                 </div>
             @else
                 <div class="stat-tile stat-tile--slate">
-                    <div class="stat-tile__figure">{{ $data['avgHours'] === null ? '—' : $data['avgHours'] . ' س' }}</div>
-                    <div class="stat-tile__caption">متوسط زمن الحل</div>
+                    <div class="stat-tile__figure">{{ $data['avgHours'] === null ? '—' : __(':hours س', ['hours' => $data['avgHours']]) }}</div>
+                    <div class="stat-tile__caption">{{ __('متوسط زمن الحل') }}</div>
                 </div>
             @endif
             <div class="stat-tile stat-tile--amber">
                 <div class="stat-tile__figure">{{ $data['lateCount'] }}</div>
-                <div class="stat-tile__caption">منها اتحلت بعد معادها</div>
+                <div class="stat-tile__caption">{{ __('منها اتحلت بعد معادها') }}</div>
             </div>
         </div>
 

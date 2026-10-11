@@ -17,7 +17,7 @@
             @csrf
             <x-button variant="ghost" size="sm">
                 <x-icon name="refresh" class="btn__icon" />
-                زامن دلوقتي
+                {{ __('زامن دلوقتي') }}
             </x-button>
         </form>
     </x-slot:actions>
@@ -32,22 +32,22 @@
             </a>
 
             @unless ($repository->is_active)
-                <x-badge variant="slate">مقفول</x-badge>
+                <x-badge variant="slate">{{ __('مقفول') }}</x-badge>
             @endunless
 
             <span class="gh-repo__stat u-mono">
-                {{ $branchCounts[$repository->id] ?? 0 }} برانش · {{ $pullCounts[$repository->id] ?? 0 }} PR
+                {{ __(':count برانش', ['count' => $branchCounts[$repository->id] ?? 0]) }} · {{ $pullCounts[$repository->id] ?? 0 }} PR
             </span>
 
             @if ($repository->last_sync_error)
                 <span class="gh-repo__error">{{ Str::limit($repository->last_sync_error, 80) }}</span>
             @elseif ($repository->last_synced_at)
                 <span class="gh-repo__stat u-mono">
-                    آخر مزامنة
+                    {{ __('آخر مزامنة') }}
                     {{ $repository->last_synced_at->timezone(config('app.display_timezone'))->translatedFormat('j M — H:i') }}
                 </span>
             @else
-                <span class="u-subtle">لسه مزامنتش</span>
+                <span class="u-subtle">{{ __('لسه مزامنتش') }}</span>
             @endif
         </div>
 
@@ -55,31 +55,31 @@
             @csrf
             @method('PUT')
 
-            <x-field :name="'name_' . $repository->id" label="الاسم" required>
+            <x-field :name="'name_' . $repository->id" :label="__('الاسم')" required>
                 <input type="text" id="name_{{ $repository->id }}" name="name"
                        value="{{ $repository->name }}" class="input" required>
             </x-field>
 
-            <x-field :name="'owner_' . $repository->id" label="المالك" required>
+            <x-field :name="'owner_' . $repository->id" :label="__('المالك')" required>
                 <input type="text" id="owner_{{ $repository->id }}" name="owner" dir="ltr"
                        value="{{ $repository->owner }}" class="input u-mono u-ltr" required>
             </x-field>
 
-            <x-field :name="'repo_' . $repository->id" label="الريبو" required>
+            <x-field :name="'repo_' . $repository->id" :label="__('الريبو')" required>
                 <input type="text" id="repo_{{ $repository->id }}" name="repo" dir="ltr"
                        value="{{ $repository->repo }}" class="input u-mono u-ltr" required>
             </x-field>
 
-            <x-field :name="'side_' . $repository->id" label="الجانب">
+            <x-field :name="'side_' . $repository->id" :label="__('الجانب')">
                 <select id="side_{{ $repository->id }}" name="side" class="select">
-                    <option value="">— من غير جانب —</option>
+                    <option value="">{{ __('— من غير جانب —') }}</option>
                     @foreach ($sides as $value => $label)
-                        <option value="{{ $value }}" @selected($repository->side?->value === $value)>{{ $label }}</option>
+                        <option value="{{ $value }}" @selected($repository->side?->value === $value)>{{ __($label) }}</option>
                     @endforeach
                 </select>
             </x-field>
 
-            <x-field :name="'default_branch_' . $repository->id" label="الفرع الافتراضي" required>
+            <x-field :name="'default_branch_' . $repository->id" :label="__('الفرع الافتراضي')" required>
                 <input type="text" id="default_branch_{{ $repository->id }}" name="default_branch" dir="ltr"
                        value="{{ $repository->default_branch }}" class="input u-mono u-ltr" required>
             </x-field>
@@ -87,10 +87,10 @@
             <div class="gh-repo__foot">
                 <label class="gh-repo__toggle">
                     <input type="checkbox" name="is_active" value="1" @checked($repository->is_active)>
-                    مفعّل — يتقرا في المزامنة
+                    {{ __('مفعّل — يتقرا في المزامنة') }}
                 </label>
 
-                <x-button variant="secondary" size="sm">حفظ</x-button>
+                <x-button variant="secondary" size="sm">{{ __('حفظ') }}</x-button>
             </div>
         </form>
     </div>

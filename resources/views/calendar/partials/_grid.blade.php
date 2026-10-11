@@ -15,7 +15,7 @@
         foreach ($subtasksByDay[$key] ?? [] as $subtask) {
             $rows->push([
                 'kind' => 'subtask',
-                'kindLabel' => 'صب تاسك',
+                'kindLabel' => __('صب تاسك'),
                 'title' => $subtask->title,
                 'ticketNumber' => $subtask->ticket->ticket_number,
                 'ticketTitle' => $subtask->ticket->title,
@@ -29,7 +29,7 @@
         foreach ($ticketsByDay[$key] ?? [] as $ticket) {
             $rows->push([
                 'kind' => 'ticket',
-                'kindLabel' => 'موعد تذكرة',
+                'kindLabel' => __('موعد تذكرة'),
                 'title' => $ticket->title,
                 'ticketNumber' => $ticket->ticket_number,
                 'ticketTitle' => $ticket->title,
@@ -43,7 +43,7 @@
         foreach ($slasByDay[$key] ?? [] as $ticket) {
             $rows->push([
                 'kind' => 'sla',
-                'kindLabel' => 'مهلة SLA',
+                'kindLabel' => __('مهلة SLA'),
                 'title' => $ticket->title,
                 'ticketNumber' => $ticket->ticket_number,
                 'ticketTitle' => $ticket->title,
@@ -105,7 +105,7 @@
             @foreach ($leavesToday as $leave)
                 <span class="cal__leave">
                     <x-avatar :user="$leave->user" size="sm" />
-                    إجازة {{ $leave->typeLabel() }}
+                    {{ __('إجازة :type', ['type' => $leave->typeLabel()]) }}
                 </span>
             @endforeach
 
@@ -122,8 +122,8 @@
                 $daySlas = $outsideMonth ? collect() : ($slasByDay[$key] ?? collect());
                 $totalItems = $daySubtasks->count() + $dayTickets->count() + $daySlas->count();
                 $summaryParts = collect([
-                    $daySubtasks->count() ? $daySubtasks->count() . ' مهمة' : null,
-                    $dayTickets->count() ? $dayTickets->count() . ' موعد' : null,
+                    $daySubtasks->count() ? trans_choice(':count مهمة', $daySubtasks->count()) : null,
+                    $dayTickets->count() ? trans_choice(':count موعد', $dayTickets->count()) : null,
                     $daySlas->count() ? $daySlas->count() . ' SLA' : null,
                 ])->filter()->implode(' · ');
                 $cap = $view === 'week' ? 4 : $totalItems;
@@ -139,7 +139,7 @@
                     <button type="button" class="cal__day-summary"
                             @click="openDay('{{ $key }}', '{{ $day->translatedFormat('l j F') }}')">
                         <strong>{{ $totalItems }}</strong>
-                        <span>عنصر</span>
+                        <span>{{ __('عنصر') }}</span>
                         <small>{{ $summaryParts }}</small>
                     </button>
                 @endif
@@ -159,31 +159,31 @@
             @if ($view === 'day' && $totalItems > $cap)
                 <a class="cal__more"
                    href="{{ route($routeName, array_merge(array_filter($filters), ['view' => 'day', 'date' => $key])) }}">
-                    +{{ $totalItems - $cap }} أكثر
+                    {{ __('+:count أكثر', ['count' => $totalItems - $cap]) }}
                 </a>
             @endif
         </div>
     @endforeach
 </div>
 
-<div class="cal-preview" x-show="open" x-cloak role="dialog" aria-modal="true" :aria-label="`تفاصيل ${label}`">
-    <button type="button" class="cal-preview__backdrop" @click="close()" aria-label="إغلاق"></button>
+<div class="cal-preview" x-show="open" x-cloak role="dialog" aria-modal="true" :aria-label="{{ Js::from(__('تفاصيل')) }} + ' ' + label">
+    <button type="button" class="cal-preview__backdrop" @click="close()" aria-label="{{ __('إغلاق') }}"></button>
     <section class="cal-preview__panel">
         <header class="cal-preview__head">
             <div class="cal-preview__heading">
-                <button type="button" class="btn btn--ghost btn--icon" x-show="selected" @click="back()" aria-label="الرجوع للقائمة">
+                <button type="button" class="btn btn--ghost btn--icon" x-show="selected" @click="back()" aria-label="{{ __('الرجوع للقائمة') }}">
                     <x-icon name="chevron-right" />
                 </button>
                 <div>
                     <strong x-text="selected ? selected.ticketNumber : label"></strong>
-                    <span x-text="selected ? selected.kindLabel : `${items.length} عنصر`"></span>
+                    <span x-text="selected ? selected.kindLabel : items.length + ' ' + {{ Js::from(__('عنصر')) }}"></span>
                 </div>
             </div>
             <div class="row">
-                <a class="btn btn--primary btn--sm" x-show="selected" :href="selected?.url">فتح التذكرة كاملة</a>
+                <a class="btn btn--primary btn--sm" x-show="selected" :href="selected?.url">{{ __('فتح التذكرة كاملة') }}</a>
                 <a class="btn btn--secondary btn--sm"
-                   :href="'{{ route($routeName) }}?view=day&date=' + date">فتح اليوم في صفحة</a>
-                <button type="button" class="btn btn--ghost btn--icon" @click="close()" aria-label="إغلاق">
+                   :href="'{{ route($routeName) }}?view=day&date=' + date">{{ __('فتح اليوم في صفحة') }}</a>
+                <button type="button" class="btn btn--ghost btn--icon" @click="close()" aria-label="{{ __('إغلاق') }}">
                     <x-icon name="close" />
                 </button>
             </div>
@@ -207,9 +207,9 @@
             <h2 x-text="selected?.title"></h2>
             <p x-text="selected?.ticketTitle"></p>
             <dl>
-                <template x-if="selected?.assignee"><div><dt>المسؤول</dt><dd x-text="selected.assignee"></dd></div></template>
-                <template x-if="selected?.hours"><div><dt>الوقت المتوقع</dt><dd><span x-text="selected.hours"></span> ساعة</dd></div></template>
-                <div><dt>الحالة الزمنية</dt><dd x-text="selected?.overdue ? 'متأخرة' : 'في الموعد'"></dd></div>
+                <template x-if="selected?.assignee"><div><dt>{{ __('المسؤول') }}</dt><dd x-text="selected.assignee"></dd></div></template>
+                <template x-if="selected?.hours"><div><dt>{{ __('الوقت المتوقع') }}</dt><dd><span x-text="selected.hours"></span> {{ __('ساعة') }}</dd></div></template>
+                <div><dt>{{ __('الحالة الزمنية') }}</dt><dd x-text="selected?.overdue ? {{ Js::from(__('متأخرة')) }} : {{ Js::from(__('في الموعد')) }}"></dd></div>
             </dl>
         </div>
     </section>

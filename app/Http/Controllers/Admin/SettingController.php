@@ -53,20 +53,20 @@ class SettingController extends Controller
             );
         }
 
-        return back()->with('status', 'تم حفظ الإعدادات.');
+        return back()->with('status', __('تم حفظ الإعدادات.'));
     }
 
     /** Carbon day numbering: 0 = Sunday .. 6 = Saturday. */
     private function weekDays(): array
     {
         return [
-            6 => 'السبت',
-            0 => 'الأحد',
-            1 => 'الاثنين',
-            2 => 'الثلاثاء',
-            3 => 'الأربعاء',
-            4 => 'الخميس',
-            5 => 'الجمعة',
+            6 => __('السبت'),
+            0 => __('الأحد'),
+            1 => __('الاثنين'),
+            2 => __('الثلاثاء'),
+            3 => __('الأربعاء'),
+            4 => __('الخميس'),
+            5 => __('الجمعة'),
         ];
     }
 }

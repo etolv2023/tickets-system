@@ -30,7 +30,7 @@
 
                     <div @class(['timeline-grid__cell', 'timeline-grid__cell--off' => ! $isWorking || $onLeave])
                          data-date="{{ $key }}"
-                         title="{{ $day->translatedFormat('j M') }}{{ $holiday ? ' — ' . $holiday : '' }}{{ $onLeave ? ' — إجازة' : '' }}">
+                         title="{{ $day->translatedFormat('j M') }}{{ $holiday ? ' — ' . $holiday : '' }}{{ $onLeave ? __(' — إجازة') : '' }}">
                         <div data-items class="stack stack--tight">
                             @foreach ($theirs as $subtask)
                                 <a @class([
@@ -58,6 +58,6 @@
             </div>
         </div>
     @empty
-        <div class="card__empty">مفيش شغل مجدول في الفترة دي.</div>
+        <div class="card__empty">{{ __('مفيش شغل مجدول في الفترة دي.') }}</div>
     @endforelse
 </div>

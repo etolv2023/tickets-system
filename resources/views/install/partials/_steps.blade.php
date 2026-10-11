@@ -1,10 +1,10 @@
 @php
     $steps = [
-        1 => 'المتطلبات',
-        2 => 'قاعدة البيانات',
-        3 => 'الجداول',
-        4 => 'حساب المدير',
-        5 => 'الإنهاء',
+        1 => __('المتطلبات'),
+        2 => __('قاعدة البيانات'),
+        3 => __('الجداول'),
+        4 => __('حساب المدير'),
+        5 => __('الإنهاء'),
     ];
 @endphp
 
@@ -24,7 +24,7 @@
                     {{ $number }}
                 @endif
             </span>
-            <span class="steps__label">{{ $label }}</span>
+            <span class="steps__label">{{ __($label) }}</span>
             @unless ($loop->last)
                 <span class="steps__bar"></span>
             @endunless

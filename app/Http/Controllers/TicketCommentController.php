@@ -64,12 +64,12 @@ class TicketCommentController extends Controller
         $this->notifications->dispatch(
             $ticket,
             NotificationEvent::CommentAdded,
-            ($comment->is_internal ? 'ملاحظة داخلية' : 'تعليق جديد')
+            ($comment->is_internal ? __('ملاحظة داخلية') : __('تعليق جديد'))
                 . " من {$request->user()->name} على {$ticket->ticket_number}",
             $request->user()->id,
         );
 
         return redirect()->route('tickets.show', [$ticket, '#comment-' . $comment->id])
-            ->with('status', 'تم إضافة التعليق.');
+            ->with('status', __('تم إضافة التعليق.'));
     }
 }

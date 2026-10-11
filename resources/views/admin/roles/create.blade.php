@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'دور جديد')
+@section('title', __('دور جديد'))
 
 @section('content')
     <div class="page">
         <div class="page__head">
             <div>
-                <h1 class="page-title">دور جديد</h1>
-                <p class="page-subtitle">اختار أي تركيبة صلاحيات تحتاجها.</p>
+                <h1 class="page-title">{{ __('دور جديد') }}</h1>
+                <p class="page-subtitle">{{ __('اختار أي تركيبة صلاحيات تحتاجها.') }}</p>
             </div>
         </div>
 

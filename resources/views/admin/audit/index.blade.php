@@ -1,15 +1,15 @@
 @extends('layouts.app')
 
-@section('title', 'سجل التدقيق')
+@section('title', __('سجل التدقيق'))
 
 @section('content')
     {{-- ★★★★ (2026-07-21): a single wide table (time/who/action/subject/diff/IP). --}}
     <div class="page page--wide">
         <div class="page__head">
             <div>
-                <h1 class="page-title">سجل التدقيق</h1>
+                <h1 class="page-title">{{ __('سجل التدقيق') }}</h1>
                 <p class="page-subtitle">
-                    للقراءة بس — مفيش تعديل ولا حذف. سجل بيتعدّل مش سجل.
+                    {{ __('للقراءة بس — مفيش تعديل ولا حذف. سجل بيتعدّل مش سجل.') }}
                 </p>
             </div>
             <div class="page__actions">
@@ -22,33 +22,33 @@
                 <x-combobox name="user" resource="users"
                             :value="$filters['user'] ?? null"
                             :selected="$selectedUser ?? null"
-                            placeholder="كل المستخدمين" />
+                            :placeholder="__('كل المستخدمين')" />
             </div>
 
             <select name="action" class="select filters__select">
-                <option value="">كل الأفعال</option>
+                <option value="">{{ __('كل الأفعال') }}</option>
                 @foreach ($actions as $action)
                     <option value="{{ $action }}" @selected(($filters['action'] ?? '') === $action)>{{ $action }}</option>
                 @endforeach
             </select>
 
             <select name="subject" class="select filters__select">
-                <option value="">كل الكائنات</option>
+                <option value="">{{ __('كل الكائنات') }}</option>
                 @foreach ($subjects as $class => $label)
-                    <option value="{{ $label }}" @selected(($filters['subject'] ?? '') === $label)>{{ $label }}</option>
+                    <option value="{{ __($label) }}" @selected(($filters['subject'] ?? '') === $label)>{{ __($label) }}</option>
                 @endforeach
             </select>
 
             <div class="filters__group">
-                <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" class="input" aria-label="من">
+                <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" class="input" aria-label="{{ __('من') }}">
                 <span class="u-subtle" aria-hidden="true">—</span>
-                <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" class="input" aria-label="لـ">
+                <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" class="input" aria-label="{{ __('لـ') }}">
             </div>
 
-            <x-button variant="secondary">فلترة</x-button>
+            <x-button variant="secondary">{{ __('فلترة') }}</x-button>
 
             @if (array_filter($filters))
-                <x-button variant="ghost" :href="route('admin.audit.index')">مسح</x-button>
+                <x-button variant="ghost" :href="route('admin.audit.index')">{{ __('مسح') }}</x-button>
             @endif
         </form>
 
@@ -57,11 +57,11 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>الوقت</th>
-                            <th>مين</th>
-                            <th>الفعل</th>
-                            <th>الكائن</th>
-                            <th>قبل / بعد</th>
+                            <th>{{ __('الوقت') }}</th>
+                            <th>{{ __('مين') }}</th>
+                            <th>{{ __('الفعل') }}</th>
+                            <th>{{ __('الكائن') }}</th>
+                            <th>{{ __('قبل / بعد') }}</th>
                             <th>IP</th>
                         </tr>
                     </thead>
@@ -78,7 +78,7 @@
                                             {{ $log->user->name }}
                                         </div>
                                     @else
-                                        <span class="u-subtle">النظام</span>
+                                        <span class="u-subtle">{{ __('النظام') }}</span>
                                     @endif
                                 </td>
                                 <td class="u-mono u-ltr">{{ $log->action }}</td>
@@ -93,7 +93,7 @@
                                 <td>
                                     @if ($log->changes)
                                         <details>
-                                            <summary class="u-subtle">اعرض</summary>
+                                            <summary class="u-subtle">{{ __('اعرض') }}</summary>
                                             <pre class="install__log">{{ json_encode($log->changes, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) }}</pre>
                                         </details>
                                     @else
@@ -104,7 +104,7 @@
                             </tr>
                         @empty
                             <tr class="table__empty">
-                                <td colspan="6">مفيش سجلات بالفلاتر دي.</td>
+                                <td colspan="6">{{ __('مفيش سجلات بالفلاتر دي.') }}</td>
                             </tr>
                         @endforelse
                     </tbody>

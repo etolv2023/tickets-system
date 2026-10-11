@@ -46,6 +46,7 @@
 @import './components/legend.css';
 @import './components/toast.css';
 @import './components/tooltip.css';
+@import './components/corner-controls.css';
 
 @import './features/auth.css';
 @import './features/install.css';

@@ -1,20 +1,19 @@
 @extends('layouts.app')
 
-@section('title', 'الإشعارات')
+@section('title', __('الإشعارات'))
 
 @section('content')
     <div class="page notifications-page">
         <div class="page__head">
             <div>
-                <h1 class="page-title">الإشعارات</h1>
+                <h1 class="page-title">{{ __('الإشعارات') }}</h1>
                 <p class="page-subtitle">
-                    كل حاجة بتحصل على تذكرة انت طرف فيها — سواء متعملك أساين، أو بتتابعها،
-                    أو ماسك صب تاسك منها.
+                    {{ __('كل حاجة بتحصل على تذكرة انت طرف فيها — سواء متعملك أساين، أو بتتابعها، أو ماسك صب تاسك منها.') }}
                 </p>
                 <div class="notifications-page__summary">
-                    <span><strong>{{ $notifications->total() }}</strong> إشعار</span>
+                    <span><strong>{{ $notifications->total() }}</strong> {{ __('إشعار') }}</span>
                     <span @class(['notifications-page__unread', 'notifications-page__unread--empty' => $unread === 0])>
-                        <strong>{{ $unread }}</strong> غير مقروء
+                        <strong>{{ $unread }}</strong> {{ __('غير مقروء') }}
                     </span>
                 </div>
             </div>
@@ -22,7 +21,7 @@
                 <div class="page__actions">
                     <form method="POST" action="{{ route('notifications.read-all') }}">
                         @csrf
-                        <x-button variant="secondary">علّم الكل مقروء ({{ $unread }})</x-button>
+                        <x-button variant="secondary">{{ __('علّم الكل مقروء (:count)', ['count' => $unread]) }}</x-button>
                     </form>
                 </div>
             @endif
@@ -40,25 +39,25 @@
              than something you scroll until you give up. --}}
         <form method="GET" action="{{ route('notifications.index') }}" class="filters">
             <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" class="input filters__search"
-                   placeholder="دوّر في نص الإشعار أو رقم التذكرة…" aria-label="بحث">
+                   placeholder="{{ __('دوّر في نص الإشعار أو رقم التذكرة…') }}" aria-label="{{ __('بحث') }}">
 
-            <select name="group" class="select filters__select" aria-label="النوع">
-                <option value="">كل الأنواع</option>
+            <select name="group" class="select filters__select" aria-label="{{ __('النوع') }}">
+                <option value="">{{ __('كل الأنواع') }}</option>
                 @foreach ($groups as $value => $label)
-                    <option value="{{ $value }}" @selected(($filters['group'] ?? '') === $value)>{{ $label }}</option>
+                    <option value="{{ $value }}" @selected(($filters['group'] ?? '') === $value)>{{ __($label) }}</option>
                 @endforeach
             </select>
 
-            <select name="state" class="select filters__select" aria-label="الحالة">
-                <option value="">المقروء وغير المقروء</option>
-                <option value="unread" @selected(($filters['state'] ?? '') === 'unread')>غير المقروء بس</option>
-                <option value="read" @selected(($filters['state'] ?? '') === 'read')>المقروء بس</option>
+            <select name="state" class="select filters__select" aria-label="{{ __('الحالة') }}">
+                <option value="">{{ __('المقروء وغير المقروء') }}</option>
+                <option value="unread" @selected(($filters['state'] ?? '') === 'unread')>{{ __('غير المقروء بس') }}</option>
+                <option value="read" @selected(($filters['state'] ?? '') === 'read')>{{ __('المقروء بس') }}</option>
             </select>
 
-            <x-button variant="secondary" size="sm">فلترة</x-button>
+            <x-button variant="secondary" size="sm">{{ __('فلترة') }}</x-button>
 
             @if (array_filter($filters))
-                <a class="btn btn--ghost btn--sm" href="{{ route('notifications.index') }}">مسح</a>
+                <a class="btn btn--ghost btn--sm" href="{{ route('notifications.index') }}">{{ __('مسح') }}</a>
             @endif
         </form>
 
@@ -68,7 +67,7 @@
                     <section class="notif-group">
                         <header class="notif-day">
                             <span>{{ $dayItems->first()->created_at->translatedFormat('l j F Y') }}</span>
-                            <span>{{ $dayItems->count() }} إشعار</span>
+                            <span>{{ trans_choice(':count إشعار', $dayItems->count()) }}</span>
                         </header>
 
                         @foreach ($dayItems as $notification)
@@ -82,7 +81,7 @@
                                 <span class="notif__body">
                                     <span class="notif__head">
                                         <span class="notif__label">{{ $data['label'] ?? '' }}</span>
-                                        @unless ($notification->read_at)<span class="notif__new">جديد</span>@endunless
+                                        @unless ($notification->read_at)<span class="notif__new">{{ __('جديد') }}</span>@endunless
                                     </span>
                                     <span class="notif__text">{{ $data['message'] ?? '' }}</span>
                                     <span class="notif__meta">
@@ -97,7 +96,7 @@
                     </section>
                 @empty
                     <p class="card__empty">
-                        {{ array_filter($filters) ? 'مفيش إشعارات مطابقة للفلتر.' : 'مفيش إشعارات لسه.' }}
+                        {{ array_filter($filters) ? __('مفيش إشعارات مطابقة للفلتر.') : __('مفيش إشعارات لسه.') }}
                     </p>
                 @endforelse
             </div>

@@ -1,18 +1,18 @@
 @extends('layouts.app')
 
-@section('title', 'المستخدمين')
+@section('title', __('المستخدمين'))
 
 @section('content')
     <div class="page">
         <div class="page__head">
             <div>
-                <h1 class="page-title">المستخدمين</h1>
-                <p class="page-subtitle">{{ $users->total() }} مستخدم.</p>
+                <h1 class="page-title">{{ __('المستخدمين') }}</h1>
+                <p class="page-subtitle">{{ trans_choice(':count مستخدم.', $users->total()) }}</p>
             </div>
             <div class="page__actions">
                 <x-export-button route="export.users" />
-                <x-button variant="ghost" :href="route('admin.import.index')">استيراد من Excel</x-button>
-                <x-button variant="primary" :href="route('admin.users.create')">مستخدم جديد</x-button>
+                <x-button variant="ghost" :href="route('admin.import.index')">{{ __('استيراد من Excel') }}</x-button>
+                <x-button variant="primary" :href="route('admin.users.create')">{{ __('مستخدم جديد') }}</x-button>
             </div>
         </div>
 
@@ -35,11 +35,11 @@
                 <table class="table table--hover">
                     <thead>
                         <tr>
-                            <th>المستخدم</th>
-                            <th>الدور</th>
-                            <th>آخر دخول</th>
-                            <th>الحالة</th>
-                            <th class="table__cell--actions">إجراءات</th>
+                            <th>{{ __('المستخدم') }}</th>
+                            <th>{{ __('الدور') }}</th>
+                            <th>{{ __('آخر دخول') }}</th>
+                            <th>{{ __('الحالة') }}</th>
+                            <th class="table__cell--actions">{{ __('إجراءات') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -56,32 +56,32 @@
                                 </td>
                                 <td>{{ $user->role->label() }}</td>
                                 <td class="u-nums">
-                                    {{ $user->last_login_at?->timezone(config('app.display_timezone'))->diffForHumans() ?? 'مدخلش لسه' }}
+                                    {{ $user->last_login_at?->timezone(config('app.display_timezone'))->diffForHumans() ?? __('مدخلش لسه') }}
                                 </td>
                                 <td>
                                     <div class="row">
                                         @if ($user->deleted_at)
-                                            <x-badge variant="urgent" dot>محذوف</x-badge>
+                                            <x-badge variant="urgent" dot>{{ __('محذوف') }}</x-badge>
                                         @elseif ($user->is_active)
-                                            <x-badge variant="resolved" dot>مفعّل</x-badge>
+                                            <x-badge variant="resolved" dot>{{ __('مفعّل') }}</x-badge>
                                         @else
-                                            <x-badge variant="neutral" dot>موقوف</x-badge>
+                                            <x-badge variant="neutral" dot>{{ __('موقوف') }}</x-badge>
                                         @endif
                                         @if ($user->must_change_password)
-                                            <x-badge variant="medium">لازم يغيّر كلمة السر</x-badge>
+                                            <x-badge variant="medium">{{ __('لازم يغيّر كلمة السر') }}</x-badge>
                                         @endif
                                     </div>
                                 </td>
                                 <td class="table__cell--actions">
                                     @if ($user->deleted_at)
                                         <form method="POST" action="{{ route('admin.users.restore', $user->id) }}"
-                                              onsubmit="return confirm('ترجّع «{{ $user->name }}»؟ هيرجع موقوف لحد ما تفعّله.')">
+                                              onsubmit="return confirm({{ Js::from(__('ترجّع «:name»؟ هيرجع موقوف لحد ما تفعّله.', ['name' => $user->name])) }})">
                                             @csrf
-                                            <x-button variant="ghost" size="sm">رجّعه</x-button>
+                                            <x-button variant="ghost" size="sm">{{ __('رجّعه') }}</x-button>
                                         </form>
                                     @else
                                         <div class="row">
-                                            <x-button variant="ghost" size="sm" :href="route('admin.users.edit', $user)">تعديل</x-button>
+                                            <x-button variant="ghost" size="sm" :href="route('admin.users.edit', $user)">{{ __('تعديل') }}</x-button>
 
                                             {{-- ★ (2026-08-29) F29. Rendered only for a user this
                                                  one can actually be: not yourself, not somebody
@@ -101,16 +101,16 @@
                                                         @csrf
                                                         <x-button variant="ghost" size="sm" type="button"
                                                                   x-show="! armed" x-on:click="armed = true">
-                                                            ادخل بعينه
+                                                            {{ __('ادخل بعينه') }}
                                                         </x-button>
 
                                                         <span class="confirm-inline" x-show="armed" x-cloak>
                                                             <span class="confirm-inline__ask">
-                                                                هتشتغل باسمه وكل حاجة هتتسجل عليه. متأكد؟
+                                                                {{ __('هتشتغل باسمه وكل حاجة هتتسجل عليه. متأكد؟') }}
                                                             </span>
-                                                            <x-button variant="ghost" size="sm">أيوه</x-button>
+                                                            <x-button variant="ghost" size="sm">{{ __('أيوه') }}</x-button>
                                                             <x-button variant="ghost" size="sm" type="button"
-                                                                      x-on:click="armed = false">لأ</x-button>
+                                                                      x-on:click="armed = false">{{ __('لأ') }}</x-button>
                                                         </span>
                                                     </form>
                                                 @endif
@@ -118,10 +118,10 @@
                                             {{-- The name is in the prompt on purpose: a delete button in a
                                                  paginated table is the easiest thing in the app to misfire. --}}
                                             <form method="POST" action="{{ route('admin.users.destroy', $user) }}"
-                                                  onsubmit="return confirm('متأكد إنك عايز تحذف «{{ $user->name }}»؟ تاريخه على التذاكر والنقاط هيفضل زي ما هو، والحساب هيتقفل.')">
+                                                  onsubmit="return confirm({{ Js::from(__('متأكد إنك عايز تحذف «:name»؟ تاريخه على التذاكر والنقاط هيفضل زي ما هو، والحساب هيتقفل.', ['name' => $user->name])) }})">
                                                 @csrf
                                                 @method('DELETE')
-                                                <x-button variant="ghost" size="sm">حذف</x-button>
+                                                <x-button variant="ghost" size="sm">{{ __('حذف') }}</x-button>
                                             </form>
                                         </div>
                                     @endif
@@ -130,7 +130,7 @@
                         @empty
                             <tr class="table__empty">
                                 <td colspan="6">
-                                    {{ array_filter($filters) ? 'مفيش نتايج للفلاتر دي.' : 'مفيش مستخدمين.' }}
+                                    {{ array_filter($filters) ? __('مفيش نتايج للفلاتر دي.') : __('مفيش مستخدمين.') }}
                                 </td>
                             </tr>
                         @endforelse

@@ -6,9 +6,9 @@
 @endphp
 
 <span class="cap cap--{{ $meter['state'] }}"
-      title="{{ rtrim(rtrim(number_format($meter['load'], 2), '0'), '.') }} من {{ rtrim(rtrim(number_format($meter['capacity'], 2), '0'), '.') }} ساعة">
+      title="{{ __(':load من :capacity ساعة', ['load' => rtrim(rtrim(number_format($meter['load'], 2), '0'), '.'), 'capacity' => rtrim(rtrim(number_format($meter['capacity'], 2), '0'), '.')]) }}">
     <span class="cap__bar">
         <span class="cap__fill" style="--value: {{ $percent }}%"></span>
     </span>
-    {{ rtrim(rtrim(number_format($meter['load'], 1), '0'), '.') }}س
+    {{ __(':hoursس', ['hours' => rtrim(rtrim(number_format($meter['load'], 1), '0'), '.')]) }}
 </span>

@@ -1,12 +1,12 @@
-<x-card title="توزيع التذاكر" flush>
+<x-card :title="__('توزيع التذاكر')" flush>
     <div class="table-wrap">
         <table class="table">
             <thead>
                 <tr>
-                    <th>النوع</th>
-                    <th class="table__cell--num">الإجمالي</th>
-                    <th class="table__cell--num">محلولة</th>
-                    <th class="table__cell--num">مفتوحة</th>
+                    <th>{{ __('النوع') }}</th>
+                    <th class="table__cell--num">{{ __('الإجمالي') }}</th>
+                    <th class="table__cell--num">{{ __('محلولة') }}</th>
+                    <th class="table__cell--num">{{ __('مفتوحة') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -18,7 +18,7 @@
                         <td class="table__cell--num">{{ $row->open }}</td>
                     </tr>
                 @empty
-                    <tr class="table__empty"><td colspan="4">مفيش تذاكر في الفترة دي.</td></tr>
+                    <tr class="table__empty"><td colspan="4">{{ __('مفيش تذاكر في الفترة دي.') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

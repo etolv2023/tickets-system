@@ -64,7 +64,7 @@ class ContactController extends Controller
         );
 
         return redirect()->route('admin.companies.show', $company)
-            ->with('status', "تم إضافة «{$contact->name}».");
+            ->with('status', __('تم إضافة «:name».', ['name' => $contact->name]));
     }
 
     public function edit(Company $company, CompanyContact $contact): View
@@ -96,7 +96,7 @@ class ContactController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return redirect()->route('admin.companies.show', $company)->with('status', 'تم حفظ التعديلات.');
+        return redirect()->route('admin.companies.show', $company)->with('status', __('تم حفظ التعديلات.'));
     }
 
     public function destroy(
@@ -121,7 +121,7 @@ class ContactController extends Controller
 
         $contact->delete();
 
-        return redirect()->route('admin.companies.show', $company)->with('status', "تم حذف «{$name}».");
+        return redirect()->route('admin.companies.show', $company)->with('status', __('تم حذف «:name».', ['name' => $name]));
     }
 
     /**

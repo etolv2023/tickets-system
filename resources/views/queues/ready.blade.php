@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'جاهزة للقفل')
+@section('title', __('جاهزة للقفل'))
 
 @section('content')
     {{-- A table, not the queue cards the other two use: this list is scanned,
@@ -8,11 +8,11 @@
     <div class="page page--wide">
         <div class="page__head">
             <div>
-                <h1 class="page-title">جاهزة للقفل</h1>
+                <h1 class="page-title">{{ __('جاهزة للقفل') }}</h1>
                 <p class="page-subtitle">
-                    تذاكر <strong>كل صب تاسكاتها خلصت</strong> وهي لسه مفتوحة — الشغل تمام ومحدش حرّك التذكرة.
+                    {{ __('تذاكر') }} <strong>{{ __('كل صب تاسكاتها خلصت') }}</strong> {{ __('وهي لسه مفتوحة — الشغل تمام ومحدش حرّك التذكرة.') }}
                     <br>
-                    مش ظاهرة في أي شاشة تانية: في قايمة التذاكر صفها زي أي تذكرة مفتوحة، وفي البورد كمان.
+                    {{ __('مش ظاهرة في أي شاشة تانية: في قايمة التذاكر صفها زي أي تذكرة مفتوحة، وفي البورد كمان.') }}
                 </p>
             </div>
         </div>
@@ -28,9 +28,9 @@
         <x-card flush>
             @if ($tickets->isEmpty())
                 <div class="blank">
-                    <p class="blank__title">مفيش تذكرة جاهزة للقفل.</p>
+                    <p class="blank__title">{{ __('مفيش تذكرة جاهزة للقفل.') }}</p>
                     <p class="blank__body">
-                        كل تذكرة خلصت صب تاسكاتها اتقفلت فعلاً — أو لسه فيه شغل مخلّصش.
+                        {{ __('كل تذكرة خلصت صب تاسكاتها اتقفلت فعلاً — أو لسه فيه شغل مخلّصش.') }}
                     </p>
                 </div>
             @else
@@ -38,14 +38,14 @@
                     <table class="table table--hover">
                         <thead>
                             <tr>
-                                <th>الرقم</th>
-                                <th>العنوان</th>
-                                <th>الشركة</th>
-                                <th>النوع</th>
-                                <th>الأولوية</th>
-                                <th>الحالة</th>
-                                <th class="table__cell--num">الصب تاسكس</th>
-                                <th>المسؤولين</th>
+                                <th>{{ __('الرقم') }}</th>
+                                <th>{{ __('العنوان') }}</th>
+                                <th>{{ __('الشركة') }}</th>
+                                <th>{{ __('النوع') }}</th>
+                                <th>{{ __('الأولوية') }}</th>
+                                <th>{{ __('الحالة') }}</th>
+                                <th class="table__cell--num">{{ __('الصب تاسكس') }}</th>
+                                <th>{{ __('المسؤولين') }}</th>
                                 <th>SLA</th>
                             </tr>
                         </thead>
@@ -96,14 +96,14 @@
                                                     <x-avatar :user="$assignment->user" size="sm" />
                                                 @endif
                                             @empty
-                                                <span class="u-subtle">مش موزعة</span>
+                                                <span class="u-subtle">{{ __('مش موزعة') }}</span>
                                             @endforelse
                                         </div>
                                     </td>
 
                                     <td class="table__cell--tight">
                                         @if ($ticket->isOverdue())
-                                            <span class="tickets__age tickets__age--overdue">تخطّى</span>
+                                            <span class="tickets__age tickets__age--overdue">{{ __('تخطّى') }}</span>
                                         @endif
                                         <span class="tickets__age">{{ $ticket->ageLabel() }}</span>
                                     </td>
@@ -116,7 +116,7 @@
         </x-card>
 
         <span class="tickets__count">
-            {{ $tickets->total() }} تذكرة · مرتبة بالأولوية ثم الأقدم أولاً.
+            {{ trans_choice(':count تذكرة', $tickets->total()) }} · {{ __('مرتبة بالأولوية ثم الأقدم أولاً.') }}
         </span>
 
         {{ $tickets->links() }}

@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
-@section('title', 'المهام المجدولة')
+@section('title', __('المهام المجدولة'))
 
 @section('content')
     <div class="page">
         <div class="page__head">
             <div>
-                <h1 class="page-title">المهام المجدولة</h1>
+                <h1 class="page-title">{{ __('المهام المجدولة') }}</h1>
                 <p class="page-subtitle">
-                    المهام اللي بتشتغل لوحدها. تقدر تغيّر ميعادها، توقفها، أو تشغّلها مرة دلوقتي.
+                    {{ __('المهام اللي بتشتغل لوحدها. تقدر تغيّر ميعادها، توقفها، أو تشغّلها مرة دلوقتي.') }}
                     <br>
-                    قايمة المهام نفسها في الكود — الشاشة دي بتتحكم في <strong>المواعيد بس</strong>، مش بتضيف أوامر.
+                    {{ __('قايمة المهام نفسها في الكود — الشاشة دي بتتحكم في') }} <strong>{{ __('المواعيد بس') }}</strong>{{ __('، مش بتضيف أوامر.') }}
                 </p>
             </div>
         </div>
@@ -27,24 +27,23 @@
              the page looks wrong. This is what makes it look wrong. --}}
         @unless ($cronIsAlive)
             <x-alert variant="error">
-                <strong>الكرون بتاع السيرفر مش شغال.</strong>
-                المواعيد اللي تحت دي مش بتتنفّذ —
+                <strong>{{ __('الكرون بتاع السيرفر مش شغال.') }}</strong>
+                {{ __('المواعيد اللي تحت دي مش بتتنفّذ —') }}
                 @if ($lastHeartbeat)
-                    آخر نبضة كانت
+                    {{ __('آخر نبضة كانت') }}
                     {{ $lastHeartbeat->timezone(config('app.display_timezone'))->translatedFormat('j M — H:i') }}.
                 @else
-                    ومفيش ولا نبضة اتسجلت من الأساس.
+                    {{ __('ومفيش ولا نبضة اتسجلت من الأساس.') }}
                 @endif
-                لازم يكون في سطر كرون على السيرفر بينادي
-                <span class="u-mono u-ltr">php artisan schedule:run</span> كل دقيقة.
+                {{ __('لازم يكون في سطر كرون على السيرفر بينادي') }}
+                <span class="u-mono u-ltr">php artisan schedule:run</span> {{ __('كل دقيقة.') }}
             </x-alert>
         @endunless
 
         @if ($unseeded !== [])
             <div class="note">
-                فيه مهام في الكود ومالهاش صفوف، فمش بتشتغل ومش ظاهرة تحت:
-                <span class="u-mono u-ltr">{{ implode('، ', $unseeded) }}</span> —
-                شغّل <span class="u-mono u-ltr">php artisan db:seed --class=ScheduledTaskSeeder --force</span>.
+                {{ __('فيه مهام في الكود ومالهاش صفوف، فمش بتشتغل ومش ظاهرة تحت:') }}
+                <span class="u-mono u-ltr">{{ implode(__('، '), $unseeded) }}</span> {{ __('— شغّل') }} <span class="u-mono u-ltr">php artisan db:seed --class=ScheduledTaskSeeder --force</span>.
             </div>
         @endif
 
@@ -55,8 +54,8 @@
         </div>
 
         <div class="note">
-            <span class="u-mono u-ltr">php artisan schedule:audit</span> بيقارن الصفوف دي بالقايمة اللي في الكود ·
-            <span class="u-mono u-ltr">php artisan schedule:list</span> بيوري اللي لارافيل مسجّله فعلاً.
+            <span class="u-mono u-ltr">php artisan schedule:audit</span> {{ __('بيقارن الصفوف دي بالقايمة اللي في الكود ·') }}
+            <span class="u-mono u-ltr">php artisan schedule:list</span> {{ __('بيوري اللي لارافيل مسجّله فعلاً.') }}
         </div>
     </div>
 @endsection

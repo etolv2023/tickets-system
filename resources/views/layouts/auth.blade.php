@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->isLocale('ar') ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -33,7 +33,10 @@
         {{-- Parked in the corner rather than in the box: it is a property of
              the screen, not a field of the form. Login and the client portal
              gate both land here, and neither had any way to change the theme. --}}
-        <x-theme-toggle class="auth__theme" />
+        <div class="corner-controls">
+            <x-locale-toggle />
+            <x-theme-toggle />
+        </div>
 
         <div class="auth__box">
             <div class="auth__brand">

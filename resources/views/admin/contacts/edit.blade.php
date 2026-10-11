@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'تعديل ' . $contact->name)
+@section('title', __('تعديل :name', ['name' => $contact->name]))
 
 @section('content')
     <div class="page page--medium">
         <div class="page__head">
             <div>
-                <h1 class="page-title">تعديل «{{ $contact->name }}»</h1>
-                <p class="page-subtitle">في «{{ $company->name }}»</p>
+                <h1 class="page-title">{{ __('تعديل «:name»', ['name' => $contact->name]) }}</h1>
+                <p class="page-subtitle">{{ __('في «:name»', ['name' => $company->name]) }}</p>
             </div>
         </div>
 

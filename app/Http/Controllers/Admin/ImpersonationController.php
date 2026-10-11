@@ -74,7 +74,7 @@ class ImpersonationController extends Controller
         // ImpersonationService: even a target who does not hold the permission
         // must not be a step towards a third account.
         if ($request->session()->has(self::SESSION_KEY)) {
-            return back()->withErrors(['impersonate' => 'انت داخل بعين حد بالفعل. ارجع لحسابك الأول.']);
+            return back()->withErrors(['impersonate' => __('انت داخل بعين حد بالفعل. ارجع لحسابك الأول.')]);
         }
 
         $actor = $request->user();
@@ -133,6 +133,6 @@ class ImpersonationController extends Controller
         Auth::login($original);
 
         return redirect()->route('admin.users.index')
-            ->with('status', 'رجعت لحسابك.');
+            ->with('status', __('رجعت لحسابك.'));
     }
 }

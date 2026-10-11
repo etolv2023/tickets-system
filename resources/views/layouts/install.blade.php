@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->isLocale('ar') ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title') — تنصيب النظام</title>
+    <title>@yield('title') {{ __('— تنصيب النظام') }}</title>
 
     {{-- No settings lookup anywhere in this layout: at this point there is no
          database to read a system name or logo from. --}}
@@ -15,10 +15,13 @@
 </head>
 <body>
     <div class="install">
+        <div class="corner-controls">
+            <x-locale-toggle />
+        </div>
         <div class="install__box">
             <div class="install__brand">
-                <span class="nav__brand-mark">ت</span>
-                <span>تنصيب النظام</span>
+                <span class="nav__brand-mark">{{ __('ت') }}</span>
+                <span>{{ __('تنصيب النظام') }}</span>
             </div>
 
             @include('install.partials._steps', ['current' => $step])

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'تقرير النقاط')
+@section('title', __('تقرير النقاط'))
 
 @php
     $n = fn ($v) => rtrim(rtrim(number_format((float) $v, 2), '0'), '.');
@@ -12,13 +12,9 @@
     <div class="page page--wide">
         <div class="page__head">
             <div>
-                <h1 class="page-title">تقرير النقاط</h1>
+                <h1 class="page-title">{{ __('تقرير النقاط') }}</h1>
                 <p class="page-subtitle">
-                    كل نقطة مصدرها صب تاسك واحد خلص — القيمة بتتحط بنقطة واحدة
-                    افتراضياً وقت إنشاء الصب تاسك، وتقدر تتعدّل لكل صب تاسك لوحده.
-                    مفيش تقسيم ومفيش نقاط على مستوى التذكرة نفسها. التصحيحات اليدوية
-                    (لو فيه) محسوبة في الإجمالي وبتتمّيز في جدول كل موظف.
-                    تسجيل الوقت مالوش أي علاقة بيها.
+                    {{ __('كل نقطة مصدرها صب تاسك واحد خلص — القيمة بتتحط بنقطة واحدة افتراضياً وقت إنشاء الصب تاسك، وتقدر تتعدّل لكل صب تاسك لوحده. مفيش تقسيم ومفيش نقاط على مستوى التذكرة نفسها. التصحيحات اليدوية (لو فيه) محسوبة في الإجمالي وبتتمّيز في جدول كل موظف. تسجيل الوقت مالوش أي علاقة بيها.') }}
                 </p>
             </div>
             <div class="page__actions">
@@ -33,23 +29,23 @@
         <form method="GET" action="{{ route('reports.points') }}" class="filters">
             <select name="period" class="select filters__select" onchange="this.form.submit()">
                 @foreach ($months as $value => $label)
-                    <option value="{{ $value }}" @selected($period === $value)>{{ $label }}</option>
+                    <option value="{{ $value }}" @selected($period === $value)>{{ __($label) }}</option>
                 @endforeach
             </select>
             <select name="type" class="select filters__select" onchange="this.form.submit()"
-                    aria-label="نوع التذكرة">
-                <option value="">كل الأنواع</option>
+                    aria-label="{{ __('نوع التذكرة') }}">
+                <option value="">{{ __('كل الأنواع') }}</option>
                 @foreach ($types as $value => $label)
-                    <option value="{{ $value }}" @selected(($type ?? '') === $value)>{{ $label }}</option>
+                    <option value="{{ $value }}" @selected(($type ?? '') === $value)>{{ __($label) }}</option>
                 @endforeach
             </select>
-            <noscript><x-button variant="secondary">اعرض</x-button></noscript>
+            <noscript><x-button variant="secondary">{{ __('اعرض') }}</x-button></noscript>
         </form>
 
         @if ($type)
             <x-alert variant="info">
-                الأرقام دي لنوع «{{ $types[$type] }}» بس.
-                <a href="{{ route('reports.points', ['period' => $period]) }}">اعرض كل الأنواع</a>
+                {{ __('الأرقام دي لنوع «:type» بس.', ['type' => $types[$type]]) }}
+                <a href="{{ route('reports.points', ['period' => $period]) }}">{{ __('اعرض كل الأنواع') }}</a>
             </x-alert>
         @endif
 
@@ -58,10 +54,10 @@
             <div class="stat-tile stat-tile--teal">
                 <div class="stat-tile__figure">{{ $n($total) }}</div>
                 <div class="stat-tile__caption">
-                    إجمالي نقاط الشهر
+                    {{ __('إجمالي نقاط الشهر') }}
                     @if ($delta !== null)
                         <span @class(['points-delta', 'points-delta--up' => $delta >= 0])>
-                            {{ $delta >= 0 ? '▲' : '▼' }} {{ abs($delta) }}٪ عن الشهر الي فات
+                            {{ $delta >= 0 ? '▲' : '▼' }} {{ __(':percent٪ عن الشهر الي فات', ['percent' => abs($delta)]) }}
                         </span>
                     @endif
                 </div>
@@ -69,43 +65,43 @@
 
             <div class="stat-tile stat-tile--green">
                 <div class="stat-tile__figure">{{ $people }}</div>
-                <div class="stat-tile__caption">موظف أخد نقاط</div>
+                <div class="stat-tile__caption">{{ __('موظف أخد نقاط') }}</div>
             </div>
 
             <div class="stat-tile stat-tile--amber">
                 <div class="stat-tile__figure">{{ $tickets }}</div>
-                <div class="stat-tile__caption">تذكرة اتصرفت عليها نقاط</div>
+                <div class="stat-tile__caption">{{ __('تذكرة اتصرفت عليها نقاط') }}</div>
             </div>
 
             <div class="stat-tile stat-tile--slate">
                 <div class="stat-tile__figure">{{ $tickets ? $n($total / $tickets) : '—' }}</div>
-                <div class="stat-tile__caption">متوسط نقاط التذكرة</div>
+                <div class="stat-tile__caption">{{ __('متوسط نقاط التذكرة') }}</div>
             </div>
 
             @if ($correctionsCount > 0)
                 <div class="stat-tile">
                     <div class="stat-tile__figure">{{ $n($correctionsTotal) }}</div>
                     <div class="stat-tile__caption">
-                        تصحيحات يدوية ({{ $correctionsCount }})
-                        <a href="{{ route('admin.point-rules.index') }}">التفاصيل</a>
+                        {{ __('تصحيحات يدوية (:count)', ['count' => $correctionsCount]) }}
+                        <a href="{{ route('admin.point-rules.index') }}">{{ __('التفاصيل') }}</a>
                     </div>
                 </div>
             @endif
         </div>
 
-        <x-collapsible-section title="النقاط لكل موظف" :meta="$byPerson->count() . ' موظف'">
+        <x-collapsible-section :title="__('النقاط لكل موظف')" :meta="trans_choice(':count موظف', $byPerson->count())">
             <div class="table-wrap">
                 <table class="table table--hover">
                     <thead>
                         <tr>
-                            <th>الموظف</th>
-                            <th class="table__cell--num">دعم</th>
-                            <th class="table__cell--num">فرونت</th>
-                            <th class="table__cell--num">باك</th>
-                            <th class="table__cell--num">تيست</th>
-                            <th class="table__cell--num">ديف أوبس</th>
-                            <th class="table__cell--num">تذاكر</th>
-                            <th class="table__cell--num">الإجمالي</th>
+                            <th>{{ __('الموظف') }}</th>
+                            <th class="table__cell--num">{{ __('دعم') }}</th>
+                            <th class="table__cell--num">{{ __('فرونت') }}</th>
+                            <th class="table__cell--num">{{ __('باك') }}</th>
+                            <th class="table__cell--num">{{ __('تيست') }}</th>
+                            <th class="table__cell--num">{{ __('ديف أوبس') }}</th>
+                            <th class="table__cell--num">{{ __('تذاكر') }}</th>
+                            <th class="table__cell--num">{{ __('الإجمالي') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -129,24 +125,24 @@
                                 <td class="table__cell--num points-cell">{{ $n($row->total) }}</td>
                             </tr>
                         @empty
-                            <tr class="table__empty"><td colspan="8">مفيش نقاط اتصرفت في الشهر ده.</td></tr>
+                            <tr class="table__empty"><td colspan="8">{{ __('مفيش نقاط اتصرفت في الشهر ده.') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
         </x-collapsible-section>
 
-        <x-collapsible-section title="النقاط حسب نوع التذكرة"
-                               meta="من أنهي نوع جت النقط">
+        <x-collapsible-section :title="__('النقاط حسب نوع التذكرة')"
+                               :meta="__('من أنهي نوع جت النقط')">
             <div class="table-wrap">
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>النوع</th>
-                            <th class="table__cell--num">تذاكر</th>
-                            <th class="table__cell--num">صفوف نقاط</th>
-                            <th class="table__cell--num">الإجمالي</th>
-                            <th class="table__cell--num">متوسط التذكرة</th>
+                            <th>{{ __('النوع') }}</th>
+                            <th class="table__cell--num">{{ __('تذاكر') }}</th>
+                            <th class="table__cell--num">{{ __('صفوف نقاط') }}</th>
+                            <th class="table__cell--num">{{ __('الإجمالي') }}</th>
+                            <th class="table__cell--num">{{ __('متوسط التذكرة') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -160,22 +156,22 @@
                                 <td class="table__cell--num">{{ $n($row->total / max(1, $row->tickets)) }}</td>
                             </tr>
                         @empty
-                            <tr class="table__empty"><td colspan="5">مفيش بيانات.</td></tr>
+                            <tr class="table__empty"><td colspan="5">{{ __('مفيش بيانات.') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
         </x-collapsible-section>
 
-        <x-collapsible-section title="النقاط حسب الجهة" :open="false">
+        <x-collapsible-section :title="__('النقاط حسب الجهة')" :open="false">
             <div class="table-wrap">
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>الجهة</th>
-                            <th class="table__cell--num">صفوف</th>
-                            <th class="table__cell--num">الإجمالي</th>
-                            <th class="table__cell--num">النسبة</th>
+                            <th>{{ __('الجهة') }}</th>
+                            <th class="table__cell--num">{{ __('صفوف') }}</th>
+                            <th class="table__cell--num">{{ __('الإجمالي') }}</th>
+                            <th class="table__cell--num">{{ __('النسبة') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -185,26 +181,26 @@
                                 <td class="table__cell--num u-subtle">{{ $row->awards }}</td>
                                 <td class="table__cell--num points-cell">{{ $n($row->total) }}</td>
                                 <td class="table__cell--num">
-                                    {{ $total > 0 ? round(($row->total / $total) * 100) . '٪' : '—' }}
+                                    {{ $total > 0 ? __(':percent٪', ['percent' => round(($row->total / $total) * 100)]) : '—' }}
                                 </td>
                             </tr>
                         @empty
-                            <tr class="table__empty"><td colspan="4">مفيش بيانات.</td></tr>
+                            <tr class="table__empty"><td colspan="4">{{ __('مفيش بيانات.') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
         </x-collapsible-section>
 
-        <x-collapsible-section title="أعلى 10 تذاكر بالنقاط" :open="false">
+        <x-collapsible-section :title="__('أعلى 10 تذاكر بالنقاط')" :open="false">
             <div class="table-wrap">
                 <table class="table table--hover">
                     <thead>
                         <tr>
-                            <th>التذكرة</th>
-                            <th>الجهة الطالبة</th>
-                            <th class="table__cell--num">مشاركين</th>
-                            <th class="table__cell--num">النقاط</th>
+                            <th>{{ __('التذكرة') }}</th>
+                            <th>{{ __('الجهة الطالبة') }}</th>
+                            <th class="table__cell--num">{{ __('مشاركين') }}</th>
+                            <th class="table__cell--num">{{ __('النقاط') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -221,7 +217,7 @@
                                 <td class="table__cell--num points-cell">{{ $n($row->total) }}</td>
                             </tr>
                         @empty
-                            <tr class="table__empty"><td colspan="4">مفيش بيانات.</td></tr>
+                            <tr class="table__empty"><td colspan="4">{{ __('مفيش بيانات.') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>

@@ -49,7 +49,7 @@ class SubtaskStatusController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', "تم إضافة حالة «{$data['name_ar']}».");
+        return back()->with('status', __('تم إضافة حالة «:name».', ['name' => $data['name_ar']]));
     }
 
     public function update(UpdateSubtaskStatusRequest $request, SubtaskStatusDefinition $subtaskStatus, ActivityLogger $logger): RedirectResponse
@@ -73,7 +73,7 @@ class SubtaskStatusController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', 'تم حفظ الحالة.');
+        return back()->with('status', __('تم حفظ الحالة.'));
     }
 
     public function destroy(Request $request, SubtaskStatusDefinition $subtaskStatus, ActivityLogger $logger): RedirectResponse
@@ -81,7 +81,7 @@ class SubtaskStatusController extends Controller
         abort_unless($request->user()->hasPermission('settings.manage'), 403);
 
         if ($subtaskStatus->is_system) {
-            return back()->withErrors(['status' => 'الحالات الأساسية للنظام مينفعش تتحذف.']);
+            return back()->withErrors(['status' => __('الحالات الأساسية للنظام مينفعش تتحذف.')]);
         }
 
         $name = $subtaskStatus->name_ar;
@@ -91,7 +91,7 @@ class SubtaskStatusController extends Controller
         } catch (QueryException) {
             // FK on ticket_subtasks.status is RESTRICT — a subtask on this
             // status right now must not lose it silently.
-            return back()->withErrors(['status' => "فيه صب تاسكس لسه بحالة «{$name}» — غيّرها الأول."]);
+            return back()->withErrors(['status' => __('فيه صب تاسكس لسه بحالة «:name» — غيّرها الأول.', ['name' => $name])]);
         }
 
         $logger->log(
@@ -103,6 +103,6 @@ class SubtaskStatusController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', "تم حذف حالة «{$name}».");
+        return back()->with('status', __('تم حذف حالة «:name».', ['name' => $name]));
     }
 }

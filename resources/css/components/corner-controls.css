@@ -1,0 +1,12 @@
+/* Screen-level controls (language, theme) parked in the inline-end corner of
+   the screens that have no topbar: login and the install wizard. A property of
+   the screen, not a field of its form, so they sit outside the box. */
+
+.corner-controls {
+    position: absolute;
+    inset-block-start: var(--space-4);
+    inset-inline-end: var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}

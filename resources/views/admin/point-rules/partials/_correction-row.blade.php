@@ -28,11 +28,11 @@
         {{ $correction->reason }}
 
         @if ($correction->isReversal())
-            <x-badge variant="slate">سطر إلغاء</x-badge>
+            <x-badge variant="slate">{{ __('سطر إلغاء') }}</x-badge>
         @elseif ($correction->isReplaced())
-            <x-badge variant="amber">اتعدّل</x-badge>
+            <x-badge variant="amber">{{ __('اتعدّل') }}</x-badge>
         @elseif ($void)
-            <x-badge variant="slate">اتلغى</x-badge>
+            <x-badge variant="slate">{{ __('اتلغى') }}</x-badge>
         @endif
     </td>
 
@@ -59,7 +59,7 @@
                 @can('points.corrections.edit')
                     <x-button variant="ghost" size="sm"
                               x-on:click="editing = (editing === {{ $correction->id }} ? null : {{ $correction->id }})">
-                        تعديل
+                        {{ __('تعديل') }}
                     </x-button>
                 @endcan
 
@@ -94,16 +94,16 @@
 
                         <x-button variant="ghost" size="sm" type="button"
                                   x-show="! armed" x-on:click="armed = true">
-                            إلغاء
+                            {{ __('إلغاء') }}
                         </x-button>
 
                         <span class="confirm-inline" x-show="armed" x-cloak>
-                            <span class="confirm-inline__ask">هيتكتب سطر عكسي. متأكد؟</span>
+                            <span class="confirm-inline__ask">{{ __('هيتكتب سطر عكسي. متأكد؟') }}</span>
                             {{-- type defaults to submit: this one is the real
                                  action, and it is the only submit in the form. --}}
-                            <x-button variant="ghost" size="sm">أيوه</x-button>
+                            <x-button variant="ghost" size="sm">{{ __('أيوه') }}</x-button>
                             <x-button variant="ghost" size="sm" type="button"
-                                      x-on:click="armed = false">لأ</x-button>
+                                      x-on:click="armed = false">{{ __('لأ') }}</x-button>
                         </span>
                     </form>
                 @endcan

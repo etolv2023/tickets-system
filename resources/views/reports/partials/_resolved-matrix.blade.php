@@ -1,23 +1,23 @@
 {{-- The matrix. A ticket two people hold counts once for each of them, so a
      column's total is "how many of this type got resolved", not the sum of
      the column. The headline tile already says the distinct figure. --}}
-<x-card title="مين حل إيه" flush>
+<x-card :title="__('مين حل إيه')" flush>
     <x-slot:actions>
-        <span class="u-subtle">{{ \App\Models\Ticket::RELATIONS[$data['relation']] }} · من <span class="u-nums">{{ $filters['from'] }}</span> إلى <span class="u-nums">{{ $filters['to'] }}</span> على تاريخ الحل</span>
+        <span class="u-subtle">{{ __(\App\Models\Ticket::RELATIONS[$data['relation']]) }} · {{ __('من') }} <span class="u-nums">{{ $filters['from'] }}</span> {{ __('إلى') }} <span class="u-nums">{{ $filters['to'] }}</span> {{ __('على تاريخ الحل') }}</span>
     </x-slot:actions>
 
     <div class="table-wrap">
         <table class="table table--hover matrix">
             <thead>
                 <tr>
-                    <th>الموظف</th>
+                    <th>{{ __('الموظف') }}</th>
                     @foreach ($data['types'] as $key => $label)
                         @php($type = \App\Casts\TicketTypeValue::for($key))
                         <th class="table__cell--num">
-                            <x-badge :variant="$type->variant()" :icon="$type->icon()">{{ $label }}</x-badge>
+                            <x-badge :variant="$type->variant()" :icon="$type->icon()">{{ __($label) }}</x-badge>
                         </th>
                     @endforeach
-                    <th class="table__cell--num">الإجمالي</th>
+                    <th class="table__cell--num">{{ __('الإجمالي') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -43,14 +43,14 @@
                     </tr>
                 @empty
                     <tr class="table__empty">
-                        <td colspan="{{ count($data['types']) + 2 }}">محدش حل حاجة في الفترة دي بالفلاتر دي.</td>
+                        <td colspan="{{ count($data['types']) + 2 }}">{{ __('محدش حل حاجة في الفترة دي بالفلاتر دي.') }}</td>
                     </tr>
                 @endforelse
             </tbody>
             @if ($data['rows']->isNotEmpty())
                 <tfoot>
                     <tr class="matrix__foot">
-                        <td>إجمالي النوع</td>
+                        <td>{{ __('إجمالي النوع') }}</td>
                         @foreach ($data['types'] as $key => $label)
                             <td class="table__cell--num">{{ $data['totals'][$key] ?? 0 }}</td>
                         @endforeach

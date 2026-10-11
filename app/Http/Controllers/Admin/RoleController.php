@@ -64,7 +64,7 @@ class RoleController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return redirect()->route('admin.roles.index')->with('status', "تم إنشاء دور «{$role->label()}».");
+        return redirect()->route('admin.roles.index')->with('status', __('تم إنشاء دور «:name».', ['name' => $role->label()]));
     }
 
     public function edit(Role $role): View
@@ -118,7 +118,7 @@ class RoleController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return redirect()->route('admin.roles.index')->with('status', "تم تحديث دور «{$role->label()}».");
+        return redirect()->route('admin.roles.index')->with('status', __('تم تحديث دور «:name».', ['name' => $role->label()]));
     }
 
     /**
@@ -156,7 +156,7 @@ class RoleController extends Controller
         );
 
         return redirect()->route('admin.roles.edit', $copy)
-            ->with('status', "اتنسخ دور «{$role->label()}» — سمّيه واحفظ.");
+            ->with('status', __('اتنسخ دور «:name» — سمّيه واحفظ.', ['name' => $role->label()]));
     }
 
     private function uniqueCopyKey(string $baseKey): string
@@ -189,7 +189,7 @@ class RoleController extends Controller
 
         $role->delete();
 
-        return redirect()->route('admin.roles.index')->with('status', "تم حذف دور «{$name}».");
+        return redirect()->route('admin.roles.index')->with('status', __('تم حذف دور «:name».', ['name' => $name]));
     }
 
     /** @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<int, Permission>> */

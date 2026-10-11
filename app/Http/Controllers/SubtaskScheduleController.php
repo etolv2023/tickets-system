@@ -53,7 +53,7 @@ class SubtaskScheduleController extends Controller
             'due_date' => $subtask->due_date->toDateString(),
             // F13: a move past the SLA is confirmed, not blocked.
             'warning' => $overshoots
-                ? "التاريخ ده بعد مهلة الـ SLA بتاعة {$subtask->ticket->ticket_number} ({$slaDue->translatedFormat('j M')})."
+                ? __('التاريخ ده بعد مهلة الـ SLA بتاعة :number (:date).', ['number' => $subtask->ticket->ticket_number, 'date' => $slaDue->translatedFormat('j M')])
                 : null,
         ]);
     }

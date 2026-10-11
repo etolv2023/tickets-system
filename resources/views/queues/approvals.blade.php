@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'طابور الموافقات')
+@section('title', __('طابور الموافقات'))
 
 @section('content')
     {{-- ★★★★ (2026-07-21): a ticket table, same case as /tickets. --}}
     <div class="page page--wide">
         <div class="page__head">
             <div>
-                <h1 class="page-title">مستني قرارك</h1>
-                <p class="page-subtitle">فيتشرات وموديولات جديدة مستنية موافقتك قبل ما تتوزّع على المبرمجين.</p>
+                <h1 class="page-title">{{ __('مستني قرارك') }}</h1>
+                <p class="page-subtitle">{{ __('فيتشرات وموديولات جديدة مستنية موافقتك قبل ما تتوزّع على المبرمجين.') }}</p>
             </div>
             <div class="page__actions">
                 <x-export-button route="export.approvals" />
@@ -33,27 +33,27 @@
                         <x-combobox name="assignee" resource="users"
                                     :value="$filters['assignee'] ?? null"
                                     :selected="$selectedAssignee"
-                                    placeholder="أي شخص" />
+                                    :placeholder="__('أي شخص')" />
                     </div>
 
-                    <select name="relation" class="select" aria-label="علاقته بالتذكرة">
+                    <select name="relation" class="select" aria-label="{{ __('علاقته بالتذكرة') }}">
                         @foreach (\App\Models\Ticket::RELATIONS as $value => $label)
-                            <option value="{{ $value }}" @selected(($filters['relation'] ?? 'any') === $value)>{{ $label }}</option>
+                            <option value="{{ $value }}" @selected(($filters['relation'] ?? 'any') === $value)>{{ __($label) }}</option>
                         @endforeach
                     </select>
                 </div>
 
-                <x-button variant="secondary">فلترة</x-button>
+                <x-button variant="secondary">{{ __('فلترة') }}</x-button>
 
                 @if (array_filter($filters))
-                    <x-button variant="ghost" :href="route('queues.approvals')">مسح</x-button>
+                    <x-button variant="ghost" :href="route('queues.approvals')">{{ __('مسح') }}</x-button>
                 @endif
 
                 <a href="{{ route('queues.approvals', ['assignee' => auth()->id(), 'relation' => 'any']) }}"
                    @class(['btn', 'btn--secondary', 'filters__mine',
                            'filters__mine--on' => (int) ($filters['assignee'] ?? 0) === auth()->id()])>
                     <x-icon name="user" class="btn__icon" />
-                    بتاعتي
+                    {{ __('بتاعتي') }}
                 </a>
             </div>
         </form>
@@ -78,7 +78,7 @@
                     <div class="queue-card__meta">
                         <span>{{ $ticket->originLabel() }}</span>
                         <span aria-hidden="true">·</span>
-                        <span>طلبها {{ $ticket->creator->name }}</span>
+                        <span>{{ __('طلبها :name', ['name' => $ticket->creator->name]) }}</span>
                         <span aria-hidden="true">·</span>
                         <span>{{ $ticket->ageLabel() }}</span>
                     </div>
@@ -88,17 +88,17 @@
                             @csrf
                             <x-button variant="confirm">
                                 <x-icon name="check" class="btn__icon" />
-                                موافقة
+                                {{ __('موافقة') }}
                             </x-button>
                         </form>
 
                         <x-button variant="reject" type="button" x-on:click="rejecting = ! rejecting"
                                   x-bind:aria-expanded="rejecting ? 'true' : 'false'">
-                            رفض
+                            {{ __('رفض') }}
                         </x-button>
 
                         <a class="btn btn--ghost queue-card__open" href="{{ route('tickets.show', $ticket) }}">
-                            فتح التذكرة
+                            {{ __('فتح التذكرة') }}
                             <x-icon name="chevron-left" class="btn__icon" />
                         </a>
                     </div>
@@ -106,17 +106,17 @@
                     <form class="queue-card__reason" method="POST" action="{{ route('tickets.reject', $ticket) }}"
                           x-show="rejecting" x-cloak>
                         @csrf
-                        <label class="u-label" for="reject-reason-{{ $ticket->id }}">سبب الرفض</label>
+                        <label class="u-label" for="reject-reason-{{ $ticket->id }}">{{ __('سبب الرفض') }}</label>
                         <textarea id="reject-reason-{{ $ticket->id }}" name="reason" class="textarea" rows="2"
-                                  maxlength="500" placeholder="رفض من غير سبب مجرد حيطة…"></textarea>
+                                  maxlength="500" placeholder="{{ __('رفض من غير سبب مجرد حيطة…') }}"></textarea>
                         <div class="queue-card__reason-actions">
-                            <x-button variant="danger" size="sm">ارفضها</x-button>
-                            <x-button variant="ghost" size="sm" type="button" x-on:click="rejecting = false">إلغاء</x-button>
+                            <x-button variant="danger" size="sm">{{ __('ارفضها') }}</x-button>
+                            <x-button variant="ghost" size="sm" type="button" x-on:click="rejecting = false">{{ __('إلغاء') }}</x-button>
                         </div>
                     </form>
                 </article>
             @empty
-                <p class="queue__empty">مفيش حاجة مستنية قرارك.</p>
+                <p class="queue__empty">{{ __('مفيش حاجة مستنية قرارك.') }}</p>
             @endforelse
         </div>
 

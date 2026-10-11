@@ -53,7 +53,7 @@ class CompanyController extends Controller
         );
 
         return redirect()->route('admin.companies.show', $company)
-            ->with('status', "تم إضافة «{$company->name}».");
+            ->with('status', __('تم إضافة «:name».', ['name' => $company->name]));
     }
 
     /** F01: the company page answers "is this customer heavy or quiet?" */
@@ -96,7 +96,7 @@ class CompanyController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return redirect()->route('admin.companies.show', $company)->with('status', 'تم حفظ التعديلات.');
+        return redirect()->route('admin.companies.show', $company)->with('status', __('تم حفظ التعديلات.'));
     }
 
     public function destroy(Request $request, Company $company, ActivityLogger $logger): RedirectResponse
@@ -116,6 +116,6 @@ class CompanyController extends Controller
 
         $company->delete();
 
-        return redirect()->route('admin.companies.index')->with('status', "تم حذف «{$name}».");
+        return redirect()->route('admin.companies.index')->with('status', __('تم حذف «:name».', ['name' => $name]));
     }
 }

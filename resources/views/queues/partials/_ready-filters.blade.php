@@ -14,41 +14,41 @@
             type="search"
             name="q"
             value="{{ $filters['q'] ?? '' }}"
-            placeholder="ابحث بالعنوان أو الوصف، أو الصق رقم تذكرة"
+            placeholder="{{ __('ابحث بالعنوان أو الوصف، أو الصق رقم تذكرة') }}"
             class="input filters__search"
         >
 
         <button type="button" class="btn btn--secondary" @click="panelOpen = !panelOpen"
                 :aria-expanded="panelOpen.toString()">
-            <x-icon name="filter" class="btn__icon" /> الفلاتر
+            <x-icon name="filter" class="btn__icon" /> {{ __('الفلاتر') }}
         </button>
 
-        <x-button variant="secondary">تطبيق</x-button>
+        <x-button variant="secondary">{{ __('تطبيق') }}</x-button>
 
         @if (array_filter($filters))
-            <x-button variant="ghost" :href="route('queues.ready')">مسح</x-button>
+            <x-button variant="ghost" :href="route('queues.ready')">{{ __('مسح') }}</x-button>
         @endif
     </div>
 
     <div class="filters__narrow filters__narrow--panel" x-show="panelOpen" x-cloak>
-        <select name="status" class="select" aria-label="الحالة">
-            <option value="">كل الحالات المفتوحة</option>
+        <select name="status" class="select" aria-label="{{ __('الحالة') }}">
+            <option value="">{{ __('كل الحالات المفتوحة') }}</option>
             @foreach ($statuses as $value => $label)
-                <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $label }}</option>
+                <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ __($label) }}</option>
             @endforeach
         </select>
 
-        <select name="type" class="select" aria-label="النوع">
-            <option value="">كل الأنواع</option>
+        <select name="type" class="select" aria-label="{{ __('النوع') }}">
+            <option value="">{{ __('كل الأنواع') }}</option>
             @foreach ($types as $value => $label)
-                <option value="{{ $value }}" @selected(($filters['type'] ?? '') === $value)>{{ $label }}</option>
+                <option value="{{ $value }}" @selected(($filters['type'] ?? '') === $value)>{{ __($label) }}</option>
             @endforeach
         </select>
 
-        <select name="priority" class="select" aria-label="الأولوية">
-            <option value="">كل الأولويات</option>
+        <select name="priority" class="select" aria-label="{{ __('الأولوية') }}">
+            <option value="">{{ __('كل الأولويات') }}</option>
             @foreach ($priorities as $value => $label)
-                <option value="{{ $value }}" @selected(($filters['priority'] ?? '') === $value)>{{ $label }}</option>
+                <option value="{{ $value }}" @selected(($filters['priority'] ?? '') === $value)>{{ __($label) }}</option>
             @endforeach
         </select>
 
@@ -56,7 +56,7 @@
             <x-combobox name="company" resource="companies"
                         :value="$filters['company'] ?? null"
                         :selected="$selectedCompany"
-                        placeholder="كل الشركات" />
+                        :placeholder="__('كل الشركات')" />
         </div>
 
         <div class="filters__person">
@@ -64,20 +64,20 @@
                 <x-combobox name="assignee" resource="users"
                             :value="$filters['assignee'] ?? null"
                             :selected="$selectedAssignee"
-                            placeholder="أي شخص" />
+                            :placeholder="__('أي شخص')" />
             </div>
 
-            <select name="relation" class="select" aria-label="علاقته بالتذكرة">
+            <select name="relation" class="select" aria-label="{{ __('علاقته بالتذكرة') }}">
                 @foreach (\App\Models\Ticket::RELATIONS as $value => $label)
-                    <option value="{{ $value }}" @selected(($filters['relation'] ?? 'any') === $value)>{{ $label }}</option>
+                    <option value="{{ $value }}" @selected(($filters['relation'] ?? 'any') === $value)>{{ __($label) }}</option>
                 @endforeach
             </select>
         </div>
 
         <div class="filters__group">
-            <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" class="input" aria-label="من تاريخ">
+            <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" class="input" aria-label="{{ __('من تاريخ') }}">
             <span class="u-subtle">→</span>
-            <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" class="input" aria-label="لتاريخ">
+            <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" class="input" aria-label="{{ __('لتاريخ') }}">
         </div>
     </div>
 </form>

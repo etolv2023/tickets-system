@@ -35,7 +35,7 @@ class TicketBranchController extends Controller
         $repository = GithubRepository::fromCache((int) $request->validated('github_repository_id'));
 
         if ($repository === null || ! $repository->is_active) {
-            return back()->withInput()->withErrors(['github_repository_id' => 'الريبو ده مش مفعّل.']);
+            return back()->withInput()->withErrors(['github_repository_id' => __('الريبو ده مش مفعّل.')]);
         }
 
         try {
@@ -65,6 +65,6 @@ class TicketBranchController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return back()->with('status', 'اتربط البرانش «' . $branch->name . '» بالتذكرة.');
+        return back()->with('status', __('اتربط البرانش «:name» بالتذكرة.', ['name' => $branch->name]));
     }
 }

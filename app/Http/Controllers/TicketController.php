@@ -197,7 +197,7 @@ class TicketController extends Controller
         $this->discord->announceCreated($ticket->refresh());
 
         return redirect()->route('tickets.show', $ticket)
-            ->with('status', "تم فتح التذكرة {$ticket->ticket_number}.");
+            ->with('status', __('تم فتح التذكرة :number.', ['number' => $ticket->ticket_number]));
     }
 
     /**
@@ -418,7 +418,7 @@ class TicketController extends Controller
             userAgent: $request->userAgent(),
         );
 
-        return redirect()->route('tickets.show', $ticket)->with('status', 'تم حفظ التعديلات.');
+        return redirect()->route('tickets.show', $ticket)->with('status', __('تم حفظ التعديلات.'));
     }
 
     public function destroy(Request $request, Ticket $ticket, ActivityLogger $logger): RedirectResponse
@@ -439,7 +439,7 @@ class TicketController extends Controller
 
         $this->tickets->delete($ticket);
 
-        return redirect()->route('tickets.index')->with('status', "تم حذف التذكرة {$number}.");
+        return redirect()->route('tickets.index')->with('status', __('تم حذف التذكرة :number.', ['number' => $number]));
     }
 
     /** F11 — labels on a ticket. */
@@ -454,7 +454,7 @@ class TicketController extends Controller
 
         $ticket->labels()->sync($data['labels'] ?? []);
 
-        return back()->with('status', 'تم حفظ اللابلز.');
+        return back()->with('status', __('تم حفظ اللابلز.'));
     }
 
     private function formData(): array

@@ -30,7 +30,7 @@ class TicketLinkController extends Controller
         $target = Ticket::findOrFail($data['to_ticket_id']);
 
         if ($target->id === $ticket->id) {
-            return back()->withErrors(['to_ticket_id' => 'مينفعش تربط التذكرة بنفسها.']);
+            return back()->withErrors(['to_ticket_id' => __('مينفعش تربط التذكرة بنفسها.')]);
         }
 
         // You can only link to something you're allowed to see, or the link
@@ -43,7 +43,7 @@ class TicketLinkController extends Controller
             ->exists();
 
         if ($exists) {
-            return back()->withErrors(['to_ticket_id' => 'الربط ده موجود بالفعل.']);
+            return back()->withErrors(['to_ticket_id' => __('الربط ده موجود بالفعل.')]);
         }
 
         TicketLink::create([
@@ -72,7 +72,7 @@ class TicketLinkController extends Controller
             $request->user()->id,
         );
 
-        return back()->with('status', "تم الربط بـ{$target->ticket_number}.");
+        return back()->with('status', __('تم الربط بـ:number.', ['number' => $target->ticket_number]));
     }
 
     public function destroy(Request $request, Ticket $ticket, TicketLink $link): RedirectResponse
@@ -88,6 +88,6 @@ class TicketLinkController extends Controller
 
         $link->delete();
 
-        return back()->with('status', 'تم فك الربط.');
+        return back()->with('status', __('تم فك الربط.'));
     }
 }
