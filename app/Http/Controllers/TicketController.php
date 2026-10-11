@@ -6,7 +6,6 @@ use App\Http\Requests\Tickets\StoreTicketRequest;
 use App\Http\Requests\Tickets\UpdateTicketRequest;
 use App\Models\Company;
 use App\Models\CompanyContact;
-use App\Models\GithubRepository;
 use App\Models\Label;
 use App\Models\PriorityDefinition;
 use App\Models\Role;
@@ -18,7 +17,6 @@ use App\Models\TicketTypeDefinition;
 use App\Models\User;
 use App\Services\ActivityLogger;
 use App\Services\AttachmentService;
-use App\Services\BranchNamingService;
 use App\Services\DiscordNotificationService;
 use App\Services\SubtaskService;
 use App\Services\TicketService;
@@ -292,21 +290,22 @@ class TicketController extends Controller
     /**
      * The ticket detail page is where every layer of the system converges:
      * comments, subtasks, time, links, labels, watchers, ratings, assignment
-     * and history all render on one screen. That is ~18 queries for a viewer and
-     * ~21 for an admin (who also gets the assignment/label panels) — above § 4's
-     * 15-query guideline, and deliberately so. Every one is a single load per
-     * relation, not an N+1 (preventLazyLoading would throw on an N+1), and the
-     * lot runs in ~36ms. Splitting this into lazy-loaded tabs to hit 15 would
-     * trade one fast request for several round-trips; the number is worse read
-     * as one page. This is the one screen exempt from the guideline, on purpose.
+     * and history all render on one screen. Every relation is a single load,
+     * never an N+1 (preventLazyLoading would throw on one).
+     *
+     * It used to sit at ~20 queries, over § 4's 15. Two panels whose rows only
+     * matter once their tab is open — the code tab and "my time" — are now
+     * fetched on open (TicketPanelController), the link rows come back with
+     * the tickets on their far side in one read, and the people named on the
+     * page are taken from the active-user list the side panels already hold.
      */
     public function show(Ticket $ticket): View
     {
         // Loaded before authorize(): TicketPolicy::isAssigned() reads
         // roleAssignments (F06 role-assignment extension), and it only
         // consults the relation when it's already eager-loaded.
+        // No company here: companyContacts() reads it along with its contacts.
         $ticket->load([
-            'company:id,name,code',
             'workLogs',
             'statusHistory',
             'subtasks',
@@ -318,19 +317,17 @@ class TicketController extends Controller
         $this->authorize('view', $ticket);
 
         /*
-         * ★ (2026-08-29) F27 — the code panel, loaded only for somebody who can
-         * see it. Two queries, and both are skipped entirely for a role without
-         * github.view rather than fetched and thrown away.
-         *
-         * The repository each row belongs to is NOT eager-loaded: there are
-         * four of them, they are cached forever, and TicketBranch::repo() reads
-         * them from there (see that method for why).
+         * ★ (2026-08-29) F27 — the code panel. Its rows are fetched when the
+         * tab is opened (TicketPanelController::code), so most visits never pay
+         * for them. The one exception is a link form that just failed: its
+         * errors and old input only survive this request, so the panel is
+         * rendered inline here, exactly as it was before.
          */
-        if (auth()->user()->hasPermission('github.view')) {
-            $ticket->load([
-                'branches' => fn ($q) => $q->orderBy('github_repository_id')->orderByDesc('id'),
-                'pullRequests' => fn ($q) => $q->orderByDesc('number'),
-            ]);
+        $codeInline = auth()->user()->hasPermission('github.view')
+            && (bool) session('errors')?->hasAny(['branch_name', 'github_repository_id']);
+
+        if ($codeInline) {
+            $ticket->load(TicketPanelController::codeRelations());
         }
 
         // role names for work logs, subtasks and assignments — one cached
@@ -345,6 +342,11 @@ class TicketController extends Controller
             ->orderBy('created_at')
             ->get();
 
+        // Before hydratePeople(): it reuses the active-user list these panels
+        // already read instead of asking the users table a second time.
+        $panels = $this->panelData($ticket);
+        $statusChange = $this->statusChangeData($ticket);
+
         $this->hydrateAttachments($ticket, $comments);
         $this->hydrateLinks($ticket);
         $this->hydratePeople($ticket, $comments);
@@ -354,29 +356,11 @@ class TicketController extends Controller
             'comments' => $comments,
             // The dropdown lists every panel needs, fetched once and shared.
             // Separately they were four queries over the same users table.
-            ...$this->panelData($ticket),
-            ...$this->statusChangeData($ticket),
-            // F09: this person's own entries. Someone else's hours aren't their
-            // business, and the totals are already rolled up on the ticket.
-            // No subtask eager-load: the titles come from the subtasks already
-            // on the ticket.
-            'myTimeEntries' => $ticket->timeEntries()
-                ->where('user_id', auth()->id())
-                ->orderByDesc('spent_on')
-                ->limit(10)
-                ->get(),
+            ...$panels,
+            ...$statusChange,
             'isWatching' => $ticket->watchers->contains('id', auth()->id()),
-            // F27. The manual-link picker's options, from the cached map — no
-            // query. Empty array for anyone who cannot link, so the panel does
-            // not render a form nobody may submit.
-            'githubRepositories' => auth()->user()->hasPermission('github.audit')
-                ? GithubRepository::activeList()
-                : [],
-            // The name the convention says this ticket's branch should have.
-            // Computed here rather than in the view: a Blade file does not hold
-            // business rules, and the naming convention is one (CLAUDE.md § 3).
-            'suggestedBranch' => app(BranchNamingService::class)
-                ->suggest($ticket->ticket_number, $ticket->title),
+            'codeInline' => $codeInline,
+            ...($codeInline ? TicketPanelController::codeData($ticket, auth()->user()) : []),
             // F17: only fetched for someone allowed to see or give them — and
             // ★ (2026-08-04) only for a ticket that can actually show them.
             // show.blade.php renders the panel for resolved/closed only, so on
@@ -507,6 +491,11 @@ class TicketController extends Controller
      *
      * An internal ticket has no company, so it costs nothing at all.
      *
+     * The company row itself comes back on the same read — the company LEFT
+     * JOINed to its contacts — and is set as the ticket's `company` relation,
+     * so the header does not ask for it separately. A company with no contacts
+     * is one row of nulls on the contact side, and yields no contact.
+     *
      * @return EloquentCollection<int, CompanyContact>
      */
     private function companyContacts(Ticket $ticket): EloquentCollection
@@ -516,13 +505,34 @@ class TicketController extends Controller
         }
 
         if ($ticket->company_id === null) {
+            $ticket->setRelation('company', null);
+
             return $this->companyContacts = new EloquentCollection();
         }
 
-        return $this->companyContacts = CompanyContact::query()
-            ->where('company_id', $ticket->company_id)
-            ->get(['id', 'name', 'erp_employee_id', 'email', 'phone', 'is_active'])
-            ->keyBy('id');
+        $contactColumns = ['id', 'name', 'erp_employee_id', 'email', 'phone', 'is_active'];
+
+        $rows = Company::query()
+            ->select(['companies.id as company_id', 'companies.name as company_name', 'companies.code as company_code'])
+            ->addSelect(array_map(fn ($c) => "company_contacts.{$c} as contact_{$c}", $contactColumns))
+            ->leftJoin('company_contacts', 'company_contacts.company_id', '=', 'companies.id')
+            ->where('companies.id', $ticket->company_id)
+            ->toBase()
+            ->get();
+
+        $first = $rows->first();
+
+        $ticket->setRelation('company', $first === null ? null : (new Company())->newFromBuilder([
+            'id' => $first->company_id, 'name' => $first->company_name, 'code' => $first->company_code,
+        ]));
+
+        return $this->companyContacts = new EloquentCollection(
+            $rows->whereNotNull('contact_id')
+                ->mapWithKeys(fn ($row) => [$row->contact_id => (new CompanyContact())->newFromBuilder(
+                    collect($contactColumns)->mapWithKeys(fn ($c) => [$c => $row->{"contact_{$c}"}])->all()
+                )])
+                ->all()
+        );
     }
 
     private function hydrateRoles(Ticket $ticket): void
@@ -567,38 +577,53 @@ class TicketController extends Controller
     }
 
     /**
-     * Both link directions, and the tickets on the other end, in two reads.
+     * Both link directions, and the tickets on the other end, in one read.
      *
      * ★ (2026-08-04) This was four: a query per direction, then a query per
-     * direction again for the related ticket rows. The columns wanted from the
-     * far side are identical either way, so direction is a property of the link
-     * row, not a reason to ask the database twice. F10
+     * direction again for the related ticket rows. Then two: the links, and
+     * the far-side tickets. Now the far side is joined on — once per column,
+     * because which column points away from this ticket depends on the row.
+     * The join that would land on this ticket itself is excluded in its ON
+     * clause, so that side comes back null, as it always has. F10
      *
-     * Each link gets both sides set — including the one that resolves to null,
-     * because it points back at this ticket. A relation left unset would be a
-     * lazy load, and preventLazyLoading turns that into an exception.
+     * Each link gets both sides set — including the null one. A relation left
+     * unset would be a lazy load, and preventLazyLoading turns that into an
+     * exception. A soft-deleted ticket on the far side is null too, same as the
+     * whereIn() this replaced, which went through the SoftDeletes scope.
      */
     private function hydrateLinks(Ticket $ticket): void
     {
+        $columns = ['id', 'ticket_number', 'title', 'status', 'priority'];
+
+        $joinOther = fn (string $alias, string $column) => fn ($join) => $join
+            ->on("{$alias}.id", '=', "ticket_links.{$column}")
+            ->where("{$alias}.id", '!=', $ticket->id)
+            ->whereNull("{$alias}.deleted_at");
+
         $links = TicketLink::query()
-            ->where('from_ticket_id', $ticket->id)
-            ->orWhere('to_ticket_id', $ticket->id)
+            ->select('ticket_links.*')
+            ->addSelect(collect($columns)->flatMap(fn ($c) => ["from_t.{$c} as from_t_{$c}", "to_t.{$c} as to_t_{$c}"])->all())
+            ->leftJoin('tickets as from_t', $joinOther('from_t', 'from_ticket_id'))
+            ->leftJoin('tickets as to_t', $joinOther('to_t', 'to_ticket_id'))
+            ->where(fn ($q) => $q->where('ticket_links.from_ticket_id', $ticket->id)
+                ->orWhere('ticket_links.to_ticket_id', $ticket->id))
             ->get();
 
-        $otherIds = $links->pluck('from_ticket_id')
-            ->merge($links->pluck('to_ticket_id'))
-            ->reject(fn ($id) => (int) $id === (int) $ticket->id)
-            ->unique();
+        $links->each(function (TicketLink $link) use ($columns) {
+            foreach (['from_t' => 'fromTicket', 'to_t' => 'toTicket'] as $alias => $relation) {
+                $row = [];
 
-        $others = $otherIds->isEmpty()
-            ? new EloquentCollection()
-            : Ticket::whereIn('id', $otherIds)
-                ->get(['id', 'ticket_number', 'title', 'status', 'priority'])
-                ->keyBy('id');
+                foreach ($columns as $c) {
+                    $row[$c] = $link->getAttribute("{$alias}_{$c}");
+                    // Off the link, so it reads and serialises like the rows
+                    // it was before the join.
+                    $link->offsetUnset("{$alias}_{$c}");
+                }
 
-        $links->each(function (TicketLink $link) use ($others) {
-            $link->setRelation('toTicket', $others->get($link->to_ticket_id));
-            $link->setRelation('fromTicket', $others->get($link->from_ticket_id));
+                $link->setRelation($relation, $row['id'] === null ? null : (new Ticket())->newFromBuilder($row));
+            }
+
+            $link->syncOriginal();
         });
 
         $ticket->setRelation('outgoingLinks', $links->where('from_ticket_id', $ticket->id)->values());
@@ -619,12 +644,20 @@ class TicketController extends Controller
             ->filter()
             ->unique();
 
-        $people = $ids->isEmpty()
-            ? collect()
-            : User::without('role')
-                ->whereIn('id', $ids)
-                ->get(['id', 'name', 'avatar_path', 'is_active'])
-                ->keyBy('id');
+        // Whoever is in the active-user list a side panel already read comes
+        // from there; only the rest (deactivated people, or everyone for a
+        // viewer who gets no such panel) costs a query.
+        $active = $this->activeUsers?->keyBy('id') ?? collect();
+        $rest = $ids->reject(fn ($id) => $active->has($id));
+
+        $people = $rest->isEmpty()
+            ? $active
+            : $active->union(
+                User::without('role')
+                    ->whereIn('id', $rest)
+                    ->get(['id', 'name', 'avatar_path', 'is_active'])
+                    ->keyBy('id')
+            );
 
         $contactIds = $ticket->statusHistory->pluck('recipient_contact_id')
             ->merge($comments->pluck('contact_id'))
@@ -706,7 +739,8 @@ class TicketController extends Controller
      *
      * One query with the union of the columns anyone actually uses. role_id is
      * in there for assignableUsers(), which partitions this list by role rather
-     * than asking the database to do it again.
+     * than asking the database to do it again; avatar_path and is_active for
+     * hydratePeople(), which names people on the page from this same list.
      *
      * without('role'): User eager-loads its role for the chrome, and that join
      * would be a query spent to learn something role_id already says.
@@ -717,7 +751,7 @@ class TicketController extends Controller
     {
         return $this->activeUsers ??= User::active()
             ->without('role')
-            ->select(['id', 'name', 'role_id'])
+            ->select(['id', 'name', 'role_id', 'avatar_path', 'is_active'])
             ->orderBy('name')
             ->get();
     }

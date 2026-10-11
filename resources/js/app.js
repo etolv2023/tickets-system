@@ -10,6 +10,7 @@ import registerStickyFilters from './components/sticky-filters';
 import registerGlobalShortcuts from './components/global-shortcuts';
 import tableColumns from './components/table-columns';
 import calendarDayPreview from './components/calendar-day-preview';
+import lazyPanel from './components/lazy-panel';
 import registerDenseFilterShells from './components/dense-filter-shell';
 import { t } from './i18n';
 
@@ -27,6 +28,7 @@ registerDenseFilterShells();
 
 Alpine.data('tableColumns', tableColumns);
 Alpine.data('calendarDayPreview', calendarDayPreview);
+Alpine.data('lazyPanel', lazyPanel);
 
 // Theme: tokens.css already follows prefers-color-scheme on its own. This store
 // only lets a user override the OS choice and remembers it. The initial value is

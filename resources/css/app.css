@@ -49,6 +49,7 @@
 @import './components/toast.css';
 @import './components/tooltip.css';
 @import './components/corner-controls.css';
+@import './components/lazy-panel.css';
 
 @import './features/auth.css';
 @import './features/error-page.css';
@@ -66,6 +67,8 @@
 @import './features/subtasks.css';
 @import './features/timesheet.css';
 @import './features/calendar.css';
+@import './features/calendar-toolbar.css';
+@import './features/calendar-day.css';
 @import './features/calendar-preview.css';
 @import './features/calendar-event.css';
 @import './features/calendar-agenda.css';

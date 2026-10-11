@@ -31,6 +31,7 @@ use App\Http\Controllers\SubtaskController;
 use App\Http\Controllers\SubtaskScheduleController;
 use App\Http\Controllers\SubtaskStatusController;
 use App\Http\Controllers\TicketLinkController;
+use App\Http\Controllers\TicketPanelController;
 use App\Http\Controllers\TicketWatcherController;
 use App\Http\Controllers\TimeEntryController;
 use App\Http\Controllers\AttachmentController;
@@ -167,6 +168,11 @@ Route::middleware('auth')->group(function () {
         Route::post('subtasks/reorder', [SubtaskController::class, 'reorder'])->name('subtasks.reorder');
 
         Route::post('time', [TimeEntryController::class, 'store'])->name('time.store');
+
+        // Ticket-page panels fetched when their tab first opens. Guarded inside
+        // by TicketPolicy::view and the panel's own permission.
+        Route::get('panels/code', [TicketPanelController::class, 'code'])->name('panels.code');
+        Route::get('panels/time', [TicketPanelController::class, 'time'])->name('panels.time');
 
         Route::post('links', [TicketLinkController::class, 'store'])->name('links.store');
         Route::delete('links/{link}', [TicketLinkController::class, 'destroy'])->name('links.destroy');

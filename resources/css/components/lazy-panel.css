@@ -1,0 +1,8 @@
+/*
+ * A panel fetched when its tab opens (lazy-panel.js). The wrapper only exists
+ * to hold x-html; its children lay out as if they were printed straight into
+ * the parent stack, which is what they were before.
+ */
+.lazy-panel {
+    display: contents;
+}

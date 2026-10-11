@@ -1918,5 +1918,6 @@
     "إلغاء التصحيح #:id — :reason": "Reversal of correction #:id — :reason",
     "جارٍ التحميل…": "Loading…",
     "تعذّر تحميل المهام الفرعية. أغلقها وافتحها للمحاولة مرة أخرى.": "Could not load the subtasks. Close and reopen to try again.",
+    "تعذّر تحميل هذا القسم. افتح التبويب مرة أخرى للمحاولة.": "Could not load this section. Open the tab again to retry.",
     "تعذّر تحميل عناصر هذا اليوم. أغلق النافذة وافتحها للمحاولة مرة أخرى.": "Could not load this day. Close the window and reopen it to try again."
 }

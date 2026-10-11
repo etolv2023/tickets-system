@@ -89,8 +89,8 @@
                                     :aria-selected="tab === 'code' ? 'true' : 'false'"
                                     class="tabs__tab">
                                 {{ __('الكود') }}
-                                @if ($ticket->branches->isNotEmpty())
-                                    <span class="tabs__count">{{ $ticket->branches->count() }}</span>
+                                @if ($ticket->branches_count > 0)
+                                    <span class="tabs__count">{{ $ticket->branches_count }}</span>
                                 @endif
                             </button>
                         @endcan
@@ -114,7 +114,14 @@
 
                     @can('github.view')
                         <div x-show="tab === 'code'" x-cloak role="tabpanel">
-                            @include('tickets.partials._github')
+                            {{-- Fetched on open, unless a link attempt just failed
+                                 and its errors have to be shown here, now. --}}
+                            @if ($codeInline)
+                                @include('tickets.partials._github')
+                            @else
+                                <div class="lazy-panel" x-data="lazyPanel(@js(route('tickets.panels.code', $ticket)))"
+                                     x-effect="tab === 'code' && load()" x-html="html"></div>
+                            @endif
                         </div>
                     @endcan
                 </div>

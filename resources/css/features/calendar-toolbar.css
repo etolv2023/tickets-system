@@ -1,0 +1,164 @@
+/*
+ * The calendar toolbar and legend, then the structural pass over the grid
+ * that follows it. Imported straight after calendar.css: the later rules here
+ * are meant to win over the earlier grid rules, so the order is the cascade.
+ */
+
+/* ---- Toolbar and legend ---- */
+
+.cal__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+}
+
+.cal__views {
+    display: flex;
+    gap: var(--space-1);
+}
+
+.cal__legend {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    flex-wrap: wrap;
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+}
+
+.cal__legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+/* A swatch of the hatching itself, so the key shows the thing it names. */
+.cal__legend-off {
+    width: 14px;
+    height: 10px;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+    background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 3px,
+        var(--border) 3px,
+        var(--border) 4px
+    );
+}
+
+/* Structural calendar pass: lower density, quieter non-working days, and a
+   toolbar that reads as one control instead of loose buttons. */
+.cal__head {
+    padding-block: var(--space-3);
+    background: var(--surface-2);
+    font-size: var(--text-sm);
+}
+
+.cal__day {
+    gap: var(--space-1);
+    height: clamp(6.75rem, 12vh, 7.5rem);
+    padding: var(--space-2);
+}
+
+.cal__body {
+    gap: var(--space-1);
+}
+
+.cal__day--off {
+    background-color: color-mix(in srgb, var(--surface-2) 72%, var(--bg));
+    background-image: none;
+}
+
+.cal__day--today {
+    background-color: color-mix(in srgb, var(--action-bg) 62%, var(--surface));
+    box-shadow: inset 0 0 0 1px var(--action-line);
+}
+
+.cal__num {
+    display: inline-grid;
+    place-items: center;
+    min-inline-size: 1.7rem;
+    block-size: 1.7rem;
+    border-radius: var(--radius-full);
+    font-size: var(--text-sm);
+}
+
+.cal__day--today .cal__num {
+    background-color: var(--action-bg);
+}
+
+.cal__bar {
+    padding: var(--space-2);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xs);
+}
+
+.page--calendar {
+    gap: var(--space-3);
+}
+
+.cal-controls {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-2);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+}
+
+/* The topbar already names the calendar. Keep only the useful period label so
+   the grid starts higher and a month fits without a second oversized scroll. */
+.page--calendar .cal__page-head {
+    min-block-size: 0;
+    padding: 0;
+}
+
+.page--calendar .cal__page-head .page-title {
+    display: none;
+}
+
+.cal__eyebrow {
+    display: block;
+    margin-block-end: 2px;
+    color: var(--action);
+    font-size: var(--text-2xs);
+    font-weight: var(--weight-heavy);
+}
+
+.page--calendar .cal__page-head .page-subtitle {
+    margin: 0;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    color: var(--text-muted);
+}
+
+.page--calendar .filters--calendar {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+}
+
+.cal__views {
+    padding: var(--space-1);
+    background-color: var(--surface-2);
+    border-radius: var(--radius);
+}
+
+.cal-controls .cal__bar {
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+}
+
+.cal__navigation {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
