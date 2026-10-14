@@ -10,6 +10,11 @@
                 <p class="page-subtitle">{{ trans_choice(':count مستخدم.|مستخدم واحد.|مستخدمان.|:count مستخدمين.|:count مستخدمًا.|:count مستخدم.', $users->total()) }}</p>
             </div>
             <div class="page__actions">
+                <form method="POST" action="{{ route('admin.users.reset-permission-overrides') }}"
+                      onsubmit="return confirm('متأكد؟ كل الصلاحيات المضافة أو المسحوبة من مستخدم بعينه هتتمسح، وكل المستخدمين — حتى الموقوفين والمحذوفين — هيرجعوا لصلاحيات أدوارهم فقط. صلاحيات الأدوار نفسها مش هتتغير.')">
+                    @csrf
+                    <x-button variant="secondary">إرجاع صلاحيات الكل للأدوار</x-button>
+                </form>
                 <x-export-button route="export.users" />
                 <x-button variant="ghost" :href="route('admin.import.index')">{{ __('استيراد من Excel') }}</x-button>
                 <x-button variant="primary" :href="route('admin.users.create')">{{ __('مستخدم جديد') }}</x-button>

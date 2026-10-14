@@ -522,6 +522,8 @@ Route::middleware('auth')->group(function () {
         // F22.3 — users.
         Route::middleware('permission:users.manage')->group(function () {
             Route::resource('users', UserController::class)->except('show');
+            Route::post('users/reset-permission-overrides', [UserController::class, 'resetPermissionOverrides'])
+                ->name('users.reset-permission-overrides');
             // Soft-deleted, so it can come back. The id is bound by hand in the
             // controller because User carries no soft-delete global scope and a
             // deleted row is therefore still findable by route binding anyway.

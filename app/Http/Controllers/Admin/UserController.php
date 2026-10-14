@@ -14,6 +14,8 @@ use App\Services\UserDeletionService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -298,6 +300,43 @@ class UserController extends Controller
             'user' => $user->name,
             'password' => $password,
         ]);
+    }
+
+    /**
+     * Removes every per-user grant and revoke. Roles and their permission
+     * matrix are untouched, so every account immediately falls back to exactly
+     * what its assigned role grants — including inactive and deleted accounts.
+     */
+    public function resetPermissionOverrides(Request $request, ActivityLogger $logger): RedirectResponse
+    {
+        $this->authorize('viewAny', User::class);
+
+        [$removedOverrides, $affectedUsers] = DB::transaction(function () use ($request, $logger): array {
+            $affectedUsers = DB::table('permission_user')->distinct()->count('user_id');
+            $removedOverrides = DB::table('permission_user')->count();
+
+            DB::table('permission_user')->delete();
+
+            $logger->log(
+                action: 'user.permission_overrides_reset',
+                userId: $request->user()->id,
+                changes: [
+                    'removed_overrides' => $removedOverrides,
+                    'affected_users' => $affectedUsers,
+                ],
+                ip: $request->ip(),
+                userAgent: $request->userAgent(),
+            );
+
+            return [$removedOverrides, $affectedUsers];
+        });
+
+        Cache::forget(User::OVERRIDES_CACHE_KEY);
+
+        return back()->with(
+            'status',
+            "تم إرجاع صلاحيات كل المستخدمين للأدوار فقط. اتمسح {$removedOverrides} استثناء من {$affectedUsers} مستخدم."
+        );
     }
 
     /**
